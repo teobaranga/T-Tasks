@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- From: file:/C:/Users/Teo/AndroidStudioProjects/TTasks/MaterialNavigationDrawerModule/src/main/res/values/attrs.xml -->
+    <eat-comment/>
+    <attr format="string" name="neokree:fontPath"/>
+    <declare-styleable name="MaterialNavigationDrawer"><attr format="boolean" name="rippleBackport"/><attr format="integer" name="drawerType"/></declare-styleable>
+    <!-- From: file:/C:/Users/Teo/AndroidStudioProjects/TTasks/MaterialNavigationDrawerModule/src/main/res/values/dimens.xml -->
+    <eat-comment/>
+    <dimen name="drawerWidth">-1dp</dimen>
+    <dimen name="photoMarginTop">16dp</dimen>
+    <dimen name="statusMargin">0dp</dimen>
+    <dimen name="userSpace">164dp</dimen>
+    <!-- From: file:/C:/Users/Teo/AndroidStudioProjects/TTasks/MaterialNavigationDrawerModule/src/main/res/values/integers.xml -->
+    <eat-comment/>
+    <integer name="DRAWERTYPE_ACCOUNTS">0</integer>
+    <integer name="DRAWERTYPE_CUSTOM">2</integer>
+    <integer name="DRAWERTYPE_IMAGE">1</integer>
+    <integer name="DRAWERTYPE_NO_HEADER">3</integer>
+    <!-- From: file:/C:/Users/Teo/AndroidStudioProjects/TTasks/MaterialNavigationDrawerModule/src/main/res/values/strings.xml -->
+    <eat-comment/>
+    <string name="nothing"/>
+    <!-- From: file:/C:/Users/Teo/AndroidStudioProjects/TTasks/MaterialNavigationDrawerModule/src/main/res/values/styles.xml -->
+    <eat-comment/>
+    <style name="MaterialNavigationDrawerTheme" parent="Theme.AppCompat.NoActionBar">
+        <item name="drawerType">@integer/DRAWERTYPE_ACCOUNTS</item>
+        <item name="rippleBackport">false</item>
+    </style>
+    <style name="MaterialNavigationDrawerTheme.Light" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="drawerType">@integer/DRAWERTYPE_ACCOUNTS</item>
+        <item name="rippleBackport">false</item>
+    </style>
+    <style name="MaterialNavigationDrawerTheme.Light.DarkActionBar" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="theme">@style/ThemeOverlay.AppCompat.Dark.ActionBar</item>
+        <item name="popupTheme">@style/Base.V21.Theme.AppCompat.Light.Dialog</item>
+        <item name="drawerType">@integer/DRAWERTYPE_ACCOUNTS</item>
+        <item name="rippleBackport">false</item>
+    </style>
+    <style name="MaterialNavigationDrawerTheme.Light.DarkActionBar.TranslucentKitKatStatusBar" parent="MaterialNavigationDrawerTheme.Light.DarkActionBar"/>
+    <style name="MaterialNavigationDrawerTheme.Light.TranslucentKitKatStatusBar" parent="MaterialNavigationDrawerTheme.Light"/>
+    <style name="MaterialNavigationDrawerTheme.TranslucentKitKatStatusBar" parent="MaterialNavigationDrawerTheme"/>
+</resources>

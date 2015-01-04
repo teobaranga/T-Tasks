@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="at.markushi.ui"
+    android:versionCode="49"
+    android:versionName="1.2" >
+
+    <uses-sdk android:minSdkVersion="14" />
+
+    <application>
+    </application>
+
+</manifest>

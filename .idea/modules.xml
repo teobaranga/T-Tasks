@@ -2,8 +2,10 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/MaterialNavigationDrawerModule/MaterialNavigationDrawerModule.iml" filepath="$PROJECT_DIR$/MaterialNavigationDrawerModule/MaterialNavigationDrawerModule.iml" />
       <module fileurl="file://$PROJECT_DIR$/TTasks.iml" filepath="$PROJECT_DIR$/TTasks.iml" />
-      <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/materialDesign/materialDesign.iml" filepath="$PROJECT_DIR$/materialDesign/materialDesign.iml" />
+      <module fileurl="file://$PROJECT_DIR$/tasks-android-sample/tasks-android-sample.iml" filepath="$PROJECT_DIR$/tasks-android-sample/tasks-android-sample.iml" />
     </modules>
   </component>
 </project>

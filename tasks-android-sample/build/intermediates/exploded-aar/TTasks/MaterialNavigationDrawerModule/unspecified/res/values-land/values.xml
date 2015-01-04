@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- From: file:/C:/Users/Teo/AndroidStudioProjects/TTasks/MaterialNavigationDrawerModule/src/main/res/values-land/dimens.xml -->
+    <eat-comment/>
+    <dimen name="drawerWidth">320dp</dimen>
+</resources>

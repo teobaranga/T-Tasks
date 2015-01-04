@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- From: file:/home/markus/private/android_studio/em2/android-ui/src/main/res/values/attrs.xml -->
+    <eat-comment />
+
+    <declare-styleable name="ActionView">
+        <attr name="av_color" format="color" />
+        <attr name="av_action" format="enum">
+            <enum name="drawer" value="0" />
+            <enum name="back" value="1" />
+            <enum name="close" value="2" />
+            <enum name="plus" value="3" />
+        </attr>
+    </declare-styleable>
+    <!-- From: file:/home/markus/private/android_studio/em2/android-ui/src/main/res/values/values.xml -->
+    <eat-comment />
+
+    <integer name="av_animationDuration">340</integer>
+    <integer name="rcv_animationDurationHide">420</integer>
+    <integer name="rcv_animationDurationReveal">420</integer>
+
+</resources>

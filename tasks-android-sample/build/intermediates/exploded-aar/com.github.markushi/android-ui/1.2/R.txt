@@ -1,0 +1,12 @@
+int attr av_action 0x7f010001
+int attr av_color 0x7f010000
+int id back 0x7f020001
+int id close 0x7f020002
+int id drawer 0x7f020000
+int id plus 0x7f020003
+int integer av_animationDuration 0x7f030000
+int integer rcv_animationDurationHide 0x7f030001
+int integer rcv_animationDurationReveal 0x7f030002
+int[] styleable ActionView { 0x7f010000, 0x7f010001 }
+int styleable ActionView_av_action 1
+int styleable ActionView_av_color 0
