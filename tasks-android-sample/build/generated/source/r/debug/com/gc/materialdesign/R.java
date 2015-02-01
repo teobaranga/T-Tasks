@@ -17,22 +17,22 @@ public final class R {
 		public static final int snackbar_show_animation = 0x7f04000c;
 	}
 	public static final class attr {
-		public static final int animate = 0x7f010033;
-		public static final int checkBoxSize = 0x7f01002f;
-		public static final int checked = 0x7f01002e;
-		public static final int clickAfterRipple = 0x7f010035;
-		public static final int iconDrawable = 0x7f010031;
-		public static final int iconSize = 0x7f010032;
-		public static final int max = 0x7f010029;
-		public static final int min = 0x7f01002a;
-		public static final int progress = 0x7f01002c;
-		public static final int ringWidth = 0x7f01002d;
-		public static final int rippleBorderRadius = 0x7f010034;
-		public static final int rippleColor = 0x7f010026;
-		public static final int rippleSpeed = 0x7f010027;
-		public static final int showNumberIndicator = 0x7f010028;
-		public static final int thumbSize = 0x7f010030;
-		public static final int value = 0x7f01002b;
+		public static final int animate = 0x7f01002f;
+		public static final int checkBoxSize = 0x7f01002b;
+		public static final int checked = 0x7f01002a;
+		public static final int clickAfterRipple = 0x7f010031;
+		public static final int iconDrawable = 0x7f01002d;
+		public static final int iconSize = 0x7f01002e;
+		public static final int max = 0x7f010025;
+		public static final int min = 0x7f010026;
+		public static final int progress = 0x7f010028;
+		public static final int ringWidth = 0x7f010029;
+		public static final int rippleBorderRadius = 0x7f010030;
+		public static final int rippleColor = 0x7f010022;
+		public static final int rippleSpeed = 0x7f010023;
+		public static final int showNumberIndicator = 0x7f010024;
+		public static final int thumbSize = 0x7f01002c;
+		public static final int value = 0x7f010027;
 	}
 	public static final class color {
 		public static final int green = 0x7f090020;
@@ -48,43 +48,43 @@ public final class R {
 		public static final int background_progress = 0x7f020039;
 		public static final int background_switch_ball_uncheck = 0x7f02003a;
 		public static final int background_transparent = 0x7f02003b;
-		public static final int dialog_background = 0x7f02005a;
-		public static final int float_button1_shadowp = 0x7f02005b;
-		public static final int float_button_shadow1 = 0x7f02005c;
-		public static final int ic_launcher = 0x7f02005d;
-		public static final int ic_reloj_max = 0x7f020063;
-		public static final int shadow_down = 0x7f02006d;
-		public static final int shadow_right = 0x7f02006e;
-		public static final int sprite_check = 0x7f02006f;
+		public static final int dialog_background = 0x7f020057;
+		public static final int float_button1_shadowp = 0x7f020058;
+		public static final int float_button_shadow1 = 0x7f020059;
+		public static final int ic_launcher = 0x7f020060;
+		public static final int ic_reloj_max = 0x7f020066;
+		public static final int shadow_down = 0x7f020069;
+		public static final int shadow_right = 0x7f02006a;
+		public static final int sprite_check = 0x7f02006b;
 	}
 	public static final class id {
-		public static final int blue = 0x7f0b0061;
-		public static final int button_accept = 0x7f0b0067;
-		public static final int button_cancel = 0x7f0b0066;
-		public static final int buttonflat = 0x7f0b007b;
-		public static final int contentDialog = 0x7f0b0063;
-		public static final int contentSelector = 0x7f0b005d;
-		public static final int dialog_rootView = 0x7f0b0062;
-		public static final int green = 0x7f0b0060;
-		public static final int message = 0x7f0b0065;
-		public static final int message_scrollView = 0x7f0b0064;
-		public static final int number_indicator_spinner_content = 0x7f0b0079;
-		public static final int red = 0x7f0b005f;
-		public static final int rootSelector = 0x7f0b005c;
-		public static final int shape_bacground = 0x7f0b007d;
-		public static final int snackbar = 0x7f0b007a;
-		public static final int text = 0x7f0b007c;
-		public static final int title = 0x7f0b003f;
-		public static final int viewColor = 0x7f0b005e;
+		public static final int blue = 0x7f0b004f;
+		public static final int button_accept = 0x7f0b0055;
+		public static final int button_cancel = 0x7f0b0054;
+		public static final int buttonflat = 0x7f0b006b;
+		public static final int contentDialog = 0x7f0b0051;
+		public static final int contentSelector = 0x7f0b004b;
+		public static final int dialog_rootView = 0x7f0b0050;
+		public static final int green = 0x7f0b004e;
+		public static final int message = 0x7f0b0053;
+		public static final int message_scrollView = 0x7f0b0052;
+		public static final int number_indicator_spinner_content = 0x7f0b0069;
+		public static final int red = 0x7f0b004d;
+		public static final int rootSelector = 0x7f0b004a;
+		public static final int shape_bacground = 0x7f0b006d;
+		public static final int snackbar = 0x7f0b006a;
+		public static final int text = 0x7f0b006c;
+		public static final int title = 0x7f0b002d;
+		public static final int viewColor = 0x7f0b004c;
 	}
 	public static final class layout {
-		public static final int color_selector = 0x7f03001a;
-		public static final int dialog = 0x7f03001b;
-		public static final int number_indicator_spinner = 0x7f030023;
-		public static final int snackbar = 0x7f030024;
+		public static final int color_selector = 0x7f030019;
+		public static final int dialog = 0x7f03001a;
+		public static final int number_indicator_spinner = 0x7f030026;
+		public static final int snackbar = 0x7f030027;
 	}
 	public static final class styleable {
-		public static final int[] CustomAttributes = { 0x7f010026, 0x7f010027, 0x7f010028, 0x7f010029, 0x7f01002a, 0x7f01002b, 0x7f01002c, 0x7f01002d, 0x7f01002e, 0x7f01002f, 0x7f010030, 0x7f010031, 0x7f010032, 0x7f010033, 0x7f010034, 0x7f010035 };
+		public static final int[] CustomAttributes = { 0x7f010022, 0x7f010023, 0x7f010024, 0x7f010025, 0x7f010026, 0x7f010027, 0x7f010028, 0x7f010029, 0x7f01002a, 0x7f01002b, 0x7f01002c, 0x7f01002d, 0x7f01002e, 0x7f01002f, 0x7f010030, 0x7f010031 };
 		public static final int CustomAttributes_animate = 13;
 		public static final int CustomAttributes_checkBoxSize = 9;
 		public static final int CustomAttributes_checked = 8;

@@ -14,48 +14,51 @@
 
 package com.teo.sample;
 
-import com.gc.materialdesign.views.ProgressBarCircularIndeterminate;
 import com.google.api.client.googleapis.extensions.android.gms.auth.GooglePlayServicesAvailabilityIOException;
 import com.google.api.client.googleapis.extensions.android.gms.auth.UserRecoverableAuthIOException;
+import com.google.api.services.tasks.Tasks;
 
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
-import android.view.View;
-import android.widget.ListView;
+import android.support.v4.widget.SwipeRefreshLayout;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
 
 /**
  * Asynchronous task that also takes care of common needs, such as displaying progress,
  * authorization, exception handling, and notifying UI when operation succeeded.
- * 
+ *
  * @author Yaniv Inbar
  */
 abstract class CommonAsyncTask extends AsyncTask<Void, Void, Boolean> {
 
 
     final MainActivity activity;
-    final com.google.api.services.tasks.Tasks client;
-    //private final ProgressBarCircularIndeterminate progressBar;
-    //private final View progressBar;
+    final Tasks client;
 
     CommonAsyncTask(MainActivity activity) {
         this.activity = activity;
         client = activity.service;
-        //progressBar = (ProgressBarCircularIndeterminate) activity.findViewById(R.id.progressBarCircularIndeterminate);
     }
 
     @Override
     protected void onPreExecute() {
         super.onPreExecute();
-        activity.numAsyncTasks++;
-        //progressBar.setVisibility(View.VISIBLE);
+        activity.runOnUiThread(new Runnable() {
+            public void run() {
+                activity.mSwipeRefreshLayout = (SwipeRefreshLayout) activity.findViewById(R.id.activity_main_swipe_refresh_layout);
+                activity.mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+                    @Override
+                    public void onRefresh() {
+                        AsyncLoadTasks.run(activity);
+                    }
+                });
+                activity.mSwipeRefreshLayout.setColorSchemeResources(android.R.color.holo_blue_bright,
+                        android.R.color.holo_green_light,
+                        android.R.color.holo_orange_light,
+                        android.R.color.holo_red_light);
+                activity.mSwipeRefreshLayout.setRefreshing(true);
+            }
+        });
     }
 
     @Override
@@ -76,11 +79,8 @@ abstract class CommonAsyncTask extends AsyncTask<Void, Void, Boolean> {
     }
 
     @Override
-    protected final void onPostExecute(Boolean success) {
+    protected void onPostExecute(Boolean success) {
         super.onPostExecute(success);
-        if (0 == --activity.numAsyncTasks) {
-            //progressBar.setVisibility(View.GONE);
-        }
         if (success) {
             activity.refreshView();
         }

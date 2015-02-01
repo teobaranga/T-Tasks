@@ -13,85 +13,71 @@
  */
 package com.teo.sample;
 
+import com.google.android.gms.auth.GoogleAuthException;
+import com.google.android.gms.auth.GoogleAuthUtil;
+import com.google.android.gms.auth.UserRecoverableAuthException;
+import com.google.android.gms.common.AccountPicker;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.plus.Plus;
 import com.google.android.gms.plus.model.people.Person;
+import com.google.android.gms.common.ConnectionResult;
 import com.google.api.client.extensions.android.http.AndroidHttp;
-import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.gson.GsonFactory;
+import com.google.api.services.tasks.Tasks;
 import com.google.api.services.tasks.TasksScopes;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GooglePlayServicesClient.ConnectionCallbacks;
-import com.google.android.gms.common.GooglePlayServicesClient.OnConnectionFailedListener;
-
 import android.accounts.AccountManager;
-import android.app.Activity;
+import android.accounts.AccountManagerCallback;
+import android.accounts.AccountManagerFuture;
+import android.accounts.AuthenticatorException;
+import android.accounts.OperationCanceledException;
 import android.app.Dialog;
-import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
-import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Color;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.ColorDrawable;
-import android.graphics.drawable.Drawable;
-import android.media.Image;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
-import android.widget.ArrayAdapter;
-import android.widget.ListView;
 import android.widget.Toast;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
-import it.neokree.materialnavigationdrawer.MaterialAccount;
-import it.neokree.materialnavigationdrawer.MaterialAccountListener;
+import it.neokree.materialnavigationdrawer.elements.MaterialAccount;
+import it.neokree.materialnavigationdrawer.elements.MaterialSubheader;
+import it.neokree.materialnavigationdrawer.elements.listeners.MaterialAccountListener;
 import it.neokree.materialnavigationdrawer.MaterialNavigationDrawer;
-import it.neokree.materialnavigationdrawer.MaterialSection;
-import it.neokree.materialnavigationdrawer.MaterialSectionListener;
+import it.neokree.materialnavigationdrawer.elements.MaterialSection;
+import it.neokree.materialnavigationdrawer.elements.listeners.MaterialSectionListener;
 
 /**
  * Sample activity for Google Tasks API v1. It demonstrates how to use authorization to list tasks
  * with the user's permission.
- * 
+ *
  * @author Yaniv Inbar
  */
 
 
-public final class MainActivity extends MaterialNavigationDrawer implements MaterialAccountListener, GoogleApiClient.OnConnectionFailedListener, GoogleApiClient.ConnectionCallbacks {
-
-    /**
-    * Logging level for HTTP requests/responses.
-    *
-    * To turn on, set to {@link Level#CONFIG} or {@link Level#ALL} and run this from command line:
-    *
-    * adb shell setprop log.tag.HttpTransport DEBUG
-    * </pre>
-    */
+public final class MainActivity extends MaterialNavigationDrawer implements MaterialAccountListener,
+        MaterialAccount.OnAccountDataLoaded, GoogleApiClient.OnConnectionFailedListener, GoogleApiClient.ConnectionCallbacks {
 
     MaterialAccount account;
-    MaterialSection section1, section2, recorder, night, last, settingsSection;
+    MaterialAccount[] accounts;
+    MaterialSection tasksSection, section2, helpSection, aboutSection, settingsSection;
 
     /* Request code used to invoke sign in user interactions. */
-    private static final int RC_SIGN_IN = 3;
+    private static final int RC_SIGN_IN = 0;
+    private static final int RC_ADD = 3;
 
     /* Client used to interact with Google APIs. */
     private GoogleApiClient mGoogleApiClient;
@@ -101,30 +87,19 @@ public final class MainActivity extends MaterialNavigationDrawer implements Mate
      */
     private boolean mIntentInProgress;
 
-    private static final Level LOGGING_LEVEL = Level.OFF;
-
-    private static final String PREF_ACCOUNT_NAME = "accountName";
-
     static final String TAG = "MainActivity";
 
-    static final int REQUEST_GOOGLE_PLAY_SERVICES = 0;
-    static final int REQUEST_AUTHORIZATION = 1;
-    static final int REQUEST_ACCOUNT_PICKER = 2;
+    static final int REQUEST_GOOGLE_PLAY_SERVICES = 1;
+    static final int REQUEST_AUTHORIZATION = 2;
 
     final HttpTransport httpTransport = AndroidHttp.newCompatibleTransport();
     final JsonFactory jsonFactory = GsonFactory.getDefaultInstance();
 
-    GoogleAccountCredential credential;
-
-    List<String> tasksList;
-
-    ArrayAdapter<String> adapter;
-
-    com.google.api.services.tasks.Tasks service;
-
-    int numAsyncTasks;
-
-    FragmentIndex frag;
+    SwipeRefreshLayout mSwipeRefreshLayout = null;
+    ArrayList<Triplet<String,String,String>> tasksList;
+    RecyclerAdapter adapter;
+    Tasks service;
+    TasksFragment frag;
 
     void showGooglePlayServicesAvailabilityErrorDialog(final int connectionStatusCode) {
         runOnUiThread(new Runnable() {
@@ -138,8 +113,9 @@ public final class MainActivity extends MaterialNavigationDrawer implements Mate
     }
 
     void refreshView() {
-        adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, tasksList);
-        frag.setListAdapter(adapter);
+        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
+        recyclerView.getAdapter().notifyDataSetChanged();
+        mSwipeRefreshLayout.setRefreshing(false);
     }
 
     protected void onStart(){
@@ -150,13 +126,10 @@ public final class MainActivity extends MaterialNavigationDrawer implements Mate
     @Override
     protected void onResume() {
         super.onResume();
-        if (checkGooglePlayServicesAvailable()) {
-            haveGooglePlayServices();
-        }
     }
 
-    protected void onStop() {
-        super.onStop();
+    protected void onDestroy() {
+        super.onDestroy();
 
         if (mGoogleApiClient.isConnected()) {
             mGoogleApiClient.disconnect();
@@ -171,31 +144,11 @@ public final class MainActivity extends MaterialNavigationDrawer implements Mate
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         switch (requestCode) {
-            case REQUEST_GOOGLE_PLAY_SERVICES:
-                if (resultCode == Activity.RESULT_OK) {
-                    haveGooglePlayServices();
-                } else {
-                    checkGooglePlayServicesAvailable();
-                }
-                break;
-            case REQUEST_AUTHORIZATION:
-                if (resultCode == Activity.RESULT_OK) {
-                    AsyncLoadTasks.run(this);
-                } else {
-                    chooseAccount();
-                }
-                break;
-            case REQUEST_ACCOUNT_PICKER:
-                if (resultCode == Activity.RESULT_OK && data != null && data.getExtras() != null) {
-                    String accountName = data.getExtras().getString(AccountManager.KEY_ACCOUNT_NAME);
-                    if (accountName != null) {
-                        credential.setSelectedAccountName(accountName);
-                        SharedPreferences settings = getPreferences(Context.MODE_PRIVATE);
-                        SharedPreferences.Editor editor = settings.edit();
-                        editor.putString(PREF_ACCOUNT_NAME, accountName);
-                        editor.commit();
-                        AsyncLoadTasks.run(this);
-                    }
+            case RC_ADD:
+                if(resultCode == RESULT_OK) {
+                    MaterialAccount acc = new MaterialAccount(this.getResources(), data.getStringExtra(AccountManager.KEY_ACCOUNT_NAME),"", R.drawable.ic_photo, R.drawable.ic_cover);
+                    this.addAccount(acc);
+                    Toast.makeText(MainActivity.this, data.getStringExtra(AccountManager.KEY_ACCOUNT_NAME), Toast.LENGTH_SHORT).show();
                 }
                 break;
             case RC_SIGN_IN:
@@ -208,125 +161,109 @@ public final class MainActivity extends MaterialNavigationDrawer implements Mate
         }
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.menu_main, menu);
-        return super.onCreateOptionsMenu(menu);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.menu_refresh:
-                AsyncLoadTasks.run(this);
-                break;
-            case R.id.menu_accounts:
-                chooseAccount();
-                return true;
-            case R.id.action_settings:
-                Intent i = new Intent(this, SettingsActivity.class);
-                startActivity(i);
-                return true;
-        }
-        return super.onOptionsItemSelected(item);
-    }
-
-    /** Check that Google Play services APK is installed and up to date. */
-    private boolean checkGooglePlayServicesAvailable() {
-        final int connectionStatusCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
-        if (GooglePlayServicesUtil.isUserRecoverableError(connectionStatusCode)) {
-            showGooglePlayServicesAvailabilityErrorDialog(connectionStatusCode);
-            return false;
-        }
-        return true;
-    }
-
-    private void haveGooglePlayServices() {
-        // check if there is already an account selected
-        if (credential.getSelectedAccountName() == null) {
-            // ask user to choose account
-            chooseAccount();
-        } else {
-            // load calendars
-            AsyncLoadTasks.run(this);
-        }
-    }
-
     private void chooseAccount() {
-        startActivityForResult(credential.newChooseAccountIntent(), REQUEST_ACCOUNT_PICKER);
+        // disconnects the account and the account picker
+        // stays there until another account is chosen
+        if (mGoogleApiClient.isConnected()) {
+            // Prior to disconnecting, run clearDefaultAccount().
+//            Plus.AccountApi.clearDefaultAccount(mGoogleApiClient);
+//            Plus.AccountApi.revokeAccessAndDisconnect(mGoogleApiClient)
+//                    .setResultCallback(new ResultCallback<Status>() {
+//
+//                        public void onResult(Status status) {
+//                            // mGoogleApiClient is now disconnected and access has been revoked.
+//                            // Trigger app logic to comply with the developer policies
+//                        }
+//
+//                    });
+            Plus.AccountApi.clearDefaultAccount(mGoogleApiClient);
+            mGoogleApiClient.disconnect();
+            mGoogleApiClient.connect();
+        }
+    }
+
+    private class OnAccountAddComplete implements AccountManagerCallback<Bundle> {
+        @Override
+        public void run(AccountManagerFuture<Bundle> result) {
+            Bundle bundle;
+            try {
+                bundle = result.getResult();
+            } catch (OperationCanceledException e) {
+                e.printStackTrace();
+                return;
+            } catch (AuthenticatorException e) {
+                e.printStackTrace();
+                return;
+            } catch (IOException e) {
+                e.printStackTrace();
+                return;
+            }
+
+            MaterialAccount acc = new MaterialAccount(MainActivity.this.getResources(), "",
+                    bundle.getString(AccountManager.KEY_ACCOUNT_NAME), R.drawable.ic_photo, R.drawable.ic_cover);
+            MainActivity.this.addAccount(acc);
+
+//            mAccount = new Account(
+//                    bundle.getString(AccountManager.KEY_ACCOUNT_NAME),
+//                    bundle.getString(AccountManager.KEY_ACCOUNT_TYPE)
+//            );
+            // do more stuff
+        }
     }
 
     @Override
     public void init(Bundle savedInstanceState) {
+
+        tasksList = new ArrayList<>();
+        Scope taskScope = new Scope(TasksScopes.TASKS);
 
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .addApi(Plus.API)
                 .addScope(Plus.SCOPE_PLUS_PROFILE)
+                .addScope(taskScope)
                 .build();
 
         // add placeholder account
-        account = new MaterialAccount("","",new ColorDrawable(R.color.cyan_500), this.getResources().getDrawable(R.drawable.bamboo));
+        account = new MaterialAccount(this.getResources(), "","", R.drawable.ic_photo, R.drawable.ic_cover);
         this.addAccount(account);
 
         // set listener
         this.setAccountListener(this);
 
-        //this.replaceDrawerHeader(this.getResources().getDrawable(R.drawable.mat2));
-
         // create sections
-        frag = new FragmentIndex();
-        section1 = this.newSection("Section 1", frag);
-        section2 = this.newSection("Section 2",new MaterialSectionListener() {
+        adapter = new RecyclerAdapter(tasksList);
+        frag = new TasksFragment();
+
+        tasksSection = this.newSection("Tasks", this.getResources().getDrawable(R.drawable.ic_assignment_white_48dp), frag);
+        section2 = this.newSection("Add an account", new MaterialSectionListener() {
             @Override
             public void onClick(MaterialSection section) {
                 Toast.makeText(MainActivity.this, "Section 2 Clicked", Toast.LENGTH_SHORT).show();
-
+                AccountManager acm = AccountManager.get(getApplicationContext());
+                acm.addAccount("com.google", null, null, null, MainActivity.this, new OnAccountAddComplete(), null);
+                //Toast.makeText(MainActivity.this, acm.getAccounts().toString(), Toast.LENGTH_SHORT).show();
+//                Intent googlePicker = AccountPicker.newChooseAccountIntent(null, null, new String[] { GoogleAuthUtil.GOOGLE_ACCOUNT_TYPE }, true, null, null, null, null);
+//                startActivityForResult(googlePicker, RC_ADD);
                 section.unSelect();
             }
         });
-        // recorder section with icon and 10 notifications
-        recorder = this.newSection("Recorder",this.getResources().getDrawable(R.drawable.ic_launcher), frag).setNotifications(10);
-        // night section with icon, section color and notifications
-        night = this.newSection("Night Section", this.getResources().getDrawable(R.drawable.ic_launcher), frag)
-                .setSectionColor(Color.parseColor("#2196f3"),Color.parseColor("#1565c0")).setNotifications(150);
-        // night section with section color
-        last = this.newSection("Last Section", frag).setSectionColor(Color.parseColor("#ff9800"),Color.parseColor("#ef6c00"));
 
-        Intent i = new Intent(this,SettingsActivity.class);
-        settingsSection = this.newSection("Settings",this.getResources().getDrawable(R.drawable.ic_launcher),i);
+        settingsSection = this.newSection("Settings",this.getResources().getDrawable(R.drawable.ic_settings_white_48dp), new Intent(this,SettingsActivity.class));
+        helpSection = this.newSection("Help & Feedback", this.getResources().getDrawable(R.drawable.ic_help_white_48dp), new Intent(this,SettingsActivity.class));
+        aboutSection = this.newSection("About Tasks", this.getResources().getDrawable(R.drawable.ic_info_outline_white_48dp), new Intent(this,SettingsActivity.class));
 
         // add your sections to the drawer
-        this.addSection(section1);
+        this.addSection(tasksSection);
         this.addSection(section2);
-        this.addSubheader("Subheader");
-        this.addSection(recorder);
-        this.addSection(night);
         this.addDivisor();
-        this.addSection(last);
         this.addBottomSection(settingsSection);
+        this.addBottomSection(helpSection);
+        this.addBottomSection(aboutSection);
         this.disableLearningPattern();
 
         this.setBackPattern(MaterialNavigationDrawer.BACKPATTERN_CUSTOM);
-
-        // enable logging
-        Logger.getLogger("com.google.api.client").setLevel(LOGGING_LEVEL);
-        // view and menu
-        //setContentView(R.layout.calendarlist);
-        //listView = (ListView) findViewById(R.id.list);
-        // Google Accounts
-        credential = GoogleAccountCredential.usingOAuth2(this, Collections.singleton(TasksScopes.TASKS));
-        SharedPreferences settings = getPreferences(Context.MODE_PRIVATE);
-        credential.setSelectedAccountName(settings.getString(PREF_ACCOUNT_NAME, null));
-        // Tasks client
-        service = new com.google.api.services.tasks.Tasks.Builder(httpTransport, jsonFactory, credential)
-                        .setApplicationName("Google-TasksAndroidSample/1.0").build();
-
-        // start thread
-        //t.start();
-
     }
 
     public void onConnectionFailed(ConnectionResult result) {
@@ -350,23 +287,63 @@ public final class MainActivity extends MaterialNavigationDrawer implements Mate
         if (Plus.PeopleApi.getCurrentPerson(mGoogleApiClient) != null) {
             Person currentPerson = Plus.PeopleApi.getCurrentPerson(mGoogleApiClient);
             String personName = currentPerson.getDisplayName();
-            String cover = currentPerson.getCover().getCoverPhoto().getUrl();
+            String cover = null;
+            if(currentPerson.hasCover())
+                cover = currentPerson.getCover().getCoverPhoto().getUrl();
             String pic = currentPerson.getImage().getUrl();
-            String email = Plus.AccountApi.getAccountName(mGoogleApiClient);
+            final String email = Plus.AccountApi.getAccountName(mGoogleApiClient);
+
+            // Google Accounts
+            AsyncTask<Void, Void, String> task = new AsyncTask<Void, Void, String>() {
+                @Override
+                protected String doInBackground(Void... params) {
+                    String token = null;
+
+                    try {
+                        token = GoogleAuthUtil.getToken(MainActivity.this,
+                                                        email,
+                                                        "oauth2:" + TasksScopes.TASKS + " " + Plus.SCOPE_PLUS_PROFILE.toString());
+                    } catch (IOException transientEx) {
+                        // Network or server error, try later
+                        Log.e(TAG, transientEx.toString());
+                    } catch (UserRecoverableAuthException e) {
+                        // Recover (with e.getIntent())
+                        Log.e(TAG, e.toString());
+                        Intent recover = e.getIntent();
+                        startActivityForResult(recover, RC_SIGN_IN);
+                    } catch (GoogleAuthException authEx) {
+                        // The call is not ever expected to succeed
+                        // assuming you have already verified that
+                        // Google Play services is installed.
+                        Log.e(TAG, authEx.toString());
+                    }
+                    return token;
+                }
+
+                @Override
+                protected void onPostExecute(String token) {
+                    //Log.i(TAG, token);
+                    GoogleCredential credential = new GoogleCredential();
+                    credential.setAccessToken(token);
+                    // Tasks client
+                    service = new com.google.api.services.tasks.Tasks.Builder(httpTransport, jsonFactory, credential)
+                            .setApplicationName("Google-TasksAndroidSample/1.0").build();
+
+                    AsyncLoadTasks.run(MainActivity.this);
+                }
+            };
+            task.execute();
 
             account.setTitle(personName);
             account.setSubTitle(email);
 
-            new setPics().execute(cover, pic);
-
+            new setPics().execute(pic, cover);
         }
     }
 
     @Override
     public void onAccountOpening(MaterialAccount account) {
         // open profile activity
-        Intent i = new Intent(this,SettingsActivity.class);
-        startActivity(i);
     }
 
     @Override
@@ -374,30 +351,23 @@ public final class MainActivity extends MaterialNavigationDrawer implements Mate
         // when another account is selected
     }
 
-    class setPics extends AsyncTask<String, Void, List<Drawable>> {
+    class setPics extends AsyncTask<String, Void, List<Bitmap>> {
 
-        protected List<Drawable> doInBackground(String... url) {
+        protected List<Bitmap> doInBackground(String... url) {
             try {
-                Bitmap cover, pic;
+                Bitmap pic, cover;
+                InputStream input;
+                List<Bitmap> array = new ArrayList<>();
 
-                HttpURLConnection connection = (HttpURLConnection) new URL(url[0]).openConnection();
-                connection.connect();
-                InputStream input = connection.getInputStream();
-                cover = BitmapFactory.decodeStream(input);
-                connection.disconnect();
-
-                connection = (HttpURLConnection) new URL(url[1]).openConnection();
-                connection.connect();
-                input = connection.getInputStream();
+                input = new java.net.URL(url[0]).openStream();
                 pic = BitmapFactory.decodeStream(input);
-                connection.disconnect();
+                array.add(pic);
 
-                Drawable c = new BitmapDrawable(getApplicationContext().getResources(), cover);
-                Drawable p = new BitmapDrawable(getApplicationContext().getResources(), pic);
-
-                List<Drawable> array = new ArrayList<Drawable>();
-                array.add(c);
-                array.add(p);
+                if(url[1] != null) {
+                    input = new java.net.URL(url[1]).openStream();
+                    cover = BitmapFactory.decodeStream(input);
+                    array.add(cover);
+                }
 
                 return array;
             } catch (Exception e) {
@@ -407,11 +377,12 @@ public final class MainActivity extends MaterialNavigationDrawer implements Mate
         }
 
         @Override
-        protected final void onPostExecute(List<Drawable> pic) {
-            super.onPostExecute(pic);
+        protected final void onPostExecute(List<Bitmap> pics) {
+            super.onPostExecute(pics);
 
-            account.setBackground(pic.get(0));
-            account.setPhoto(pic.get(1));
+            account.setPhoto(pics.get(0));
+            if(pics.size() == 2)
+                account.setBackground(pics.get(1));
 
             runOnUiThread(new Runnable() {
                 @Override
@@ -422,4 +393,23 @@ public final class MainActivity extends MaterialNavigationDrawer implements Mate
         }
     }
 
+}
+
+
+class Triplet<T, U, V>
+{
+    final T taskName;
+    final U completed;
+    final V dateDue;
+
+    Triplet(T taskName, U completed, V dateDue)
+    {
+        this.taskName = taskName;
+        this.completed = completed;
+        this.dateDue = dateDue;
+    }
+
+    T getTaskName(){ return taskName;}
+    U getCompleted(){ return completed;}
+    V getDateDue(){ return dateDue;}
 }

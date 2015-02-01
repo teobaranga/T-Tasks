@@ -35,12 +35,13 @@ repositories {
 }
 
 dependencies {
-    compile ('com.google.apis:google-api-services-tasks:v1-rev35-1.19.0'){ exclude module: 'httpclient'}
-    compile ('com.google.api-client:google-api-client-android:1.19.0') { exclude module: 'httpclient' }
+    compile ('com.google.apis:google-api-services-tasks:v1-rev41-1.19.1'){ exclude module: 'httpclient'}
+    compile ('com.google.api-client:google-api-client-android:1.19.1') { exclude module: 'httpclient' }
     compile ('com.google.http-client:google-http-client-gson:1.19.0') { exclude module: 'httpclient' }
-    compile 'com.google.android.gms:play-services:6.5.87'
+    compile 'com.google.android.gms:play-services-plus:6.5.87'
     compile 'com.android.support:appcompat-v7:21.0.3'
     compile 'com.android.support:support-v4:21.0.3'
+    compile 'com.android.support:recyclerview-v7:21.0.3'
     compile project(':MaterialNavigationDrawerModule')
     compile project(':materialDesign')
 }

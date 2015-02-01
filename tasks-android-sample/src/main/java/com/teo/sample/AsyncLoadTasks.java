@@ -14,15 +14,19 @@
 
 package com.teo.sample;
 
+import android.support.v7.widget.RecyclerView;
+
 import com.google.api.services.tasks.model.Task;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 /**
  * Asynchronously load the tasks.
- * 
+ *
  * @author Yaniv Inbar
  */
 class AsyncLoadTasks extends CommonAsyncTask {
@@ -33,20 +37,38 @@ class AsyncLoadTasks extends CommonAsyncTask {
 
     @Override
     protected void doInBackground() throws IOException {
-        List<String> result = new ArrayList<String>();
-        List<Task> tasks =
-                client.tasks().list("@default").setFields("items/title").execute().getItems();
+
+        final ArrayList<Triplet<String,String,String>> tasksList = new ArrayList<>();
+        List<Task> tasks = client.tasks().list("@default").setFields("items(title,status,due)").execute().getItems();
         if (tasks != null) {
             for (Task task : tasks) {
-                result.add(task.getTitle());
+                tasksList.add(new Triplet<>(task.getTitle(), task.getStatus(), (task.getDue() == null) ? "null" : task.getDue().toString()));
             }
         } else {
-            result.add("No tasks.");
+            tasksList.add(new Triplet<>("No tasks.", "", ""));
         }
-        activity.tasksList = result;
+
+        //Sorting
+        Collections.sort(tasksList, new Comparator<Triplet<String,String,String>>() {
+            @Override
+            public int compare(Triplet<String,String,String> task1, Triplet<String,String,String> task2) {
+                return task1.getCompleted().compareTo(task2.getCompleted());
+            }
+        });
+
+        activity.tasksList = tasksList;
+        activity.runOnUiThread(new Runnable() {
+            public void run() {
+                RecyclerView recyclerView = (RecyclerView) activity.findViewById(R.id.recyclerView);
+                ((RecyclerAdapter)recyclerView.getAdapter()).setDataset(tasksList);
+                recyclerView.getAdapter().notifyDataSetChanged();
+                activity.mSwipeRefreshLayout.setRefreshing(false);
+            }
+        });
     }
 
     static void run(MainActivity mainActivity) {
         new AsyncLoadTasks(mainActivity).execute();
     }
 }
+

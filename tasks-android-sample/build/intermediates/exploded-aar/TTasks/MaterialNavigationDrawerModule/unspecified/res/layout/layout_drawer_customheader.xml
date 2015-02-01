@@ -12,7 +12,7 @@
     <ScrollView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_above="@+id/separator"
+        android:layout_above="@+id/bottom_sections"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:layout_alignParentRight="true"
@@ -54,13 +54,6 @@
 
         </RelativeLayout>
     </ScrollView>
-
-    <View
-        android:id="@+id/separator"
-        android:layout_width="match_parent"
-        android:layout_height="1dip"
-        android:layout_above="@+id/bottom_sections"
-        android:background="#e0e0e0" />
 
     <LinearLayout
         android:id="@+id/bottom_sections"
