@@ -1,0 +1,110 @@
+apply plugin: 'com.android.library'
+apply plugin: 'maven'
+apply plugin: 'signing'
+
+version '0.1'
+group 'com.bignerdranch.android'
+
+def isSnapshot = version.endsWith('-SNAPSHOT')
+
+
+// For upload to maven central with uploadArchives task, define these values in
+// gradle.properties.
+def ossrhUsername = hasProperty('ossrhUsername') ?
+        getProperty('ossrhUsername') :
+        'dummyUsername'
+def ossrhPassword = hasProperty('ossrhPassword') ?
+        getProperty('ossrhPassword') :
+        'dummyPassword'
+
+android {
+    compileSdkVersion 22
+    buildToolsVersion "22.0.1"
+
+    defaultConfig {
+        minSdkVersion 11
+        targetSdkVersion 22
+        versionCode 1
+        versionName project.version.toString()
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_7
+        targetCompatibility JavaVersion.VERSION_1_7
+    }
+}
+
+    signing {
+        required { !isSnapshot && gradle.taskGraph.hasTask("uploadArchives") }
+
+        sign configurations.archives
+    }
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            beforeDeployment { MavenDeployment deployment ->
+                signing.signPom(deployment)
+            }
+
+            repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
+                authentication(userName: ossrhUsername, password: ossrhPassword)
+            }
+
+            pom.project {
+                packaging 'aar'
+                name 'RecyclerView MultiSelect'
+                description 'An Android library that handles displaying and managing selections in RecyclerView.'
+
+                url 'https://bignerdranch.github.io/recyclerview-multiselect/'
+
+                scm {
+                    url 'https://github.com/bignerdranch/recyclerview-multiselect'
+                    connection 'scm:git:https://github.com/bignerdranch/recyclerview-multiselect.git'
+                }
+
+                licenses {
+                    license {
+                        name 'MIT License'
+                        url 'http://opensource.org/licenses/MIT'
+                        distribution 'repo'
+                    }
+                }
+
+                developers {
+                    developer {
+                        id 'jingibus'
+                        name 'Bill Phillips'
+                        email 'phillips@bignerdranch.com'
+                    }
+                }
+            }
+        }
+    }
+}
+
+android.libraryVariants.all { variant ->
+    task("generate${variant.name.substring(0,1).toUpperCase() + variant.name.substring(1)}Javadoc", type: Javadoc) {
+        source = variant.javaCompile.source
+        def androidJar = "${android.sdkDirectory}/platforms/${android.compileSdkVersion}/android.jar"
+
+        classpath = files(variant.javaCompile.classpath.files, androidJar)
+        options {
+            links "http://docs.oracle.com/javase/7/docs/api/"
+            linksOffline "http://d.android.com/reference","${android.sdkDirectory}/docs/reference"
+        }
+        exclude '**/BuildConfig.java'
+        exclude '**/R.java'
+    }
+}
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile 'com.android.support:recyclerview-v7:22.1.1'
+    compile 'com.android.support:appcompat-v7:22.1.1'
+}
