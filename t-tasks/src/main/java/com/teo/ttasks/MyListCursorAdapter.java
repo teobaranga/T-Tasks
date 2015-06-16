@@ -1,4 +1,4 @@
-package com.teo.sample;
+package com.teo.ttasks;
 
 import android.content.Context;
 import android.database.Cursor;
@@ -15,9 +15,9 @@ import com.bignerdranch.android.multiselector.ModalMultiSelectorCallback;
 import com.bignerdranch.android.multiselector.MultiSelector;
 import com.bignerdranch.android.multiselector.SwappingHolder;
 
-import java.util.Date;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Locale;
 
 /**
@@ -25,61 +25,11 @@ import java.util.Locale;
  * Source: https://gist.github.com/skyfishjy/443b7448f59be978bc59
  */
 
-public class MyListCursorAdapter extends CursorRecyclerViewAdapter<MyListCursorAdapter.ViewHolder>{
+public class MyListCursorAdapter extends CursorRecyclerViewAdapter<MyListCursorAdapter.ViewHolder> {
 
     static OnItemClickListener mItemClickListener;
     static MultiSelector mMultiSelector = new MultiSelector();
     static ActionMode aMode;
-
-    public MyListCursorAdapter(Context context,Cursor cursor){
-        super(context,cursor);
-    }
-
-    public static class ViewHolder extends SwappingHolder implements View.OnClickListener, View.OnLongClickListener{
-        // each data item is just a string in this case
-        public MainActivity mainActivity;
-        public CheckBox mCheckBox;
-        public TextView mTaskTitle;
-        public TextView mDay;
-        public TextView mDayWeek;
-        public ViewHolder(View v) {
-            super(v, mMultiSelector);
-            mCheckBox = (CheckBox) v.findViewById(R.id.checkBox);
-            mDay = (TextView) v.findViewById(R.id.textViewDay);
-            mDayWeek = (TextView) v.findViewById(R.id.textViewDayWeek);
-            mTaskTitle = (TextView) v.findViewById(R.id.taskTitle);
-            mainActivity = (MainActivity) v.getContext();
-            v.setOnClickListener(this);
-            v.setOnLongClickListener(this);
-            v.setLongClickable(true);
-        }
-
-        @Override
-        public void onClick(View v) {
-            if (mMultiSelector.tapSelection(this)) {
-                if(mMultiSelector.getSelectedPositions().isEmpty() && aMode != null)
-                    aMode.finish();
-            }
-        }
-
-        @Override
-        public boolean onLongClick(View v) {
-            if (mMultiSelector.tapSelection(this)) {
-                if (mMultiSelector.isSelected(this.getPosition(), this.getItemId()))
-                    mMultiSelector.setSelected(this, true);
-                else{
-                    mMultiSelector.setSelected(this, false);
-                    if(mMultiSelector.getSelectedPositions().isEmpty() && aMode != null)
-                        aMode.finish();
-                }
-                return true;
-            }
-            aMode = mainActivity.startSupportActionMode(mActionMode);
-            //mMultiSelector.setSelected(this, true);
-            return true;
-        }
-    }
-
     private static ActionMode.Callback mActionMode = new ModalMultiSelectorCallback(mMultiSelector) {
 
         @Override
@@ -112,8 +62,8 @@ public class MyListCursorAdapter extends CursorRecyclerViewAdapter<MyListCursorA
         }
     };
 
-    public interface OnItemClickListener {
-        public void onItemClick(View view , int position);
+    public MyListCursorAdapter(Context context, Cursor cursor) {
+        super(context, cursor);
     }
 
     public void SetOnItemClickListener(final OnItemClickListener ItemClickListener) {
@@ -142,7 +92,7 @@ public class MyListCursorAdapter extends CursorRecyclerViewAdapter<MyListCursorA
         SimpleDateFormat dayWeekFormat = new SimpleDateFormat("E", Locale.CANADA);
         SimpleDateFormat dayFormat = new SimpleDateFormat("d", Locale.CANADA);
         try {
-            if (!dueDate.equals("")){
+            if (!dueDate.equals("")) {
                 Date date = format.parse(dueDate);
                 viewHolder.mDayWeek.setText(dayWeekFormat.format(date));
                 viewHolder.mDay.setText(dayFormat.format(date));
@@ -152,7 +102,57 @@ public class MyListCursorAdapter extends CursorRecyclerViewAdapter<MyListCursorA
         }
         viewHolder.mTaskTitle.setText(title);
 
-        if(status.contains("completed"))
+        if (status.contains("completed"))
             viewHolder.mCheckBox.setChecked(true);
+    }
+
+    public interface OnItemClickListener {
+        public void onItemClick(View view, int position);
+    }
+
+    public static class ViewHolder extends SwappingHolder implements View.OnClickListener, View.OnLongClickListener {
+        // each data item is just a string in this case
+        public MainActivity mainActivity;
+        public CheckBox mCheckBox;
+        public TextView mTaskTitle;
+        public TextView mDay;
+        public TextView mDayWeek;
+
+        public ViewHolder(View v) {
+            super(v, mMultiSelector);
+            mCheckBox = (CheckBox) v.findViewById(R.id.checkBox);
+            mDay = (TextView) v.findViewById(R.id.textViewDay);
+            mDayWeek = (TextView) v.findViewById(R.id.textViewDayWeek);
+            mTaskTitle = (TextView) v.findViewById(R.id.taskTitle);
+            mainActivity = (MainActivity) v.getContext();
+            v.setOnClickListener(this);
+            v.setOnLongClickListener(this);
+            v.setLongClickable(true);
+        }
+
+        @Override
+        public void onClick(View v) {
+            if (mMultiSelector.tapSelection(this)) {
+                if (mMultiSelector.getSelectedPositions().isEmpty() && aMode != null)
+                    aMode.finish();
+            }
+        }
+
+        @Override
+        public boolean onLongClick(View v) {
+            if (mMultiSelector.tapSelection(this)) {
+                if (mMultiSelector.isSelected(this.getPosition(), this.getItemId()))
+                    mMultiSelector.setSelected(this, true);
+                else {
+                    mMultiSelector.setSelected(this, false);
+                    if (mMultiSelector.getSelectedPositions().isEmpty() && aMode != null)
+                        aMode.finish();
+                }
+                return true;
+            }
+            aMode = mainActivity.startSupportActionMode(mActionMode);
+            //mMultiSelector.setSelected(this, true);
+            return true;
+        }
     }
 }

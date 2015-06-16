@@ -2,10 +2,10 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 22
-    buildToolsVersion "22.0.1"
+    buildToolsVersion "23.0.0 rc2"
 
     defaultConfig {
-        applicationId "com.teo.sample"
+        applicationId "com.teo.ttasks"
         minSdkVersion 15
         targetSdkVersion 22
         versionCode 1
@@ -17,13 +17,6 @@ android {
             proguardFile getDefaultProguardFile('proguard-android.txt')
         }
     }
-    productFlavors {
-    }
-}
-
-repositories {
-    mavenCentral()
-    mavenLocal()  // For google-play-services is not on Maven Central.
 }
 
 dependencies {
@@ -36,14 +29,14 @@ dependencies {
     compile('com.google.http-client:google-http-client-gson:1.20.0') {
         exclude module: 'httpclient'
     }
-    compile 'com.google.android.gms:play-services-plus:7.3.0'
-    compile 'com.android.support:appcompat-v7:22.1.1'
-    compile 'com.android.support:support-v4:22.1.1'
-    compile 'com.android.support:recyclerview-v7:22.1.1'
-    compile 'com.android.support:cardview-v7:22.1.1'
+    compile 'com.google.android.gms:play-services-plus:7.5.0'
+    compile 'com.android.support:appcompat-v7:22.2.0'
+    compile 'com.android.support:support-v4:22.2.0'
+    compile 'com.android.support:recyclerview-v7:22.2.0'
+    compile 'com.android.support:cardview-v7:22.2.0'
     compile 'de.psdev.licensesdialog:licensesdialog:1.7.0'
     compile 'com.melnykov:floatingactionbutton:1.3.0'
-    compile('com.mikepenz.materialdrawer:library:2.9.7@aar') {
+    compile('com.mikepenz:materialdrawer:3.0.7@aar') {
         transitive = true
     }
     compile project(':recyclerview-multiselect')

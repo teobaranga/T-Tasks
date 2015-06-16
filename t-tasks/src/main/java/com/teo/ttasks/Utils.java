@@ -12,16 +12,16 @@
  * the License.
  */
 
-package com.teo.sample;
-
-import com.google.android.gms.auth.GoogleAuthException;
-import com.google.api.client.googleapis.json.GoogleJsonError;
-import com.google.api.client.googleapis.json.GoogleJsonResponseException;
+package com.teo.ttasks;
 
 import android.app.Activity;
 import android.content.res.Resources;
 import android.util.Log;
 import android.widget.Toast;
+
+import com.google.android.gms.auth.GoogleAuthException;
+import com.google.api.client.googleapis.json.GoogleJsonError;
+import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 
 /**
  * Common utilities.
@@ -34,8 +34,8 @@ public class Utils {
      * Logs the given throwable and shows an error alert dialog with its message.
      *
      * @param activity activity
-     * @param tag log tag to use
-     * @param t throwable to log and show
+     * @param tag      log tag to use
+     * @param t        throwable to log and show
      */
     public static void logAndShow(Activity activity, String tag, Throwable t) {
         Log.e(tag, "Error", t);
@@ -55,8 +55,8 @@ public class Utils {
      * Logs the given message and shows an error alert dialog with it.
      *
      * @param activity activity
-     * @param tag log tag to use
-     * @param message message to log and show or {@code null} for none
+     * @param tag      log tag to use
+     * @param message  message to log and show or {@code null} for none
      */
     public static void logAndShowError(Activity activity, String tag, String message) {
         String errorMessage = getErrorMessage(activity, message);
@@ -68,7 +68,7 @@ public class Utils {
      * Shows an error alert dialog with the given message.
      *
      * @param activity activity
-     * @param message message to show or {@code null} for none
+     * @param message  message to show or {@code null} for none
      */
     public static void showError(Activity activity, String message) {
         String errorMessage = getErrorMessage(activity, message);

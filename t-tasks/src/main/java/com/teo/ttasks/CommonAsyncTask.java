@@ -12,14 +12,14 @@
  * the License.
  */
 
-package com.teo.sample;
+package com.teo.ttasks;
+
+import android.os.AsyncTask;
+import android.support.v4.widget.SwipeRefreshLayout;
 
 import com.google.api.client.googleapis.extensions.android.gms.auth.GooglePlayServicesAvailabilityIOException;
 import com.google.api.client.googleapis.extensions.android.gms.auth.UserRecoverableAuthIOException;
 import com.google.api.services.tasks.Tasks;
-
-import android.os.AsyncTask;
-import android.support.v4.widget.SwipeRefreshLayout;
 
 import java.io.IOException;
 

@@ -1,4 +1,4 @@
-package com.teo.sample;
+package com.teo.ttasks;
 
 import android.app.Dialog;
 import android.content.Context;
@@ -26,6 +26,8 @@ import com.google.android.gms.auth.UserRecoverableAuthException;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
+import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
 import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.plus.Plus;
 import com.google.android.gms.plus.model.people.Person;
@@ -38,7 +40,9 @@ import com.google.api.services.tasks.Tasks;
 import com.google.api.services.tasks.TasksScopes;
 import com.mikepenz.google_material_typeface_library.GoogleMaterial;
 import com.mikepenz.materialdrawer.Drawer;
+import com.mikepenz.materialdrawer.DrawerBuilder;
 import com.mikepenz.materialdrawer.accountswitcher.AccountHeader;
+import com.mikepenz.materialdrawer.accountswitcher.AccountHeaderBuilder;
 import com.mikepenz.materialdrawer.model.DividerDrawerItem;
 import com.mikepenz.materialdrawer.model.PrimaryDrawerItem;
 import com.mikepenz.materialdrawer.model.ProfileDrawerItem;
@@ -63,40 +67,32 @@ import java.io.InputStream;
 // TODO: implement background color depending on priority
 // TODO: implement multiple accounts
 
-public final class MainActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener,
-        GoogleApiClient.ConnectionCallbacks {
-
-    /* Request code used to invoke sign in user interactions. */
-    private static final int RC_SIGN_IN = 3;
-    //private static final int RC_ADD = 4;
-
-    /* Client used to interact with Google APIs. */
-    private GoogleApiClient mGoogleApiClient;
-
-    /* A flag indicating that a PendingIntent is in progress and prevents
-     * us from starting further intents.
-     */
-    private boolean mIntentInProgress;
+public final class MainActivity extends AppCompatActivity
+        implements OnConnectionFailedListener, ConnectionCallbacks {
 
     static final String TAG = "MainActivity";
-
+    //private static final int RC_ADD = 4;
     static final int REQUEST_GOOGLE_PLAY_SERVICES = 1;
     static final int REQUEST_AUTHORIZATION = 2;
-
+    /* Request code used to invoke sign in user interactions. */
+    private static final int RC_SIGN_IN = 3;
+    private static final int PROFILE_SETTING = 1;
     final HttpTransport httpTransport = AndroidHttp.newCompatibleTransport();
     final JsonFactory jsonFactory = GsonFactory.getDefaultInstance();
-
     public SwipeRefreshLayout mSwipeRefreshLayout = null;
     public MyListCursorAdapter adapter;
     public Tasks service;
     public ConnectivityManager cm;
     public NetworkInfo ni;
-
-    private static final int PROFILE_SETTING = 1;
-
+    /* Client used to interact with Google APIs. */
+    private GoogleApiClient mGoogleApiClient;
+    /* A flag indicating that a PendingIntent is in progress and prevents
+     * us from starting further intents.
+     */
+    private boolean mIntentInProgress;
     //save our header or result
-    private AccountHeader.Result headerResult = null;
-    private Drawer.Result result = null;
+    private AccountHeader accountHeader = null;
+    private Drawer drawer = null;
     private IProfile profile = null;
 
     @Override
@@ -110,11 +106,11 @@ public final class MainActivity extends AppCompatActivity implements GoogleApiCl
 
         Scope taskScope = new Scope(TasksScopes.TASKS);
         mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
                 .addApi(Plus.API)
                 .addScope(Plus.SCOPE_PLUS_PROFILE)
                 .addScope(taskScope)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
                 .build();
 
         mGoogleApiClient.connect();
@@ -125,12 +121,13 @@ public final class MainActivity extends AppCompatActivity implements GoogleApiCl
 
         profile = new ProfileDrawerItem()
                 .withNameShown(true)
-                .withName("")
+                .withName("Hey")
                 .withEmail("")
-                .withIcon(ResourcesCompat.getDrawable(getResources(), R.drawable.ic_photo, null));
+                .withIcon(ResourcesCompat.getDrawable(getResources(), R.drawable.ic_photo, null))
+                .withIdentifier(0);
 
         // Create the AccountHeader
-        headerResult = new AccountHeader()
+        accountHeader = new AccountHeaderBuilder()
                 .withActivity(this)
                 .withHeaderBackground(R.drawable.ic_cover)
                 .addProfiles(
@@ -141,24 +138,26 @@ public final class MainActivity extends AppCompatActivity implements GoogleApiCl
                 .withOnAccountHeaderListener(new AccountHeader.OnAccountHeaderListener() {
                     @Override
                     public boolean onProfileChanged(View view, IProfile profile, boolean current) {
-                        // sample usage of the onProfileChanged listener
+                        // ttasks usage of the onProfileChanged listener
                         // if the clicked item has the identifier 1 add a new profile
                         // TODO: Create new account
 //                        if (profile instanceof IDrawerItem && profile.getIdentifier() == PROFILE_SETTING) {
 //                        }
 
+                        Log.d("iProfile", profile + "");
+                        return true;
                         //false if you have not consumed the event and it should close the drawer
-                        return false;
+                        //return false;
                     }
                 })
                 .withSavedInstance(savedInstanceState)
                 .build();
 
         //Create the drawer
-        result = new Drawer()
+        drawer = new DrawerBuilder()
                 .withActivity(this)
                 .withToolbar(toolbar)
-                .withAccountHeader(headerResult) //set the AccountHeader we created earlier for the header
+                .withAccountHeader(accountHeader) //set the AccountHeader we created earlier for the header
                 .addDrawerItems(
                         new PrimaryDrawerItem().withName("Tasks").withIcon(ResourcesCompat.getDrawable(getResources(), R.drawable.ic_assignment_white_48dp, null)).withIdentifier(1).withCheckable(false),
                         new DividerDrawerItem(),
@@ -168,7 +167,7 @@ public final class MainActivity extends AppCompatActivity implements GoogleApiCl
                 ) // add the items we want to use with our Drawer
                 .withOnDrawerItemClickListener(new Drawer.OnDrawerItemClickListener() {
                     @Override
-                    public void onItemClick(AdapterView<?> parent, View view, int position, long id, IDrawerItem drawerItem) {
+                    public boolean onItemClick(AdapterView<?> parent, View view, int position, long id, IDrawerItem drawerItem) {
                         //check if the drawerItem is set.
                         //there are different reasons for the drawerItem to be null
                         //--> click on the header
@@ -195,6 +194,8 @@ public final class MainActivity extends AppCompatActivity implements GoogleApiCl
                                         .replace(R.id.fragment_container, tasksFragment).commit();
                             }
                         }
+
+                        return false;
                     }
                 })
                 .withSavedInstance(savedInstanceState)
@@ -203,9 +204,9 @@ public final class MainActivity extends AppCompatActivity implements GoogleApiCl
         //only set the active selection or active profile if we do not recreate the activity
         if (savedInstanceState == null) {
             // set the selection to the first item
-            result.setSelectionByIdentifier(1, true);
+            drawer.setSelectionByIdentifier(1, true);
             //set the active profile
-            headerResult.setActiveProfile(profile);
+            accountHeader.setActiveProfile(profile);
         }
     }
 
@@ -222,6 +223,7 @@ public final class MainActivity extends AppCompatActivity implements GoogleApiCl
     }
 
     public void onConnectionFailed(ConnectionResult result) {
+        Log.d(TAG, "Connection failed!");
         if (!mIntentInProgress && result.hasResolution()) {
             try {
                 mIntentInProgress = true;
@@ -236,14 +238,16 @@ public final class MainActivity extends AppCompatActivity implements GoogleApiCl
         }
     }
 
+    @Override
     public void onConnected(Bundle connectionHint) {
+        Log.d(TAG, "Connection succeeded!");
         // We've resolved any connection errors.  mGoogleApiClient can be used to
         // access Google APIs on behalf of the user.
         if (Plus.PeopleApi.getCurrentPerson(mGoogleApiClient) != null) {
             Person currentPerson = Plus.PeopleApi.getCurrentPerson(mGoogleApiClient);
             String personName = currentPerson.getDisplayName();
             String cover = null;
-            if(currentPerson.hasCover())
+            if (currentPerson.hasCover())
                 cover = currentPerson.getCover().getCoverPhoto().getUrl();
             // by default the profile url gives 50x50 px image only
             // we can replace the value with whatever dimension we want by
@@ -295,10 +299,10 @@ public final class MainActivity extends AppCompatActivity implements GoogleApiCl
 
             profile.setName(personName);
             profile.setEmail(email);
-            headerResult.updateProfileByIdentifier(profile);
+            accountHeader.updateProfileByIdentifier(profile);
 
             // get pictures only if connected to the internet
-            if (ni != null){
+            if (ni != null) {
                 new AsyncTask<String, Void, Drawable[]>() {
                     @Override
                     protected Drawable[] doInBackground(String... url) {
@@ -311,7 +315,7 @@ public final class MainActivity extends AppCompatActivity implements GoogleApiCl
                             pic = BitmapFactory.decodeStream(input);
                             pics[0] = new BitmapDrawable(getResources(), pic);
 
-                            if(url[1] != null) {
+                            if (url[1] != null) {
                                 input = new java.net.URL(url[1]).openStream();
                                 cover = BitmapFactory.decodeStream(input);
                                 pics[1] = new BitmapDrawable(getResources(), cover);
@@ -329,8 +333,10 @@ public final class MainActivity extends AppCompatActivity implements GoogleApiCl
                         super.onPostExecute(pics);
 
                         profile.setIcon(pics[0]);
-                        if(pics[1] != null)
-                            headerResult.setBackground(pics[1]);
+                        accountHeader.updateProfileByIdentifier(profile);
+
+                        if (pics[1] != null)
+                            accountHeader.setBackground(pics[1]);
                     }
                 }.execute(pic, cover);
             }
@@ -424,17 +430,17 @@ public final class MainActivity extends AppCompatActivity implements GoogleApiCl
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         //add the values which need to be saved from the drawer to the bundle
-        outState = result.saveInstanceState(outState);
+        outState = drawer.saveInstanceState(outState);
         //add the values which need to be saved from the accountHeader to the bundle
-        outState = headerResult.saveInstanceState(outState);
+        outState = accountHeader.saveInstanceState(outState);
         super.onSaveInstanceState(outState);
     }
 
     @Override
     public void onBackPressed() {
         //handle the back press :D close the drawer first and if the drawer is closed close the activity
-        if (result != null && result.isDrawerOpen()) {
-            result.closeDrawer();
+        if (drawer != null && drawer.isDrawerOpen()) {
+            drawer.closeDrawer();
         } else {
             super.onBackPressed();
         }

@@ -7,7 +7,6 @@ group 'com.bignerdranch.android'
 
 def isSnapshot = version.endsWith('-SNAPSHOT')
 
-
 // For upload to maven central with uploadArchives task, define these values in
 // gradle.properties.
 def ossrhUsername = hasProperty('ossrhUsername') ?
@@ -19,7 +18,7 @@ def ossrhPassword = hasProperty('ossrhPassword') ?
 
 android {
     compileSdkVersion 22
-    buildToolsVersion "22.0.1"
+    buildToolsVersion "23.0.0 rc2"
 
     defaultConfig {
         minSdkVersion 11
@@ -39,11 +38,11 @@ android {
     }
 }
 
-    signing {
-        required { !isSnapshot && gradle.taskGraph.hasTask("uploadArchives") }
+signing {
+    required { !isSnapshot && gradle.taskGraph.hasTask("uploadArchives") }
 
-        sign configurations.archives
-    }
+    sign configurations.archives
+}
 
 uploadArchives {
     repositories {
@@ -89,14 +88,14 @@ uploadArchives {
 }
 
 android.libraryVariants.all { variant ->
-    task("generate${variant.name.substring(0,1).toUpperCase() + variant.name.substring(1)}Javadoc", type: Javadoc) {
+    task("generate${variant.name.substring(0, 1).toUpperCase() + variant.name.substring(1)}Javadoc", type: Javadoc) {
         source = variant.javaCompile.source
         def androidJar = "${android.sdkDirectory}/platforms/${android.compileSdkVersion}/android.jar"
 
         classpath = files(variant.javaCompile.classpath.files, androidJar)
         options {
             links "http://docs.oracle.com/javase/7/docs/api/"
-            linksOffline "http://d.android.com/reference","${android.sdkDirectory}/docs/reference"
+            linksOffline "http://d.android.com/reference", "${android.sdkDirectory}/docs/reference"
         }
         exclude '**/BuildConfig.java'
         exclude '**/R.java'

@@ -12,7 +12,7 @@
  * the License.
  */
 
-package com.teo.sample;
+package com.teo.ttasks;
 
 import com.google.api.services.tasks.model.Task;
 
@@ -32,12 +32,16 @@ class AsyncLoadTasks extends CommonAsyncTask {
         super(mainActivity);
     }
 
+    static void run(MainActivity mainActivity) {
+        new AsyncLoadTasks(mainActivity).execute();
+    }
+
     @Override
     protected void doInBackground() throws IOException {
 
         // Get up to date tasks if connected to the Internet
         activity.ni = activity.cm.getActiveNetworkInfo();
-        if (activity.ni != null){
+        if (activity.ni != null) {
 
             final TasksDBAdapter dbHelper = new TasksDBAdapter(activity.getApplicationContext());
             dbHelper.open();
@@ -49,8 +53,7 @@ class AsyncLoadTasks extends CommonAsyncTask {
             List<Task> tasks = client.tasks().list("@default").setFields("items(completed,deleted,due,notes,status,title,updated)").execute().getItems();
             if (tasks == null) {
                 dbHelper.insertTask("user", "@default", "No Tasks", "N/A", "N/A");
-            }
-            else{
+            } else {
                 // Sorting by due date
                 // TODO: implement custom sorting
                 Collections.sort(tasks, new Comparator<Task>() {
@@ -62,7 +65,7 @@ class AsyncLoadTasks extends CommonAsyncTask {
                     }
                 });
 
-                for (Task task : tasks){
+                for (Task task : tasks) {
                     // TODO: change user and @default
                     dbHelper.insertTask("user", "@default", task.getTitle(), task.getStatus(), task.getDue() == null ? "" : task.getDue().toString());
                 }
@@ -74,10 +77,6 @@ class AsyncLoadTasks extends CommonAsyncTask {
                 }
             });
         }
-    }
-
-    static void run(MainActivity mainActivity) {
-        new AsyncLoadTasks(mainActivity).execute();
     }
 }
 

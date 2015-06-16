@@ -1,4 +1,4 @@
-package com.teo.sample;
+package com.teo.ttasks;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -9,6 +9,10 @@ import android.view.ViewGroup;
 public class AboutFragment extends Fragment {
 
     private static final String TEXT_FRAGMENT = "TEXT_FRAGMENT";
+
+    public AboutFragment() {
+        // Required empty public constructor
+    }
 
     /**
      * Use this factory method to create a new instance of
@@ -23,10 +27,6 @@ public class AboutFragment extends Fragment {
         args.putString(TEXT_FRAGMENT, text);
         fragment.setArguments(args);
         return fragment;
-    }
-
-    public AboutFragment() {
-        // Required empty public constructor
     }
 
     @Override

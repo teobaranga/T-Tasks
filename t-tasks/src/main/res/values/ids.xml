@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Widget -->
+    <item name="widget_header" type="id" />
+    <item name="widget_header_weekday" type="id" />
+    <item name="widget_header_date" type="id" />
+    <item name="widget_header2" type="id" />
+    <item name="widget_header2_weekday" type="id" />
+    <item name="widget_header2_date" type="id" />
+    <item name="widget_events_list" type="id" />
+
+</resources>

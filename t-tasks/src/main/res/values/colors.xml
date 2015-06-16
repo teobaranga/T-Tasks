@@ -1,5 +1,10 @@
-<!-- https://gist.github.com/kalehv/bae765c756e94455ed88 -->
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
+
+    <color name="background_color">#fffafafa</color>
+
+    <!-- Material Colors -->
+    <!-- https://gist.github.com/kalehv/bae765c756e94455ed88 -->
     <color name="orange_50">#fff3e0</color>
     <color name="orange_100">#ffe0b2</color>
     <color name="orange_200">#ffcc80</color>
@@ -41,4 +46,17 @@
     <color name="brown_800">#4e342e</color>
     <color name="brown_900">#3e2723</color>
 
+    <!-- Widget -->
+    <color name="widget_header_normal">@color/brown_700</color>
+    <color name="widget_header_pressed">#ff325bdc</color>
+    <color name="widget_text_chip_dark">#ff333333</color>
+    <color name="widget_text_chip_white">#ffffffff</color>
+    <color name="widget_text_day_first">@color/brown_700</color>
+    <color name="widget_text_day_dark">#ff333333</color>
+    <color name="widget_text_day_light">#ff757575</color>
+    <color name="widget_text_day_medium">#ff777777</color>
+    <color name="widget_text_loading">#ff757575</color>
+    <color name="widget_text_main_header">#ffffffff</color>
+    <color name="widget_text_week">@color/widget_text_day_medium</color>
+    <color name="widget_week_line">#ffd6d6d6</color>
 </resources>

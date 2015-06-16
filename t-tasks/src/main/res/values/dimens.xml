@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Widget -->
+    <dimen name="widget_min_width">110.0dip</dimen>
+    <dimen name="widget_min_resize_width">110.0dip</dimen>
+    <dimen name="widget_min_resize_height">110.0dip</dimen>
+    <dimen name="widget_min_height">180.0dip</dimen>
+    <dimen name="widget_chip_corner_radius">2.0dip</dimen>
+    <dimen name="widget_header_corner_radius">2.0dip</dimen>
+    <dimen name="widget_chip_height_1">36.0sp</dimen>
+    <dimen name="widget_chip_height_2">60.0sp</dimen>
+    <dimen name="widget_chip_height_rich">76.0sp</dimen>
+    <dimen name="widget_chip_narrow_height_1">30.0sp</dimen>
+    <dimen name="widget_chip_narrow_height_2">50.0sp</dimen>
+    <dimen name="widget_footer_height">4.0dip</dimen>
+    <dimen name="widget_footer_narrow_height">6.0dip</dimen>
+    <dimen name="widget_day_width">46.0dip</dimen>
+    <dimen name="widget_day_height">40.0sp</dimen>
+    <dimen name="widget_font_chip_month_day">22.0sp</dimen>
+    <dimen name="widget_font_chip_weekday">12.0sp</dimen>
+    <dimen name="widget_font_chip">12.0sp</dimen>
+    <dimen name="widget_font_chip_narrow">12.0sp</dimen>
+    <dimen name="widget_font_header_date">22.0sp</dimen>
+    <dimen name="widget_font_header_weekday">12.0sp</dimen>
+    <dimen name="widget_header_height">52.0sp</dimen>
+    <dimen name="widget_loading_height">@dimen/widget_chip_height_1</dimen>
+    <dimen name="widget_padding_chip_top">4.0dip</dimen>
+    <dimen name="widget_padding_chip_end">8.0dip</dimen>
+    <dimen name="widget_padding_chip_narrow_top">2.0dip</dimen>
+    <dimen name="widget_padding_chip_narrow_end">8.0dip</dimen>
+    <dimen name="widget_padding_chip_text_start">8.0dip</dimen>
+    <dimen name="widget_padding_chip_text_narrow_start">7.0dip</dimen>
+    <dimen name="widget_padding_chip_rich_narrow_top">4.0dip</dimen>
+    <dimen name="widget_padding_edge_to_text_narrow_start">15.0dip</dimen>
+    <dimen name="widget_padding_header_text_start">8.0dip</dimen>
+
+    <!--
+Refer to App Widget Documentation for margin information
+http://developer.android.com/guide/topics/appwidgets/index.html#CreatingLayout
+    -->
+    <dimen name="widget_margin">8dp</dimen>
+
+    <dimen name="activity_padding">16dp</dimen>
+</resources>
