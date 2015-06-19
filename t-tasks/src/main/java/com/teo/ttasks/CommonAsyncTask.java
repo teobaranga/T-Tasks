@@ -52,10 +52,7 @@ abstract class CommonAsyncTask extends AsyncTask<Void, Void, Boolean> {
                         AsyncLoadTasks.run(activity);
                     }
                 });
-                activity.mSwipeRefreshLayout.setColorSchemeResources(android.R.color.holo_blue_bright,
-                        android.R.color.holo_green_light,
-                        android.R.color.holo_orange_light,
-                        android.R.color.holo_red_light);
+                activity.mSwipeRefreshLayout.setColorSchemeResources(R.color.colorAccent);
                 if (activity.ni != null) {
                     activity.mSwipeRefreshLayout.setRefreshing(true);
                 }

@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <color name="background_color">#fffafafa</color>
+    <color name="colorPrimary">@color/brown_500</color>
+    <color name="colorPrimaryDark">@color/brown_700</color>
+    <color name="colorAccent">@color/orange_A400</color>
 
     <!-- Material Colors -->
     <!-- https://gist.github.com/kalehv/bae765c756e94455ed88 -->
@@ -47,6 +49,7 @@
     <color name="brown_900">#3e2723</color>
 
     <!-- Widget -->
+    <color name="background_color">#fffafafa</color>
     <color name="widget_header_normal">@color/brown_700</color>
     <color name="widget_header_pressed">#ff325bdc</color>
     <color name="widget_text_chip_dark">#ff333333</color>
