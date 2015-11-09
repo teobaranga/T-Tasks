@@ -21,14 +21,12 @@ import android.database.Cursor;
 import android.database.DataSetObserver;
 import android.support.v7.widget.RecyclerView;
 
-import com.bignerdranch.android.multiselector.SwappingHolder;
-
 /**
  * Created by skyfishjy on 10/31/14.
  * Source: https://gist.github.com/skyfishjy/443b7448f59be978bc59
  */
 
-public abstract class CursorRecyclerViewAdapter<VH extends SwappingHolder> extends RecyclerView.Adapter<VH> {
+public abstract class CursorRecyclerViewAdapter<VH extends RecyclerView.ViewHolder> extends RecyclerView.Adapter<VH> {
 
     private Context mContext;
 

@@ -6,7 +6,8 @@ import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.util.Log;
+
+import timber.log.Timber;
 
 /**
  * Created by Teo on 2015-02-03.
@@ -22,7 +23,6 @@ public class TasksDBAdapter {
     public static final String KEY_STATUS = "status";
     public static final String KEY_DUE = "due";
 
-    private static final String TAG = "TasksDBAdapter";
     private static final String DATABASE_NAME = "Tasks";
     private static final String SQLITE_TABLE = "TasksTable";
     private static final int DATABASE_VERSION = 1;
@@ -74,7 +74,7 @@ public class TasksDBAdapter {
     }
 
     public Cursor fetchTasksByUser(String user) throws SQLException {
-        Log.w(TAG, user);
+        Timber.w(user);
         Cursor mCursor;
         if (user == null || user.length() == 0) {
             mCursor = mDb.query(SQLITE_TABLE, new String[]{
@@ -123,13 +123,13 @@ public class TasksDBAdapter {
 
         @Override
         public void onCreate(SQLiteDatabase db) {
-            Log.w(TAG, DATABASE_CREATE);
+            Timber.w(DATABASE_CREATE);
             db.execSQL(DATABASE_CREATE);
         }
 
         @Override
         public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-            Log.w(TAG, "Upgrading database from version " + oldVersion + " to "
+            Timber.w("Upgrading database from version " + oldVersion + " to "
                     + newVersion + ", which will destroy all old data");
             db.execSQL("DROP TABLE IF EXISTS " + SQLITE_TABLE);
             onCreate(db);
