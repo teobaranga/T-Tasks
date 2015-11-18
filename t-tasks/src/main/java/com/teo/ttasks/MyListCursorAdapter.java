@@ -74,9 +74,9 @@ public class MyListCursorAdapter extends CursorRecyclerViewAdapter<MyListCursorA
         public ViewHolder(View v) {
             super(v);
             mCheckBox = (CheckBox) v.findViewById(R.id.checkBox);
-            mDay = (TextView) v.findViewById(R.id.textViewDay);
-            mDayWeek = (TextView) v.findViewById(R.id.textViewDayWeek);
-            mTaskTitle = (TextView) v.findViewById(R.id.taskTitle);
+            mDay = (TextView) v.findViewById(R.id.date_day_number);
+            mDayWeek = (TextView) v.findViewById(R.id.date_day_name);
+            mTaskTitle = (TextView) v.findViewById(R.id.title_task);
             mainActivity = (MainActivity) v.getContext();
             v.setOnClickListener(this);
             v.setOnLongClickListener(this);

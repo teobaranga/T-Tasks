@@ -2,69 +2,84 @@
     android:id="@+id/card_view"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:card_view="http://schemas.android.com/apk/res-auto"
-    android:layout_width="wrap_content"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="3dp"
-    card_view:cardCornerRadius="4dp">
+    card_view:cardCornerRadius="4dp"
+    tools:layout_margin="8dp">
 
-    <RelativeLayout
-        android:layout_width="fill_parent"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="?android:attr/selectableItemBackground">
+        android:background="?android:attr/selectableItemBackground"
+        android:orientation="horizontal">
 
-        <CheckBox
-            android:id="@+id/checkBox"
+        <LinearLayout
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="true"
-            android:layout_centerVertical="true"
-            android:layout_marginLeft="8dp"
-            android:layout_marginStart="8dp"
-            android:focusable="false"
-            android:focusableInTouchMode="false"/>
-
-        <TextView
-            android:id="@+id/taskTitle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
-            android:layout_toEndOf="@+id/checkBox"
-            android:layout_toLeftOf="@+id/date"
-            android:layout_toRightOf="@+id/checkBox"
-            android:layout_toStartOf="@+id/date"
-            android:text="Buy groceries"
-            android:textColor="#ff727272"
-            android:textSize="16sp"/>
-
-        <RelativeLayout
-            android:id="@+id/date"
-            android:layout_width="40dp"
-            android:layout_height="wrap_content"
-            android:layout_alignParentEnd="true"
-            android:layout_alignParentRight="true"
-            android:layout_centerVertical="true"
-            android:layout_marginEnd="14dp"
-            android:layout_marginRight="14dp">
+            android:layout_height="match_parent"
+            android:background="@color/colorAccent"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="8dp">
 
             <TextView
-                android:id="@+id/textViewDay"
+                android:id="@+id/date_day_number"
+                style="@style/TextAppearance.AppCompat.Large.Inverse"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_centerHorizontal="true"
-                android:text="1"
-                android:textAppearance="?android:attr/textAppearanceLarge"/>
+                android:layout_gravity="center_horizontal"
+                android:textStyle="bold"
+                tools:text="1"/>
 
             <TextView
-                android:id="@+id/textViewDayWeek"
+                android:id="@+id/date_day_name"
+                style="@style/TextAppearance.AppCompat.Small.Inverse"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/textViewDay"
-                android:layout_centerHorizontal="true"
-                android:text="Wed"
-                android:textAppearance="?android:attr/textAppearance"/>
-        </RelativeLayout>
+                android:layout_gravity="center_horizontal"
+                android:textStyle="bold"
+                tools:text="Wed"/>
 
-    </RelativeLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="8dp">
+
+            <TextView
+                android:id="@+id/task_title"
+                style="@style/TextAppearance.AppCompat.Title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="2dp"
+                android:singleLine="true"
+                tools:text="Buy groceries"/>
+
+            <TextView
+                android:id="@+id/task_description"
+                style="@style/TextAppearance.AppCompat.Small"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="4dp"
+                android:singleLine="true"
+                android:textStyle="italic"
+                tools:text="Go to the supermarket and pick them up"/>
+
+            <TextView
+                android:id="@+id/task_reminder"
+                style="@style/TextAppearance.AppCompat.Small"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:drawableLeft="@drawable/ic_alarm_18dp"
+                android:drawableStart="@drawable/ic_alarm_18dp"
+                android:gravity="bottom"
+                android:singleLine="true"
+                tools:text="5:00PM"/>
+
+        </LinearLayout>
+
+    </LinearLayout>
 
 </android.support.v7.widget.CardView>
