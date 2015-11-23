@@ -9,6 +9,7 @@
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         app:recyclerviewEmptyView="@layout/layout_empty_tasks"
+        app:recyclerviewPadding="8dp"
         app:recyclerviewScrollbars="vertical"/>
 
     <com.marshalchen.ultimaterecyclerview.ui.floatingactionbutton.AddFloatingActionButton
@@ -17,7 +18,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_margin="8dp"
-        app:urv_fab_colorNormal="@color/deep_orange_500"
-        app:urv_fab_colorPressed="@color/deep_orange_300"/>
+        app:urv_fab_colorNormal="@color/colorAccent"
+        app:urv_fab_colorPressed="@color/orange_300"/>
 
 </FrameLayout>

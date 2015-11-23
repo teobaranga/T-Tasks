@@ -6,7 +6,6 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.CheckBox;
 import android.widget.TextView;
 
 import com.teo.ttasks.activities.MainActivity;
@@ -37,7 +36,6 @@ public class MyListCursorAdapter extends CursorRecyclerViewAdapter<MyListCursorA
 
     @Override
     public void onBindViewHolder(ViewHolder viewHolder, Cursor cursor) {
-        viewHolder.mCheckBox.setChecked(false);
         viewHolder.mDayWeek.setText("");
         viewHolder.mDay.setText("");
         viewHolder.mTaskTitle.setText("");
@@ -58,25 +56,20 @@ public class MyListCursorAdapter extends CursorRecyclerViewAdapter<MyListCursorA
             e.printStackTrace();
         }
         viewHolder.mTaskTitle.setText(title);
-
-        if (status.contains("completed"))
-            viewHolder.mCheckBox.setChecked(true);
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener {
         // each data item is just a string in this case
         public MainActivity mainActivity;
-        public CheckBox mCheckBox;
         public TextView mTaskTitle;
         public TextView mDay;
         public TextView mDayWeek;
 
         public ViewHolder(View v) {
             super(v);
-            mCheckBox = (CheckBox) v.findViewById(R.id.checkBox);
             mDay = (TextView) v.findViewById(R.id.date_day_number);
             mDayWeek = (TextView) v.findViewById(R.id.date_day_name);
-            mTaskTitle = (TextView) v.findViewById(R.id.title_task);
+            mTaskTitle = (TextView) v.findViewById(R.id.task_title);
             mainActivity = (MainActivity) v.getContext();
             v.setOnClickListener(this);
             v.setOnLongClickListener(this);

@@ -1,5 +1,6 @@
 package com.teo.ttasks.activities;
 
+import android.Manifest;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -11,7 +12,6 @@ import android.graphics.drawable.BitmapDrawable;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.v4.app.DialogFragment;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -27,8 +27,13 @@ import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListe
 import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.plus.Plus;
 import com.google.android.gms.plus.model.people.Person;
+import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
+import com.google.api.client.util.ExponentialBackOff;
 import com.google.api.services.tasks.TasksScopes;
+import com.google.api.services.tasks.model.Task;
 import com.google.api.services.tasks.model.TaskList;
+import com.google.api.services.tasks.model.Tasks;
+import com.greysonparrelli.permiso.Permiso;
 import com.koushikdutta.ion.Ion;
 import com.mikepenz.google_material_typeface_library.GoogleMaterial;
 import com.mikepenz.materialdrawer.AccountHeader;
@@ -44,6 +49,7 @@ import com.mikepenz.materialdrawer.model.interfaces.IDrawerItem;
 import com.mikepenz.materialdrawer.model.interfaces.IProfile;
 import com.teo.ttasks.AboutActivity;
 import com.teo.ttasks.R;
+import com.teo.ttasks.TTasks;
 import com.teo.ttasks.TaskUtils;
 import com.teo.ttasks.TasksFragment;
 import com.teo.ttasks.receivers.NetworkInfoReceiver;
@@ -51,6 +57,7 @@ import com.teo.ttasks.receivers.NetworkInfoReceiver;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import io.realm.Realm;
@@ -66,11 +73,11 @@ import timber.log.Timber;
  * @author Teo Baranga
  */
 
-// TODO: store task lists offline
-// TODO: Authenticate only once with Google
-// TODO: fix SwipeRefreshLayout after switching fragments
-// TODO: implement multiple accounts
-
+/*
+ * TODO: Authenticate only once with Google
+ * TODO: fix SwipeRefreshLayout after switching fragments
+ * TODO: implement multiple accounts
+ */
 public final class MainActivity extends AppCompatActivity implements OnConnectionFailedListener, ConnectionCallbacks {
 
     //private static final int RC_ADD = 4;
@@ -80,22 +87,23 @@ public final class MainActivity extends AppCompatActivity implements OnConnectio
     private static final int ID_MANAGE_ACCOUNT = 1001;
     private static final int ID_ADD_TASKLIST = 2000;
     private static final int ID_ABOUT = 2;
-
     // Request code to use when launching the resolution activity
     private static final int RC_RESOLVE_ERROR = 1001;
 
     // Unique tag for the error dialog fragment
-    private static final String DIALOG_ERROR = "dialog_error";
     private static final String STATE_RESOLVING_ERROR = "resolving_error";
 
-    public IProfile profile = null;
-    /* Client used to interact with Google APIs. */
+    public ProfileDrawerItem profile = null;
+    /**
+     * Client used to interact with Google APIs.
+     */
     private GoogleApiClient mGoogleApiClient;
     // save our header or result
     private AccountHeader accountHeader = null;
     private Drawer drawer = null;
     // Bool to track whether the app is already resolving an error
     private boolean mResolvingError = false;
+
     private ArrayList<IDrawerItem> taskLists = new ArrayList<>();
     private NetworkInfoReceiver mNetworkInfoReceiver;
 
@@ -106,6 +114,8 @@ public final class MainActivity extends AppCompatActivity implements OnConnectio
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        Permiso.getInstance().setActivity(this);
 
         // Initialize Realm
         RealmConfiguration realmConfiguration = new RealmConfiguration.Builder(this).build();
@@ -137,8 +147,6 @@ public final class MainActivity extends AppCompatActivity implements OnConnectio
         // Initialize the default profile
         profile = new ProfileDrawerItem()
                 .withNameShown(true)
-                .withName("")
-                .withEmail("")
                 .withIcon(ResourcesCompat.getDrawable(getResources(), R.drawable.ic_photo, null))
                 .withIdentifier(ID_PROFILE_DEFAULT);
 
@@ -164,11 +172,11 @@ public final class MainActivity extends AppCompatActivity implements OnConnectio
                 .withSavedInstance(savedInstanceState)
                 .build();
 
-        //Create the drawer
+        // Create the drawer
         drawer = new DrawerBuilder()
                 .withActivity(this)
                 .withToolbar(toolbar)
-                .withAccountHeader(accountHeader) //set the AccountHeader we created earlier for the header
+                .withAccountHeader(accountHeader)
                 .withDrawerItems(taskLists)
                 .addDrawerItems(
                         new PrimaryDrawerItem()
@@ -190,13 +198,9 @@ public final class MainActivity extends AppCompatActivity implements OnConnectio
                                 .withIcon(GoogleMaterial.Icon.gmd_info_outline)
                                 .withIdentifier(ID_ABOUT)
                                 .withSelectable(false)
-                ) // add the items we want to use with our Drawer
+                )
                 .withOnDrawerItemClickListener((View view, int position, IDrawerItem drawerItem) -> {
-                    //check if the drawerItem is set.
-                    //there are different reasons for the drawerItem to be null
-                    //--> click on the header
-                    //--> click on the footer
-                    //those items don't contain a drawerItem
+                    // The header and footer items don't contain a drawerItem
                     if (drawerItem != null) {
                         switch (drawerItem.getIdentifier()) {
                             case ID_ADD_TASKLIST:
@@ -233,7 +237,7 @@ public final class MainActivity extends AppCompatActivity implements OnConnectio
                 .withSavedInstance(savedInstanceState)
                 .build();
 
-        //only set the active selection or active profile if we do not recreate the activity
+        // Only set the active selection or active profile if we do not recreate the activity
         if (savedInstanceState == null) {
             // TODO: think about this some more
             // set the selection to the first item
@@ -246,8 +250,12 @@ public final class MainActivity extends AppCompatActivity implements OnConnectio
     @Override
     public void onStart() {
         super.onStart();
-        if (!mResolvingError)
-            mGoogleApiClient.connect();
+        if (isGooglePlayServicesAvailable()) {
+            if (!mResolvingError)
+                mGoogleApiClient.connect();
+        } else {
+            Toast.makeText(this, "Google Play Services required: after installing, close and relaunch this app.", Toast.LENGTH_LONG).show();
+        }
     }
 
     @Override
@@ -270,11 +278,73 @@ public final class MainActivity extends AppCompatActivity implements OnConnectio
 
     @Override
     protected void onDestroy() {
-        super.onDestroy();
-        if (mGoogleApiClient.isConnected()) {
+        if (mGoogleApiClient.isConnected())
             mGoogleApiClient.disconnect();
-        }
         realm.close();
+        super.onDestroy();
+    }
+
+    @Override
+    public void onConnected(Bundle connectionHint) {
+        Timber.d("Connected to Google Play services");
+        Person currentPerson = Plus.PeopleApi.getCurrentPerson(mGoogleApiClient);
+        if (currentPerson == null) {
+            // This method can return null if the required scopes weren't specified
+            // in the GoogleApiClient.Builder, or if there was a network error while connecting.
+            // TODO: handle this
+            return;
+        }
+
+        if (profile.getName() == null) {
+            Timber.d("Setting name");
+            // Set name
+            String personName = currentPerson.getDisplayName();
+            profile.withName(personName);
+
+            // Set profile picture
+            // by default the profile url gives 50x50 px image only
+            // we can replace the value with whatever dimension we want by
+            // replacing sz=X
+            String pic = currentPerson.getImage().getUrl();
+            // Requesting a size of 400x400
+            pic = pic.substring(0, pic.length() - 2) + 400;
+            profile.withIcon(pic);
+            accountHeader.updateProfile(profile);
+
+            // Set cover picture
+            if (currentPerson.hasCover()) {
+                String cover = currentPerson.getCover().getCoverPhoto().getUrl();
+                if (mNetworkInfoReceiver.isOnline() && cover != null) {
+                    Ion.with(this).load(cover).asBitmap().setCallback((Exception e, Bitmap result) -> {
+                        if (e == null) {
+                            accountHeader.setBackground(new BitmapDrawable(getResources(), result));
+                        } else Timber.e(e.toString());
+                    });
+                }
+            }
+        }
+
+        // Set email
+        if (profile.getEmail() == null) {
+            Permiso.getInstance().requestPermissions(new Permiso.IOnPermissionResult() {
+                @Override
+                public void onPermissionResult(Permiso.ResultSet resultSet) {
+                    if (resultSet.areAllPermissionsGranted()) {
+                        String email = Plus.AccountApi.getAccountName(mGoogleApiClient);
+                        profile.withEmail(email);
+                        accountHeader.updateProfile(profile);
+
+                        // Get tasks
+                        GetTaskLists(email);
+                    }
+                }
+
+                @Override
+                public void onRationaleRequested(Permiso.IOnRationaleProvided callback, String... permissions) {
+                    Permiso.getInstance().showRationaleInDialog("Title", "Message", null, callback);
+                }
+            }, Manifest.permission.GET_ACCOUNTS);
+        }
     }
 
     @Override
@@ -299,59 +369,10 @@ public final class MainActivity extends AppCompatActivity implements OnConnectio
                 }
 
             } else {
-                // Show dialog using GooglePlayServicesUtil.getErrorDialog()
-                showErrorDialog(result.getErrorCode());
+                showGooglePlayServicesAvailabilityErrorDialog(result.getErrorCode());
                 mResolvingError = true;
             }
         }
-    }
-
-    @Override
-    public void onConnected(Bundle connectionHint) {
-        // Connected to Google Play services!
-        Timber.d("Connection succeeded!");
-
-        // We've resolved any connection errors.  mGoogleApiClient can be used to
-        // access Google APIs on behalf of the user.
-        Person currentPerson = Plus.PeopleApi.getCurrentPerson(mGoogleApiClient);
-        if (currentPerson == null) {
-            // This method can return null if the required scopes weren't specified
-            // in the GoogleApiClient.Builder, or if there was a network error while connecting.
-            // TODO: handle this
-            return;
-        }
-        String email = Plus.AccountApi.getAccountName(mGoogleApiClient);
-        String personName = currentPerson.getDisplayName();
-        String cover = null;
-        if (currentPerson.hasCover())
-            cover = currentPerson.getCover().getCoverPhoto().getUrl();
-        // by default the profile url gives 50x50 px image only
-        // we can replace the value with whatever dimension we want by
-        // replacing sz=X
-        String pic = currentPerson.getImage().getUrl();
-        // Requesting a size of 400x400
-        pic = pic.substring(0, pic.length() - 2) + 400;
-
-        profile.withName(personName);
-        profile.withEmail(email);
-        profile.withIcon(pic);
-        accountHeader.updateProfile(profile);
-
-        if (mNetworkInfoReceiver.isOnline()) {
-            if (cover != null)
-                Ion.with(this).load(cover).asBitmap().setCallback((Exception e, Bitmap result) -> {
-                    if (e == null) {
-                        BitmapDrawable d = new BitmapDrawable(getResources(), result);
-                        accountHeader.setBackground(d);
-                    } else Timber.e(e.toString());
-                });
-        }
-
-        GetTaskLists();
-
-        // TODO: fix this, maybe using an interface?
-//        if (tasksFragment != null)
-//            tasksFragment.fetchTasks();
     }
 
     @Override
@@ -435,22 +456,6 @@ public final class MainActivity extends AppCompatActivity implements OnConnectio
         return true;
     }
 
-    /* Creates a dialog for an error message */
-    private void showErrorDialog(int errorCode) {
-        // Create a fragment for the error dialog
-        ErrorDialogFragment dialogFragment = new ErrorDialogFragment();
-        // Pass the error that should be displayed
-        Bundle args = new Bundle();
-        args.putInt(DIALOG_ERROR, errorCode);
-        dialogFragment.setArguments(args);
-        dialogFragment.show(getSupportFragmentManager(), "errordialog");
-    }
-
-    /* Called from ErrorDialogFragment when the dialog is dismissed. */
-    public void onDialogDismissed() {
-        mResolvingError = false;
-    }
-
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         //add the values which need to be saved from the drawer to the bundle
@@ -473,7 +478,7 @@ public final class MainActivity extends AppCompatActivity implements OnConnectio
     }
 
     // TODO: supposed to be here?
-    public void GetTaskLists() {
+    private void GetTaskLists(String email) {
         // Load locally from Realm
         List<com.teo.ttasks.model.TaskList> taskListList = realm.allObjects(com.teo.ttasks.model.TaskList.class);
         if (taskListList.size() == 0)
@@ -481,38 +486,50 @@ public final class MainActivity extends AppCompatActivity implements OnConnectio
         else for (com.teo.ttasks.model.TaskList taskList : taskListList) {
             addTaskList(taskList.getTitle());
         }
-        // Get the token and load the task lists
-        new TaskUtils.GetTokenTask(this, profile.getEmail().getText()) {
-            @Override
-            public void onPostExecute(Void aVoid) {
-                super.onPostExecute(aVoid);
-                new TaskUtils.GetTaskLists() {
-                    @Override
-                    protected void onPostExecute(List<TaskList> taskLists) {
-                        super.onPostExecute(taskLists);
-                        if (taskLists != null) {
-                            Timber.d("Found %s task lists", taskLists.size());
-                            // Insert task lists into Navigation Drawer
-                            // TODO: insert into some specific order
-                            for (TaskList taskList : taskLists) {
-                                realm.beginTransaction();
-                                realm.createObjectFromJson(com.teo.ttasks.model.TaskList.class, taskList.toString());
-                                realm.commitTransaction();
-                            }
-                            try {
-                                List<com.teo.ttasks.model.TaskList> taskListList = realm.allObjects(com.teo.ttasks.model.TaskList.class);
-                                for (com.teo.ttasks.model.TaskList taskList : taskListList) {
-                                    addTaskList(taskList.getTitle());
-                                }
-                            } catch (Exception e) {
-                                Timber.e(e.toString());
-                            }
+        // Initialize credentials and service object.
+        GoogleAccountCredential credential = GoogleAccountCredential.usingOAuth2(getApplicationContext(), Arrays.asList(TTasks.SCOPES2))
+                .setBackOff(new ExponentialBackOff())
+                .setSelectedAccountName(email);
 
-                            // Reselect the first item in the drawer
-                            drawer.setSelectionAtPosition(0);
-                        }
+        new TaskUtils.GetTaskLists(credential) {
+            @Override
+            protected void onPostExecute(List<TaskList> taskLists) {
+                super.onPostExecute(taskLists);
+                if (taskLists != null) {
+                    Timber.d("Found %s task lists", taskLists.size());
+                    // Insert task lists into Navigation Drawer
+                    // TODO: insert into some specific order
+                    realm.beginTransaction();
+                    realm.clear(com.teo.ttasks.model.TaskList.class);
+                    for (TaskList taskList : taskLists) {
+                        realm.createObjectFromJson(com.teo.ttasks.model.TaskList.class, taskList.toString());
+                        realm.commitTransaction();
                     }
-                }.execute();
+                    try {
+                        List<com.teo.ttasks.model.TaskList> taskListList = realm.allObjects(com.teo.ttasks.model.TaskList.class);
+                        for (com.teo.ttasks.model.TaskList taskList : taskListList) {
+                            addTaskList(taskList.getTitle());
+                            new TaskUtils.GetTasks(taskList.getId(), credential) {
+                                @Override
+                                protected void onPostExecute(Tasks tasks) {
+                                    super.onPostExecute(tasks);
+                                    realm.beginTransaction();
+                                    for (Task task : tasks.getItems()) {
+                                        realm.createObjectFromJson(com.teo.ttasks.model.Task.class, task.toString());
+                                    }
+                                    realm.commitTransaction();
+                                    List<com.teo.ttasks.model.Task> taskList = realm.allObjects(com.teo.ttasks.model.Task.class);
+                                    tasksFragment.addTasks(taskList);
+                                }
+                            }.execute();
+                        }
+                    } catch (Exception e) {
+                        Timber.e(e.toString());
+                    }
+
+                    // Reselect the first item in the drawer
+                    drawer.setSelectionAtPosition(0);
+                }
             }
         }.execute();
     }
@@ -524,20 +541,40 @@ public final class MainActivity extends AppCompatActivity implements OnConnectio
                 .withSelectable(false));
     }
 
-    /* A fragment to display an error dialog */
-    public static class ErrorDialogFragment extends DialogFragment {
+    /**
+     * Check that Google Play services APK is installed and up to date. Will
+     * launch an error dialog for the user to update Google Play Services if
+     * possible.
+     *
+     * @return true if Google Play Services is available and up to
+     * date on this device; false otherwise.
+     */
+    private boolean isGooglePlayServicesAvailable() {
+        final int connectionStatusCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
+        if (GooglePlayServicesUtil.isUserRecoverableError(connectionStatusCode)) {
+            showGooglePlayServicesAvailabilityErrorDialog(connectionStatusCode);
+            return false;
+        } else if (connectionStatusCode != ConnectionResult.SUCCESS)
+            return false;
+        return true;
+    }
 
-        @Override
-        @NonNull
-        public Dialog onCreateDialog(Bundle savedInstanceState) {
-            // Get the error code and retrieve the appropriate dialog
-            int errorCode = getArguments().getInt(DIALOG_ERROR);
-            return GooglePlayServicesUtil.getErrorDialog(errorCode, getActivity(), RC_RESOLVE_ERROR);
-        }
+    /**
+     * Display an error dialog showing that Google Play Services is missing
+     * or out of date.
+     *
+     * @param connectionStatusCode code describing the presence (or lack of)
+     *                             Google Play Services on this device.
+     */
+    void showGooglePlayServicesAvailabilityErrorDialog(final int connectionStatusCode) {
+        Dialog dialog = GooglePlayServicesUtil.getErrorDialog(connectionStatusCode, this, RC_RESOLVE_ERROR);
+        dialog.setOnDismissListener((DialogInterface dialogInterface) -> mResolvingError = false);
+        dialog.show();
+    }
 
-        @Override
-        public void onDismiss(DialogInterface dialog) {
-            ((MainActivity) getActivity()).onDialogDismissed();
-        }
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        Permiso.getInstance().onRequestPermissionResult(requestCode, permissions, grantResults);
     }
 }

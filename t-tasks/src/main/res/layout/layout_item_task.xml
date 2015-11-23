@@ -6,6 +6,8 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     card_view:cardCornerRadius="4dp"
+    card_view:cardPreventCornerOverlap="false"
+    card_view:cardUseCompatPadding="true"
     tools:layout_margin="8dp">
 
     <LinearLayout
@@ -14,33 +16,44 @@
         android:background="?android:attr/selectableItemBackground"
         android:orientation="horizontal">
 
-        <LinearLayout
+        <android.support.v7.widget.CardView
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:background="@color/colorAccent"
-            android:gravity="center"
-            android:orientation="vertical"
-            android:padding="8dp">
+            card_view:cardBackgroundColor="@color/colorAccent"
+            card_view:cardCornerRadius="4dp"
+            card_view:cardElevation="2dp"
+            card_view:cardUseCompatPadding="true">
 
-            <TextView
-                android:id="@+id/date_day_number"
-                style="@style/TextAppearance.AppCompat.Large.Inverse"
+            <LinearLayout
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:textStyle="bold"
-                tools:text="1"/>
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:padding="8dp">
 
-            <TextView
-                android:id="@+id/date_day_name"
-                style="@style/TextAppearance.AppCompat.Small.Inverse"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:textStyle="bold"
-                tools:text="Wed"/>
+                <TextView
+                    android:id="@+id/date_day_number"
+                    style="@style/TextAppearance.AppCompat.Large.Inverse"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:textStyle="bold"
+                    tools:text="1"/>
 
-        </LinearLayout>
+                <TextView
+                    android:id="@+id/date_day_name"
+                    style="@style/TextAppearance.AppCompat.Small.Inverse"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:gravity="center"
+                    android:minEms="2"
+                    android:textStyle="bold"
+                    tools:text="Wed"/>
+
+            </LinearLayout>
+
+        </android.support.v7.widget.CardView>
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -50,7 +63,7 @@
 
             <TextView
                 android:id="@+id/task_title"
-                style="@style/TextAppearance.AppCompat.Title"
+                style="@style/TextAppearance.AppCompat.Body2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="2dp"

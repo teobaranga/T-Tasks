@@ -55,5 +55,4 @@ public class TaskList extends RealmObject {
         this.updated = updated;
     }
 
-
 }
