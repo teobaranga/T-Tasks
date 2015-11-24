@@ -1,4 +1,4 @@
-package com.teo.ttasks;
+package com.teo.ttasks.widget;
 
 import android.app.Activity;
 import android.appwidget.AppWidgetManager;
@@ -9,12 +9,14 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
 
+import com.teo.ttasks.R;
+
 /**
  * The configuration screen for the {@link TasksWidget TasksWidget} AppWidget.
  */
 public class TasksWidgetConfigureActivity extends Activity {
 
-    private static final String PREFS_NAME = "com.teo.ttasks.TasksWidget";
+    private static final String PREFS_NAME = "com.teo.ttasks.widget.TasksWidget";
     private static final String PREF_PREFIX_KEY = "appwidget_";
     int mAppWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID;
     EditText mAppWidgetText;

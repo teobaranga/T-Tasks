@@ -31,7 +31,7 @@
         </activity>
 
         <activity
-            android:name=".SettingsActivity"
+            android:name=".activities.SettingsActivity"
             android:label="@string/title_activity_settings"
             android:theme="@style/MainTheme">
             <meta-data
@@ -40,7 +40,7 @@
         </activity>
 
         <activity
-            android:name=".AboutActivity"
+            android:name=".activities.AboutActivity"
             android:theme="@style/MainTheme">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
@@ -53,7 +53,7 @@
             </intent-filter>
         </receiver>
 
-        <receiver android:name=".TasksWidget">
+        <receiver android:name=".widget.TasksWidget">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
             </intent-filter>
@@ -63,7 +63,7 @@
                 android:resource="@xml/tasks_widget_info"/>
         </receiver>
 
-        <activity android:name=".TasksWidgetConfigureActivity">
+        <activity android:name=".widget.TasksWidgetConfigureActivity">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE"/>
             </intent-filter>

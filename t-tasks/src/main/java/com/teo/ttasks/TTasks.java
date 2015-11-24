@@ -8,11 +8,11 @@ import android.widget.ImageView;
 
 import com.google.android.gms.plus.Plus;
 import com.google.api.services.tasks.TasksScopes;
-import com.koushikdutta.ion.Ion;
 import com.mikepenz.iconics.IconicsDrawable;
 import com.mikepenz.materialdrawer.util.AbstractDrawerImageLoader;
 import com.mikepenz.materialdrawer.util.DrawerImageLoader;
 import com.mikepenz.materialdrawer.util.DrawerUIUtils;
+import com.squareup.picasso.Picasso;
 
 import timber.log.Timber;
 
@@ -38,7 +38,12 @@ public class TTasks extends Application {
         DrawerImageLoader.init(new AbstractDrawerImageLoader() {
             @Override
             public void set(ImageView imageView, Uri uri, Drawable placeholder) {
-                Ion.with(imageView.getContext()).load(uri.toString()).intoImageView(imageView);
+                Picasso.with(imageView.getContext()).load(uri).placeholder(placeholder).into(imageView);
+            }
+
+            @Override
+             public void cancel(ImageView imageView) {
+                Picasso.with(imageView.getContext()).cancelRequest(imageView);
             }
 
             @Override
@@ -53,9 +58,6 @@ public class TTasks extends Application {
                 } else if ("customUrlItem".equals(tag)) {
                     return new IconicsDrawable(ctx).iconText(" ").backgroundColorRes(R.color.md_red_500).sizeDp(56);
                 }
-
-                //we use the default one for
-                //DrawerImageLoader.Tags.PROFILE_DRAWER_ITEM.name()
 
                 return super.placeholder(ctx, tag);
             }

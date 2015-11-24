@@ -1,4 +1,4 @@
-package com.teo.ttasks;
+package com.teo.ttasks.adapters;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
@@ -7,6 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.teo.ttasks.R;
 import com.teo.ttasks.model.Task;
 
 import java.text.ParseException;
@@ -14,6 +15,9 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+
+import butterknife.Bind;
+import butterknife.ButterKnife;
 
 public class TasksAdapter extends RecyclerView.Adapter<TasksAdapter.ViewHolder> {
 
@@ -66,10 +70,18 @@ public class TasksAdapter extends RecyclerView.Adapter<TasksAdapter.ViewHolder> 
 
         if (task.getDue() != null) {
             Date dueDate = parseRFC3339Date(task.getDue());
+            // Mon
             simpleDateFormat.applyLocalizedPattern("EEE");
             viewHolder.dateDayName.setText(simpleDateFormat.format(dueDate));
+            // 1
             simpleDateFormat.applyLocalizedPattern("d");
             viewHolder.dateDayNumber.setText(simpleDateFormat.format(dueDate));
+            // 12:00PM
+            Date reminder = task.getReminder();
+            if (reminder != null) {
+                simpleDateFormat.applyLocalizedPattern("hh:mma");
+                viewHolder.reminderTime.setText(simpleDateFormat.format(reminder));
+            }
         } else
             viewHolder.dateDayName.setText("");
 
@@ -94,10 +106,11 @@ public class TasksAdapter extends RecyclerView.Adapter<TasksAdapter.ViewHolder> 
     public static class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         // Your holder should contain a member variable
         // for any view that will be set as you render a row
-        public TextView taskTitle;
-        public TextView taskDescription;
-        public TextView dateDayNumber;
-        public TextView dateDayName;
+        @Bind(R.id.task_title) TextView taskTitle;
+        @Bind(R.id.task_description) TextView taskDescription;
+        @Bind(R.id.date_day_number) TextView dateDayNumber;
+        @Bind(R.id.date_day_name) TextView dateDayName;
+        @Bind(R.id.task_reminder) TextView reminderTime;
 
         // We also create a constructor that accepts the entire item row
         // and does the view lookups to find each subview
@@ -105,11 +118,7 @@ public class TasksAdapter extends RecyclerView.Adapter<TasksAdapter.ViewHolder> 
             // Stores the itemView in a public final member variable that can be used
             // to access the context from any ViewHolder instance.
             super(itemView);
-
-            taskTitle = (TextView) itemView.findViewById(R.id.task_title);
-            taskDescription = (TextView) itemView.findViewById(R.id.task_description);
-            dateDayName = (TextView) itemView.findViewById(R.id.date_day_name);
-            dateDayNumber = (TextView) itemView.findViewById(R.id.date_day_number);
+            ButterKnife.bind(this, itemView);
 
             // Attach a click listener to the entire row view
             itemView.setOnClickListener(this);

@@ -24,6 +24,9 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+    lintOptions {
+        disable 'InvalidPackage'
+    }
     packagingOptions {
         exclude 'META-INF/services/javax.annotation.processing.Processor'
     }
@@ -40,11 +43,11 @@ dependencies {
     compile 'com.greysonparrelli.permiso:permiso:0.1.0'
     compile 'com.jakewharton:butterknife:7.0.1'
     compile 'com.jakewharton.timber:timber:4.1.0'
-    compile 'com.koushikdutta.ion:ion:2.1.6'
     compile 'com.marshalchen.ultimaterecyclerview:library:0.3.18'
     compile('com.mikepenz:aboutlibraries:5.3.3@aar') { transitive = true }
     compile 'com.mikepenz:google-material-typeface:2.2.0.1@aar'
     compile('com.mikepenz:materialdrawer:4.5.1@aar') { transitive = true }
+    compile 'com.squareup.picasso:picasso:2.5.2'
     compile 'io.realm:realm-android:0.85.0'
     compile 'org.jetbrains:annotations:13.0'
 }

@@ -1,11 +1,15 @@
 package com.teo.ttasks.model;
 
+import java.util.Date;
+
 import io.realm.RealmObject;
+import io.realm.annotations.PrimaryKey;
 
 public class Task extends RealmObject {
 
-    private String kind;
+    @PrimaryKey
     private String id;
+    private String kind;
     private String etag;
     private String title;
     private String updated;
@@ -14,6 +18,25 @@ public class Task extends RealmObject {
     private String status;
     private String due;
     private String completed;
+
+    public String getTaskListId() {
+        return taskListId;
+    }
+
+    public void setTaskListId(String taskListId) {
+        this.taskListId = taskListId;
+    }
+
+    private String taskListId;
+    private Date reminder;
+
+    public Date getReminder() {
+        return reminder;
+    }
+
+    public void setReminder(Date reminder) {
+        this.reminder = reminder;
+    }
 
     public String getKind() {
         return kind;

@@ -1,4 +1,4 @@
-package com.teo.ttasks;
+package com.teo.ttasks.activities;
 
 import android.app.Activity;
 import android.content.SharedPreferences;
@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.preference.EditTextPreference;
 import android.preference.PreferenceFragment;
 
+import com.teo.ttasks.R;
 
 public class SettingsActivity extends Activity {
 
