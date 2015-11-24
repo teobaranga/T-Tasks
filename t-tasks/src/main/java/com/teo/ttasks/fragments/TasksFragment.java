@@ -20,7 +20,9 @@ import com.teo.ttasks.model.Task;
 import com.teo.ttasks.util.PrefUtils;
 import com.teo.ttasks.util.TaskUtils;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import io.realm.Realm;
 import timber.log.Timber;
@@ -30,6 +32,7 @@ public class TasksFragment extends Fragment {
     private TasksAdapter mTasksAdapter;
     private String mTaskListId;
     private Realm realm;
+    private List<Task> mTasks;
 
     /**
      * Create a new instance of this fragment using the provided task list ID
@@ -56,10 +59,22 @@ public class TasksFragment extends Fragment {
                 super.onPostExecute(tasks);
                 Timber.d("Found %d tasks", tasks.size());
                 realm.executeTransaction((Realm realm) -> {
+                    List<String> taskIds = new ArrayList<>();
                     for (com.google.api.services.tasks.model.Task task : tasks.getItems()) {
+                        taskIds.add(task.getId());
                         Task t = realm.createOrUpdateObjectFromJson(Task.class, task.toString());
                         t.setTaskListId(mTaskListId);
+                        t.setUpdatedDate(TaskUtils.parseRFC3339Date(task.getUpdated().toStringRfc3339()));
+                        if (task.getDue() != null)
+                            t.setDueDate(TaskUtils.parseRFC3339Date(task.getDue().toStringRfc3339()));
+                        if (task.getCompleted() != null)
+                            t.setCompletedDate(TaskUtils.parseRFC3339Date(task.getCompleted().toStringRfc3339()));
                     }
+                    // Remove tasks deleted outside the app
+                    if (mTasks != null)
+                        for (Task task : mTasks)
+                            if (!taskIds.contains(task.getId()))
+                                task.removeFromRealm();
                 });
             }
         }.execute();
@@ -70,7 +85,8 @@ public class TasksFragment extends Fragment {
         super.onCreate(savedInstanceState);
         realm = Realm.getDefaultInstance();
         // Load the tasks locally from Realm
-        mTasksAdapter = new TasksAdapter(realm.where(Task.class).equalTo("taskListId", mTaskListId).findAll());
+        mTasks = realm.where(Task.class).equalTo("taskListId", mTaskListId).findAll();
+        mTasksAdapter = new TasksAdapter(mTasks);
         realm.addChangeListener(mTasksAdapter::notifyDataSetChanged);
     }
 

@@ -13,7 +13,7 @@
     <string name="drawer_close">close</string>
 
     <!-- Drawer items -->
-    <string name="drawer_addtasklist">Add a new task list</string>
+    <string name="drawer_addtasklist">New task list</string>
     <string name="settings">Settings</string>
     <string name="helpandfeedback">Help &amp; Feedback</string>
     <string name="about">About T-Tasks</string>

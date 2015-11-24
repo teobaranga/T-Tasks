@@ -9,15 +9,67 @@ public class Task extends RealmObject {
 
     @PrimaryKey
     private String id;
-    private String kind;
-    private String etag;
     private String title;
-    private String updated;
+    private Date updatedDate;
     private String selfLink;
+
+    /**
+     * Parent task identifier. This field is omitted if it is a top-level task.
+     * This field is read-only. Use the "move" method to move the task under a
+     * different parent or to the top level.
+     */
+    private String parent;
+
+    /**
+     * String indicating the position of the task among its sibling tasks under
+     * the same parent task or at the top level. If this string is greater than
+     * another task's corresponding position string according to lexicographical
+     * ordering, the task is positioned after the other task under the same parent
+     * task (or at the top level). This field is read-only. Use the "move" method
+     * to move the task to another position.
+     */
     private String position;
+
+    /** Notes describing the task. Optional. */
+    private String notes;
+
+    /** Status of the task. This is either "needsAction" or "completed". */
     private String status;
-    private String due;
-    private String completed;
+
+    /** Due date of the task. Optional. */
+    private Date dueDate;
+
+    /**
+     * Completion date of the task. This field is omitted if the task has not
+     * been completed.
+     */
+    private Date completedDate;
+    private String taskListId;
+    private Date reminder;
+
+    public String getNotes() {
+        return notes;
+    }
+
+    public void setNotes(String notes) {
+        this.notes = notes;
+    }
+
+    public String getParent() {
+        return parent;
+    }
+
+    public void setParent(String parent) {
+        this.parent = parent;
+    }
+
+    public Date getDueDate() {
+        return dueDate;
+    }
+
+    public void setDueDate(Date dueDate) {
+        this.dueDate = dueDate;
+    }
 
     public String getTaskListId() {
         return taskListId;
@@ -27,23 +79,12 @@ public class Task extends RealmObject {
         this.taskListId = taskListId;
     }
 
-    private String taskListId;
-    private Date reminder;
-
     public Date getReminder() {
         return reminder;
     }
 
     public void setReminder(Date reminder) {
         this.reminder = reminder;
-    }
-
-    public String getKind() {
-        return kind;
-    }
-
-    public void setKind(String kind) {
-        this.kind = kind;
     }
 
     public String getId() {
@@ -54,14 +95,6 @@ public class Task extends RealmObject {
         this.id = id;
     }
 
-    public String getEtag() {
-        return etag;
-    }
-
-    public void setEtag(String etag) {
-        this.etag = etag;
-    }
-
     public String getTitle() {
         return title;
     }
@@ -70,12 +103,12 @@ public class Task extends RealmObject {
         this.title = title;
     }
 
-    public String getUpdated() {
-        return updated;
+    public Date getUpdatedDate() {
+        return updatedDate;
     }
 
-    public void setUpdated(String updated) {
-        this.updated = updated;
+    public void setUpdatedDate(Date updatedDate) {
+        this.updatedDate = updatedDate;
     }
 
     public String getSelfLink() {
@@ -102,19 +135,11 @@ public class Task extends RealmObject {
         this.status = status;
     }
 
-    public String getDue() {
-        return due;
+    public Date getCompletedDate() {
+        return completedDate;
     }
 
-    public void setDue(String due) {
-        this.due = due;
-    }
-
-    public String getCompleted() {
-        return completed;
-    }
-
-    public void setCompleted(String completed) {
-        this.completed = completed;
+    public void setCompletedDate(Date completedDate) {
+        this.completedDate = completedDate;
     }
 }

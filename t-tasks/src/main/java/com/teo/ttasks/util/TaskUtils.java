@@ -11,7 +11,11 @@ import com.google.api.services.tasks.Tasks;
 import com.google.api.services.tasks.model.TaskList;
 
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 import timber.log.Timber;
 
@@ -75,5 +79,23 @@ public class TaskUtils {
                 return null;
             }
         }
+    }
+
+    public static Date parseRFC3339Date(String datestring) {
+        Date d;
+        try {
+            SimpleDateFormat s = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault()); //spec for RFC3339
+            d = s.parse(datestring);
+        } catch (ParseException pe) {
+            //try again with optional decimals
+            SimpleDateFormat s = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'", Locale.getDefault());//spec for RFC3339 (with fractional seconds)
+            s.setLenient(true);
+            try {
+                d = s.parse(datestring);
+            } catch (ParseException e) {
+                return null;
+            }
+        }
+        return d;
     }
 }

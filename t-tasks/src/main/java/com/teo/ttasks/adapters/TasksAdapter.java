@@ -10,7 +10,6 @@ import android.widget.TextView;
 import com.teo.ttasks.R;
 import com.teo.ttasks.model.Task;
 
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -29,24 +28,6 @@ public class TasksAdapter extends RecyclerView.Adapter<TasksAdapter.ViewHolder> 
     public TasksAdapter(List<Task> tasks) {
         mTasks = tasks;
         simpleDateFormat = new SimpleDateFormat("EEE", Locale.getDefault());
-    }
-
-    public static Date parseRFC3339Date(String datestring) {
-        Date d;
-        try {
-            SimpleDateFormat s = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault()); //spec for RFC3339
-            d = s.parse(datestring);
-        } catch (ParseException pe) {
-            //try again with optional decimals
-            SimpleDateFormat s = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'", Locale.getDefault());//spec for RFC3339 (with fractional seconds)
-            s.setLenient(true);
-            try {
-                d = s.parse(datestring);
-            } catch (ParseException e) {
-                return null;
-            }
-        }
-        return d;
     }
 
     // Usually involves inflating a layout from XML and returning the holder
@@ -68,8 +49,8 @@ public class TasksAdapter extends RecyclerView.Adapter<TasksAdapter.ViewHolder> 
         // Get the data model based on position
         Task task = mTasks.get(position);
 
-        if (task.getDue() != null) {
-            Date dueDate = parseRFC3339Date(task.getDue());
+        if (task.getDueDate() != null) {
+            Date dueDate = task.getDueDate();
             // Mon
             simpleDateFormat.applyLocalizedPattern("EEE");
             viewHolder.dateDayName.setText(simpleDateFormat.format(dueDate));
@@ -82,8 +63,10 @@ public class TasksAdapter extends RecyclerView.Adapter<TasksAdapter.ViewHolder> 
                 simpleDateFormat.applyLocalizedPattern("hh:mma");
                 viewHolder.reminderTime.setText(simpleDateFormat.format(reminder));
             }
-        } else
-            viewHolder.dateDayName.setText("");
+        } else {
+            viewHolder.dateDayNumber.setText(null);
+            viewHolder.dateDayName.setText(null);
+        }
 
         // Set item views based on the data model
         viewHolder.taskTitle.setText(task.getTitle());
