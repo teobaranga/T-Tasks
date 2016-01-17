@@ -1,6 +1,7 @@
-package com.teo.ttasks.adapters;
+package com.teo.ttasks.ui.adapters;
 
 import android.content.Context;
+import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -8,24 +9,24 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.teo.ttasks.R;
-import com.teo.ttasks.model.Task;
+import com.teo.ttasks.data.model.Task;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.List;
 import java.util.Locale;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
+import io.realm.RealmResults;
 
 public class TasksAdapter extends RecyclerView.Adapter<TasksAdapter.ViewHolder> {
 
     // Store a member variable for the contacts
-    private List<Task> mTasks;
+    @Nullable
+    private RealmResults<Task> mTasks;
     private SimpleDateFormat simpleDateFormat;
 
-    // Pass in the contact array into the constructor
-    public TasksAdapter(List<Task> tasks) {
+    public TasksAdapter(@Nullable RealmResults<Task> tasks) {
         mTasks = tasks;
         simpleDateFormat = new SimpleDateFormat("EEE", Locale.getDefault());
     }
@@ -46,11 +47,15 @@ public class TasksAdapter extends RecyclerView.Adapter<TasksAdapter.ViewHolder> 
     // Involves populating data into the item through holder
     @Override
     public void onBindViewHolder(TasksAdapter.ViewHolder viewHolder, int position) {
+        if (mTasks == null)
+            return;
         // Get the data model based on position
         Task task = mTasks.get(position);
+        if (!task.isValid())
+            return;
 
-        if (task.getDueDate() != null) {
-            Date dueDate = task.getDueDate();
+        if (task.getDue() != null) {
+            Date dueDate = task.getDue();
             // Mon
             simpleDateFormat.applyLocalizedPattern("EEE");
             viewHolder.dateDayName.setText(simpleDateFormat.format(dueDate));
@@ -76,12 +81,19 @@ public class TasksAdapter extends RecyclerView.Adapter<TasksAdapter.ViewHolder> 
     // Return the total count of items
     @Override
     public int getItemCount() {
+        if (mTasks == null)
+            return 0;
         return mTasks.size();
     }
 
-    public void add(Task task) {
-        mTasks.add(task);
-        notifyItemInserted(mTasks.size() - 1);
+    public void clear() {
+        mTasks = null;
+        notifyDataSetChanged();
+    }
+
+    public void reloadData(RealmResults<Task> tasks) {
+        mTasks = tasks;
+        notifyDataSetChanged();
     }
 
     // Provide a direct reference to each of the views within a data item

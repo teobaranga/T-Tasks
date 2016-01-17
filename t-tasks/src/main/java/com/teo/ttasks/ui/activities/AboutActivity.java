@@ -1,4 +1,4 @@
-package com.teo.ttasks.activities;
+package com.teo.ttasks.ui.activities;
 
 import android.os.Bundle;
 

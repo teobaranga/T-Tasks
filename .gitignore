@@ -105,3 +105,6 @@ gradle-app.setting
 
 # Fabric
 fabric.properties
+
+# Google Services
+t-tasks/google-services.json

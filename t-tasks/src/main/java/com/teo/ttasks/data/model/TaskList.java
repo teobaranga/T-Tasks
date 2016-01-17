@@ -1,4 +1,4 @@
-package com.teo.ttasks.model;
+package com.teo.ttasks.data.model;
 
 import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;

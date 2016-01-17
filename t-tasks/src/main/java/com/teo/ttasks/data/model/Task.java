@@ -1,16 +1,21 @@
-package com.teo.ttasks.model;
+package com.teo.ttasks.data.model;
 
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.TimeZone;
 
 import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
 
 public class Task extends RealmObject {
 
+    public static final String TASK_LIST_ID = "taskListId";
+
     @PrimaryKey
     private String id;
     private String title;
-    private Date updatedDate;
+    private Date updated;
     private String selfLink;
 
     /**
@@ -36,16 +41,43 @@ public class Task extends RealmObject {
     /** Status of the task. This is either "needsAction" or "completed". */
     private String status;
 
-    /** Due date of the task. Optional. */
-    private Date dueDate;
+    /**
+     * Due date of the task. Optional.<br>
+     * This is not a completely correct date, see link below.
+     * @see <a href="https://groups.google.com/forum/#!topic/google-tasks-api/sDJo6ohfPQU">
+     *     Due date is not a calculated field</a>
+     */
+    private Date due;
 
     /**
      * Completion date of the task. This field is omitted if the task has not
      * been completed.
      */
-    private Date completedDate;
+    private Date completed;
     private String taskListId;
     private Date reminder;
+
+    /**
+     * Fixes the {@link Task#due} and {@link Task#completed} dates of the given {@link Task} by adjusting it to the current user's time zone.<br>
+     * This is a separate method because Realm doesn't allow custom setters, see link below.
+     * @see <a href="https://github.com/realm/realm-java/issues/909">
+     *     Support adding own methods to objects #909 - Realm</a>
+     */
+    public static void fixDates(Task task) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTimeZone(TimeZone.getTimeZone("UTC"));
+        GregorianCalendar gregorianCalendar = new GregorianCalendar();
+        if (task.getDue() != null) {
+            calendar.setTime(task.getDue());
+            gregorianCalendar.set(calendar.get(Calendar.YEAR),calendar.get(Calendar.MONTH),calendar.get(Calendar.DAY_OF_MONTH), 0, 0, 0);
+            task.setDue(gregorianCalendar.getTime());
+        }
+        if (task.getCompleted() != null) {
+            calendar.setTime(task.getCompleted());
+            gregorianCalendar.set(calendar.get(Calendar.YEAR),calendar.get(Calendar.MONTH),calendar.get(Calendar.DAY_OF_MONTH), 0, 0, 0);
+            task.setCompleted(gregorianCalendar.getTime());
+        }
+    }
 
     public String getNotes() {
         return notes;
@@ -63,12 +95,12 @@ public class Task extends RealmObject {
         this.parent = parent;
     }
 
-    public Date getDueDate() {
-        return dueDate;
+    public Date getDue() {
+        return due;
     }
 
-    public void setDueDate(Date dueDate) {
-        this.dueDate = dueDate;
+    public void setDue(Date due) {
+        this.due = due;
     }
 
     public String getTaskListId() {
@@ -103,12 +135,12 @@ public class Task extends RealmObject {
         this.title = title;
     }
 
-    public Date getUpdatedDate() {
-        return updatedDate;
+    public Date getUpdated() {
+        return updated;
     }
 
-    public void setUpdatedDate(Date updatedDate) {
-        this.updatedDate = updatedDate;
+    public void setUpdated(Date updated) {
+        this.updated = updated;
     }
 
     public String getSelfLink() {
@@ -135,11 +167,11 @@ public class Task extends RealmObject {
         this.status = status;
     }
 
-    public Date getCompletedDate() {
-        return completedDate;
+    public Date getCompleted() {
+        return completed;
     }
 
-    public void setCompletedDate(Date completedDate) {
-        this.completedDate = completedDate;
+    public void setCompleted(Date completed) {
+        this.completed = completed;
     }
 }

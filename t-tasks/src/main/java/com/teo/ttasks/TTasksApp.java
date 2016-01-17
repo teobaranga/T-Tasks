@@ -1,34 +1,55 @@
 package com.teo.ttasks;
 
-import android.app.Application;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.multidex.MultiDexApplication;
 import android.widget.ImageView;
 
-import com.google.android.gms.plus.Plus;
-import com.google.api.services.tasks.TasksScopes;
+import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
 import com.mikepenz.iconics.IconicsDrawable;
 import com.mikepenz.materialdrawer.util.AbstractDrawerImageLoader;
 import com.mikepenz.materialdrawer.util.DrawerImageLoader;
 import com.mikepenz.materialdrawer.util.DrawerUIUtils;
 import com.squareup.picasso.Picasso;
+import com.teo.ttasks.injection.component.ApplicationComponent;
+import com.teo.ttasks.injection.component.DaggerApplicationComponent;
+import com.teo.ttasks.injection.component.TasksApiComponent;
+import com.teo.ttasks.injection.module.ApplicationModule;
+import com.teo.ttasks.injection.module.TasksApiModule;
 
 import timber.log.Timber;
 
 /**
  * @author Teo
  */
-public class TTasks extends Application {
+public class TTasksApp extends MultiDexApplication {
 
-    public static final String SCOPES = "oauth2: " + TasksScopes.TASKS + " " + Plus.SCOPE_PLUS_PROFILE.toString();
-    public static final String[] SCOPES2 = { TasksScopes.TASKS, Plus.SCOPE_PLUS_PROFILE.toString() };
-    public static final String TASKLISTS  = "tasklists";
-    public static final String TITLE  = "title";
+    @SuppressWarnings("NullableProblems")
+    // Initialized in onCreate. But be careful if you have ContentProviders in different processes -> their onCreate will be called before app.onCreate().
+    @NonNull
+    private ApplicationComponent applicationComponent;
+
+    @Nullable
+    private TasksApiComponent mTasksApiComponent;
+
+    // Prevent need in a singleton (global) reference to the application object.
+    @NonNull
+    public static TTasksApp get(@NonNull Context context) {
+        return (TTasksApp) context.getApplicationContext();
+    }
 
     @Override
     public void onCreate() {
         super.onCreate();
+
+        applicationComponent = DaggerApplicationComponent.builder()
+                .applicationModule(new ApplicationModule(this))
+                .build();
+
+        applicationComponent.inject(this);
 
         // Enable Timber
         if (BuildConfig.DEBUG)
@@ -42,7 +63,7 @@ public class TTasks extends Application {
             }
 
             @Override
-             public void cancel(ImageView imageView) {
+            public void cancel(ImageView imageView) {
                 Picasso.with(imageView.getContext()).cancelRequest(imageView);
             }
 
@@ -62,6 +83,27 @@ public class TTasks extends Application {
                 return super.placeholder(ctx, tag);
             }
         });
+    }
+
+    @NonNull
+    public ApplicationComponent applicationComponent() {
+        return applicationComponent;
+    }
+
+    @NonNull
+    public TasksApiComponent createTasksApiComponent(@NonNull GoogleAccountCredential credential) {
+        mTasksApiComponent = applicationComponent.plus(new TasksApiModule(credential));
+        return mTasksApiComponent;
+    }
+
+    @Nullable
+    public TasksApiComponent tasksApiComponent() {
+        return mTasksApiComponent;
+    }
+
+    // TODO: 2015-12-25 call this at logout
+    public void releaseTasksApiComponent() {
+        mTasksApiComponent = null;
     }
 
 }

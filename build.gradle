@@ -2,21 +2,28 @@
 buildscript {
     repositories {
         jcenter()
-//        maven { url 'https://maven.fabric.io/public' }
+        maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:1.5.0'
-//        classpath 'io.fabric.tools:gradle:1.19.2'
-        classpath 'me.tatarka:gradle-retrolambda:3.2.3'
+        classpath 'com.android.tools.build:gradle:2.0.0-alpha5'
+        classpath 'com.google.gms:google-services:2.0.0-alpha3'
+        // APT compile-time annotation processing
+        classpath 'com.neenbedankt.gradle.plugins:android-apt:1.8'
+        classpath "io.realm:realm-gradle-plugin:0.87.2"
+        classpath 'me.tatarka:gradle-retrolambda:3.3.0-beta3'
         classpath 'me.tatarka.retrolambda.projectlombok:lombok.ast:0.2.3.a2'
     }
     // Exclude the version that the android plugin depends on.
     configurations.classpath.exclude group: 'com.android.tools.external.lombok'
 }
 
+ext {
+    preDexLibs = !project.hasProperty('disablePreDex')
+}
+
 allprojects {
     repositories {
         jcenter()
-//        maven { url 'https://maven.fabric.io/public' }
+        maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
     }
 }
