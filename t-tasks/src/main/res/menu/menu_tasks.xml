@@ -7,12 +7,15 @@
         android:title="@string/menu_sort"
         app:showAsAction="always">
         <menu>
-            <item android:id="@id/menu_sortmyorder"
-                  android:title="@string/menu_sortmyorder" />
-            <item android:id="@id/menu_sortduedate"
-                  android:title="@string/menu_sortduedate" />
-            <item android:id="@id/menu_sortalphabetical"
-                  android:title="@string/menu_sortalphabetical" />
+            <item
+                android:id="@id/menu_sort_my_order"
+                android:title="@string/menu_sort_my_order"/>
+            <item
+                android:id="@id/menu_sort_due_date"
+                android:title="@string/menu_sort_due_date"/>
+            <item
+                android:id="@id/menu_sort_alphabetical"
+                android:title="@string/menu_sort_alphabetical"/>
         </menu>
     </item>
 </menu>

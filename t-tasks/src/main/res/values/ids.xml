@@ -12,8 +12,8 @@
 
     <!-- Tasks menu -->
     <item name="menu_sort" type="id" />
-    <item name="menu_sortduedate" type="id" />
-    <item name="menu_sortmyorder" type="id" />
-    <item name="menu_sortalphabetical" type="id" />
+    <item name="menu_sort_due_date" type="id" />
+    <item name="menu_sort_my_order" type="id" />
+    <item name="menu_sort_alphabetical" type="id" />
 
 </resources>

@@ -151,11 +151,11 @@ public final class MainActivity extends BaseActivity implements OnConnectionFail
                 .addProfiles(
                         mProfile,
                         new ProfileSettingDrawerItem()
-                                .withName(getResources().getString(R.string.addaccount))
+                                .withName(getResources().getString(R.string.drawer_add_account))
                                 .withIcon(GoogleMaterial.Icon.gmd_person_add)
                                 .withIdentifier(ID_ADD_ACCOUNT),
                         new ProfileSettingDrawerItem()
-                                .withName(getResources().getString(R.string.manageaccount))
+                                .withName(getResources().getString(R.string.drawer_manage_account))
                                 .withIcon(GoogleMaterial.Icon.gmd_settings)
                                 .withIdentifier(ID_MANAGE_ACCOUNT)
                 )
@@ -192,21 +192,21 @@ public final class MainActivity extends BaseActivity implements OnConnectionFail
                 .withDrawerItems(taskLists)
                 .addDrawerItems(
                         new PrimaryDrawerItem()
-                                .withName(R.string.drawer_addtasklist)
+                                .withName(R.string.drawer_add_task_list)
                                 .withIcon(GoogleMaterial.Icon.gmd_add)
                                 .withIdentifier(ID_ADD_TASK_LIST)
                                 .withSelectable(false),
                         new DividerDrawerItem(),
                         new SecondaryDrawerItem()
-                                .withName(getResources().getString(R.string.settings))
+                                .withName(getResources().getString(R.string.drawer_settings))
                                 .withIcon(GoogleMaterial.Icon.gmd_settings)
                                 .withSelectable(false),
                         new SecondaryDrawerItem()
-                                .withName(R.string.helpandfeedback)
+                                .withName(R.string.drawer_help_and_feedback)
                                 .withIcon(GoogleMaterial.Icon.gmd_help)
                                 .withSelectable(false),
                         new SecondaryDrawerItem()
-                                .withName(R.string.about)
+                                .withName(R.string.drawer_about)
                                 .withIcon(GoogleMaterial.Icon.gmd_info_outline)
                                 .withIdentifier(ID_ABOUT)
                                 .withSelectable(false)

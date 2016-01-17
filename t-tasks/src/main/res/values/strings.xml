@@ -2,29 +2,24 @@
 <resources>
 
     <string name="app_name">T-Tasks</string>
-    <string name="accounts">Accounts</string>
-    <string name="icon_desc">Application icon</string>
-    <string name="title_separator_desc">Title separator</string>
-    <string name="refresh">Refresh</string>
-    <string name="error">Error</string>
-    <string name="error_format">[Error] %s</string>
-
-    <string name="drawer_open">open</string>
-    <string name="drawer_close">close</string>
 
     <!-- Drawer items -->
-    <string name="drawer_addtasklist">New task list</string>
-    <string name="settings">Settings</string>
-    <string name="helpandfeedback">Help &amp; Feedback</string>
-    <string name="about">About T-Tasks</string>
-    <string name="addaccount">Add Account</string>
-    <string name="manageaccount">Manage Account</string>
+    <string name="drawer_add_task_list">New task list</string>
+    <string name="drawer_settings">Settings</string>
+    <string name="drawer_help_and_feedback">Help &amp; Feedback</string>
+    <string name="drawer_about">About T-Tasks</string>
+    <string name="drawer_add_account">Add Account</string>
+    <string name="drawer_manage_account">Manage Account</string>
 
     <!-- Menus -->
     <string name="menu_sort">Sort</string>
-    <string name="menu_sortmyorder">My order</string>
-    <string name="menu_sortduedate">Due date</string>
-    <string name="menu_sortalphabetical">Alphabetical</string>
+    <string name="menu_sort_my_order">My order</string>
+    <string name="menu_sort_due_date">Due date</string>
+    <string name="menu_sort_alphabetical">Alphabetical</string>
+
+    <!-- Tasks -->
+    <string name="msg_task_empty">Empty task list</string>
+    <string name="error_tasks_loading">Error loading tasks</string>
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
