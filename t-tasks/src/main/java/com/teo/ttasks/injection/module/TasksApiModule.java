@@ -6,7 +6,7 @@ import com.google.api.client.extensions.android.http.AndroidHttp;
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.tasks.Tasks;
-import com.teo.ttasks.data.TasksModel;
+import com.teo.ttasks.data.remote.TasksHelper;
 import com.teo.ttasks.injection.UserScope;
 
 import dagger.Module;
@@ -33,7 +33,7 @@ public class TasksApiModule {
     @UserScope
     @Provides
     @NonNull
-    TasksModel provideTasksModel(@NonNull Tasks tasks) {
-        return new TasksModel(tasks);
+    TasksHelper provideTasksModel(@NonNull Tasks tasks) {
+        return new TasksHelper(tasks);
     }
 }

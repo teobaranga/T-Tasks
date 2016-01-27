@@ -14,6 +14,7 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.Scope;
 import com.google.api.services.tasks.TasksScopes;
 import com.teo.ttasks.R;
+import com.teo.ttasks.data.local.PrefHelper;
 import com.teo.ttasks.ui.activities.main.MainActivity;
 import com.teo.ttasks.ui.base.BaseActivity;
 
@@ -75,6 +76,7 @@ public class SignInActivity extends BaseActivity implements GoogleApiClient.OnCo
     private void handleSignInResult(GoogleSignInResult result) {
         Timber.d("handleSignInResult:" + result.isSuccess());
         if (result.isSuccess()) {
+            PrefHelper.setUser(this, result.getSignInAccount().getEmail());
             // Signed in successfully, show authenticated UI.
             startActivity(new Intent(this, MainActivity.class));
             finish();

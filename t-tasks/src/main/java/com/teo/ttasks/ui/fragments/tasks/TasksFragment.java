@@ -14,10 +14,10 @@ import android.widget.Toast;
 
 import com.teo.ttasks.R;
 import com.teo.ttasks.TTasksApp;
-import com.teo.ttasks.ui.adapters.TasksAdapter;
 import com.teo.ttasks.data.model.Task;
 import com.teo.ttasks.ui.DividerItemDecoration;
 import com.teo.ttasks.ui.activities.main.MainActivity;
+import com.teo.ttasks.ui.adapters.TasksAdapter;
 import com.teo.ttasks.ui.base.BaseFragment;
 
 import javax.inject.Inject;
@@ -51,7 +51,7 @@ public class TasksFragment extends BaseFragment implements TasksView, SwipeRefre
     /**
      * Create a new instance of this fragment using the provided task list ID
      */
-    public static TasksFragment newInstance(String taskListId, String taskListName) {
+    public static TasksFragment newInstance(@NonNull String taskListId, @NonNull String taskListName) {
         TasksFragment tasksFragment = new TasksFragment();
         Bundle args = new Bundle();
         args.putString(ARG_TASK_LIST_ID, taskListId);
@@ -65,12 +65,7 @@ public class TasksFragment extends BaseFragment implements TasksView, SwipeRefre
         super.onAttach(context);
         mTaskListId = getArguments().getString(ARG_TASK_LIST_ID);
         mTaskListName = getArguments().getString(ARG_TASK_LIST_NAME);
-    }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        TTasksApp.get(getContext()).tasksApiComponent().plus(new TasksFragmentModule()).inject(this);
+        TTasksApp.get(context).tasksApiComponent().plus(new TasksFragmentModule()).inject(this);
         mTasksAdapter = new TasksAdapter(null);
     }
 
@@ -118,7 +113,7 @@ public class TasksFragment extends BaseFragment implements TasksView, SwipeRefre
     public void showErrorUi() {
         runOnUiThreadIfFragmentAlive(() -> {
             mSwipeRefreshLayout.setRefreshing(false);
-//            mTasksAdapter.clear();
+            mTasksAdapter.clear();
             loadingUiView.setVisibility(GONE);
             errorUiView.setVisibility(VISIBLE);
             emptyUiView.setVisibility(GONE);

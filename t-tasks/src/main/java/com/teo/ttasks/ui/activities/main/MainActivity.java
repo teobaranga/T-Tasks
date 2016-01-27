@@ -2,6 +2,7 @@ package com.teo.ttasks.ui.activities.main;
 
 import android.Manifest;
 import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -49,6 +50,7 @@ import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Target;
 import com.teo.ttasks.R;
 import com.teo.ttasks.TTasksApp;
+import com.teo.ttasks.data.local.PrefHelper;
 import com.teo.ttasks.receivers.NetworkInfoReceiver;
 import com.teo.ttasks.ui.activities.AboutActivity;
 import com.teo.ttasks.ui.activities.SignInActivity;
@@ -105,6 +107,14 @@ public final class MainActivity extends BaseActivity implements OnConnectionFail
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // Show the SignIn activity if there's no user connected
+        if (!PrefHelper.isUserPresent(this)) {
+            startActivity(new Intent(this, SignInActivity.class));
+            finish();
+            return;
+        }
+
         setContentView(R.layout.activity_main);
         TTasksApp.get(this).applicationComponent().plus(new MainActivityModule(this)).inject(this);
         Permiso.getInstance().setActivity(this);
@@ -152,7 +162,7 @@ public final class MainActivity extends BaseActivity implements OnConnectionFail
                         mProfile,
                         new ProfileSettingDrawerItem()
                                 .withName(getResources().getString(R.string.drawer_add_account))
-                                .withIcon(GoogleMaterial.Icon.gmd_person_add)
+                                .withIcon(GoogleMaterial.Icon.gmd_account_add)
                                 .withIdentifier(ID_ADD_ACCOUNT),
                         new ProfileSettingDrawerItem()
                                 .withName(getResources().getString(R.string.drawer_manage_account))
@@ -193,7 +203,7 @@ public final class MainActivity extends BaseActivity implements OnConnectionFail
                 .addDrawerItems(
                         new PrimaryDrawerItem()
                                 .withName(R.string.drawer_add_task_list)
-                                .withIcon(GoogleMaterial.Icon.gmd_add)
+                                .withIcon(GoogleMaterial.Icon.gmd_plus)
                                 .withIdentifier(ID_ADD_TASK_LIST)
                                 .withSelectable(false),
                         new DividerDrawerItem(),
@@ -281,8 +291,12 @@ public final class MainActivity extends BaseActivity implements OnConnectionFail
             // this asynchronous branch will attempt to sign in the user silently.  Cross-device
             // single sign-on will occur in this branch.
 //            showProgressDialog();
+            ProgressDialog loadingUserDialog = new ProgressDialog(this);
+            loadingUserDialog.setMessage("Connecting to Google Play Services...");
+            loadingUserDialog.show();
             opr.setResultCallback(googleSignInResult -> {
-//                    hideProgressDialog();
+                if (loadingUserDialog.isShowing())
+                    loadingUserDialog.dismiss();
                 handleSignInResult(googleSignInResult);
             });
         }
@@ -302,13 +316,13 @@ public final class MainActivity extends BaseActivity implements OnConnectionFail
 
     @Override
     protected void onDestroy() {
-        realm.close();
+        if (realm != null)
+            realm.close();
         super.onDestroy();
     }
 
-
     private void handleSignInResult(GoogleSignInResult result) {
-        if (result.isSuccess()) {
+        if (result.isSuccess() && TTasksApp.get(this).tasksApiComponent() == null) {
             // Signed in successfully, show authenticated UI.
             GoogleSignInAccount acct = result.getSignInAccount();
 
@@ -342,8 +356,8 @@ public final class MainActivity extends BaseActivity implements OnConnectionFail
                     Permiso.getInstance().showRationaleInDialog("Title", "Message", null, callback);
                 }
             }, Manifest.permission.GET_ACCOUNTS);
-
         } else {
+            PrefHelper.clearUser(this);
             // Signed out, show unauthenticated UI.
             TTasksApp.get(this).releaseTasksApiComponent();
             startActivity(new Intent(this, SignInActivity.class));

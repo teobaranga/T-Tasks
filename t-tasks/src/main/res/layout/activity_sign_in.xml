@@ -1,10 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
              xmlns:app="http://schemas.android.com/apk/res-auto"
+             xmlns:tools="http://schemas.android.com/tools"
              android:layout_width="match_parent"
              android:layout_height="match_parent"
              android:background="@color/colorPrimary"
-             android:orientation="vertical">
+             android:orientation="vertical"
+             tools:context=".ui.activities.SignInActivity">
+
+    <TextView
+        style="@style/TextAppearance.AppCompat.Large.Inverse"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="128dp"
+        android:text="Welcome to T-Tasks"/>
 
     <com.google.android.gms.common.SignInButton
         android:id="@+id/sign_in_button"

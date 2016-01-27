@@ -5,8 +5,8 @@ import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 
-import com.teo.ttasks.data.RealmModel;
-import com.teo.ttasks.data.TasksModel;
+import com.teo.ttasks.data.local.RealmHelper;
+import com.teo.ttasks.data.remote.TasksHelper;
 import com.teo.ttasks.performance.AsyncJobsObserver;
 import com.teo.ttasks.ui.fragments.tasks.TasksPresenter;
 import com.teo.ttasks.ui.fragments.tasks.TasksFragment;
@@ -47,13 +47,13 @@ public abstract class BaseFragment extends Fragment {
     public static class TasksFragmentModule {
         @Provides
         @NonNull
-        public TasksPresenter provideTasksPresenter(@NonNull TasksModel tasksModel,
-                                                    @NonNull RealmModel realmModel,
+        public TasksPresenter provideTasksPresenter(@NonNull TasksHelper tasksHelper,
+                                                    @NonNull RealmHelper realmHelper,
                                                     @NonNull AsyncJobsObserver asyncJobsObserver) {
             return new TasksPresenter(
                     Schedulers.io(),
-                    tasksModel,
-                    realmModel,
+                    tasksHelper,
+                    realmHelper,
                     asyncJobsObserver
             );
         }

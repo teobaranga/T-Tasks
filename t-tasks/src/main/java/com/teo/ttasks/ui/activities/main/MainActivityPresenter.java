@@ -6,8 +6,8 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.plus.Plus;
 import com.google.android.gms.plus.model.people.Person;
 import com.google.android.gms.plus.model.people.PersonBuffer;
-import com.teo.ttasks.data.RealmModel;
-import com.teo.ttasks.data.TasksModel;
+import com.teo.ttasks.data.local.RealmHelper;
+import com.teo.ttasks.data.remote.TasksHelper;
 
 import javax.inject.Inject;
 
@@ -18,18 +18,18 @@ import timber.log.Timber;
 
 public class MainActivityPresenter {
 
-    @Inject
-    TasksModel mTasksModel;
+    @Inject TasksHelper mTasksHelper;
 
     @NonNull
-    private RealmModel mRealmModel;
+    private RealmHelper mRealmHelper;
 
+    // TODO: 2016-01-26 Replace this with a view
     private MainActivity mMainActivity;
 
     @Inject
-    public MainActivityPresenter(MainActivity mainActivity, @NonNull RealmModel realmModel) {
+    public MainActivityPresenter(MainActivity mainActivity, @NonNull RealmHelper realmHelper) {
         mMainActivity = mainActivity;
-        mRealmModel = realmModel;
+        mRealmHelper = realmHelper;
     }
 
     /**
@@ -70,8 +70,25 @@ public class MainActivityPresenter {
      */
     public void reloadTaskLists() {
         // TODO: 2015-12-29 Show loading UI
-        mTasksModel.getTaskLists()
+        mTasksHelper.getTaskLists()
                 .subscribeOn(Schedulers.io())
+                .map(taskList -> {
+                    // Load the tasks from each task list
+                    mTasksHelper.getTasks(taskList.getId())
+                            .toList()
+                            .map(tasks -> {
+                                // Sync online tasks with the offline database
+                                Realm defaultRealm = Realm.getDefaultInstance();
+                                defaultRealm.executeTransaction(realm -> {
+                                    mRealmHelper.clearTasks(realm, taskList.getId());
+                                    mRealmHelper.createTasks(realm, tasks, taskList.getId());
+                                });
+                                defaultRealm.close();
+                                return taskList;
+                            })
+                            .subscribe();
+                    return taskList;
+                })
                 .toList()
                 .subscribe(
                         taskLists -> {
@@ -89,7 +106,7 @@ public class MainActivityPresenter {
 
     public void loadTaskLists() {
         final Realm realm = Realm.getDefaultInstance();
-        mRealmModel.loadTaskLists(realm)
+        mRealmHelper.loadTaskLists(realm)
                 .subscribe(
                         taskLists -> {
                             // TODO: 2015-12-29 Show empty UI
