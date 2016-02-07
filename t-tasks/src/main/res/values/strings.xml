@@ -3,6 +3,10 @@
 
     <string name="app_name">T-Tasks</string>
 
+    <!-- Welcome -->
+    <string name="welcome">Welcome to T-Tasks</string>
+    <string name="welcome_description">All your tasks beautifully organized in one place and easy to manage, so you can focus on having a most productive day :)</string>
+
     <!-- Drawer items -->
     <string name="drawer_add_task_list">New task list</string>
     <string name="drawer_settings">Settings</string>

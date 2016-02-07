@@ -1,26 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-             xmlns:app="http://schemas.android.com/apk/res-auto"
-             xmlns:tools="http://schemas.android.com/tools"
-             android:layout_width="match_parent"
-             android:layout_height="match_parent"
-             android:background="@color/colorPrimary"
-             android:orientation="vertical"
-             tools:context=".ui.activities.SignInActivity">
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:app="http://schemas.android.com/apk/res-auto"
+                xmlns:tools="http://schemas.android.com/tools"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@color/colorPrimary"
+                android:orientation="vertical"
+                tools:context=".ui.activities.SignInActivity">
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/text_welcome"
+        android:layout_centerHorizontal="true"
+        android:src="@mipmap/ic_launcher"/>
 
     <TextView
+        android:id="@+id/text_welcome"
         style="@style/TextAppearance.AppCompat.Large.Inverse"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginTop="128dp"
-        android:text="Welcome to T-Tasks"/>
+        android:layout_centerInParent="true"
+        android:layout_marginBottom="64dp"
+        android:layout_marginTop="64dp"
+        android:gravity="center"
+        android:text="@string/welcome"/>
+
+    <TextView
+        android:id="@+id/text_welcome_description"
+        style="@style/TextAppearance.AppCompat.Small.Inverse"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/text_welcome"
+        android:layout_centerInParent="true"
+        android:layout_marginBottom="56dp"
+        android:gravity="center"
+        android:maxWidth="264dp"
+        android:text="@string/welcome_description"
+        android:textStyle="italic|bold"/>
 
     <com.google.android.gms.common.SignInButton
         android:id="@+id/sign_in_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
+        android:layout_below="@+id/text_welcome_description"
+        android:layout_centerHorizontal="true"
+        android:minWidth="256dp"
         app:buttonSize="wide"/>
 
-</FrameLayout>
+</RelativeLayout>

@@ -5,6 +5,10 @@
     <color name="colorPrimaryDark">@color/brown_700</color>
     <color name="colorAccent">@color/orange_A400</color>
 
+    <!-- Task item -->
+    <color name="task_background">#9E9E9E</color>
+    <color name="task_day">#a5000000</color>
+
     <!-- Material Colors -->
     <!-- https://gist.github.com/kalehv/bae765c756e94455ed88 -->
     <color name="orange_50">#fff3e0</color>

@@ -243,6 +243,7 @@ public final class MainActivity extends BaseActivity implements OnConnectionFail
                                     // Avoid recreating the same fragment
                                     if (tasksFragment != null && tasksFragment.getTaskListId().equals(drawerItem.getTag()))
                                         break;
+                                    PrefHelper.updateCurrentTaskList(this, ((String) drawerItem.getTag()));
                                     tasksFragment = TasksFragment.newInstance((String) drawerItem.getTag(), ((PrimaryDrawerItem) drawerItem).getName().getText());
                                     getSupportFragmentManager()
                                             .beginTransaction()
@@ -322,10 +323,13 @@ public final class MainActivity extends BaseActivity implements OnConnectionFail
     }
 
     private void handleSignInResult(GoogleSignInResult result) {
-        if (result.isSuccess() && TTasksApp.get(this).tasksApiComponent() == null) {
+        if (result.isSuccess()) {
+            // TODO: 2016-01-26 find a way to avoid reloading everything when resuming
             // Signed in successfully, show authenticated UI.
             GoogleSignInAccount acct = result.getSignInAccount();
 
+            // Email is not null because it was requested when building the GoogleSignInOptions
+            @SuppressWarnings("ConstantConditions")
             String email = acct.getEmail();
 
             // Set name
@@ -377,7 +381,6 @@ public final class MainActivity extends BaseActivity implements OnConnectionFail
             // replacing sz=X
             String pic = currentPerson.getImage().getUrl();
             // Requesting a size of 400x400
-            Timber.d(pic);
             pic = pic.substring(0, pic.length() - 2) + "400";
             mProfile.withIcon(pic);
             accountHeader.updateProfile(mProfile);
@@ -410,6 +413,18 @@ public final class MainActivity extends BaseActivity implements OnConnectionFail
                 if (taskListList.size() >= 1) {
                     for (com.teo.ttasks.data.model.TaskList taskList : taskListList)
                         addOrUpdateTaskList(taskList);
+
+                    // Restore previously selected task list
+                    String currentTaskList = PrefHelper.getCurrentTaskList(MainActivity.this);
+                    for (IDrawerItem drawerItem : drawer.getDrawerItems()) {
+                        Object taskListId = drawerItem.getTag();
+                        if (taskListId != null && taskListId instanceof String)
+                            if (taskListId.equals(currentTaskList))
+                                if (drawer.getCurrentSelectedPosition() == -1) {
+                                    drawer.setSelection(drawerItem.getIdentifier());
+                                    return;
+                                }
+                    }
                     if (drawer.getCurrentSelectedPosition() == -1)
                         drawer.setSelectionAtPosition(1);
                 }

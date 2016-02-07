@@ -4,35 +4,36 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="?android:attr/selectableItemBackground"
     android:orientation="horizontal">
 
-    <LinearLayout
+    <FrameLayout
         android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:background="@color/colorAccent">
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="12dp">
 
         <!-- 52dp in order to align the task title with the activity title -->
         <!-- TODO: make this a dimen value -->
         <LinearLayout
-            android:layout_width="52dp"
-            android:layout_height="match_parent"
-            android:gravity="center"
-            android:orientation="vertical"
-            android:padding="8dp">
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
 
             <TextView
                 android:id="@+id/date_day_number"
-                style="@style/TextAppearance.AppCompat.Large.Inverse"
+                style="@style/TextAppearance.AppCompat.Large"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
+                android:gravity="center"
                 android:textStyle="bold"
-                tools:text="1"/>
+                android:textColor="@color/task_day"
+                tools:text="31"/>
 
             <TextView
                 android:id="@+id/date_day_name"
-                style="@style/TextAppearance.AppCompat.Small.Inverse"
+                style="@style/TextAppearance.AppCompat.Small"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
@@ -43,44 +44,58 @@
 
         </LinearLayout>
 
-    </LinearLayout>
+    </FrameLayout>
 
-    <LinearLayout
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="8dp">
+        android:paddingBottom="8dp"
+        android:paddingLeft="14dp"
+        android:paddingRight="16dp"
+        android:paddingTop="8dp">
 
-        <TextView
-            android:id="@+id/task_title"
-            style="@style/TextAppearance.AppCompat.Body2"
-            android:layout_width="wrap_content"
+        <RelativeLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="2dp"
-            android:singleLine="true"
-            tools:text="Buy groceries"/>
+            android:minHeight="58dp"
+            android:background="@drawable/background_task_date"
+            android:padding="8dp">
 
-        <TextView
-            android:id="@+id/task_description"
-            style="@style/TextAppearance.AppCompat.Small"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="4dp"
-            android:singleLine="true"
-            android:textStyle="italic"
-            tools:text="Go to the supermarket and pick them up"/>
+            <TextView
+                android:id="@+id/task_title"
+                style="@style/TextAppearance.AppCompat.Subhead.Inverse"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="2dp"
+                android:singleLine="true"
+                android:textStyle="bold"
+                tools:text="Buy groceries"/>
 
-        <TextView
-            android:id="@+id/task_reminder"
-            style="@style/TextAppearance.AppCompat.Small"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:drawableLeft="@drawable/ic_alarm_18dp"
-            android:drawableStart="@drawable/ic_alarm_18dp"
-            android:gravity="bottom"
-            android:singleLine="true"
-            tools:text="5:00PM"/>
+            <TextView
+                android:id="@+id/task_description"
+                style="@style/TextAppearance.AppCompat.Small.Inverse"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/task_title"
+                android:layout_marginBottom="4dp"
+                android:singleLine="true"
+                android:textStyle="italic"
+                tools:text="Go to the supermarket and pick them up"/>
 
-    </LinearLayout>
+            <TextView
+                android:id="@+id/task_reminder"
+                style="@style/TextAppearance.AppCompat.Small.Inverse"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/task_description"
+                android:drawableLeft="@drawable/ic_alarm_18dp"
+                android:drawableStart="@drawable/ic_alarm_18dp"
+                android:gravity="bottom"
+                android:singleLine="true"
+                tools:text="5:00PM"/>
+
+        </RelativeLayout>
+
+    </RelativeLayout>
 
 </LinearLayout>

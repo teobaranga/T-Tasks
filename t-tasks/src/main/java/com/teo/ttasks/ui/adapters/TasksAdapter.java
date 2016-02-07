@@ -19,6 +19,9 @@ import butterknife.Bind;
 import butterknife.ButterKnife;
 import io.realm.RealmResults;
 
+import static android.view.View.GONE;
+import static android.view.View.VISIBLE;
+
 public class TasksAdapter extends RecyclerView.Adapter<TasksAdapter.ViewHolder> {
 
     // Store a member variable for the contacts
@@ -54,6 +57,14 @@ public class TasksAdapter extends RecyclerView.Adapter<TasksAdapter.ViewHolder> 
         if (!task.isValid())
             return;
 
+        // Task description
+        if (task.getNotes() == null) {
+            viewHolder.taskDescription.setVisibility(GONE);
+        } else {
+            viewHolder.taskDescription.setText(task.getNotes());
+            viewHolder.taskDescription.setVisibility(VISIBLE);
+        }
+
         if (task.getDue() != null) {
             Date dueDate = task.getDue();
             // Mon
@@ -67,6 +78,9 @@ public class TasksAdapter extends RecyclerView.Adapter<TasksAdapter.ViewHolder> 
             if (reminder != null) {
                 simpleDateFormat.applyLocalizedPattern("hh:mma");
                 viewHolder.reminderTime.setText(simpleDateFormat.format(reminder));
+                viewHolder.reminderTime.setVisibility(VISIBLE);
+            } else {
+                viewHolder.reminderTime.setVisibility(GONE);
             }
         } else {
             viewHolder.dateDayNumber.setText(null);

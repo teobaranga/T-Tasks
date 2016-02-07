@@ -15,7 +15,6 @@ import android.widget.Toast;
 import com.teo.ttasks.R;
 import com.teo.ttasks.TTasksApp;
 import com.teo.ttasks.data.model.Task;
-import com.teo.ttasks.ui.DividerItemDecoration;
 import com.teo.ttasks.ui.activities.main.MainActivity;
 import com.teo.ttasks.ui.adapters.TasksAdapter;
 import com.teo.ttasks.ui.base.BaseFragment;
@@ -85,7 +84,7 @@ public class TasksFragment extends BaseFragment implements TasksView, SwipeRefre
         // All the task items have the same size
         mTaskList.setHasFixedSize(true);
         mTaskList.setLayoutManager(new LinearLayoutManager(getContext()));
-        mTaskList.addItemDecoration(new DividerItemDecoration(getContext(), null));
+        //mTaskList.addItemDecoration(new DividerItemDecoration(getContext(), null));
         mTaskList.setAdapter(mTasksAdapter);
 
         mFloatingActionButton.setOnClickListener(view1 -> Toast.makeText(getContext(), "Click", Toast.LENGTH_SHORT).show());
