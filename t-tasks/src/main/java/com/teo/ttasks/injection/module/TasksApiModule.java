@@ -3,8 +3,8 @@ package com.teo.ttasks.injection.module;
 import android.support.annotation.NonNull;
 
 import com.google.api.client.extensions.android.http.AndroidHttp;
+import com.google.api.client.extensions.android.json.AndroidJsonFactory;
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
-import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.tasks.Tasks;
 import com.teo.ttasks.data.remote.TasksHelper;
 import com.teo.ttasks.injection.UserScope;
@@ -25,7 +25,7 @@ public class TasksApiModule {
     @Provides
     @NonNull
     Tasks provideTasks() {
-        return new Tasks.Builder(AndroidHttp.newCompatibleTransport(), JacksonFactory.getDefaultInstance(), mGoogleAccountCredential)
+        return new Tasks.Builder(AndroidHttp.newCompatibleTransport(), AndroidJsonFactory.getDefaultInstance(), mGoogleAccountCredential)
                 .setApplicationName("T-Tasks/0.1")
                 .build();
     }
@@ -33,7 +33,7 @@ public class TasksApiModule {
     @UserScope
     @Provides
     @NonNull
-    TasksHelper provideTasksModel(@NonNull Tasks tasks) {
+    TasksHelper provideTasksHelper(@NonNull Tasks tasks) {
         return new TasksHelper(tasks);
     }
 }

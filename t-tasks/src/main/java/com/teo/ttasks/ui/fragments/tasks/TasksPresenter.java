@@ -56,8 +56,8 @@ public class TasksPresenter extends Presenter<TasksView> {
                     // Sync online tasks with the offline database
                     Realm defaultRealm = Realm.getDefaultInstance();
                     defaultRealm.executeTransaction(realm -> {
-                        mRealmHelper.clearTasks(realm, taskListId);
-                        mRealmHelper.createTasks(realm, taskList, taskListId);
+                        mRealmHelper.clearTasks(taskListId);
+                        mRealmHelper.createTasks(taskList, taskListId);
                     });
                     defaultRealm.close();
                     return taskList;
@@ -87,8 +87,7 @@ public class TasksPresenter extends Presenter<TasksView> {
             }
         }
         final AsyncJob asyncJob = mAsyncJobsObserver.asyncJobStarted("loadTasks in TasksPresenter");
-        final Realm realm = Realm.getDefaultInstance();
-        final Subscription subscription = mRealmHelper.loadTasks(realm, taskListId)
+        final Subscription subscription = mRealmHelper.loadTasks(taskListId)
                 .subscribe(
                         realmTasks -> {
                             final TasksView view = view();
@@ -107,8 +106,7 @@ public class TasksPresenter extends Presenter<TasksView> {
                             if (view != null)
                                 view.showErrorUi();
                             mAsyncJobsObserver.asyncJobFinished(asyncJob);
-                        },
-                        realm::close
+                        }
                 );
         // Prevent memory leak.
         unsubscribeOnUnbindView(subscription, new FinishAsyncJobSubscription(mAsyncJobsObserver, asyncJob));

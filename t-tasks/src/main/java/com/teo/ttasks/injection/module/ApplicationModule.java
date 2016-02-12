@@ -11,6 +11,7 @@ import javax.inject.Singleton;
 
 import dagger.Module;
 import dagger.Provides;
+import io.realm.Realm;
 
 /** It's a Dagger module that provides application level dependencies. */
 @Module
@@ -39,4 +40,11 @@ public class ApplicationModule {
     public Handler provideMainThreadHandler() {
         return new Handler(Looper.getMainLooper());
     }
+
+    @Provides
+    @NonNull
+    public Realm provideRealm() {
+        return Realm.getDefaultInstance();
+    }
+
 }

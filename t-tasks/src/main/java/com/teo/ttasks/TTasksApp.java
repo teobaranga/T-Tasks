@@ -20,6 +20,8 @@ import com.teo.ttasks.injection.component.TasksApiComponent;
 import com.teo.ttasks.injection.module.ApplicationModule;
 import com.teo.ttasks.injection.module.TasksApiModule;
 
+import io.realm.Realm;
+import io.realm.RealmConfiguration;
 import timber.log.Timber;
 
 /**
@@ -45,15 +47,17 @@ public class TTasksApp extends MultiDexApplication {
     public void onCreate() {
         super.onCreate();
 
+        // Enable Timber
+        if (BuildConfig.DEBUG)
+            Timber.plant(new Timber.DebugTree());
+
         applicationComponent = DaggerApplicationComponent.builder()
                 .applicationModule(new ApplicationModule(this))
                 .build();
 
         applicationComponent.inject(this);
 
-        // Enable Timber
-        if (BuildConfig.DEBUG)
-            Timber.plant(new Timber.DebugTree());
+        initRealmConfiguration();
 
         //initialize and create the image loader logic
         DrawerImageLoader.init(new AbstractDrawerImageLoader() {
@@ -83,6 +87,13 @@ public class TTasksApp extends MultiDexApplication {
                 return super.placeholder(ctx, tag);
             }
         });
+    }
+
+    private void initRealmConfiguration() {
+        RealmConfiguration realmConfiguration = new RealmConfiguration.Builder(this)
+                .deleteRealmIfMigrationNeeded()
+                .build();
+        Realm.setDefaultConfiguration(realmConfiguration);
     }
 
     @NonNull

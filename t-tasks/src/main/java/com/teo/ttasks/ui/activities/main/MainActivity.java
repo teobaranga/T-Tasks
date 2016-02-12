@@ -66,13 +66,12 @@ import java.util.List;
 import javax.inject.Inject;
 
 import io.realm.Realm;
-import io.realm.RealmConfiguration;
 import io.realm.RealmResults;
 import timber.log.Timber;
 
 // TODO: 2015-12-29 implement logic for inserting, updating and removing tasks
 // TODO: 2015-12-29 implement multiple accounts
-public final class MainActivity extends BaseActivity implements OnConnectionFailedListener {
+public final class MainActivity extends BaseActivity implements MainActivityView, OnConnectionFailedListener {
 
     //private static final int RC_ADD = 4;
 
@@ -89,20 +88,23 @@ public final class MainActivity extends BaseActivity implements OnConnectionFail
 
     @Inject MainActivityPresenter mMainActivityPresenter;
 
+    @Inject Realm mRealm;
+
     /** The profile of the currently logged in user */
     private ProfileDrawerItem mProfile = null;
 
     /** Client used to interact with Google APIs. */
     private GoogleApiClient mGoogleApiClient;
+
     private AccountHeader accountHeader = null;
     private Drawer drawer = null;
 
     /** Bool to track whether the app is already resolving an error */
     private boolean mResolvingError = false;
+
     private ArrayList<IDrawerItem> taskLists = new ArrayList<>();
     private NetworkInfoReceiver mNetworkInfoReceiver;
     private TasksFragment tasksFragment;
-    private Realm realm;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -116,12 +118,9 @@ public final class MainActivity extends BaseActivity implements OnConnectionFail
         }
 
         setContentView(R.layout.activity_main);
-        TTasksApp.get(this).applicationComponent().plus(new MainActivityModule(this)).inject(this);
+        TTasksApp.get(this).applicationComponent().plus(new MainActivityModule()).inject(this);
         Permiso.getInstance().setActivity(this);
-
-        // Initialize Realm
-        Realm.setDefaultConfiguration(new RealmConfiguration.Builder(this).build());
-        realm = Realm.getDefaultInstance();
+        mMainActivityPresenter.bindView(this);
 
         // Create the network info receiver
         mNetworkInfoReceiver = new NetworkInfoReceiver(this) {
@@ -268,15 +267,6 @@ public final class MainActivity extends BaseActivity implements OnConnectionFail
         mMainActivityPresenter.loadTaskLists();
     }
 
-    public void onCachedTaskListsLoaded(RealmResults<com.teo.ttasks.data.model.TaskList> taskLists) {
-        runOnUiThreadIfAlive(() -> {
-            Timber.d("Found %d offline task lists", taskLists.size());
-            for (com.teo.ttasks.data.model.TaskList taskList : taskLists)
-                addOrUpdateTaskList(taskList);
-//            drawer.setSelectionAtPosition(1);
-        });
-    }
-
     @Override
     public void onStart() {
         super.onStart();
@@ -317,8 +307,8 @@ public final class MainActivity extends BaseActivity implements OnConnectionFail
 
     @Override
     protected void onDestroy() {
-        if (realm != null)
-            realm.close();
+        mRealm.close();
+        mMainActivityPresenter.unbindView(this);
         super.onDestroy();
     }
 
@@ -373,6 +363,7 @@ public final class MainActivity extends BaseActivity implements OnConnectionFail
      * Called when all the information about the currently signed in user
      * has been retrieved
      */
+    @Override
     public void onUserLoaded(@NonNull Person currentPerson) {
         runOnUiThreadIfAlive(() -> {
             // Set profile picture
@@ -396,20 +387,32 @@ public final class MainActivity extends BaseActivity implements OnConnectionFail
         });
     }
 
+    @Override
+    public void onCachedTaskListsLoaded(RealmResults<com.teo.ttasks.data.model.TaskList> taskLists) {
+        runOnUiThreadIfAlive(() -> {
+            Timber.d("Found %d offline task lists", taskLists.size());
+            for (com.teo.ttasks.data.model.TaskList taskList : taskLists)
+                addOrUpdateTaskList(taskList);
+//            drawer.setSelectionAtPosition(1);
+        });
+    }
+
     /**
      * Called once all the tasks lists have been fetched
      */
+    @Override
     public void onTaskListsLoaded(@NonNull List<TaskList> taskLists) {
         Timber.d("Found %s task lists", taskLists.size());
         // Insert task lists into Navigation Drawer
-        realm.executeTransaction((Realm realm) -> {
+        // TODO: 2016-02-12 This should probably be in the presenter
+        mRealm.executeTransaction(realm -> {
             for (TaskList taskList : taskLists)
                 realm.createOrUpdateObjectFromJson(com.teo.ttasks.data.model.TaskList.class, taskList.toString());
         }, new Realm.Transaction.Callback() {
             @Override
             public void onSuccess() {
                 Timber.d("Saved all task lists to Realm");
-                List<com.teo.ttasks.data.model.TaskList> taskListList = realm.allObjects(com.teo.ttasks.data.model.TaskList.class);
+                List<com.teo.ttasks.data.model.TaskList> taskListList = mRealm.allObjects(com.teo.ttasks.data.model.TaskList.class);
                 if (taskListList.size() >= 1) {
                     for (com.teo.ttasks.data.model.TaskList taskList : taskListList)
                         addOrUpdateTaskList(taskList);

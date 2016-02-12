@@ -8,27 +8,25 @@ import com.google.android.gms.plus.model.people.Person;
 import com.google.android.gms.plus.model.people.PersonBuffer;
 import com.teo.ttasks.data.local.RealmHelper;
 import com.teo.ttasks.data.remote.TasksHelper;
+import com.teo.ttasks.ui.base.Presenter;
 
 import javax.inject.Inject;
 
 import io.realm.Realm;
 import rx.Observable;
+import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 import timber.log.Timber;
 
-public class MainActivityPresenter {
+public class MainActivityPresenter extends Presenter<MainActivityView> {
 
     @Inject TasksHelper mTasksHelper;
 
     @NonNull
     private RealmHelper mRealmHelper;
 
-    // TODO: 2016-01-26 Replace this with a view
-    private MainActivity mMainActivity;
-
     @Inject
-    public MainActivityPresenter(MainActivity mainActivity, @NonNull RealmHelper realmHelper) {
-        mMainActivity = mainActivity;
+    public MainActivityPresenter(@NonNull RealmHelper realmHelper) {
         mRealmHelper = realmHelper;
     }
 
@@ -46,8 +44,11 @@ public class MainActivityPresenter {
                                 PersonBuffer personBuffer = loadPeopleResult.getPersonBuffer();
                                 try {
                                     Person currentPerson = personBuffer.get(0);
-                                    if (currentPerson != null)
-                                        mMainActivity.onUserLoaded(currentPerson);
+                                    if (currentPerson != null) {
+                                        final MainActivityView view = view();
+                                        if (view != null)
+                                            view.onUserLoaded(currentPerson);
+                                    }
                                     // TODO: 2015-12-29 handle null person
                                 } finally {
                                     personBuffer.release();
@@ -72,16 +73,19 @@ public class MainActivityPresenter {
         // TODO: 2015-12-29 Show loading UI
         mTasksHelper.getTaskLists()
                 .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
                 .map(taskList -> {
                     // Load the tasks from each task list
                     mTasksHelper.getTasks(taskList.getId())
+                            .subscribeOn(Schedulers.io())
+                            .observeOn(AndroidSchedulers.mainThread())
                             .toList()
                             .map(tasks -> {
                                 // Sync online tasks with the offline database
                                 Realm defaultRealm = Realm.getDefaultInstance();
                                 defaultRealm.executeTransaction(realm -> {
-                                    mRealmHelper.clearTasks(realm, taskList.getId());
-                                    mRealmHelper.createTasks(realm, tasks, taskList.getId());
+                                    mRealmHelper.clearTasks(taskList.getId());
+                                    mRealmHelper.createTasks(tasks, taskList.getId());
                                 });
                                 defaultRealm.close();
                                 return taskList;
@@ -95,7 +99,9 @@ public class MainActivityPresenter {
                             // TODO: 2015-12-29 Show empty UI
                             if (taskLists == null)
                                 return;
-                            mMainActivity.onTaskListsLoaded(taskLists);
+                            final MainActivityView view = view();
+                            if (view != null)
+                                view.onTaskListsLoaded(taskLists);
                         },
                         error -> {
                             Timber.e("Error getting task lists");
@@ -105,17 +111,17 @@ public class MainActivityPresenter {
     }
 
     public void loadTaskLists() {
-        final Realm realm = Realm.getDefaultInstance();
-        mRealmHelper.loadTaskLists(realm)
+        mRealmHelper.loadTaskLists()
                 .subscribe(
                         taskLists -> {
                             // TODO: 2015-12-29 Show empty UI
                             if (taskLists == null)
                                 return;
-                            mMainActivity.onCachedTaskListsLoaded(taskLists);
+                            final MainActivityView view = view();
+                            if (view != null)
+                                view.onCachedTaskListsLoaded(taskLists);
                         },
-                        error -> Timber.e(error.toString()),
-                        realm::close);
+                        error -> Timber.e(error.toString()));
     }
 
 }

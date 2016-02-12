@@ -7,8 +7,7 @@ import com.teo.ttasks.injection.module.ApplicationModule;
 import com.teo.ttasks.injection.module.TasksApiModule;
 import com.teo.ttasks.performance.AsyncJobsModule;
 import com.teo.ttasks.performance.AsyncJobsObserver;
-import com.teo.ttasks.ui.activities.main.MainActivityComponent;
-import com.teo.ttasks.ui.activities.main.MainActivityModule;
+import com.teo.ttasks.ui.base.BaseActivity;
 
 import javax.inject.Singleton;
 
@@ -29,5 +28,5 @@ public interface ApplicationComponent {
 
     TasksApiComponent plus(TasksApiModule tasksApiModule);
 
-    MainActivityComponent plus(MainActivityModule mainActivityModule);
+    BaseActivity.MainActivityComponent plus(BaseActivity.MainActivityModule mainActivityModule);
 }
