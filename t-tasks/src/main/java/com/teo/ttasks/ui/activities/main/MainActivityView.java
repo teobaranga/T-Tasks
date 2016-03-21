@@ -11,11 +11,9 @@ import java.util.List;
 import io.realm.RealmResults;
 
 public interface MainActivityView extends MvpView {
-
     void onUserLoaded(@NonNull Person currentPerson);
 
     void onCachedTaskListsLoaded(RealmResults<TaskList> taskLists);
 
     void onTaskListsLoaded(@NonNull List<com.google.api.services.tasks.model.TaskList> taskLists);
-
 }

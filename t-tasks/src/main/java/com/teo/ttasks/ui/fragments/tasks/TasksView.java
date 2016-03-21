@@ -2,11 +2,11 @@ package com.teo.ttasks.ui.fragments.tasks;
 
 import android.support.annotation.NonNull;
 
-import com.teo.ttasks.data.model.Task;
 import com.teo.ttasks.injection.AnyThread;
 import com.teo.ttasks.ui.base.MvpView;
+import com.teo.ttasks.ui.items.TaskItem;
 
-import io.realm.RealmResults;
+import java.util.List;
 
 /**
  * Main purpose of such interfaces — hide details of View implementation,
@@ -25,6 +25,6 @@ public interface TasksView extends MvpView {
     void showEmptyUi();
 
     @AnyThread
-    void showContentUi(@NonNull RealmResults<Task> items);
+    void showContentUi(@NonNull List<TaskItem> taskItems);
 
 }

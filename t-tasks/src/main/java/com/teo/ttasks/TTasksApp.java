@@ -8,7 +8,6 @@ import android.support.annotation.Nullable;
 import android.support.multidex.MultiDexApplication;
 import android.widget.ImageView;
 
-import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
 import com.mikepenz.iconics.IconicsDrawable;
 import com.mikepenz.materialdrawer.util.AbstractDrawerImageLoader;
 import com.mikepenz.materialdrawer.util.DrawerImageLoader;
@@ -16,9 +15,9 @@ import com.mikepenz.materialdrawer.util.DrawerUIUtils;
 import com.squareup.picasso.Picasso;
 import com.teo.ttasks.injection.component.ApplicationComponent;
 import com.teo.ttasks.injection.component.DaggerApplicationComponent;
-import com.teo.ttasks.injection.component.TasksApiComponent;
+import com.teo.ttasks.injection.component.TasksComponent;
 import com.teo.ttasks.injection.module.ApplicationModule;
-import com.teo.ttasks.injection.module.TasksApiModule;
+import com.teo.ttasks.injection.module.TasksModule;
 
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
@@ -29,13 +28,12 @@ import timber.log.Timber;
  */
 public class TTasksApp extends MultiDexApplication {
 
-    @SuppressWarnings("NullableProblems")
     // Initialized in onCreate. But be careful if you have ContentProviders in different processes -> their onCreate will be called before app.onCreate().
-    @NonNull
+    @SuppressWarnings("NullableProblems") @NonNull
     private ApplicationComponent applicationComponent;
 
     @Nullable
-    private TasksApiComponent mTasksApiComponent;
+    private TasksComponent mTasksComponent;
 
     // Prevent need in a singleton (global) reference to the application object.
     @NonNull
@@ -102,19 +100,20 @@ public class TTasksApp extends MultiDexApplication {
     }
 
     @NonNull
-    public TasksApiComponent createTasksApiComponent(@NonNull GoogleAccountCredential credential) {
-        mTasksApiComponent = applicationComponent.plus(new TasksApiModule(credential));
-        return mTasksApiComponent;
+    public TasksComponent getTasksComponent() {
+        if (mTasksComponent == null)
+            mTasksComponent = applicationComponent.plus(new TasksModule());
+        return mTasksComponent;
     }
 
     @Nullable
-    public TasksApiComponent tasksApiComponent() {
-        return mTasksApiComponent;
+    public TasksComponent tasksApiComponent() {
+        return mTasksComponent;
     }
 
     // TODO: 2015-12-25 call this at logout
     public void releaseTasksApiComponent() {
-        mTasksApiComponent = null;
+        mTasksComponent = null;
     }
 
 }

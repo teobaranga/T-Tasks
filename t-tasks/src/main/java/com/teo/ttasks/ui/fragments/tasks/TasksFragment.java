@@ -7,23 +7,26 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SimpleItemAnimator;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import com.mikepenz.fastadapter.FastAdapter;
+import com.mikepenz.fastadapter.adapters.ItemAdapter;
 import com.teo.ttasks.R;
 import com.teo.ttasks.TTasksApp;
-import com.teo.ttasks.data.model.Task;
 import com.teo.ttasks.ui.activities.main.MainActivity;
-import com.teo.ttasks.ui.adapters.TasksAdapter;
-import com.teo.ttasks.ui.base.BaseFragment;
+import com.teo.ttasks.ui.fragments.BaseFragment;
+import com.teo.ttasks.ui.items.TaskItem;
+
+import java.util.List;
 
 import javax.inject.Inject;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
-import io.realm.RealmResults;
 
 import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
@@ -42,7 +45,8 @@ public class TasksFragment extends BaseFragment implements TasksView, SwipeRefre
 
     @Inject TasksPresenter mTasksPresenter;
 
-    private TasksAdapter mTasksAdapter;
+    private FastAdapter<TaskItem> mFastAdapter;
+    private ItemAdapter<TaskItem> mItemAdapter;
 
     private String mTaskListId;
     private String mTaskListName;
@@ -64,8 +68,9 @@ public class TasksFragment extends BaseFragment implements TasksView, SwipeRefre
         super.onAttach(context);
         mTaskListId = getArguments().getString(ARG_TASK_LIST_ID);
         mTaskListName = getArguments().getString(ARG_TASK_LIST_NAME);
-        TTasksApp.get(context).tasksApiComponent().plus(new TasksFragmentModule()).inject(this);
-        mTasksAdapter = new TasksAdapter(null);
+        TTasksApp.get(context).getTasksComponent().inject(this);
+        mFastAdapter = new FastAdapter<>();
+        mItemAdapter = new ItemAdapter<>();
     }
 
     @Override
@@ -85,7 +90,8 @@ public class TasksFragment extends BaseFragment implements TasksView, SwipeRefre
         mTaskList.setHasFixedSize(true);
         mTaskList.setLayoutManager(new LinearLayoutManager(getContext()));
         //mTaskList.addItemDecoration(new DividerItemDecoration(getContext(), null));
-        mTaskList.setAdapter(mTasksAdapter);
+        ((SimpleItemAnimator) mTaskList.getItemAnimator()).setSupportsChangeAnimations(false);
+        mTaskList.setAdapter(mItemAdapter.wrap(mFastAdapter));
 
         mFloatingActionButton.setOnClickListener(view1 -> Toast.makeText(getContext(), "Click", Toast.LENGTH_SHORT).show());
 
@@ -112,7 +118,7 @@ public class TasksFragment extends BaseFragment implements TasksView, SwipeRefre
     public void showErrorUi() {
         runOnUiThreadIfFragmentAlive(() -> {
             mSwipeRefreshLayout.setRefreshing(false);
-            mTasksAdapter.clear();
+            mItemAdapter.clear();
             loadingUiView.setVisibility(GONE);
             errorUiView.setVisibility(VISIBLE);
             emptyUiView.setVisibility(GONE);
@@ -122,7 +128,7 @@ public class TasksFragment extends BaseFragment implements TasksView, SwipeRefre
     @Override
     public void showEmptyUi() {
         runOnUiThreadIfFragmentAlive(() -> {
-            mTasksAdapter.clear();
+            mItemAdapter.clear();
             mSwipeRefreshLayout.setRefreshing(false);
             loadingUiView.setVisibility(GONE);
             errorUiView.setVisibility(GONE);
@@ -131,9 +137,9 @@ public class TasksFragment extends BaseFragment implements TasksView, SwipeRefre
     }
 
     @Override
-    public void showContentUi(@NonNull RealmResults<Task> tasks) {
+    public void showContentUi(@NonNull List<TaskItem> taskItems) {
         runOnUiThreadIfFragmentAlive(() -> {
-            mTasksAdapter.reloadData(tasks);
+            mItemAdapter.setNewList(taskItems);
             mSwipeRefreshLayout.setRefreshing(false);
             loadingUiView.setVisibility(GONE);
             errorUiView.setVisibility(GONE);

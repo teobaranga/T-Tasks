@@ -2,16 +2,21 @@ package com.teo.ttasks.ui.fragments.tasks;
 
 import android.support.annotation.NonNull;
 
-import com.teo.ttasks.data.remote.TasksHelper;
 import com.teo.ttasks.data.local.RealmHelper;
+import com.teo.ttasks.data.model.Task;
+import com.teo.ttasks.data.remote.TasksHelper;
 import com.teo.ttasks.other.FinishAsyncJobSubscription;
 import com.teo.ttasks.performance.AsyncJob;
 import com.teo.ttasks.performance.AsyncJobsObserver;
 import com.teo.ttasks.ui.base.Presenter;
+import com.teo.ttasks.ui.items.TaskItem;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.inject.Inject;
 
-import io.realm.Realm;
+import rx.Observable;
 import rx.Scheduler;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
@@ -20,7 +25,7 @@ import timber.log.Timber;
 public class TasksPresenter extends Presenter<TasksView> {
 
     @NonNull
-    private final Scheduler mScheduler;
+    private final Scheduler mRealmScheduler;
 
     @NonNull
     private final TasksHelper mTasksHelper;
@@ -32,13 +37,13 @@ public class TasksPresenter extends Presenter<TasksView> {
     private final AsyncJobsObserver mAsyncJobsObserver;
 
     @Inject
-    public TasksPresenter(@NonNull Scheduler scheduler,
-                          @NonNull TasksHelper tasksHelper,
+    public TasksPresenter(@NonNull TasksHelper tasksHelper,
                           @NonNull RealmHelper realmHelper,
+                          @NonNull Scheduler realmScheduler,
                           @NonNull AsyncJobsObserver asyncJobsObserver) {
-        mScheduler = scheduler;
         mTasksHelper = tasksHelper;
         mRealmHelper = realmHelper;
+        mRealmScheduler = realmScheduler;
         mAsyncJobsObserver = asyncJobsObserver;
     }
 
@@ -49,26 +54,28 @@ public class TasksPresenter extends Presenter<TasksView> {
     public void reloadTasks(@NonNull String taskListId) {
         final AsyncJob asyncJob = mAsyncJobsObserver.asyncJobStarted("reloadTasks in TasksPresenter");
         final Subscription reloadSubscription = mTasksHelper.getTasks(taskListId)
-                .subscribeOn(mScheduler)
-                .observeOn(AndroidSchedulers.mainThread())
-                .toList()
-                .map(taskList -> {
-                    // Sync online tasks with the offline database
-                    Realm defaultRealm = Realm.getDefaultInstance();
-                    defaultRealm.executeTransaction(realm -> {
-                        mRealmHelper.clearTasks(taskListId);
-                        mRealmHelper.createTasks(taskList, taskListId);
-                    });
-                    defaultRealm.close();
-                    return taskList;
+                .flatMap(taskList -> mRealmHelper.refreshTasks(taskList, taskListId))
+                .flatMap(tasks -> {
+                    List<TaskItem> taskItems = new ArrayList<>();
+                    for (Task task : tasks)
+                        taskItems.add(new TaskItem(task));
+                    return Observable.just(taskItems);
                 })
+                .subscribeOn(mRealmScheduler)
+                .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
                         tasks -> {
+                            final TasksView view = view();
+                            if (view != null) {
+                                if (tasks.isEmpty())
+                                    view.showEmptyUi();
+                                else
+                                    view.showContentUi(tasks);
+                            }
                             mAsyncJobsObserver.asyncJobFinished(asyncJob);
                         },
                         error -> {
                             Timber.e(error.toString());
-                            // Tip: in Kotlin you can use ? to operate with nullable values.
                             final TasksView view = view();
                             if (view != null)
                                 view.showErrorUi();
@@ -88,14 +95,22 @@ public class TasksPresenter extends Presenter<TasksView> {
         }
         final AsyncJob asyncJob = mAsyncJobsObserver.asyncJobStarted("loadTasks in TasksPresenter");
         final Subscription subscription = mRealmHelper.loadTasks(taskListId)
+                .subscribeOn(mRealmScheduler)
+                .flatMap(tasks -> {
+                    List<TaskItem> taskItems = new ArrayList<>();
+                    for (Task task : tasks)
+                        taskItems.add(new TaskItem(task));
+                    return Observable.just(taskItems);
+                })
+                .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
-                        realmTasks -> {
+                        tasks -> {
                             final TasksView view = view();
                             if (view != null) {
-                                if (realmTasks.isEmpty())
+                                if (tasks.isEmpty())
                                     view.showEmptyUi();
                                 else
-                                    view.showContentUi(realmTasks);
+                                    view.showContentUi(tasks);
                             }
                             mAsyncJobsObserver.asyncJobFinished(asyncJob);
                         },

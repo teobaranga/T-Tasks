@@ -43,7 +43,7 @@
             android:paddingTop="8dp"
             android:paddingBottom="80dp"
             android:scrollbars="vertical"
-            tools:listitem="@layout/layout_item_task"/>
+            tools:listitem="@layout/item_task"/>
 
     </android.support.v4.widget.SwipeRefreshLayout>
 

@@ -14,20 +14,29 @@ import javax.inject.Inject;
 
 import io.realm.Realm;
 import rx.Observable;
+import rx.Scheduler;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 import timber.log.Timber;
 
 public class MainActivityPresenter extends Presenter<MainActivityView> {
 
-    @Inject TasksHelper mTasksHelper;
+    @NonNull
+    private TasksHelper mTasksHelper;
 
     @NonNull
     private RealmHelper mRealmHelper;
 
+    @NonNull
+    private Scheduler mRealmScheduler;
+
     @Inject
-    public MainActivityPresenter(@NonNull RealmHelper realmHelper) {
+    public MainActivityPresenter(@NonNull TasksHelper tasksHelper,
+                                 @NonNull RealmHelper realmHelper,
+                                 @NonNull Scheduler realmScheduler) {
+        mTasksHelper = tasksHelper;
         mRealmHelper = realmHelper;
+        mRealmScheduler = realmScheduler;
     }
 
     /**
@@ -59,9 +68,7 @@ public class MainActivityPresenter extends Presenter<MainActivityView> {
                                 Timber.e("Error getting me: %s", loadPeopleResult.getStatus());
                             }
                         },
-                        error -> {
-                            Timber.e(error.toString());
-                        }
+                        error -> Timber.e(error.toString())
                 );
     }
 
@@ -71,21 +78,19 @@ public class MainActivityPresenter extends Presenter<MainActivityView> {
      */
     public void reloadTaskLists() {
         // TODO: 2015-12-29 Show loading UI
+        System.out.println("Reloading task lists");
         mTasksHelper.getTaskLists()
                 .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
                 .map(taskList -> {
                     // Load the tasks from each task list
                     mTasksHelper.getTasks(taskList.getId())
-                            .subscribeOn(Schedulers.io())
-                            .observeOn(AndroidSchedulers.mainThread())
-                            .toList()
+                            .subscribeOn(mRealmScheduler)
                             .map(tasks -> {
                                 // Sync online tasks with the offline database
                                 Realm defaultRealm = Realm.getDefaultInstance();
                                 defaultRealm.executeTransaction(realm -> {
-                                    mRealmHelper.clearTasks(taskList.getId());
-                                    mRealmHelper.createTasks(tasks, taskList.getId());
+                                    mRealmHelper.clearTasks(taskList.getId(), realm);
+                                    mRealmHelper.createTasks(tasks, taskList.getId(), realm);
                                 });
                                 defaultRealm.close();
                                 return taskList;
@@ -94,6 +99,7 @@ public class MainActivityPresenter extends Presenter<MainActivityView> {
                     return taskList;
                 })
                 .toList()
+                .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
                         taskLists -> {
                             // TODO: 2015-12-29 Show empty UI

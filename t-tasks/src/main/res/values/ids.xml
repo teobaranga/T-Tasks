@@ -2,18 +2,20 @@
 <resources>
 
     <!-- Widget -->
-    <item name="widget_header" type="id" />
-    <item name="widget_header_weekday" type="id" />
-    <item name="widget_header_date" type="id" />
-    <item name="widget_header2" type="id" />
-    <item name="widget_header2_weekday" type="id" />
-    <item name="widget_header2_date" type="id" />
-    <item name="widget_events_list" type="id" />
+    <item name="widget_header" type="id"/>
+    <item name="widget_header_weekday" type="id"/>
+    <item name="widget_header_date" type="id"/>
+    <item name="widget_header2" type="id"/>
+    <item name="widget_header2_weekday" type="id"/>
+    <item name="widget_header2_date" type="id"/>
+    <item name="widget_events_list" type="id"/>
 
     <!-- Tasks menu -->
-    <item name="menu_sort" type="id" />
-    <item name="menu_sort_due_date" type="id" />
-    <item name="menu_sort_my_order" type="id" />
-    <item name="menu_sort_alphabetical" type="id" />
+    <item name="menu_sort" type="id"/>
+    <item name="menu_sort_due_date" type="id"/>
+    <item name="menu_sort_my_order" type="id"/>
+    <item name="menu_sort_alphabetical" type="id"/>
+
+    <item name="task_item" type="id"/>
 
 </resources>

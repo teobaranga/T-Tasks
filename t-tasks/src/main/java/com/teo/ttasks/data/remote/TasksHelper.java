@@ -7,7 +7,6 @@ import com.google.api.services.tasks.model.Task;
 import com.google.api.services.tasks.model.TaskList;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -30,15 +29,16 @@ public class TasksHelper {
     @NonNull
     public Observable<TaskList> getTaskLists() {
         return Observable.defer(() -> {
-            List<TaskList> taskLists;
             try {
-                taskLists = mTasks.tasklists().list().execute().getItems();
+                System.out.println("TL : " + Thread.currentThread().getName());
+                List<TaskList> taskLists = mTasks.tasklists().list().execute().getItems();
                 if (taskLists == null)
-                    return Observable.from(new ArrayList<>());
+                    return Observable.empty();
+                else
+                    return Observable.from(taskLists);
             } catch (IOException e) {
                 return Observable.error(e);
             }
-            return Observable.from(taskLists);
         });
     }
 
@@ -46,17 +46,17 @@ public class TasksHelper {
      * Get the tasks belonging to the specified task list
      */
     @NonNull
-    public Observable<Task> getTasks(String taskListId) {
+    public Observable<List<Task>> getTasks(String taskListId) {
         return Observable.defer(() -> {
-            List<Task> tasks;
             try {
-                tasks = mTasks.tasks().list(taskListId).execute().getItems();
+                List<Task> tasks = mTasks.tasks().list(taskListId).execute().getItems();
                 if (tasks == null)
-                    return Observable.from(new ArrayList<>());
+                    return Observable.empty();
+                else
+                    return Observable.just(tasks);
             } catch (IOException e) {
                 return Observable.error(e);
             }
-            return Observable.from(tasks);
         });
     }
 

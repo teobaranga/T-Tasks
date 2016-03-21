@@ -2,7 +2,6 @@ package com.teo.ttasks.ui.activities.main;
 
 import android.Manifest;
 import android.app.Dialog;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -17,21 +16,12 @@ import android.support.annotation.NonNull;
 import android.view.Menu;
 import android.view.View;
 
-import com.google.android.gms.auth.api.Auth;
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
-import com.google.android.gms.auth.api.signin.GoogleSignInResult;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
-import com.google.android.gms.common.api.OptionalPendingResult;
-import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.plus.Plus;
 import com.google.android.gms.plus.model.people.Person;
-import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
-import com.google.api.client.util.ExponentialBackOff;
-import com.google.api.services.tasks.TasksScopes;
 import com.google.api.services.tasks.model.TaskList;
 import com.greysonparrelli.permiso.Permiso;
 import com.mikepenz.google_material_typeface_library.GoogleMaterial;
@@ -53,14 +43,11 @@ import com.teo.ttasks.TTasksApp;
 import com.teo.ttasks.data.local.PrefHelper;
 import com.teo.ttasks.receivers.NetworkInfoReceiver;
 import com.teo.ttasks.ui.activities.AboutActivity;
+import com.teo.ttasks.ui.activities.BaseActivity;
 import com.teo.ttasks.ui.activities.SignInActivity;
-import com.teo.ttasks.ui.base.BaseActivity;
 import com.teo.ttasks.ui.fragments.tasks.TasksFragment;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -69,7 +56,6 @@ import io.realm.Realm;
 import io.realm.RealmResults;
 import timber.log.Timber;
 
-// TODO: 2015-12-29 implement logic for inserting, updating and removing tasks
 // TODO: 2015-12-29 implement multiple accounts
 public final class MainActivity extends BaseActivity implements MainActivityView, OnConnectionFailedListener {
 
@@ -88,8 +74,6 @@ public final class MainActivity extends BaseActivity implements MainActivityView
 
     @Inject MainActivityPresenter mMainActivityPresenter;
 
-    @Inject Realm mRealm;
-
     /** The profile of the currently logged in user */
     private ProfileDrawerItem mProfile = null;
 
@@ -106,26 +90,44 @@ public final class MainActivity extends BaseActivity implements MainActivityView
     private NetworkInfoReceiver mNetworkInfoReceiver;
     private TasksFragment tasksFragment;
 
+    public static void start(Context context) {
+        Intent starter = new Intent(context, MainActivity.class);
+        context.startActivity(starter);
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         // Show the SignIn activity if there's no user connected
         if (!PrefHelper.isUserPresent(this)) {
-            startActivity(new Intent(this, SignInActivity.class));
+            SignInActivity.start(this);
             finish();
             return;
         }
 
         setContentView(R.layout.activity_main);
-        TTasksApp.get(this).applicationComponent().plus(new MainActivityModule()).inject(this);
         Permiso.getInstance().setActivity(this);
+
+        Permiso.getInstance().requestPermissions(new Permiso.IOnPermissionResult() {
+            @Override
+            public void onPermissionResult(Permiso.ResultSet resultSet) {
+                if (resultSet.areAllPermissionsGranted())
+                    TTasksApp.get(MainActivity.this).getTasksComponent().inject(MainActivity.this);
+            }
+
+            @Override
+            public void onRationaleRequested(Permiso.IOnRationaleProvided callback, String... permissions) {
+                Permiso.getInstance().showRationaleInDialog("Title", "Message", null, callback);
+            }
+        }, Manifest.permission.GET_ACCOUNTS);
+
         mMainActivityPresenter.bindView(this);
 
         // Create the network info receiver
         mNetworkInfoReceiver = new NetworkInfoReceiver(this) {
             @Override
-            public void onReceive(@NotNull Context context, @NotNull Intent intent) {
+            public void onReceive(@NonNull Context context, @NonNull Intent intent) {
                 // Internet connection changed
                 // TODO: 2015-12-29 Display/Hide message
             }
@@ -133,29 +135,24 @@ public final class MainActivity extends BaseActivity implements MainActivityView
 
         mResolvingError = savedInstanceState != null && savedInstanceState.getBoolean(STATE_RESOLVING_ERROR, false);
 
-        // Configure sign-in to request the user's ID, email address, and basic
-        // profile. ID and basic profile are included in DEFAULT_SIGN_IN.
-        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestEmail()
-                .requestProfile()
-                .requestScopes(new Scope(TasksScopes.TASKS))
-                .build();
-
         // Build a GoogleApiClient with access to the Google Sign-In API and the
         // options specified by gso.
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .enableAutoManage(this, this)
-                .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
+                .addScope(Plus.SCOPE_PLUS_PROFILE)
                 .addApi(Plus.API)
                 .build();
 
         mProfile = new ProfileDrawerItem()
+                .withIcon(PrefHelper.getUserPhoto(this))
+                .withName(PrefHelper.getUserName(this))
+                .withEmail(PrefHelper.getUserEmail(this))
                 .withNameShown(true);
 
         // Create the AccountHeader
         accountHeader = new AccountHeaderBuilder()
                 .withActivity(this)
-                .withHeaderBackground(R.drawable.ic_cover)
+                .withHeaderBackground(R.color.colorPrimary)
                 .withCurrentProfileHiddenInList(true)
                 .addProfiles(
                         mProfile,
@@ -188,7 +185,6 @@ public final class MainActivity extends BaseActivity implements MainActivityView
 
             @Override
             public void onPrepareLoad(Drawable placeHolderDrawable) {
-
             }
         });
 
@@ -220,10 +216,10 @@ public final class MainActivity extends BaseActivity implements MainActivityView
                                 .withIdentifier(ID_ABOUT)
                                 .withSelectable(false)
                 )
-                .withOnDrawerItemClickListener((View view, int position, IDrawerItem drawerItem) -> {
+                .withOnDrawerItemClickListener((view, position, drawerItem) -> {
                     // The header and footer items don't contain a drawerItem
                     if (drawerItem != null) {
-                        switch (drawerItem.getIdentifier()) {
+                        switch ((int) drawerItem.getIdentifier()) {
                             case ID_ADD_TASK_LIST:
                                 break;
                             case ID_ABOUT:
@@ -265,38 +261,14 @@ public final class MainActivity extends BaseActivity implements MainActivityView
         }
 
         mMainActivityPresenter.loadTaskLists();
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-        OptionalPendingResult<GoogleSignInResult> opr = Auth.GoogleSignInApi.silentSignIn(mGoogleApiClient);
-        if (opr.isDone()) {
-            // If the user's cached credentials are valid, the OptionalPendingResult will be "done"
-            // and the GoogleSignInResult will be available instantly.
-            Timber.d("Got cached sign-in");
-            GoogleSignInResult result = opr.get();
-            handleSignInResult(result);
-        } else {
-            // If the user has not previously signed in on this device or the sign-in has expired,
-            // this asynchronous branch will attempt to sign in the user silently.  Cross-device
-            // single sign-on will occur in this branch.
-//            showProgressDialog();
-            ProgressDialog loadingUserDialog = new ProgressDialog(this);
-            loadingUserDialog.setMessage("Connecting to Google Play Services...");
-            loadingUserDialog.show();
-            opr.setResultCallback(googleSignInResult -> {
-                if (loadingUserDialog.isShowing())
-                    loadingUserDialog.dismiss();
-                handleSignInResult(googleSignInResult);
-            });
-        }
+        mMainActivityPresenter.loadCurrentUser(mGoogleApiClient);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         registerReceiver(mNetworkInfoReceiver, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
+        mMainActivityPresenter.reloadTaskLists();
     }
 
     @Override
@@ -307,56 +279,9 @@ public final class MainActivity extends BaseActivity implements MainActivityView
 
     @Override
     protected void onDestroy() {
-        mRealm.close();
-        mMainActivityPresenter.unbindView(this);
+        if (mMainActivityPresenter != null)
+            mMainActivityPresenter.unbindView(this);
         super.onDestroy();
-    }
-
-    private void handleSignInResult(GoogleSignInResult result) {
-        if (result.isSuccess()) {
-            // TODO: 2016-01-26 find a way to avoid reloading everything when resuming
-            // Signed in successfully, show authenticated UI.
-            GoogleSignInAccount acct = result.getSignInAccount();
-
-            // Email is not null because it was requested when building the GoogleSignInOptions
-            @SuppressWarnings("ConstantConditions")
-            String email = acct.getEmail();
-
-            // Set name
-            mProfile.withName(acct.getDisplayName())
-                    .withIcon(acct.getPhotoUrl())
-                    .withEmail(email);
-            accountHeader.updateProfile(mProfile);
-
-            mMainActivityPresenter.loadCurrentUser(mGoogleApiClient);
-
-            Permiso.getInstance().requestPermissions(new Permiso.IOnPermissionResult() {
-                @Override
-                public void onPermissionResult(Permiso.ResultSet resultSet) {
-                    if (resultSet.areAllPermissionsGranted()) {
-                        // Initialize credentials and service object.
-                        GoogleAccountCredential credential = GoogleAccountCredential.usingOAuth2(MainActivity.this, Collections.singleton(TasksScopes.TASKS))
-                                .setBackOff(new ExponentialBackOff())
-                                .setSelectedAccountName(email);
-
-                        TTasksApp.get(MainActivity.this).createTasksApiComponent(credential).inject(mMainActivityPresenter);
-
-                        mMainActivityPresenter.reloadTaskLists();
-                    }
-                }
-
-                @Override
-                public void onRationaleRequested(Permiso.IOnRationaleProvided callback, String... permissions) {
-                    Permiso.getInstance().showRationaleInDialog("Title", "Message", null, callback);
-                }
-            }, Manifest.permission.GET_ACCOUNTS);
-        } else {
-            PrefHelper.clearUser(this);
-            // Signed out, show unauthenticated UI.
-            TTasksApp.get(this).releaseTasksApiComponent();
-            startActivity(new Intent(this, SignInActivity.class));
-            finish();
-        }
     }
 
     /**
@@ -393,7 +318,18 @@ public final class MainActivity extends BaseActivity implements MainActivityView
             Timber.d("Found %d offline task lists", taskLists.size());
             for (com.teo.ttasks.data.model.TaskList taskList : taskLists)
                 addOrUpdateTaskList(taskList);
-//            drawer.setSelectionAtPosition(1);
+
+            // Restore previously selected task list
+            String currentTaskList = PrefHelper.getCurrentTaskList(this);
+            for (IDrawerItem drawerItem : drawer.getDrawerItems()) {
+                Object taskListId = drawerItem.getTag();
+                if (taskListId != null && taskListId instanceof String)
+                    if (taskListId.equals(currentTaskList))
+                        if (drawer.getCurrentSelectedPosition() == -1) {
+                            drawer.setSelection(drawerItem.getIdentifier());
+                            return;
+                        }
+            }
         });
     }
 
@@ -405,39 +341,23 @@ public final class MainActivity extends BaseActivity implements MainActivityView
         Timber.d("Found %s task lists", taskLists.size());
         // Insert task lists into Navigation Drawer
         // TODO: 2016-02-12 This should probably be in the presenter
-        mRealm.executeTransaction(realm -> {
-            for (TaskList taskList : taskLists)
-                realm.createOrUpdateObjectFromJson(com.teo.ttasks.data.model.TaskList.class, taskList.toString());
-        }, new Realm.Transaction.Callback() {
-            @Override
-            public void onSuccess() {
-                Timber.d("Saved all task lists to Realm");
-                List<com.teo.ttasks.data.model.TaskList> taskListList = mRealm.allObjects(com.teo.ttasks.data.model.TaskList.class);
-                if (taskListList.size() >= 1) {
-                    for (com.teo.ttasks.data.model.TaskList taskList : taskListList)
-                        addOrUpdateTaskList(taskList);
-
-                    // Restore previously selected task list
-                    String currentTaskList = PrefHelper.getCurrentTaskList(MainActivity.this);
-                    for (IDrawerItem drawerItem : drawer.getDrawerItems()) {
-                        Object taskListId = drawerItem.getTag();
-                        if (taskListId != null && taskListId instanceof String)
-                            if (taskListId.equals(currentTaskList))
-                                if (drawer.getCurrentSelectedPosition() == -1) {
-                                    drawer.setSelection(drawerItem.getIdentifier());
-                                    return;
-                                }
-                    }
+        Realm mRealm = Realm.getDefaultInstance();
+        mRealm.executeTransactionAsync(
+                realm -> {
+                    for (TaskList taskList : taskLists)
+                        realm.createOrUpdateObjectFromJson(com.teo.ttasks.data.model.TaskList.class, taskList.toString());
+                },
+                () -> {
+                    Timber.d("Saved all task lists to Realm");
+                    List<com.teo.ttasks.data.model.TaskList> taskListList = mRealm.allObjects(com.teo.ttasks.data.model.TaskList.class);
+                    if (taskListList.size() >= 1)
+                        for (com.teo.ttasks.data.model.TaskList taskList : taskListList)
+                            addOrUpdateTaskList(taskList);
                     if (drawer.getCurrentSelectedPosition() == -1)
                         drawer.setSelectionAtPosition(1);
-                }
-            }
-
-            @Override
-            public void onError(Exception e) {
-                Timber.e(e.toString());
-            }
-        });
+                },
+                error -> Timber.e(error.toString()));
+        mRealm.close();
     }
 
     @Override
