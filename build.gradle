@@ -5,6 +5,7 @@ buildscript {
     repositories {
         jcenter()
         maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
+        maven { url 'http://oss.jfrog.org/artifactory/oss-snapshot-local' } // for Realm
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:2.1.0-alpha3'
@@ -12,7 +13,7 @@ buildscript {
         classpath 'com.google.gms:google-services:2.1.0-alpha3'
         // APT compile-time annotation processing
         classpath 'com.neenbedankt.gradle.plugins:android-apt:1.8'
-        classpath "io.realm:realm-gradle-plugin:0.88.2"
+        classpath 'io.realm:realm-gradle-plugin:0.89.0-SNAPSHOT'
         classpath 'me.tatarka:gradle-retrolambda:3.3.0-beta4'
         classpath 'me.tatarka.retrolambda.projectlombok:lombok.ast:0.2.3.a2'
     }
@@ -24,5 +25,6 @@ allprojects {
     repositories {
         jcenter()
         maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
+        maven { url 'http://oss.jfrog.org/artifactory/oss-snapshot-local' } // for Realm
     }
 }

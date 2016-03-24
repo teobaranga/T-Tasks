@@ -9,7 +9,8 @@ import android.widget.RemoteViewsService;
 import com.teo.ttasks.R;
 import com.teo.ttasks.TTasksApp;
 import com.teo.ttasks.data.local.RealmHelper;
-import com.teo.ttasks.data.model.Task;
+import com.teo.ttasks.ui.items.TaskItem;
+import com.teo.ttasks.util.RxUtil;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -18,7 +19,6 @@ import java.util.Locale;
 
 import javax.inject.Inject;
 
-import io.realm.Realm;
 import timber.log.Timber;
 
 import static android.view.View.GONE;
@@ -31,7 +31,7 @@ public class TasksRemoteViewsFactory implements RemoteViewsService.RemoteViewsFa
     @Inject
     RealmHelper mRealmHelper;
 
-    private List<Task> mTasks;
+    private List<TaskItem> mTasks;
     private Context mContext;
     private int mAppWidgetId;
 
@@ -48,10 +48,12 @@ public class TasksRemoteViewsFactory implements RemoteViewsService.RemoteViewsFa
         TTasksApp.get(mContext).applicationComponent().inject(this);
         mRealmHelper.loadTaskLists()
                 .switchMap(taskLists -> mRealmHelper.loadTasks(taskLists.get(0).getId()))
+                .compose(RxUtil.getTaskItems())
+                .flatMapIterable(taskItems -> taskItems)
+                .filter(taskItem -> taskItem.getCompleted() == null)
+                .toList()
                 .subscribe(
-                        tasks -> {
-                            mTasks = Realm.getDefaultInstance().copyFromRealm(tasks);
-                        },
+                        tasks -> mTasks = tasks,
                         throwable -> Timber.e(throwable.toString()));
     }
 
@@ -81,7 +83,7 @@ public class TasksRemoteViewsFactory implements RemoteViewsService.RemoteViewsFa
 
     @Override
     public RemoteViews getViewAt(int position) {
-        Task task = mTasks.get(position);
+        TaskItem task = mTasks.get(position);
 
         RemoteViews rv = new RemoteViews(mContext.getPackageName(), R.layout.item_task_widget);
         rv.setTextViewText(R.id.task_title, task.getTitle());
@@ -94,14 +96,14 @@ public class TasksRemoteViewsFactory implements RemoteViewsService.RemoteViewsFa
             rv.setViewVisibility(R.id.task_description, VISIBLE);
         }
 
-        if (task.getDue() != null) {
-            Date dueDate = task.getDue();
+        if (task.getDueDate() != null) {
+            Date dueDate = task.getDueDate();
             simpleDateFormat.applyLocalizedPattern("EEE");
             rv.setTextViewText(R.id.date_day_name, simpleDateFormat.format(dueDate));
             simpleDateFormat.applyLocalizedPattern("d");
             rv.setTextViewText(R.id.date_day_number, simpleDateFormat.format(dueDate));
 
-            Date reminder = task.getReminder();
+            Date reminder = task.getReminderDate();
             if (reminder != null) {
                 simpleDateFormat.applyLocalizedPattern("hh:mma");
                 rv.setTextViewText(R.id.task_reminder, simpleDateFormat.format(reminder));

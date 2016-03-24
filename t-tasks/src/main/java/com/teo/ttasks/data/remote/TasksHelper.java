@@ -30,7 +30,6 @@ public class TasksHelper {
     public Observable<TaskList> getTaskLists() {
         return Observable.defer(() -> {
             try {
-                System.out.println("TL : " + Thread.currentThread().getName());
                 List<TaskList> taskLists = mTasks.tasklists().list().execute().getItems();
                 if (taskLists == null)
                     return Observable.empty();

@@ -60,15 +60,12 @@ public class RealmHelper {
     public void createTasks(@NonNull List<com.google.api.services.tasks.model.Task> tasks,
                             @NonNull String taskListId,
                             @NonNull Realm realm) {
-        for (com.google.api.services.tasks.model.Task task : tasks) {
-            Task t = realm.createOrUpdateObjectFromJson(Task.class, task.toString());
-            Task.fixDates(t);
-            t.setTaskListId(taskListId);
-        }
+        for (com.google.api.services.tasks.model.Task task : tasks)
+            Task.create(task, taskListId, realm);
     }
 
-    public Observable<List<Task>> refreshTasks(@NonNull List<com.google.api.services.tasks.model.Task> newTaskList,
-                                               @NonNull String taskListId) {
+    public Observable<RealmResults<Task>> refreshTasks(@NonNull List<com.google.api.services.tasks.model.Task> newTaskList,
+                                                       @NonNull String taskListId) {
         return Observable.defer(() -> {
             final Realm realm = Realm.getDefaultInstance();
             return loadTasks(taskListId)

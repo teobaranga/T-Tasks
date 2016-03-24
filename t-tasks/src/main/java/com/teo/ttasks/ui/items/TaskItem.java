@@ -10,28 +10,56 @@ import com.teo.ttasks.R;
 import com.teo.ttasks.data.model.Task;
 
 import java.text.SimpleDateFormat;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.Locale;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
+import lombok.Getter;
+import lombok.experimental.Accessors;
 
 import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
 
-public class TaskItem extends AbstractItem<TaskItem, TaskItem.ViewHolder> {
+@Accessors(prefix = "m")
+public class TaskItem extends AbstractItem<TaskItem, TaskItem.ViewHolder> implements Comparable<TaskItem> {
 
     private static final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE", Locale.getDefault());
 
+    public static Comparator<TaskItem> completionDateComparator = new Comparator<TaskItem>() {
+        @Override
+        public int compare(TaskItem lhs, TaskItem rhs) {
+            if (lhs.mCompleted == null && rhs.mCompleted == null)
+                return 0;
+            if (lhs.mCompleted == null)
+                return 1;
+            if (rhs.mCompleted == null)
+                return -1;
+            return rhs.mCompleted.compareTo(lhs.mCompleted);
+        }
+    };
+
+    @Getter
     private String mTitle;
+
+    @Getter
     private String mNotes;
+
+    @Getter
     private Date mDueDate;
+
+    @Getter
+    private Date mCompleted;
+
+    @Getter
     private Date mReminderDate;
 
     public TaskItem(@NonNull Task task) {
         mTitle = task.getTitle();
         mNotes = task.getNotes();
         mDueDate = task.getDue();
+        mCompleted = task.getCompleted();
         mReminderDate = task.getReminder();
     }
 
@@ -79,6 +107,13 @@ public class TaskItem extends AbstractItem<TaskItem, TaskItem.ViewHolder> {
 
         // Set item views based on the data model
         viewHolder.taskTitle.setText(mTitle);
+    }
+
+    @Override
+    public int compareTo(@NonNull TaskItem another) {
+        if (mDueDate != null && another.mDueDate != null)
+            return mDueDate.compareTo(another.mDueDate);
+        return 0;
     }
 
     //The viewHolder used for this item. This viewHolder is always reused by the RecyclerView so scrolling is blazing fast
