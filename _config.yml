@@ -10,7 +10,7 @@ title:            T-Tasks
 tagline:          'A Jekyll theme'
 description:      'A simple and intuitive application designed to make managing your every-day tasks a breeze'
 url:              http://teobaranga.github.io/T-Tasks
-baseurl:          
+baseurl:          '/T-Tasks'
 
 author:
   name:           'Teo Baranga'
@@ -19,7 +19,7 @@ author:
 paginate:         5
 
 # Custom vars
-version:          2.1.0
+version:          0.1
 
 github:
   repo:           https://github.com/teobaranga/t-tasks
