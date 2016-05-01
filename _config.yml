@@ -9,8 +9,8 @@ permalink:        pretty
 title:            T-Tasks
 tagline:          'A Jekyll theme'
 description:      'A simple and intuitive application designed to make managing your every-day tasks a breeze'
-url:              http://hyde.getpoole.com
-baseurl:          /
+url:              http://teobaranga.github.io/T-Tasks
+baseurl:          
 
 author:
   name:           'Teo Baranga'
