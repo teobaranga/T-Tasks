@@ -4,6 +4,7 @@ import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -14,42 +15,44 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import com.mikepenz.fastadapter.FastAdapter;
+import com.mikepenz.fastadapter.IItem;
 import com.mikepenz.fastadapter.adapters.ItemAdapter;
 import com.teo.ttasks.R;
 import com.teo.ttasks.TTasksApp;
 import com.teo.ttasks.ui.activities.main.MainActivity;
-import com.teo.ttasks.ui.fragments.BaseFragment;
-import com.teo.ttasks.ui.items.TaskItem;
 
 import java.util.List;
 
 import javax.inject.Inject;
 
-import butterknife.Bind;
+import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.Unbinder;
 
 import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
 
-public class TasksFragment extends BaseFragment implements TasksView, SwipeRefreshLayout.OnRefreshListener {
+public class TasksFragment extends Fragment implements TasksView, SwipeRefreshLayout.OnRefreshListener {
 
     private static final String ARG_TASK_LIST_ID = "taskListId";
     private static final String ARG_TASK_LIST_NAME = "taskListName";
 
-    @Bind(R.id.list) RecyclerView mTaskList;
-    @Bind(R.id.fab) FloatingActionButton mFloatingActionButton;
-    @Bind(R.id.items_loading_ui) View loadingUiView;
-    @Bind(R.id.items_loading_error_ui) View errorUiView;
-    @Bind(R.id.items_empty) View emptyUiView;
-    @Bind(R.id.swipe_refresh_layout) SwipeRefreshLayout mSwipeRefreshLayout;
+    @BindView(R.id.list) RecyclerView mTaskList;
+    @BindView(R.id.fab) FloatingActionButton mFloatingActionButton;
+    @BindView(R.id.items_loading_ui) View loadingUiView;
+    @BindView(R.id.items_loading_error_ui) View errorUiView;
+    @BindView(R.id.items_empty) View emptyUiView;
+    @BindView(R.id.swipe_refresh_layout) SwipeRefreshLayout mSwipeRefreshLayout;
 
     @Inject TasksPresenter mTasksPresenter;
 
-    private FastAdapter<TaskItem> mFastAdapter;
-    private ItemAdapter<TaskItem> mItemAdapter;
+    private FastAdapter<IItem> mFastAdapter;
+    private ItemAdapter<IItem> mItemAdapter;
 
     private String mTaskListId;
     private String mTaskListName;
+
+    private Unbinder mUnbinder;
 
     /**
      * Create a new instance of this fragment using the provided task list ID
@@ -68,7 +71,7 @@ public class TasksFragment extends BaseFragment implements TasksView, SwipeRefre
         super.onAttach(context);
         mTaskListId = getArguments().getString(ARG_TASK_LIST_ID);
         mTaskListName = getArguments().getString(ARG_TASK_LIST_NAME);
-        TTasksApp.get(context).getTasksComponent().inject(this);
+        TTasksApp.get(context).tasksComponent().inject(this);
         mFastAdapter = new FastAdapter<>();
         mItemAdapter = new ItemAdapter<>();
     }
@@ -83,7 +86,7 @@ public class TasksFragment extends BaseFragment implements TasksView, SwipeRefre
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        ButterKnife.bind(this, view);
+        mUnbinder = ButterKnife.bind(this, view);
         mTasksPresenter.bindView(this);
 
         // All the task items have the same size
@@ -107,50 +110,42 @@ public class TasksFragment extends BaseFragment implements TasksView, SwipeRefre
 
     @Override
     public void showLoadingUi() {
-        runOnUiThreadIfFragmentAlive(() -> {
-            loadingUiView.setVisibility(VISIBLE);
-            errorUiView.setVisibility(GONE);
-            emptyUiView.setVisibility(GONE);
-        });
+        loadingUiView.setVisibility(VISIBLE);
+        errorUiView.setVisibility(GONE);
+        emptyUiView.setVisibility(GONE);
     }
 
     @Override
     public void showErrorUi() {
-        runOnUiThreadIfFragmentAlive(() -> {
-            mSwipeRefreshLayout.setRefreshing(false);
-            mItemAdapter.clear();
-            loadingUiView.setVisibility(GONE);
-            errorUiView.setVisibility(VISIBLE);
-            emptyUiView.setVisibility(GONE);
-        });
+        mSwipeRefreshLayout.setRefreshing(false);
+        mItemAdapter.clear();
+        loadingUiView.setVisibility(GONE);
+        errorUiView.setVisibility(VISIBLE);
+        emptyUiView.setVisibility(GONE);
     }
 
     @Override
     public void showEmptyUi() {
-        runOnUiThreadIfFragmentAlive(() -> {
-            mItemAdapter.clear();
-            mSwipeRefreshLayout.setRefreshing(false);
-            loadingUiView.setVisibility(GONE);
-            errorUiView.setVisibility(GONE);
-            emptyUiView.setVisibility(VISIBLE);
-        });
+        mItemAdapter.clear();
+        mSwipeRefreshLayout.setRefreshing(false);
+        loadingUiView.setVisibility(GONE);
+        errorUiView.setVisibility(GONE);
+        emptyUiView.setVisibility(VISIBLE);
     }
 
     @Override
-    public void showContentUi(@NonNull List<TaskItem> taskItems) {
-        runOnUiThreadIfFragmentAlive(() -> {
-            mItemAdapter.setNewList(taskItems);
-            mSwipeRefreshLayout.setRefreshing(false);
-            loadingUiView.setVisibility(GONE);
-            errorUiView.setVisibility(GONE);
-            emptyUiView.setVisibility(GONE);
-        });
+    public void showContentUi(@NonNull List<IItem> taskItems) {
+        mItemAdapter.setNewList(taskItems);
+        mSwipeRefreshLayout.setRefreshing(false);
+        loadingUiView.setVisibility(GONE);
+        errorUiView.setVisibility(GONE);
+        emptyUiView.setVisibility(GONE);
     }
 
     @Override
     public void onDestroyView() {
-        ButterKnife.unbind(this);
-        mTasksPresenter.unbindView(this);
+        mTasksPresenter.unbindView();
+        mUnbinder.unbind();
         super.onDestroyView();
     }
 

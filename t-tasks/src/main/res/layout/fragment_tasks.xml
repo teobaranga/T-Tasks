@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <FrameLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -40,8 +41,8 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:clipToPadding="false"
-            android:paddingTop="8dp"
             android:paddingBottom="80dp"
+            android:paddingTop="8dp"
             android:scrollbars="vertical"
             tools:listitem="@layout/item_task"/>
 
@@ -52,10 +53,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
-        android:layout_margin="16dp"
-        android:src="@drawable/ic_add_white_24dp"
+        android:layout_margin="@dimen/dimen_fab_margin"
         app:elevation="6dp"
         app:pressedTranslationZ="12dp"
-        app:rippleColor="@android:color/white"/>
+        app:rippleColor="@color/orange_A200"
+        app:srcCompat="@drawable/ic_add_white_24dp"/>
 
 </FrameLayout>

@@ -12,7 +12,7 @@ import rx.subscriptions.CompositeSubscription;
  *
  * @param <V> view.
  */
-public class Presenter<V> {
+public class Presenter<V extends MvpView> {
 
     @NonNull
     private final CompositeSubscription subscriptionsToUnsubscribeOnUnbindView = new CompositeSubscription();
@@ -22,12 +22,6 @@ public class Presenter<V> {
 
     @CallSuper
     public void bindView(@NonNull V view) {
-        final V previousView = this.view;
-
-        if (previousView != null) {
-            throw new IllegalStateException("Previous view is not unbounded! previousView = " + previousView);
-        }
-
         this.view = view;
     }
 
@@ -45,16 +39,8 @@ public class Presenter<V> {
     }
 
     @CallSuper
-    @SuppressWarnings("PMD.CompareObjectsWithEquals")
-    public void unbindView(@NonNull V view) {
-        final V previousView = this.view;
-
-        if (previousView == view) {
-            this.view = null;
-        } else {
-            throw new IllegalStateException("Unexpected view! previousView = " + previousView + ", view to unbind = " + view);
-        }
-
+    public void unbindView() {
+        this.view = null;
         // Unsubscribe all subscriptions that need to be unsubscribed in this lifecycle state.
         subscriptionsToUnsubscribeOnUnbindView.clear();
     }

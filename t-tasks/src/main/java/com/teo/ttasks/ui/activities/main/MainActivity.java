@@ -3,7 +3,6 @@ package com.teo.ttasks.ui.activities.main;
 import android.Manifest;
 import android.app.Dialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.IntentSender;
@@ -15,9 +14,10 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.view.Menu;
 import android.view.View;
+import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GooglePlayServicesUtil;
+import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
 import com.google.android.gms.plus.Plus;
@@ -47,7 +47,6 @@ import com.teo.ttasks.ui.activities.BaseActivity;
 import com.teo.ttasks.ui.activities.SignInActivity;
 import com.teo.ttasks.ui.fragments.tasks.TasksFragment;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -86,9 +85,9 @@ public final class MainActivity extends BaseActivity implements MainActivityView
     /** Bool to track whether the app is already resolving an error */
     private boolean mResolvingError = false;
 
-    private ArrayList<IDrawerItem> taskLists = new ArrayList<>();
     private NetworkInfoReceiver mNetworkInfoReceiver;
     private TasksFragment tasksFragment;
+    private Permiso mPermiso;
 
     public static void start(Context context) {
         Intent starter = new Intent(context, MainActivity.class);
@@ -107,31 +106,35 @@ public final class MainActivity extends BaseActivity implements MainActivityView
         }
 
         setContentView(R.layout.activity_main);
-        Permiso.getInstance().setActivity(this);
-
-        Permiso.getInstance().requestPermissions(new Permiso.IOnPermissionResult() {
+        mPermiso = Permiso.getInstance();
+        mPermiso.setActivity(this);
+        mPermiso.requestPermissions(new Permiso.IOnPermissionResult() {
             @Override
             public void onPermissionResult(Permiso.ResultSet resultSet) {
                 if (resultSet.areAllPermissionsGranted())
-                    TTasksApp.get(MainActivity.this).getTasksComponent().inject(MainActivity.this);
+                    TTasksApp.get(MainActivity.this).tasksComponent().inject(MainActivity.this);
+                else {
+                    // User revoked permissions, return to Sign In screen
+                    SignInActivity.start(MainActivity.this);
+                    finish();
+                }
             }
 
             @Override
             public void onRationaleRequested(Permiso.IOnRationaleProvided callback, String... permissions) {
-                Permiso.getInstance().showRationaleInDialog("Title", "Message", null, callback);
+                // TODO: 2016-05-01 create rationale text
+                mPermiso.showRationaleInDialog("Title", "Message", null, callback);
             }
         }, Manifest.permission.GET_ACCOUNTS);
 
         mMainActivityPresenter.bindView(this);
 
         // Create the network info receiver
-        mNetworkInfoReceiver = new NetworkInfoReceiver(this) {
-            @Override
-            public void onReceive(@NonNull Context context, @NonNull Intent intent) {
-                // Internet connection changed
-                // TODO: 2015-12-29 Display/Hide message
-            }
-        };
+        mNetworkInfoReceiver = new NetworkInfoReceiver(this, isOnline -> {
+            // Internet connection changed
+            // TODO: 2015-12-29 Display/Hide info
+            Toast.makeText(MainActivity.this, isOnline ? "Online" : "Offline", Toast.LENGTH_SHORT).show();
+        });
 
         mResolvingError = savedInstanceState != null && savedInstanceState.getBoolean(STATE_RESOLVING_ERROR, false);
 
@@ -194,7 +197,6 @@ public final class MainActivity extends BaseActivity implements MainActivityView
                 .withActivity(this)
                 .withToolbar(toolbar())
                 .withAccountHeader(accountHeader)
-                .withDrawerItems(taskLists)
                 .addDrawerItems(
                         new PrimaryDrawerItem()
                                 .withName(R.string.drawer_add_task_list)
@@ -273,14 +275,14 @@ public final class MainActivity extends BaseActivity implements MainActivityView
 
     @Override
     protected void onPause() {
-        super.onPause();
         unregisterReceiver(mNetworkInfoReceiver);
+        super.onPause();
     }
 
     @Override
     protected void onDestroy() {
         if (mMainActivityPresenter != null)
-            mMainActivityPresenter.unbindView(this);
+            mMainActivityPresenter.unbindView();
         super.onDestroy();
     }
 
@@ -290,47 +292,45 @@ public final class MainActivity extends BaseActivity implements MainActivityView
      */
     @Override
     public void onUserLoaded(@NonNull Person currentPerson) {
-        runOnUiThreadIfAlive(() -> {
-            // Set profile picture
-            // by default the profile url gives 50x50 px image only
-            // we can replace the value with whatever dimension we want by
-            // replacing sz=X
-            String pic = currentPerson.getImage().getUrl();
-            // Requesting a size of 400x400
-            pic = pic.substring(0, pic.length() - 2) + "400";
-            mProfile.withIcon(pic);
-            accountHeader.updateProfile(mProfile);
+        /*
+        Set profile picture
+        by default the profile url gives 50x50 px image only,
+        we can replace the value with whatever dimension we want by
+        replacing sz=X
+        */
+        String pic = currentPerson.getImage().getUrl();
+        // Requesting a size of 400x400
+        pic = pic.substring(0, pic.length() - 2) + "400";
+        mProfile.withIcon(pic);
+        accountHeader.updateProfile(mProfile);
 
-            // Set cover picture
-            if (currentPerson.hasCover()) {
-                String cover = currentPerson.getCover().getCoverPhoto().getUrl();
-                if (cover != null) {
-                    Timber.d("Loading cover picture");
-                    Picasso.with(this).load(cover).into(((Target) accountHeader.getHeaderBackgroundView().getTag()));
-                }
+        // Set cover picture
+        if (currentPerson.hasCover()) {
+            String cover = currentPerson.getCover().getCoverPhoto().getUrl();
+            if (cover != null) {
+                Timber.d("Loading cover picture");
+                Picasso.with(this).load(cover).into(((Target) accountHeader.getHeaderBackgroundView().getTag()));
             }
-        });
+        }
     }
 
     @Override
     public void onCachedTaskListsLoaded(RealmResults<com.teo.ttasks.data.model.TaskList> taskLists) {
-        runOnUiThreadIfAlive(() -> {
-            Timber.d("Found %d offline task lists", taskLists.size());
-            for (com.teo.ttasks.data.model.TaskList taskList : taskLists)
-                addOrUpdateTaskList(taskList);
+        Timber.d("Found %d offline task lists", taskLists.size());
+        for (com.teo.ttasks.data.model.TaskList taskList : taskLists)
+            addOrUpdateTaskList(taskList);
 
-            // Restore previously selected task list
-            String currentTaskList = PrefHelper.getCurrentTaskList(this);
-            for (IDrawerItem drawerItem : drawer.getDrawerItems()) {
-                Object taskListId = drawerItem.getTag();
-                if (taskListId != null && taskListId instanceof String)
-                    if (taskListId.equals(currentTaskList))
-                        if (drawer.getCurrentSelectedPosition() == -1) {
-                            drawer.setSelection(drawerItem.getIdentifier());
-                            return;
-                        }
-            }
-        });
+        // Restore previously selected task list
+        String currentTaskList = PrefHelper.getCurrentTaskList(this);
+        for (IDrawerItem drawerItem : drawer.getDrawerItems()) {
+            Object taskListId = drawerItem.getTag();
+            if (taskListId != null && taskListId instanceof String)
+                if (taskListId.equals(currentTaskList))
+                    if (drawer.getCurrentSelectedPosition() == -1) {
+                        drawer.setSelection(drawerItem.getIdentifier());
+                        return;
+                    }
+        }
     }
 
     /**
@@ -340,7 +340,7 @@ public final class MainActivity extends BaseActivity implements MainActivityView
     public void onTaskListsLoaded(@NonNull List<TaskList> taskLists) {
         Timber.d("Found %s task lists", taskLists.size());
         // Insert task lists into Navigation Drawer
-        // TODO: 2016-02-12 This should probably be in the presenter
+        // TODO: 2016-02-12 This should be in the presenter
         Realm mRealm = Realm.getDefaultInstance();
         mRealm.executeTransactionAsync(
                 realm -> {
@@ -466,9 +466,9 @@ public final class MainActivity extends BaseActivity implements MainActivityView
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
-        //add the values which need to be saved from the drawer to the bundle
+        // add the values which need to be saved from the drawer to the bundle
         outState = drawer.saveInstanceState(outState);
-        //add the values which need to be saved from the accountHeader to the bundle
+        // add the values which need to be saved from the accountHeader to the bundle
         outState = accountHeader.saveInstanceState(outState);
         // Keep track of the mResolvingError boolean across activity restarts
         outState.putBoolean(STATE_RESOLVING_ERROR, mResolvingError);
@@ -477,10 +477,8 @@ public final class MainActivity extends BaseActivity implements MainActivityView
 
     @Override
     public void onBackPressed() {
-        if (drawer != null && drawer.isDrawerOpen())
-            drawer.closeDrawer();
-        else
-            super.onBackPressed();
+        if (drawer != null && drawer.isDrawerOpen()) drawer.closeDrawer();
+        else super.onBackPressed();
     }
 
     /**
@@ -512,14 +510,17 @@ public final class MainActivity extends BaseActivity implements MainActivityView
      *                             Google Play Services on this device.
      */
     void showGooglePlayServicesAvailabilityErrorDialog(final int connectionStatusCode) {
-        Dialog dialog = GooglePlayServicesUtil.getErrorDialog(connectionStatusCode, this, RC_RESOLVE_ERROR);
-        dialog.setOnDismissListener((DialogInterface dialogInterface) -> mResolvingError = false);
-        dialog.show();
+        GoogleApiAvailability googleAPI = GoogleApiAvailability.getInstance();
+        if (googleAPI.isUserResolvableError(connectionStatusCode)) {
+            Dialog dialog = googleAPI.getErrorDialog(this, connectionStatusCode, RC_RESOLVE_ERROR);
+            dialog.setOnDismissListener(dialogInterface -> mResolvingError = false);
+            dialog.show();
+        }
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        Permiso.getInstance().onRequestPermissionResult(requestCode, permissions, grantResults);
+        mPermiso.onRequestPermissionResult(requestCode, permissions, grantResults);
     }
 }

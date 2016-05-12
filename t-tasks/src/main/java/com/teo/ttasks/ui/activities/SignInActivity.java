@@ -75,7 +75,7 @@ public class SignInActivity extends BaseActivity implements GoogleApiClient.OnCo
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
         // TODO: 2016-01-04 implement this
-        Timber.d("Connection failed");
+        Timber.w("Connection failed");
     }
 
     @Override
@@ -102,7 +102,7 @@ public class SignInActivity extends BaseActivity implements GoogleApiClient.OnCo
                             //noinspection ConstantConditions
                             PrefHelper.setUser(SignInActivity.this, account.getEmail(), account.getDisplayName(), account.getPhotoUrl());
 
-                            TTasksApp.get(SignInActivity.this).getTasksComponent();
+                            TTasksApp.get(SignInActivity.this).tasksComponent();
 
                             // Signed in successfully, show authenticated UI.
                             MainActivity.start(SignInActivity.this);

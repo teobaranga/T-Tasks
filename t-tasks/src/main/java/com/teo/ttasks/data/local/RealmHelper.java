@@ -51,7 +51,7 @@ public class RealmHelper {
      * Remove all the tasks from the task list with the provided ID
      */
     public void clearTasks(@NonNull String taskListId, @NonNull Realm realm) {
-        realm.where(Task.class).equalTo(TASK_LIST_ID, taskListId).findAll().clear();
+        realm.where(Task.class).equalTo(TASK_LIST_ID, taskListId).findAll().deleteAllFromRealm();
     }
 
     /**
@@ -73,7 +73,7 @@ public class RealmHelper {
                     .doOnCompleted(realm::close)
                     .doOnError(throwable -> realm.close())
                     .map(tasks -> {
-                        realm.executeTransaction(r -> tasks.clear());
+                        realm.executeTransaction(r -> tasks.deleteAllFromRealm());
                         return null;
                     })
                     .switchMap(ignored -> Observable.just(newTaskList))

@@ -13,6 +13,7 @@ import com.teo.ttasks.ui.items.TaskItem;
 import com.teo.ttasks.util.RxUtil;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -28,8 +29,7 @@ public class TasksRemoteViewsFactory implements RemoteViewsService.RemoteViewsFa
 
     private static final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE", Locale.getDefault());
 
-    @Inject
-    RealmHelper mRealmHelper;
+    @Inject RealmHelper mRealmHelper;
 
     private List<TaskItem> mTasks;
     private Context mContext;
@@ -46,20 +46,13 @@ public class TasksRemoteViewsFactory implements RemoteViewsService.RemoteViewsFa
         // for example downloading or creating content etc, should be deferred to onDataSetChanged()
         // or getViewAt(). Taking more than 20 seconds in this call will result in an ANR.
         TTasksApp.get(mContext).applicationComponent().inject(this);
-        mRealmHelper.loadTaskLists()
-                .switchMap(taskLists -> mRealmHelper.loadTasks(taskLists.get(0).getId()))
-                .compose(RxUtil.getTaskItems())
-                .flatMapIterable(taskItems -> taskItems)
-                .filter(taskItem -> taskItem.getCompleted() == null)
-                .toList()
-                .subscribe(
-                        tasks -> mTasks = tasks,
-                        throwable -> Timber.e(throwable.toString()));
+        mTasks = new ArrayList<>();
     }
 
     @Override
     public void onDestroy() {
         mTasks.clear();
+        mTasks = null;
     }
 
     @Override
@@ -74,6 +67,19 @@ public class TasksRemoteViewsFactory implements RemoteViewsService.RemoteViewsFa
 
     @Override
     public void onDataSetChanged() {
+        mRealmHelper.loadTaskLists()
+                .switchMap(taskLists -> mRealmHelper.loadTasks(taskLists.get(0).getId())) // TODO: 2016-05-01 load the right task list
+                .compose(RxUtil.getTaskItems())
+                .flatMapIterable(taskItems -> taskItems)
+                .filter(taskItem -> taskItem instanceof TaskItem && ((TaskItem) taskItem).getCompleted() == null)
+                .cast(TaskItem.class)
+                .toList()
+                .subscribe(
+                        tasks -> {
+                            mTasks.clear();
+                            mTasks.addAll(tasks);
+                        },
+                        throwable -> Timber.e(throwable.toString()));
     }
 
     @Override

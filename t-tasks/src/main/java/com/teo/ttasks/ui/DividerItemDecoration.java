@@ -130,7 +130,6 @@ public class DividerItemDecoration extends RecyclerView.ItemDecoration {
     public static int convertDpToPixel(float dp, Context context){
         Resources resources = context.getResources();
         DisplayMetrics metrics = resources.getDisplayMetrics();
-        int px = Math.round(dp * (metrics.densityDpi / 160f));
-        return px;
+        return Math.round(dp * (metrics.densityDpi / 160f));
     }
 }

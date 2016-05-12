@@ -5,13 +5,15 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.support.annotation.Nullable;
 
 /**
  * @author Teo
  */
 public class NetworkInfoReceiver extends BroadcastReceiver {
 
-    private Context mContext;
+    private boolean isOnline;
+    private OnConnectionChangedListener mOnConnectionChangedListener;
 
     @SuppressWarnings("unused")
     public NetworkInfoReceiver() {
@@ -22,21 +24,34 @@ public class NetworkInfoReceiver extends BroadcastReceiver {
      * Constructor used in order to determine the Internet connectivity
      * in a certain context
      */
-    public NetworkInfoReceiver(Context context) {
-        mContext = context;
+    public NetworkInfoReceiver(Context context, @Nullable OnConnectionChangedListener onConnectionChangedListener) {
+        isOnline = isOnline(context);
+        mOnConnectionChangedListener = onConnectionChangedListener;
     }
 
     @Override
     public void onReceive(Context context, Intent intent) {
-
+        if (intent.getAction().equals(ConnectivityManager.CONNECTIVITY_ACTION)) {
+            isOnline = isOnline(context);
+            if (mOnConnectionChangedListener != null)
+                mOnConnectionChangedListener.onConnectionChanged(isOnline);
+        }
     }
 
     public boolean isOnline() {
-        if (mContext != null) {
-            ConnectivityManager connectivityManager = (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
+        return isOnline;
+    }
+
+    private boolean isOnline(Context context) {
+        if (context != null) {
+            ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
             NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
             return (activeNetworkInfo != null && activeNetworkInfo.isConnectedOrConnecting());
         } else return false;
+    }
+
+    public interface OnConnectionChangedListener {
+        void onConnectionChanged(boolean isOnline);
     }
 
 }

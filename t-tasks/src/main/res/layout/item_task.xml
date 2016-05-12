@@ -6,96 +6,81 @@
     android:layout_height="wrap_content"
     android:orientation="horizontal">
 
-    <FrameLayout
+    <LinearLayout
+        android:id="@+id/layout_date"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="10dp"
-        android:layout_marginStart="10dp"
-        android:layout_marginTop="12dp">
+        android:layout_marginLeft="12dp"
+        android:layout_marginStart="12dp"
+        android:layout_marginTop="10dp"
+        android:orientation="vertical">
 
-        <!-- 52dp in order to align the task title with the activity title -->
-        <!-- TODO: make this a dimen value -->
-        <LinearLayout
+        <TextView
+            android:id="@+id/date_day_number"
+            style="@style/TextAppearance.AppCompat.Title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="-8dp"
+            android:textColor="@color/task_day"
+            android:textStyle="bold"
+            tools:text="31"/>
 
-            <TextView
-                android:id="@+id/date_day_number"
-                style="@style/TextAppearance.AppCompat.Large"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:gravity="center"
-                android:textStyle="bold"
-                android:textColor="@color/task_day"
-                tools:text="31"/>
+        <TextView
+            android:id="@+id/date_day_name"
+            style="@style/TextAppearance.AppCompat.Small"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:gravity="center"
+            android:minEms="2"
+            tools:text="Wed"/>
 
-            <TextView
-                android:id="@+id/date_day_name"
-                style="@style/TextAppearance.AppCompat.Small"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:gravity="center"
-                android:minEms="2"
-                android:textStyle="bold"
-                tools:text="Wed"/>
+    </LinearLayout>
 
-        </LinearLayout>
-
-    </FrameLayout>
-
-    <RelativeLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingBottom="8dp"
-        android:paddingLeft="14dp"
-        android:paddingRight="16dp"
-        android:paddingTop="8dp">
+        android:layout_marginEnd="16dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/background_task"
+        android:orientation="vertical"
+        android:padding="8dp">
 
-        <RelativeLayout
-            android:layout_width="match_parent"
+        <TextView
+            android:id="@+id/task_title"
+            style="@style/TextAppearance.AppCompat.Inverse"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:minHeight="58dp"
-            android:background="@drawable/background_task_date"
-            android:padding="8dp">
+            android:layout_marginBottom="2dp"
+            android:singleLine="true"
+            android:textStyle="bold"
+            tools:text="Buy groceries"/>
 
-            <TextView
-                android:id="@+id/task_title"
-                style="@style/TextAppearance.AppCompat.Subhead.Inverse"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="2dp"
-                android:singleLine="true"
-                android:textStyle="bold"
-                tools:text="Buy groceries"/>
+        <TextView
+            android:id="@+id/task_description"
+            style="@style/TextAppearance.AppCompat.Small.Inverse"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="2dp"
+            android:singleLine="true"
+            android:textStyle="italic"
+            tools:text="Go to the supermarket and pick them up"/>
 
-            <TextView
-                android:id="@+id/task_description"
-                style="@style/TextAppearance.AppCompat.Small.Inverse"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_below="@+id/task_title"
-                android:layout_marginBottom="4dp"
-                android:singleLine="true"
-                android:textStyle="italic"
-                tools:text="Go to the supermarket and pick them up"/>
+        <TextView
+            android:id="@+id/task_reminder"
+            style="@style/TextAppearance.AppCompat.Small.Inverse"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:drawablePadding="4dp"
+            android:gravity="center"
+            android:singleLine="true"
+            tools:drawableLeft="@drawable/ic_alarm_18dp"
+            tools:text="5:00PM"/>
 
-            <TextView
-                android:id="@+id/task_reminder"
-                style="@style/TextAppearance.AppCompat.Small.Inverse"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_below="@+id/task_description"
-                android:drawableLeft="@drawable/ic_alarm_18dp"
-                android:drawableStart="@drawable/ic_alarm_18dp"
-                android:gravity="bottom"
-                android:singleLine="true"
-                tools:text="5:00PM"/>
-
-        </RelativeLayout>
-
-    </RelativeLayout>
+    </LinearLayout>
 
 </LinearLayout>

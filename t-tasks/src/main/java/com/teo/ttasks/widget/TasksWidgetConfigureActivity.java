@@ -18,9 +18,10 @@ public class TasksWidgetConfigureActivity extends Activity {
 
     private static final String PREFS_NAME = "com.teo.ttasks.widget.TasksWidget";
     private static final String PREF_PREFIX_KEY = "appwidget_";
-    int mAppWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID;
-    EditText mAppWidgetText;
-    View.OnClickListener mOnClickListener = new View.OnClickListener() {
+    private int mAppWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID;
+    private EditText mAppWidgetText;
+    private View.OnClickListener mOnClickListener = new View.OnClickListener() {
+        @Override
         public void onClick(View v) {
             final Context context = TasksWidgetConfigureActivity.this;
 

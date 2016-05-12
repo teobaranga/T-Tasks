@@ -47,6 +47,7 @@ public class MainActivityPresenter extends Presenter<MainActivityView> {
         Observable.just(Plus.PeopleApi.load(googleApiClient, "me"))
                 .subscribeOn(Schedulers.io())
                 .flatMap(loadPeopleResultPendingResult -> Observable.just(loadPeopleResultPendingResult.await()))
+                .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
                         loadPeopleResult -> {
                             if (loadPeopleResult.getStatus().isSuccess()) {
@@ -118,6 +119,7 @@ public class MainActivityPresenter extends Presenter<MainActivityView> {
 
     public void loadTaskLists() {
         mRealmHelper.loadTaskLists()
+                .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
                         taskLists -> {
                             // TODO: 2015-12-29 Show empty UI

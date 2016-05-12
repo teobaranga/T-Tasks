@@ -17,5 +17,6 @@
     <item name="menu_sort_alphabetical" type="id"/>
 
     <item name="task_item" type="id"/>
+    <item name="category_item" type="id"/>
 
 </resources>

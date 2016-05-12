@@ -13,7 +13,6 @@ import com.teo.ttasks.data.local.PrefHelper;
 import com.teo.ttasks.data.local.RealmHelper;
 import com.teo.ttasks.data.remote.TasksHelper;
 import com.teo.ttasks.injection.UserScope;
-import com.teo.ttasks.performance.AsyncJobsObserver;
 import com.teo.ttasks.ui.activities.main.MainActivityPresenter;
 import com.teo.ttasks.ui.fragments.tasks.TasksPresenter;
 
@@ -25,7 +24,7 @@ import dagger.Module;
 import dagger.Provides;
 import rx.Scheduler;
 
-import static com.teo.ttasks.injection.module.ApplicationModule.REALM_THREAD_HANDLER;
+import static com.teo.ttasks.injection.module.ApplicationModule.REALM_SCHEDULER;
 
 @Module
 public class TasksModule {
@@ -54,7 +53,7 @@ public class TasksModule {
     @NonNull
     public MainActivityPresenter provideMainActivityPresenter(@NonNull TasksHelper tasksHelper,
                                                               @NonNull RealmHelper realmHelper,
-                                                              @NonNull @Named(REALM_THREAD_HANDLER) Scheduler realmScheduler) {
+                                                              @NonNull @Named(REALM_SCHEDULER) Scheduler realmScheduler) {
         return new MainActivityPresenter(tasksHelper, realmHelper, realmScheduler);
     }
 
@@ -63,8 +62,7 @@ public class TasksModule {
     @NonNull
     public TasksPresenter provideTasksPresenter(@NonNull TasksHelper tasksHelper,
                                                 @NonNull RealmHelper realmHelper,
-                                                @NonNull @Named(REALM_THREAD_HANDLER) Scheduler realmScheduler,
-                                                @NonNull AsyncJobsObserver asyncJobsObserver) {
-        return new TasksPresenter(tasksHelper, realmHelper, realmScheduler, asyncJobsObserver);
+                                                @NonNull @Named(REALM_SCHEDULER) Scheduler realmScheduler) {
+        return new TasksPresenter(tasksHelper, realmHelper, realmScheduler);
     }
 }

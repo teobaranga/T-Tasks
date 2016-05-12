@@ -30,7 +30,7 @@ public class TTasksApp extends MultiDexApplication {
 
     // Initialized in onCreate. But be careful if you have ContentProviders in different processes -> their onCreate will be called before app.onCreate().
     @SuppressWarnings("NullableProblems") @NonNull
-    private ApplicationComponent applicationComponent;
+    private ApplicationComponent mApplicationComponent;
 
     @Nullable
     private TasksComponent mTasksComponent;
@@ -49,11 +49,11 @@ public class TTasksApp extends MultiDexApplication {
         if (BuildConfig.DEBUG)
             Timber.plant(new Timber.DebugTree());
 
-        applicationComponent = DaggerApplicationComponent.builder()
+        mApplicationComponent = DaggerApplicationComponent.builder()
                 .applicationModule(new ApplicationModule(this))
                 .build();
 
-        applicationComponent.inject(this);
+        mApplicationComponent.inject(this);
 
         initRealmConfiguration();
 
@@ -96,18 +96,13 @@ public class TTasksApp extends MultiDexApplication {
 
     @NonNull
     public ApplicationComponent applicationComponent() {
-        return applicationComponent;
+        return mApplicationComponent;
     }
 
     @NonNull
-    public TasksComponent getTasksComponent() {
+    public TasksComponent tasksComponent() {
         if (mTasksComponent == null)
-            mTasksComponent = applicationComponent.plus(new TasksModule());
-        return mTasksComponent;
-    }
-
-    @Nullable
-    public TasksComponent tasksApiComponent() {
+            mTasksComponent = mApplicationComponent.plus(new TasksModule());
         return mTasksComponent;
     }
 

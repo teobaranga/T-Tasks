@@ -9,6 +9,19 @@
         <item name="windowActionModeOverlay">true</item>
     </style>
 
+    <style name="MainThemePreview" parent="Theme.AppCompat.Light.DarkActionBar">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+    </style>
+
+    <style name="SignInTheme" parent="Theme.AppCompat.NoActionBar">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:windowBackground">?attr/colorPrimary</item>
+    </style>
+
     <!-- Widget -->
     <style name="WidgetFontChip">
         <item name="android:textSize">@dimen/widget_font_chip</item>

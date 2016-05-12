@@ -41,11 +41,4 @@ public abstract class BaseActivity extends AppCompatActivity {
     public Toolbar toolbar() {
         return toolbar;
     }
-
-    protected void runOnUiThreadIfAlive(Runnable action) {
-        if (isFinishing() || isDestroyed())
-            return;
-        runOnUiThread(action);
-    }
-
 }

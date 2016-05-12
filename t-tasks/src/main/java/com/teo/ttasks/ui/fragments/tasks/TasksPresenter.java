@@ -4,9 +4,6 @@ import android.support.annotation.NonNull;
 
 import com.teo.ttasks.data.local.RealmHelper;
 import com.teo.ttasks.data.remote.TasksHelper;
-import com.teo.ttasks.other.FinishAsyncJobSubscription;
-import com.teo.ttasks.performance.AsyncJob;
-import com.teo.ttasks.performance.AsyncJobsObserver;
 import com.teo.ttasks.ui.base.Presenter;
 import com.teo.ttasks.util.RxUtil;
 
@@ -28,18 +25,13 @@ public class TasksPresenter extends Presenter<TasksView> {
     @NonNull
     private final RealmHelper mRealmHelper;
 
-    @NonNull
-    private final AsyncJobsObserver mAsyncJobsObserver;
-
     @Inject
     public TasksPresenter(@NonNull TasksHelper tasksHelper,
                           @NonNull RealmHelper realmHelper,
-                          @NonNull Scheduler realmScheduler,
-                          @NonNull AsyncJobsObserver asyncJobsObserver) {
+                          @NonNull Scheduler realmScheduler) {
         mTasksHelper = tasksHelper;
         mRealmHelper = realmHelper;
         mRealmScheduler = realmScheduler;
-        mAsyncJobsObserver = asyncJobsObserver;
     }
 
     /**
@@ -47,7 +39,6 @@ public class TasksPresenter extends Presenter<TasksView> {
      * and update the local copies
      */
     public void reloadTasks(@NonNull String taskListId) {
-        final AsyncJob asyncJob = mAsyncJobsObserver.asyncJobStarted("reloadTasks in TasksPresenter");
         final Subscription reloadSubscription = mTasksHelper.getTasks(taskListId)
                 .flatMap(taskList -> mRealmHelper.refreshTasks(taskList, taskListId))
                 .compose(RxUtil.getTaskItems())
@@ -57,32 +48,25 @@ public class TasksPresenter extends Presenter<TasksView> {
                         tasks -> {
                             final TasksView view = view();
                             if (view != null) {
-                                if (tasks.isEmpty())
-                                    view.showEmptyUi();
-                                else
-                                    view.showContentUi(tasks);
+                                if (tasks.isEmpty()) view.showEmptyUi();
+                                else view.showContentUi(tasks);
                             }
-                            mAsyncJobsObserver.asyncJobFinished(asyncJob);
                         },
                         error -> {
                             Timber.e(error.toString());
                             final TasksView view = view();
-                            if (view != null)
-                                view.showErrorUi();
-                            mAsyncJobsObserver.asyncJobFinished(asyncJob);
+                            if (view != null) view.showErrorUi();
                         }
                 );
         // Prevent memory leak.
-        unsubscribeOnUnbindView(reloadSubscription, new FinishAsyncJobSubscription(mAsyncJobsObserver, asyncJob));
+        unsubscribeOnUnbindView(reloadSubscription);
     }
 
     public void loadTasks(@NonNull String taskListId) {
         {
             final TasksView view = view();
-            if (view != null)
-                view.showLoadingUi();
+            if (view != null) view.showLoadingUi();
         }
-        final AsyncJob asyncJob = mAsyncJobsObserver.asyncJobStarted("loadTasks in TasksPresenter");
         final Subscription subscription = mRealmHelper.loadTasks(taskListId)
                 .compose(RxUtil.getTaskItems())
                 .subscribeOn(mRealmScheduler)
@@ -91,23 +75,17 @@ public class TasksPresenter extends Presenter<TasksView> {
                         tasks -> {
                             final TasksView view = view();
                             if (view != null)
-                                if (tasks.isEmpty())
-                                    view.showEmptyUi();
-                                else
-                                    view.showContentUi(tasks);
-                            mAsyncJobsObserver.asyncJobFinished(asyncJob);
+                                if (tasks.isEmpty()) view.showEmptyUi();
+                                else view.showContentUi(tasks);
                         },
                         error -> {
-                            Timber.e("Error loading tasks from Realm");
-                            Timber.e(error.toString());
+                            Timber.e("Error loading tasks from Realm: %s", error.toString());
                             final TasksView view = view();
-                            if (view != null)
-                                view.showErrorUi();
-                            mAsyncJobsObserver.asyncJobFinished(asyncJob);
+                            if (view != null) view.showErrorUi();
                         }
                 );
         // Prevent memory leak.
-        unsubscribeOnUnbindView(subscription, new FinishAsyncJobSubscription(mAsyncJobsObserver, asyncJob));
+        unsubscribeOnUnbindView(subscription);
     }
 
 }

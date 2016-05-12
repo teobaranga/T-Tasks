@@ -10,7 +10,7 @@ import java.util.List;
 
 import io.realm.RealmResults;
 
-public interface MainActivityView extends MvpView {
+interface MainActivityView extends MvpView {
     void onUserLoaded(@NonNull Person currentPerson);
 
     void onCachedTaskListsLoaded(RealmResults<TaskList> taskLists);

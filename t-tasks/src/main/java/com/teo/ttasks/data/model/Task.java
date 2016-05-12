@@ -1,5 +1,7 @@
 package com.teo.ttasks.data.model;
 
+import android.support.annotation.Nullable;
+
 import com.google.api.client.util.DateTime;
 
 import java.util.Calendar;
@@ -32,6 +34,7 @@ public class Task extends RealmObject {
      * This field is read-only. Use the "move" method to move the task under a
      * different parent or to the top level.
      */
+    @Nullable
     private String parent;
 
     /**
@@ -44,19 +47,21 @@ public class Task extends RealmObject {
      */
     private String position;
 
-    /** Notes describing the task. Optional. */
+    /** Notes describing the task. */
+    @Nullable
     private String notes;
 
     /** Status of the task. This is either "needsAction" or "completed". */
     private String status;
 
     /**
-     * Due date of the task. Optional.<br>
+     * Due date of the task.<br>
      * This is not a completely correct date, see link below.
      *
      * @see <a href="https://groups.google.com/forum/#!topic/google-tasks-api/sDJo6ohfPQU">
      * Due date is not a calculated field</a>
      */
+    @Nullable
     @Setter(AccessLevel.NONE)
     private Date due;
 
@@ -64,11 +69,13 @@ public class Task extends RealmObject {
      * Completion date of the task. This field is omitted if the task has not
      * been completed.
      */
+    @Nullable
     @Setter(AccessLevel.NONE)
     private Date completed;
 
     private String taskListId;
 
+    @Nullable
     private Date reminder;
 
     public static Task create(com.google.api.services.tasks.model.Task task, String taskListId, Realm realm) {
@@ -79,25 +86,29 @@ public class Task extends RealmObject {
         return t;
     }
 
-    public void setDue(DateTime due) {
+    public void setDue(@Nullable DateTime due) {
+        if (due == null) {
+            this.due = null;
+            return;
+        }
         Calendar calendar = Calendar.getInstance();
         calendar.setTimeZone(TimeZone.getTimeZone("UTC"));
         GregorianCalendar gregorianCalendar = new GregorianCalendar();
-        if (due != null) {
-            calendar.setTime(new Date(due.getValue()));
-            gregorianCalendar.set(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH), 0, 0, 0);
-            this.due = gregorianCalendar.getTime();
-        }
+        calendar.setTime(new Date(due.getValue()));
+        gregorianCalendar.set(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH), 0, 0, 0);
+        this.due = gregorianCalendar.getTime();
     }
 
-    public void setCompleted(DateTime completed) {
+    public void setCompleted(@Nullable DateTime completed) {
+        if (completed == null) {
+            this.completed = null;
+            return;
+        }
         Calendar calendar = Calendar.getInstance();
         calendar.setTimeZone(TimeZone.getTimeZone("UTC"));
         GregorianCalendar gregorianCalendar = new GregorianCalendar();
-        if (completed != null) {
-            calendar.setTime(new Date(completed.getValue()));
-            gregorianCalendar.set(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH), 0, 0, 0);
-            this.completed = gregorianCalendar.getTime();
-        }
+        calendar.setTime(new Date(completed.getValue()));
+        gregorianCalendar.set(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH), 0, 0, 0);
+        this.completed = gregorianCalendar.getTime();
     }
 }
