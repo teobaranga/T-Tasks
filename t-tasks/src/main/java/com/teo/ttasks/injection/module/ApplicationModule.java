@@ -1,10 +1,12 @@
 package com.teo.ttasks.injection.module;
 
-import android.os.Handler;
 import android.os.HandlerThread;
 import android.support.annotation.NonNull;
 
 import com.teo.ttasks.TTasksApp;
+import com.teo.ttasks.data.local.PrefHelper;
+import com.teo.ttasks.data.local.RealmHelper;
+import com.teo.ttasks.ui.activities.main.MainActivityPresenter;
 
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -12,7 +14,7 @@ import javax.inject.Singleton;
 import dagger.Module;
 import dagger.Provides;
 import rx.Scheduler;
-import rx.android.schedulers.HandlerScheduler;
+import rx.android.schedulers.AndroidSchedulers;
 
 /** It's a Dagger module that provides application level dependencies. */
 @Module
@@ -36,12 +38,26 @@ public class ApplicationModule {
 
     @Provides
     @NonNull
+    @Singleton
+    public PrefHelper providePrefHelper() {
+        return new PrefHelper(ttasksApp);
+    }
+
+    @Provides
+    @NonNull
     @Named(REALM_SCHEDULER)
     @Singleton
     public Scheduler provideRealmScheduler() {
         HandlerThread handlerThread = new HandlerThread("Realm");
         handlerThread.start();
-        return HandlerScheduler.from(new Handler(handlerThread.getLooper()));
+        return AndroidSchedulers.from(handlerThread.getLooper());
+    }
+
+    @Provides
+    @NonNull
+    public MainActivityPresenter provideMainActivityPresenter(@NonNull RealmHelper realmHelper,
+                                                              @NonNull @Named(REALM_SCHEDULER) Scheduler realmScheduler) {
+        return new MainActivityPresenter(realmHelper, realmScheduler);
     }
 
 }

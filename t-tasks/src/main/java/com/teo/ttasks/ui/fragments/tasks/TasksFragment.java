@@ -19,7 +19,6 @@ import com.mikepenz.fastadapter.IItem;
 import com.mikepenz.fastadapter.adapters.ItemAdapter;
 import com.teo.ttasks.R;
 import com.teo.ttasks.TTasksApp;
-import com.teo.ttasks.ui.activities.main.MainActivity;
 
 import java.util.List;
 
@@ -35,7 +34,6 @@ import static android.view.View.VISIBLE;
 public class TasksFragment extends Fragment implements TasksView, SwipeRefreshLayout.OnRefreshListener {
 
     private static final String ARG_TASK_LIST_ID = "taskListId";
-    private static final String ARG_TASK_LIST_NAME = "taskListName";
 
     @BindView(R.id.list) RecyclerView mTaskList;
     @BindView(R.id.fab) FloatingActionButton mFloatingActionButton;
@@ -50,18 +48,16 @@ public class TasksFragment extends Fragment implements TasksView, SwipeRefreshLa
     private ItemAdapter<IItem> mItemAdapter;
 
     private String mTaskListId;
-    private String mTaskListName;
 
     private Unbinder mUnbinder;
 
     /**
      * Create a new instance of this fragment using the provided task list ID
      */
-    public static TasksFragment newInstance(@NonNull String taskListId, @NonNull String taskListName) {
+    public static TasksFragment newInstance(@NonNull String taskListId) {
         TasksFragment tasksFragment = new TasksFragment();
         Bundle args = new Bundle();
         args.putString(ARG_TASK_LIST_ID, taskListId);
-        args.putString(ARG_TASK_LIST_NAME, taskListName);
         tasksFragment.setArguments(args);
         return tasksFragment;
     }
@@ -70,7 +66,6 @@ public class TasksFragment extends Fragment implements TasksView, SwipeRefreshLa
     public void onAttach(Context context) {
         super.onAttach(context);
         mTaskListId = getArguments().getString(ARG_TASK_LIST_ID);
-        mTaskListName = getArguments().getString(ARG_TASK_LIST_NAME);
         TTasksApp.get(context).tasksComponent().inject(this);
         mFastAdapter = new FastAdapter<>();
         mItemAdapter = new ItemAdapter<>();
@@ -78,15 +73,14 @@ public class TasksFragment extends Fragment implements TasksView, SwipeRefreshLa
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        //noinspection ConstantConditions
-        ((MainActivity) getActivity()).toolbar().setTitle(mTaskListName);
-        return inflater.inflate(R.layout.fragment_tasks, container, false);
+        View view = inflater.inflate(R.layout.fragment_tasks, container, false);
+        mUnbinder = ButterKnife.bind(this, view);
+        return view;
     }
 
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        mUnbinder = ButterKnife.bind(this, view);
         mTasksPresenter.bindView(this);
 
         // All the task items have the same size
@@ -100,12 +94,12 @@ public class TasksFragment extends Fragment implements TasksView, SwipeRefreshLa
 
         mSwipeRefreshLayout.setOnRefreshListener(this);
 
-        mTasksPresenter.loadTasks(mTaskListId);
+        mTasksPresenter.getTasks(mTaskListId, false);
     }
 
     @Override
     public void onRefresh() {
-        mTasksPresenter.reloadTasks(mTaskListId);
+        mTasksPresenter.getTasks(mTaskListId, true);
     }
 
     @Override
@@ -144,9 +138,9 @@ public class TasksFragment extends Fragment implements TasksView, SwipeRefreshLa
 
     @Override
     public void onDestroyView() {
+        super.onDestroyView();
         mTasksPresenter.unbindView();
         mUnbinder.unbind();
-        super.onDestroyView();
     }
 
     public String getTaskListId() {

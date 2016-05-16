@@ -22,6 +22,8 @@ import com.teo.ttasks.TTasksApp;
 import com.teo.ttasks.data.local.PrefHelper;
 import com.teo.ttasks.ui.activities.main.MainActivity;
 
+import javax.inject.Inject;
+
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import timber.log.Timber;
@@ -29,6 +31,8 @@ import timber.log.Timber;
 public class SignInActivity extends BaseActivity implements GoogleApiClient.OnConnectionFailedListener {
 
     private static final int RC_SIGN_IN = 0;
+
+    @Inject PrefHelper mPrefHelper;
 
     private GoogleApiClient mGoogleApiClient;
 
@@ -47,6 +51,7 @@ public class SignInActivity extends BaseActivity implements GoogleApiClient.OnCo
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sign_in);
+        TTasksApp.get(this).applicationComponent().inject(this);
         Permiso.getInstance().setActivity(this);
         ButterKnife.bind(this);
 
@@ -100,7 +105,7 @@ public class SignInActivity extends BaseActivity implements GoogleApiClient.OnCo
                             GoogleSignInAccount account = result.getSignInAccount();
 
                             //noinspection ConstantConditions
-                            PrefHelper.setUser(SignInActivity.this, account.getEmail(), account.getDisplayName(), account.getPhotoUrl());
+                            mPrefHelper.setUser(account.getEmail(), account.getDisplayName(), account.getPhotoUrl());
 
                             TTasksApp.get(SignInActivity.this).tasksComponent();
 

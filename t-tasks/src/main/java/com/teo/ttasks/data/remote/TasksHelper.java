@@ -27,14 +27,14 @@ public class TasksHelper {
      * Get all the task lists from Google
      */
     @NonNull
-    public Observable<TaskList> getTaskLists() {
+    public Observable<List<TaskList>> getTaskLists() {
         return Observable.defer(() -> {
             try {
                 List<TaskList> taskLists = mTasks.tasklists().list().execute().getItems();
                 if (taskLists == null)
                     return Observable.empty();
                 else
-                    return Observable.from(taskLists);
+                    return Observable.just(taskLists);
             } catch (IOException e) {
                 return Observable.error(e);
             }

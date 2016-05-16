@@ -67,8 +67,8 @@ public class TasksRemoteViewsFactory implements RemoteViewsService.RemoteViewsFa
 
     @Override
     public void onDataSetChanged() {
-        mRealmHelper.loadTaskLists()
-                .switchMap(taskLists -> mRealmHelper.loadTasks(taskLists.get(0).getId())) // TODO: 2016-05-01 load the right task list
+        mRealmHelper.getTaskLists()
+                .switchMap(taskLists -> mRealmHelper.getTasks(taskLists.get(0).getId())) // TODO: 2016-05-01 load the right task list
                 .compose(RxUtil.getTaskItems())
                 .flatMapIterable(taskItems -> taskItems)
                 .filter(taskItem -> taskItem instanceof TaskItem && ((TaskItem) taskItem).getCompleted() == null)

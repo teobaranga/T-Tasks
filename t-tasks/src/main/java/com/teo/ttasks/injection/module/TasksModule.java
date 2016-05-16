@@ -13,7 +13,6 @@ import com.teo.ttasks.data.local.PrefHelper;
 import com.teo.ttasks.data.local.RealmHelper;
 import com.teo.ttasks.data.remote.TasksHelper;
 import com.teo.ttasks.injection.UserScope;
-import com.teo.ttasks.ui.activities.main.MainActivityPresenter;
 import com.teo.ttasks.ui.fragments.tasks.TasksPresenter;
 
 import java.util.Collections;
@@ -31,11 +30,11 @@ public class TasksModule {
     @UserScope
     @Provides
     @NonNull
-    public Tasks provideTasks(@NonNull TTasksApp tTasksApp) {
+    public Tasks provideTasks(@NonNull TTasksApp tTasksApp, @NonNull PrefHelper prefHelper) {
         // This will fail if there is no current user
         GoogleAccountCredential credential = GoogleAccountCredential.usingOAuth2(tTasksApp, Collections.singleton(TasksScopes.TASKS))
                 .setBackOff(new ExponentialBackOff())
-                .setSelectedAccountName(PrefHelper.getUserEmail(tTasksApp));
+                .setSelectedAccountName(prefHelper.getUserEmail());
         return new Tasks.Builder(AndroidHttp.newCompatibleTransport(), AndroidJsonFactory.getDefaultInstance(), credential)
                 .setApplicationName("T-Tasks/0.1")
                 .build();
@@ -46,15 +45,6 @@ public class TasksModule {
     @NonNull
     public TasksHelper provideTasksHelper(@NonNull Tasks tasks) {
         return new TasksHelper(tasks);
-    }
-
-    @UserScope
-    @Provides
-    @NonNull
-    public MainActivityPresenter provideMainActivityPresenter(@NonNull TasksHelper tasksHelper,
-                                                              @NonNull RealmHelper realmHelper,
-                                                              @NonNull @Named(REALM_SCHEDULER) Scheduler realmScheduler) {
-        return new MainActivityPresenter(tasksHelper, realmHelper, realmScheduler);
     }
 
     @UserScope

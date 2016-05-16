@@ -30,7 +30,7 @@ android {
             // dev utilizes minSDKVersion = 21 to allow the Android gradle plugin
             // to pre-dex each module and produce an APK that can be tested on
             // Android Lollipop without time consuming dex merging processes.
-            minSdkVersion 16
+            minSdkVersion 21
             resValue "string", "app_name", "T-Tasks Dev"
         }
         prod {
@@ -44,7 +44,10 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
     dexOptions {
-        javaMaxHeapSize "4g"
+        incremental true
+        preDexLibraries true
+        maxProcessCount 2
+        javaMaxHeapSize "2g"
     }
     lintOptions {
         disable 'InvalidPackage'

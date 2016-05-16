@@ -2,18 +2,18 @@ package com.teo.ttasks.ui.activities.main;
 
 import android.support.annotation.NonNull;
 
-import com.google.android.gms.plus.model.people.Person;
 import com.teo.ttasks.data.model.TaskList;
 import com.teo.ttasks.ui.base.MvpView;
 
 import java.util.List;
 
-import io.realm.RealmResults;
-
 interface MainActivityView extends MvpView {
-    void onUserLoaded(@NonNull Person currentPerson);
 
-    void onCachedTaskListsLoaded(RealmResults<TaskList> taskLists);
+    /** Called when the user has a profile picture */
+    void onUserPicture(@NonNull String pictureUrl);
 
-    void onTaskListsLoaded(@NonNull List<com.google.api.services.tasks.model.TaskList> taskLists);
+    /** Called when the user has a cover picture */
+    void onUserCover(@NonNull String coverUrl);
+
+    void onTaskListsLoaded(List<TaskList> taskLists);
 }
