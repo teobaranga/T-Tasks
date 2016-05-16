@@ -1,11 +1,11 @@
 package com.teo.ttasks;
 
+import android.app.Application;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.multidex.MultiDexApplication;
 import android.widget.ImageView;
 
 import com.mikepenz.iconics.IconicsDrawable;
@@ -26,7 +26,7 @@ import timber.log.Timber;
 /**
  * @author Teo
  */
-public class TTasksApp extends MultiDexApplication {
+public class TTasksApp extends Application {
 
     // Initialized in onCreate. But be careful if you have ContentProviders in different processes -> their onCreate will be called before app.onCreate().
     @SuppressWarnings("NullableProblems") @NonNull
