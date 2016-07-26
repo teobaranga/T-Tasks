@@ -12,15 +12,39 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"/>
 
-    <TextView
+    <LinearLayout
         android:id="@+id/items_empty"
-        style="@style/TextAppearance.AppCompat.Large"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:enabled="false"
-        android:text="@string/msg_task_empty"
-        android:visibility="gone"/>
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:visibility="gone"
+        tools:visibility="visible">
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/activity_vertical_margin"
+            android:alpha="0.85"
+            android:src="@drawable/empty_task_list"
+            tools:ignore="ContentDescription"/>
+
+        <TextView
+            style="@style/TextAppearance.AppCompat.Large"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:layout_marginTop="8dp"
+            android:enabled="false"
+            android:text="@string/msg_task_list_empty"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/msg_task_list_empty_extra"/>
+
+    </LinearLayout>
 
     <TextView
         android:id="@+id/items_loading_error_ui"
@@ -34,7 +58,8 @@
     <android.support.v4.widget.SwipeRefreshLayout
         android:id="@+id/swipe_refresh_layout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        tools:visibility="gone">
 
         <android.support.v7.widget.RecyclerView
             android:id="@+id/list"
@@ -54,6 +79,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_margin="@dimen/dimen_fab_margin"
+        android:transitionName="@string/transition_fab"
         app:elevation="6dp"
         app:pressedTranslationZ="12dp"
         app:rippleColor="@color/orange_A200"

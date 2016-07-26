@@ -2,14 +2,10 @@ package com.teo.ttasks.data.model;
 
 import android.support.annotation.Nullable;
 
-import com.google.api.client.util.DateTime;
+import com.google.gson.annotations.Expose;
 
-import java.util.Calendar;
 import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.TimeZone;
 
-import io.realm.Realm;
 import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
 import lombok.AccessLevel;
@@ -21,12 +17,27 @@ import lombok.Setter;
 @EqualsAndHashCode(callSuper = true)
 public class Task extends RealmObject {
 
-    public static final String TASK_LIST_ID = "taskListId";
+    public static final String STATUS_COMPLETED = "completed";
+    public static final String STATUS_NEEDS_ACTION = "needsAction";
 
+    @Expose
     @PrimaryKey
     private String id;
+
+    @Expose(deserialize = false)
+    @Setter(AccessLevel.NONE)
+    private String kind = "tasks#task";
+
+    @Expose
+    private String etag;
+
+    @Expose
     private String title;
+
+    @Expose
     private Date updated;
+
+    @Expose
     private String selfLink;
 
     /**
@@ -34,6 +45,7 @@ public class Task extends RealmObject {
      * This field is read-only. Use the "move" method to move the task under a
      * different parent or to the top level.
      */
+    @Expose
     @Nullable
     private String parent;
 
@@ -45,13 +57,16 @@ public class Task extends RealmObject {
      * task (or at the top level). This field is read-only. Use the "move" method
      * to move the task to another position.
      */
+    @Expose
     private String position;
 
     /** Notes describing the task. */
+    @Expose
     @Nullable
     private String notes;
 
     /** Status of the task. This is either "needsAction" or "completed". */
+    @Expose
     private String status;
 
     /**
@@ -61,54 +76,47 @@ public class Task extends RealmObject {
      * @see <a href="https://groups.google.com/forum/#!topic/google-tasks-api/sDJo6ohfPQU">
      * Due date is not a calculated field</a>
      */
+    @Expose
     @Nullable
-    @Setter(AccessLevel.NONE)
     private Date due;
 
     /**
      * Completion date of the task. This field is omitted if the task has not
      * been completed.
      */
+    @Expose
     @Nullable
-    @Setter(AccessLevel.NONE)
     private Date completed;
 
-    private String taskListId;
+    @Expose
+    private boolean deleted;
+
+    @Expose
+    private boolean hidden;
 
     @Nullable
     private Date reminder;
 
-    public static Task create(com.google.api.services.tasks.model.Task task, String taskListId, Realm realm) {
-        Task t = realm.createObjectFromJson(Task.class, task.toString());
-        t.setTaskListId(taskListId);
-        t.setDue(task.getDue());
-        t.setCompleted(task.getCompleted());
-        return t;
+    public String getTitle() {
+        return title;
     }
 
-    public void setDue(@Nullable DateTime due) {
-        if (due == null) {
-            this.due = null;
-            return;
-        }
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTimeZone(TimeZone.getTimeZone("UTC"));
-        GregorianCalendar gregorianCalendar = new GregorianCalendar();
-        calendar.setTime(new Date(due.getValue()));
-        gregorianCalendar.set(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH), 0, 0, 0);
-        this.due = gregorianCalendar.getTime();
+    public void setTitle(String title) {
+        this.title = title;
     }
 
-    public void setCompleted(@Nullable DateTime completed) {
-        if (completed == null) {
-            this.completed = null;
-            return;
-        }
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTimeZone(TimeZone.getTimeZone("UTC"));
-        GregorianCalendar gregorianCalendar = new GregorianCalendar();
-        calendar.setTime(new Date(completed.getValue()));
-        gregorianCalendar.set(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH), 0, 0, 0);
-        this.completed = gregorianCalendar.getTime();
+    @Nullable
+    public String getNotes() {
+        return notes;
+    }
+
+    @Nullable
+    public Date getDue() {
+        return due;
+    }
+
+    @Nullable
+    public Date getCompleted() {
+        return completed;
     }
 }

@@ -7,7 +7,7 @@ import com.teo.ttasks.ui.base.MvpView;
 
 import java.util.List;
 
-interface MainActivityView extends MvpView {
+interface MainView extends MvpView {
 
     /** Called when the user has a profile picture */
     void onUserPicture(@NonNull String pictureUrl);
@@ -16,4 +16,6 @@ interface MainActivityView extends MvpView {
     void onUserCover(@NonNull String coverUrl);
 
     void onTaskListsLoaded(List<TaskList> taskLists);
+
+    void onTaskListsLoadError();
 }

@@ -9,5 +9,4 @@ public class TasksWidgetService extends RemoteViewsService {
     public RemoteViewsFactory onGetViewFactory(Intent intent) {
         return new TasksRemoteViewsFactory(this.getApplicationContext(), intent);
     }
-
 }

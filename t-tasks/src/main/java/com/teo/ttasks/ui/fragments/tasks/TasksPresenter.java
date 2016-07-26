@@ -2,74 +2,67 @@ package com.teo.ttasks.ui.fragments.tasks;
 
 import android.support.annotation.NonNull;
 
-import com.teo.ttasks.data.local.RealmHelper;
-import com.teo.ttasks.data.model.Task;
 import com.teo.ttasks.data.remote.TasksHelper;
 import com.teo.ttasks.ui.base.Presenter;
 import com.teo.ttasks.util.RxUtil;
 
-import javax.inject.Inject;
-
-import io.realm.RealmResults;
-import rx.Observable;
-import rx.Scheduler;
+import io.realm.Realm;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import timber.log.Timber;
 
 public class TasksPresenter extends Presenter<TasksView> {
 
-    @NonNull
-    private final Scheduler mRealmScheduler;
-
-    @NonNull
     private final TasksHelper mTasksHelper;
 
-    @NonNull
-    private final RealmHelper mRealmHelper;
+    private Realm mRealm;
 
-    @Inject
-    public TasksPresenter(@NonNull TasksHelper tasksHelper,
-                          @NonNull RealmHelper realmHelper,
-                          @NonNull Scheduler realmScheduler) {
+    public TasksPresenter(TasksHelper tasksHelper) {
         mTasksHelper = tasksHelper;
-        mRealmHelper = realmHelper;
-        mRealmScheduler = realmScheduler;
     }
 
-    /**
-     * Fetch the tasks for the given task list from Google
-     * and update the local copies if requested
-     */
-    public void getTasks(@NonNull String taskListId, boolean refresh) {
-        Observable<RealmResults<Task>> taskObservable;
-        if (refresh) {
-            taskObservable = mTasksHelper.getTasks(taskListId).flatMap(taskList -> mRealmHelper.refreshTasks(taskList, taskListId));
-        } else {
-            taskObservable = mRealmHelper.getTasks(taskListId);
-            final TasksView view = view();
-            if (view != null) view.showLoadingUi();
-        }
-        final Subscription reloadSubscription = taskObservable
+    void getTasks(String taskListId) {
+        final Subscription subscription = mTasksHelper.getTasks(taskListId, mRealm)
                 .compose(RxUtil.getTaskItems())
-                .subscribeOn(mRealmScheduler)
-                .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
                         tasks -> {
+                            Timber.d("loaded %d tasks", tasks.size());
                             final TasksView view = view();
                             if (view != null) {
                                 if (tasks.isEmpty()) view.showEmptyUi();
                                 else view.showContentUi(tasks);
                             }
                         },
-                        error -> {
-                            Timber.e(error.toString());
-                            final TasksView view = view();
-                            if (view != null) view.showErrorUi();
-                        }
-                );
-        // Prevent memory leak.
-        unsubscribeOnUnbindView(reloadSubscription);
+                        throwable -> {
+                            // TODO: 2016-07-12 error
+                        });
+        unsubscribeOnUnbindView(subscription);
     }
 
+    void refreshTasks(String taskListId) {
+        final Subscription subscription = mTasksHelper.refreshTasks(taskListId)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        tasksResponse -> {
+                        },
+                        throwable -> Timber.e(throwable.toString()),
+                        () -> {
+                            final TasksView view = view();
+                            if (view != null) view.onRefreshDone();
+                        }
+                );
+        unsubscribeOnUnbindView(subscription);
+    }
+
+    @Override
+    public void bindView(@NonNull TasksView view) {
+        super.bindView(view);
+        mRealm = Realm.getDefaultInstance();
+    }
+
+    @Override
+    public void unbindView(@NonNull TasksView view) {
+        super.unbindView(view);
+        mRealm.close();
+    }
 }

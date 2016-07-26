@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<transitionSet
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:interpolator="@android:interpolator/fast_out_slow_in"
+    android:transitionOrdering="together">
+
+    <!--<transitionSet>-->
+        <!--<targets>-->
+            <!--<target android:targetName="task_content"/>-->
+        <!--</targets>-->
+        <!--<slide-->
+            <!--android:duration="@android:integer/config_longAnimTime"-->
+            <!--android:interpolator="@android:interpolator/decelerate_quint"-->
+            <!--android:slideEdge="top">-->
+        <!--</slide>-->
+        <!--<changeBounds/>-->
+    <!--</transitionSet>-->
+
+    <!-- Exclude the status bar and navigation bar from the window's default exit/enter fade transition to avoid the white flash -->
+    <fade
+        android:duration="@android:integer/config_mediumAnimTime">
+        <targets>
+            <target android:targetName="task_content"/>
+        </targets>
+    </fade>
+
+</transitionSet>

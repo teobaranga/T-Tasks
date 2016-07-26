@@ -1,58 +1,36 @@
 package com.teo.ttasks.data.model;
 
+import com.google.gson.annotations.Expose;
+
 import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 /**
  * @author Teo
  */
+@Data
+@EqualsAndHashCode(callSuper = true)
 public class TaskList extends RealmObject {
 
+    @Expose
     @PrimaryKey
     private String id;
+
+    @Expose
     private String kind;
+
+    @Expose
     private String selfLink;
+
+    @Expose
     private String title;
+
+    @Expose
     private String updated;
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getKind() {
-        return kind;
-    }
-
-    public void setKind(String kind) {
-        this.kind = kind;
-    }
-
-    public String getSelfLink() {
-        return selfLink;
-    }
-
-    public void setSelfLink(String selfLink) {
-        this.selfLink = selfLink;
-    }
 
     public String getTitle() {
         return title;
     }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public String getUpdated() {
-        return updated;
-    }
-
-    public void setUpdated(String updated) {
-        this.updated = updated;
-    }
-
 }

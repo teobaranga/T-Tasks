@@ -1,53 +1,61 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest
-    package="com.teo.ttasks"
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
-
-    <uses-sdk tools:overrideLibrary="timber.log, com.greysonparrelli.permiso"/>
+<manifest package="com.teo.ttasks"
+          xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.INTERNET"/>
-    <uses-permission android:name="android.permission.GET_ACCOUNTS"/>
     <uses-permission android:name="android.permission.USE_CREDENTIALS"/>
     <uses-permission android:name="android.permission.MANAGE_ACCOUNTS"/>
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
 
+    <!-- TODO set allowBackup to true -->
     <application
         android:name=".TTasksApp"
-        android:allowBackup="true"
+        android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/Theme.AppCompat.Light.DarkActionBar">
-
         <activity
-            android:name=".ui.activities.SignInActivity"
+            android:name=".ui.activities.sign_in.SignInActivity"
             android:label="@string/app_name"
-            android:theme="@style/SignInTheme">
+            android:theme="@style/Theme.SignIn">
         </activity>
-
         <activity
             android:name=".ui.activities.main.MainActivity"
             android:label="@string/app_name"
-            android:theme="@style/MainTheme">
+            android:launchMode="singleTop"
+            android:theme="@style/Theme.Main">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
+
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-
         <activity
-            android:name=".ui.activities.SettingsActivity"
-            android:label="@string/title_activity_settings"
-            android:theme="@style/MainTheme">
+            android:name=".ui.activities.task_detail.TaskDetailActivity"
+            android:label="@string/app_name"
+            android:parentActivityName=".ui.activities.main.MainActivity"
+            android:theme="@style/Theme.TTasks.TaskDetail">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".ui.activities.main.MainActivity"/>
         </activity>
-
+        <activity
+            android:name=".ui.activities.edit_task.EditTaskActivity"
+            android:label="@string/title_activity_edit_task"
+            android:theme="@style/Theme.TTasks.EditTask">
+        </activity>
+        <activity
+            android:name=".ui.activities.SettingsActivity"
+            android:label="@string/title_activity_settings"
+            android:theme="@style/Theme.Main">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".ui.activities.main.MainActivity"/>
+        </activity>
         <activity
             android:name=".ui.activities.AboutActivity"
-            android:theme="@style/MainTheme">
+            android:theme="@style/Theme.Main">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".ui.activities.main.MainActivity"/>
@@ -58,7 +66,6 @@
                 <action android:name="android.net.conn.CONNECTIVITY_CHANGE"/>
             </intent-filter>
         </receiver>
-
         <receiver android:name=".widget.TasksWidget">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
@@ -82,7 +89,6 @@
         <meta-data
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version"/>
-
         <meta-data
             android:name="io.fabric.ApiKey"
             android:value="49881be4a0f3b48a47ff8a046e4e3c45d0de363d"/>

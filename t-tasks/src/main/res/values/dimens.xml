@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <dimen name="appbar_elevation">8dp</dimen>
+
     <!-- Widget -->
     <dimen name="widget_min_width">110.0dip</dimen>
     <dimen name="widget_min_resize_width">110.0dip</dimen>
@@ -44,4 +46,15 @@ http://developer.android.com/guide/topics/appwidgets/index.html#CreatingLayout
     <dimen name="activity_padding">16dp</dimen>
 
     <dimen name="dimen_fab_margin">0dp</dimen>
+    <dimen name="app_bar_height">180dp</dimen>
+    <dimen name="fab_margin">16dp</dimen>
+    <dimen name="text_margin">16dp</dimen>
+    <dimen name="margin_edit_task">16dp</dimen>
+
+    <dimen name="margin_items_edit_task">12dp</dimen>
+    <dimen name="margin_icon_horizontal">56dp</dimen>
+
+    <!-- Default screen margins, per the Android Design guidelines. -->
+    <dimen name="activity_horizontal_margin">16dp</dimen>
+    <dimen name="activity_vertical_margin">16dp</dimen>
 </resources>

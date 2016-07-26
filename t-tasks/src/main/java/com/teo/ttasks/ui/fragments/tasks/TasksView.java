@@ -20,4 +20,6 @@ interface TasksView extends MvpView {
     void showEmptyUi();
 
     void showContentUi(@NonNull List<IItem> taskItems);
+
+    void onRefreshDone();
 }

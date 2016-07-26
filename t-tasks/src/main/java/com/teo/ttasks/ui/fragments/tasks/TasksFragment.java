@@ -1,24 +1,28 @@
 package com.teo.ttasks.ui.fragments.tasks;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v4.app.Fragment;
+import android.support.v4.util.Pair;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.SimpleItemAnimator;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import com.mikepenz.fastadapter.FastAdapter;
 import com.mikepenz.fastadapter.IItem;
 import com.mikepenz.fastadapter.adapters.ItemAdapter;
 import com.teo.ttasks.R;
 import com.teo.ttasks.TTasksApp;
+import com.teo.ttasks.ui.activities.edit_task.EditTaskActivity;
+import com.teo.ttasks.ui.activities.task_detail.TaskDetailActivity;
+import com.teo.ttasks.ui.items.TaskItem;
 
 import java.util.List;
 
@@ -27,13 +31,17 @@ import javax.inject.Inject;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
+import timber.log.Timber;
 
+import static android.app.Activity.RESULT_OK;
 import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
 
 public class TasksFragment extends Fragment implements TasksView, SwipeRefreshLayout.OnRefreshListener {
 
     private static final String ARG_TASK_LIST_ID = "taskListId";
+
+    private static final int RC_CREATE_TASK = 100;
 
     @BindView(R.id.list) RecyclerView mTaskList;
     @BindView(R.id.fab) FloatingActionButton mFloatingActionButton;
@@ -66,7 +74,7 @@ public class TasksFragment extends Fragment implements TasksView, SwipeRefreshLa
     public void onAttach(Context context) {
         super.onAttach(context);
         mTaskListId = getArguments().getString(ARG_TASK_LIST_ID);
-        TTasksApp.get(context).tasksComponent().inject(this);
+        TTasksApp.get(context).userComponent().inject(this);
         mFastAdapter = new FastAdapter<>();
         mItemAdapter = new ItemAdapter<>();
     }
@@ -83,23 +91,33 @@ public class TasksFragment extends Fragment implements TasksView, SwipeRefreshLa
         super.onViewCreated(view, savedInstanceState);
         mTasksPresenter.bindView(this);
 
-        // All the task items have the same size
-        mTaskList.setHasFixedSize(true);
-        mTaskList.setLayoutManager(new LinearLayoutManager(getContext()));
-        //mTaskList.addItemDecoration(new DividerItemDecoration(getContext(), null));
-        ((SimpleItemAnimator) mTaskList.getItemAnimator()).setSupportsChangeAnimations(false);
-        mTaskList.setAdapter(mItemAdapter.wrap(mFastAdapter));
+        mFloatingActionButton.setOnClickListener(view1 ->
+                EditTaskActivity.startCreate(this, mTaskListId, RC_CREATE_TASK, null));
 
-        mFloatingActionButton.setOnClickListener(view1 -> Toast.makeText(getContext(), "Click", Toast.LENGTH_SHORT).show());
+        mFastAdapter.withOnClickListener((v, adapter, item, position) -> {
+            if (item instanceof TaskItem) {
+                TaskItem.ViewHolder viewHolder = ((TaskItem) item).getViewHolder(v);
+                //noinspection unchecked
+                ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(getActivity(),
+                        Pair.create(viewHolder.taskLayout, getResources().getString(R.string.transition_task_header)));
+                TaskDetailActivity.start(getContext(), ((TaskItem) item).getTaskId(), mTaskListId, options.toBundle());
+            }
+            return true;
+        });
+
+        // All the task items have the same size
+        mTaskList.setLayoutManager(new LinearLayoutManager(getContext()));
+        mTaskList.setAdapter(mItemAdapter.wrap(mFastAdapter));
 
         mSwipeRefreshLayout.setOnRefreshListener(this);
 
-        mTasksPresenter.getTasks(mTaskListId, false);
+        mTasksPresenter.getTasks(mTaskListId);
+        mTasksPresenter.refreshTasks(mTaskListId);
     }
 
     @Override
     public void onRefresh() {
-        mTasksPresenter.getTasks(mTaskListId, true);
+        mTasksPresenter.refreshTasks(mTaskListId);
     }
 
     @Override
@@ -111,35 +129,53 @@ public class TasksFragment extends Fragment implements TasksView, SwipeRefreshLa
 
     @Override
     public void showErrorUi() {
-        mSwipeRefreshLayout.setRefreshing(false);
         mItemAdapter.clear();
         loadingUiView.setVisibility(GONE);
         errorUiView.setVisibility(VISIBLE);
         emptyUiView.setVisibility(GONE);
+        onRefreshDone();
     }
 
     @Override
     public void showEmptyUi() {
         mItemAdapter.clear();
-        mSwipeRefreshLayout.setRefreshing(false);
         loadingUiView.setVisibility(GONE);
         errorUiView.setVisibility(GONE);
         emptyUiView.setVisibility(VISIBLE);
+        onRefreshDone();
     }
 
     @Override
     public void showContentUi(@NonNull List<IItem> taskItems) {
         mItemAdapter.setNewList(taskItems);
-        mSwipeRefreshLayout.setRefreshing(false);
         loadingUiView.setVisibility(GONE);
         errorUiView.setVisibility(GONE);
         emptyUiView.setVisibility(GONE);
+        onRefreshDone();
+    }
+
+    @Override
+    public void onRefreshDone() {
+        mSwipeRefreshLayout.setRefreshing(false);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        switch (requestCode) {
+            case RC_CREATE_TASK:
+                if (resultCode == RESULT_OK) {
+                    mTasksPresenter.refreshTasks(mTaskListId);
+                    Timber.d("refreshed task");
+                }
+                break;
+        }
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        mTasksPresenter.unbindView();
+        mTasksPresenter.unbindView(this);
         mUnbinder.unbind();
     }
 

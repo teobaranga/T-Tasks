@@ -6,105 +6,136 @@ apply plugin: 'me.tatarka.retrolambda'
 //apply from: '../config/quality/quality.gradle'
 
 android {
-    compileSdkVersion 23
-    buildToolsVersion '24 rc3'
+    compileSdkVersion 24
+    buildToolsVersion '24.0.1'
     defaultConfig {
         applicationId "com.teo.ttasks"
         minSdkVersion 16
-        targetSdkVersion 23
+        targetSdkVersion 24
         versionCode 1
         versionName '0.1'
         vectorDrawables.useSupportLibrary = true
         testInstrumentationRunner 'android.support.test.runner.AndroidJUnitRunner'
-        // Enabling multidex support.
-//        multiDexEnabled true
+    }
+    signingConfigs {
+        release {
+            storeFile file('keystore/release.jks')
+            keyAlias 'teo baranga'
+            keyPassword "$System.env.TT_KEY"
+            storePassword "$System.env.TT_KEY"
+        }
     }
     buildTypes {
         release {
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
         }
     }
     productFlavors {
         // Define separate dev and prod product flavors.
         dev {
-            // dev utilizes minSDKVersion = 21 to allow the Android gradle plugin
-            // to pre-dex each module and produce an APK that can be tested on
-            // Android Lollipop without time consuming dex merging processes.
-            minSdkVersion 21
             resValue "string", "app_name", "T-Tasks Dev"
         }
         prod {
-            // The actual minSdkVersion for the application.
-            minSdkVersion 16
             resValue "string", "app_name", "T-Tasks"
         }
+    }
+    dataBinding {
+        enabled = true
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
-    dexOptions {
-        incremental true
-        preDexLibraries true
-        maxProcessCount 2
-        javaMaxHeapSize "2g"
-    }
     lintOptions {
-        disable 'InvalidPackage'
+        warningsAsErrors true
+        abortOnError true // Fail early.
+
+        disable 'GoogleAppIndexingWarning' // App does not have deep linking.
+        disable 'InvalidPackage' // Okio references java.nio that does not presented in Android SDK.
     }
     packagingOptions {
+        exclude 'META-INF/NOTICE'
+        exclude 'META-INF/NOTICE.txt'
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/LICENSE.txt'
         exclude 'META-INF/services/javax.annotation.processing.Processor'
+    }
+    // This allows us see tests execution progress in the output on the CI.
+    testOptions.unitTests.all {
+        testLogging {
+            events 'passed', 'skipped', 'failed', 'standardOut', 'standardError'
+            exceptionFormat 'full'
+        }
     }
 }
 
 dependencies {
-    compile "com.android.support:appcompat-v7:${android_support_lib_version}"
-    compile "com.android.support:design:${android_support_lib_version}"
-    compile "com.android.support:recyclerview-v7:${android_support_lib_version}"
-    compile "com.android.support:support-v4:${android_support_lib_version}"
-//    compile 'com.android.support:multidex:1.0.1'
-    compile 'com.google.android.gms:play-services-plus:8.4.0'
-    compile 'com.google.android.gms:play-services-auth:8.4.0'
-    compile('com.google.api-client:google-api-client-android:1.22.0') { exclude group: 'org.apache.httpcomponents' }
-    compile('com.google.apis:google-api-services-tasks:v1-rev44-1.22.0') { exclude group: 'org.apache.httpcomponents' }
-    compile "com.google.dagger:dagger:${daggerVersion}"
-    compile 'com.greysonparrelli.permiso:permiso:0.2.0'
-    compile "com.jakewharton:butterknife:${butterknifeVersion}"
-    compile 'com.jakewharton.timber:timber:4.1.2'
-    compile('com.mikepenz:aboutlibraries:5.6.5@aar') { transitive = true }
-    compile('com.mikepenz:fastadapter:1.5.0@aar') { transitive = true }
-    compile('com.mikepenz:materialdrawer:5.2.5@aar') { transitive = true }
+    compile libraries.dagger
+    apt libraries.daggerCompiler
+
+    compile libraries.rxJava
+    compile libraries.rxAndroid
+    compile libraries.rxLint
+
+    compile libraries.supportDesign
+
+    compile libraries.butterKnife
+    apt libraries.butterKnifeCompiler
+
+    compile libraries.timber
+
+    compile libraries.playServicesPlus
+    compile libraries.playServicesAuth
+
+    compile libraries.retrofit
+    compile libraries.retrofitGson
+    compile libraries.retrofitRxJavaAdapter
+
+    compile libraries.okHttpLoggingInterceptor
+
+    compile('com.google.api-client:google-api-client-android:1.22.0') {
+        exclude group: 'org.apache.httpcomponents'
+        exclude group: 'com.fasterxml.jackson.core', module: 'jackson-core'
+        exclude group: 'com.google.guava', module: 'guava-jdk5'
+        exclude group: 'com.google.android', module: 'android'
+        exclude group: 'junit'
+        exclude group: 'xpp3'
+    }
+    compile('com.mikepenz:aboutlibraries:5.7.1@aar') { transitive = true }
+    compile('com.mikepenz:fastadapter:1.6.0@aar') { transitive = true }
+    compile('com.mikepenz:materialdrawer:5.3.6@aar') { transitive = true }
     compile 'com.mikepenz:google-material-typeface:2.2.0.1@aar'
     compile 'com.squareup.picasso:picasso:2.5.2'
-    compile 'io.reactivex:rxandroid:1.2.0'
-    compile 'io.reactivex:rxjava:1.1.5'
-    compile 'nl.littlerobots.rxlint:rxlint:1.0'
+    compile 'com.artemzin.rxjava:proguard-rules:1.1.7.0'
+
+    apt 'org.projectlombok:lombok:1.16.10'
+
+    provided 'org.projectlombok:lombok:1.16.10'
+    provided 'javax.annotation:jsr250-api:1.0'
 
     retrolambdaConfig 'net.orfjackal.retrolambda:retrolambda:2.3.0'
 
-    provided "org.projectlombok:lombok:1.16.8"
-    provided 'javax.annotation:jsr250-api:1.0'
-
-    apt "com.google.dagger:dagger-compiler:${daggerVersion}"
-    apt "com.jakewharton:butterknife-compiler:${butterknifeVersion}"
-    apt "org.projectlombok:lombok:1.12.6"
-
     // Dependencies for local unit tests
-    testCompile "junit:junit:${junitVersion}"
+    testCompile libraries.junit
     testCompile "org.mockito:mockito-all:${mockitoVersion}"
     testCompile "org.hamcrest:hamcrest-all:${hamcrestVersion}"
     testCompile "org.powermock:powermock-module-junit4:${powerMockito}"
     testCompile "org.powermock:powermock-api-mockito:${powerMockito}"
 
     // Android Testing Support Library's runner and rules
-    androidTestCompile "com.android.support.test:runner:${runnerVersion}"
-    androidTestCompile "com.android.support.test:rules:${rulesVersion}"
+    androidTestCompile libraries.supportTestRunner
+    androidTestCompile libraries.supportTestRules
 
     // Espresso UI Testing dependencies.
-    androidTestCompile "com.android.support.test.espresso:espresso-core:${espressoVersion}"
-    androidTestCompile "com.android.support.test.espresso:espresso-contrib:${espressoVersion}"
-    androidTestCompile "com.android.support.test.espresso:espresso-intents:${espressoVersion}"
+    androidTestCompile libraries.espressoCore
+    androidTestCompile(libraries.espressoContrib) {
+        // Causes IncompatibleClassChangeError. As always…
+        exclude module: 'support-annotations'
+        exclude module: 'recyclerview-v7'
+        exclude module: 'support-v4'
+    }
 }
 
 // Log out test results to console
@@ -117,8 +148,11 @@ Resolves dependency versions across test and production APKs, specifically, tran
 dependencies. This is required since Espresso internally has a dependency on support-annotations.
 */
 configurations.all {
-    resolutionStrategy.force "com.android.support:support-annotations:${android_support_lib_version}"
-    resolutionStrategy.force "com.google.code.findbugs:jsr305:2.0.1"
+    resolutionStrategy {
+        // Force our version of support-annotations, we have a conflict between app and androidTest dependency resolution.
+        force libraries.supportAnnotations
+        force "com.google.code.findbugs:jsr305:2.0.1"
+    }
 }
 
 /*

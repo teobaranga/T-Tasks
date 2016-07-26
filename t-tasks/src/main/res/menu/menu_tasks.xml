@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
-      xmlns:app="http://schemas.android.com/apk/res-auto">
+      xmlns:app="http://schemas.android.com/apk/res-auto"
+      xmlns:tools="http://schemas.android.com/tools"
+      tools:context=".ui.activities.main.MainActivity">
     <item
         android:id="@id/menu_sort"
         android:icon="@drawable/ic_sort_24dp"
@@ -18,4 +20,7 @@
                 android:title="@string/menu_sort_alphabetical"/>
         </menu>
     </item>
+    <item
+        android:id="@+id/menu_show_hide_completed"
+        android:title="@string/menu_hide_completed"/>
 </menu>

@@ -32,17 +32,24 @@ public class TaskItem extends AbstractItem<TaskItem, TaskItem.ViewHolder> implem
     /**
      * Comparator that sorts {@link TaskItem}s by their completion date in descending order
      */
-    public static Comparator<TaskItem> completionDateComparator = new Comparator<TaskItem>() {
-        @Override
-        public int compare(TaskItem lhs, TaskItem rhs) {
-            if (lhs.mCompleted == null && rhs.mCompleted == null)
-                return 0;
-            if (lhs.mCompleted == null)
-                return 1;
-            if (rhs.mCompleted == null)
-                return -1;
-            return rhs.mCompleted.compareTo(lhs.mCompleted);
-        }
+    public static Comparator<TaskItem> completionDateComparator = (lhs, rhs) -> {
+        // Check the due date
+        if (lhs.mDueDate == null && rhs.mDueDate == null)
+            return 0;
+        else if (lhs.mDueDate == null)
+            return -1;
+        else if (rhs.mDueDate == null)
+            return 1;
+
+        // Check the completed date
+        if (lhs.mCompleted == null && rhs.mCompleted == null)
+            return 0;
+        if (lhs.mCompleted == null)
+            return 1;
+        if (rhs.mCompleted == null)
+            return -1;
+
+        return rhs.mCompleted.compareTo(lhs.mCompleted);
     };
 
     @Getter private String mTitle;
@@ -50,6 +57,7 @@ public class TaskItem extends AbstractItem<TaskItem, TaskItem.ViewHolder> implem
     @Getter private Date mDueDate;
     @Getter private Date mCompleted;
     @Getter private Date mReminderDate;
+    @Getter public String mTaskId;
 
     public TaskItem(@NonNull Task task) {
         mTitle = task.getTitle();
@@ -57,6 +65,7 @@ public class TaskItem extends AbstractItem<TaskItem, TaskItem.ViewHolder> implem
         mDueDate = task.getDue();
         mCompleted = task.getCompleted();
         mReminderDate = task.getReminder();
+        mTaskId = task.getId();
     }
 
     @Override
@@ -129,9 +138,10 @@ public class TaskItem extends AbstractItem<TaskItem, TaskItem.ViewHolder> implem
     }
 
     //The viewHolder used for this item. This viewHolder is always reused by the RecyclerView so scrolling is blazing fast
-    protected static class ViewHolder extends RecyclerView.ViewHolder {
+    public static class ViewHolder extends RecyclerView.ViewHolder {
 
-        @BindView(R.id.task_title) TextView taskTitle;
+        @BindView(R.id.layout_task) public View taskLayout;
+        @BindView(R.id.task_title) public TextView taskTitle;
         @BindView(R.id.task_description) TextView taskDescription;
         @BindView(R.id.layout_date) View layoutDate;
         @BindView(R.id.date_day_number) TextView dateDayNumber;

@@ -66,4 +66,7 @@
     <color name="widget_text_main_header">#ffffffff</color>
     <color name="widget_text_week">@color/widget_text_day_medium</color>
     <color name="widget_week_line">#ffd6d6d6</color>
+
+    <color name="background_super_dark">#f0292929</color>
+
 </resources>

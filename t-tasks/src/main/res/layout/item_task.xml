@@ -22,7 +22,6 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             android:layout_marginBottom="-8dp"
-            android:textColor="@color/task_day"
             android:textStyle="bold"
             tools:text="31"/>
 
@@ -39,6 +38,7 @@
     </LinearLayout>
 
     <LinearLayout
+        android:id="@id/layout_task"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginEnd="16dp"
@@ -48,16 +48,18 @@
         android:layout_marginTop="10dp"
         android:background="@drawable/background_task"
         android:orientation="vertical"
-        android:padding="8dp">
+        android:padding="8dp"
+        android:transitionName="@string/transition_task_header">
 
         <TextView
-            android:id="@+id/task_title"
+            android:id="@id/task_title"
             style="@style/TextAppearance.AppCompat.Inverse"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="2dp"
-            android:singleLine="true"
+            android:maxLines="1"
             android:textStyle="bold"
+            android:transitionName="@string/transition_task_title"
             tools:text="Buy groceries"/>
 
         <TextView
@@ -66,7 +68,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="2dp"
-            android:singleLine="true"
+            android:maxLines="1"
             android:textStyle="italic"
             tools:text="Go to the supermarket and pick them up"/>
 
@@ -77,7 +79,7 @@
             android:layout_height="wrap_content"
             android:drawablePadding="4dp"
             android:gravity="center"
-            android:singleLine="true"
+            android:maxLines="1"
             tools:drawableLeft="@drawable/ic_alarm_18dp"
             tools:text="5:00PM"/>
 

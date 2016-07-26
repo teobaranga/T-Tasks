@@ -1,0 +1,23 @@
+<resources>
+
+    <style name="Theme.Main" parent="Base.Theme.Main">
+        <item name="android:windowContentTransitions">true</item>
+        <item name="android:windowActivityTransitions">true</item>
+        <!--<item name="android:windowSharedElementsUseOverlay">false</item>-->
+        <!--<item name="android:windowExitTransition">@transition/edit_task_enter</item>-->
+    </style>
+
+    <style name="Theme.TTasks.EditTask" parent="Base.Theme.TTasks.EditTask">
+    </style>
+
+    <style name="Theme.TTasks.TaskDetail" parent="Base.Theme.TTasks.TaskDetail">
+        <item name="android:windowActivityTransitions">true</item>
+        <item name="android:windowContentTransitions">true</item>
+        <item name="android:windowSharedElementEnterTransition">@android:transition/move</item>
+        <item name="android:windowSharedElementReturnTransition">@android:transition/no_transition</item>
+        <item name="android:windowEnterTransition">@transition/task_detail_enter</item>
+        <item name="android:windowReturnTransition">@transition/task_detail_return</item>
+        <item name="android:windowBackground">@color/background_super_dark</item>
+    </style>
+
+</resources>

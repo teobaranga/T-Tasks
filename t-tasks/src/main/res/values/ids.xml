@@ -19,4 +19,14 @@
     <item name="task_item" type="id"/>
     <item name="category_item" type="id"/>
 
+    <item name="container" type="id"/>
+    <item name="task_background" type="id"/>
+    <item name="layout_task" type="id"/>
+    <item name="task_header" type="id"/>
+    <item name="task_title" type="id"/>
+    <item name="task_content" type="id"/>
+    <item name="back" type="id"/>
+    <item name="back_container" type="id"/>
+    <item name="fab" type="id"/>
+
 </resources>

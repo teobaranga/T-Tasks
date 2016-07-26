@@ -61,6 +61,11 @@ public class CategoryItem extends AbstractItem<CategoryItem, CategoryItem.ViewHo
     }
 
     @Override
+    public boolean isAutoExpanding() {
+        return false;
+    }
+
+    @Override
     public int getType() {
         return R.id.category_item;
     }
@@ -88,7 +93,7 @@ public class CategoryItem extends AbstractItem<CategoryItem, CategoryItem.ViewHo
      * It is highly recommended to implement a ViewHolderFactory as it is 0-1ms faster for ViewHolder creation,
      * and it is also many many times more efficient if you define custom listeners on views within your item.
      */
-    protected static class ItemFactory implements ViewHolderFactory<ViewHolder> {
+    private static class ItemFactory implements ViewHolderFactory<ViewHolder> {
         public ViewHolder create(View v) {
             return new ViewHolder(v);
         }

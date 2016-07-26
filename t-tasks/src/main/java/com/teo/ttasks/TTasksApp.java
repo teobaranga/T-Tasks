@@ -2,22 +2,15 @@ package com.teo.ttasks;
 
 import android.app.Application;
 import android.content.Context;
-import android.graphics.drawable.Drawable;
-import android.net.Uri;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.widget.ImageView;
 
-import com.mikepenz.iconics.IconicsDrawable;
-import com.mikepenz.materialdrawer.util.AbstractDrawerImageLoader;
-import com.mikepenz.materialdrawer.util.DrawerImageLoader;
-import com.mikepenz.materialdrawer.util.DrawerUIUtils;
-import com.squareup.picasso.Picasso;
 import com.teo.ttasks.injection.component.ApplicationComponent;
 import com.teo.ttasks.injection.component.DaggerApplicationComponent;
-import com.teo.ttasks.injection.component.TasksComponent;
+import com.teo.ttasks.injection.component.SignInComponent;
+import com.teo.ttasks.injection.component.UserComponent;
 import com.teo.ttasks.injection.module.ApplicationModule;
-import com.teo.ttasks.injection.module.TasksModule;
+import com.teo.ttasks.injection.module.SignInModule;
+import com.teo.ttasks.injection.module.UserModule;
 
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
@@ -32,8 +25,8 @@ public class TTasksApp extends Application {
     @SuppressWarnings("NullableProblems") @NonNull
     private ApplicationComponent mApplicationComponent;
 
-    @Nullable
-    private TasksComponent mTasksComponent;
+    private SignInComponent mSignInComponent;
+    private UserComponent mUserComponent;
 
     // Prevent need in a singleton (global) reference to the application object.
     @NonNull
@@ -56,35 +49,6 @@ public class TTasksApp extends Application {
         mApplicationComponent.inject(this);
 
         initRealmConfiguration();
-
-        //initialize and create the image loader logic
-        DrawerImageLoader.init(new AbstractDrawerImageLoader() {
-            @Override
-            public void set(ImageView imageView, Uri uri, Drawable placeholder) {
-                Picasso.with(imageView.getContext()).load(uri).placeholder(placeholder).into(imageView);
-            }
-
-            @Override
-            public void cancel(ImageView imageView) {
-                Picasso.with(imageView.getContext()).cancelRequest(imageView);
-            }
-
-            @Override
-            public Drawable placeholder(Context ctx, String tag) {
-                //define different placeholders for different imageView targets
-                //default tags are accessible via the DrawerImageLoader.Tags
-                //custom ones can be checked via string. see the CustomUrlBasePrimaryDrawerItem LINE 111
-                if (DrawerImageLoader.Tags.PROFILE.name().equals(tag)) {
-                    return DrawerUIUtils.getPlaceHolder(ctx);
-                } else if (DrawerImageLoader.Tags.ACCOUNT_HEADER.name().equals(tag)) {
-                    return new IconicsDrawable(ctx).iconText(" ").backgroundColorRes(com.mikepenz.materialdrawer.R.color.primary).sizeDp(56);
-                } else if ("customUrlItem".equals(tag)) {
-                    return new IconicsDrawable(ctx).iconText(" ").backgroundColorRes(R.color.md_red_500).sizeDp(56);
-                }
-
-                return super.placeholder(ctx, tag);
-            }
-        });
     }
 
     private void initRealmConfiguration() {
@@ -99,16 +63,23 @@ public class TTasksApp extends Application {
         return mApplicationComponent;
     }
 
-    @NonNull
-    public TasksComponent tasksComponent() {
-        if (mTasksComponent == null)
-            mTasksComponent = mApplicationComponent.plus(new TasksModule());
-        return mTasksComponent;
+    public SignInComponent signInComponent() {
+        if (mSignInComponent == null)
+            mSignInComponent = mApplicationComponent.plus(new SignInModule());
+        return mSignInComponent;
     }
 
-    // TODO: 2015-12-25 call this at logout
-    public void releaseTasksApiComponent() {
-        mTasksComponent = null;
+    public void releaseSignInComponent() {
+        mSignInComponent = null;
     }
 
+    public UserComponent userComponent() {
+        if (mUserComponent == null)
+            mUserComponent = mApplicationComponent.plus(new UserModule());
+        return mUserComponent;
+    }
+
+    public void releaseUserComponent() {
+        mUserComponent = null;
+    }
 }

@@ -8,7 +8,7 @@ import android.widget.RemoteViewsService;
 
 import com.teo.ttasks.R;
 import com.teo.ttasks.TTasksApp;
-import com.teo.ttasks.data.local.RealmHelper;
+import com.teo.ttasks.data.remote.TasksHelper;
 import com.teo.ttasks.ui.items.TaskItem;
 import com.teo.ttasks.util.RxUtil;
 
@@ -20,6 +20,7 @@ import java.util.Locale;
 
 import javax.inject.Inject;
 
+import io.realm.Realm;
 import timber.log.Timber;
 
 import static android.view.View.GONE;
@@ -29,7 +30,7 @@ public class TasksRemoteViewsFactory implements RemoteViewsService.RemoteViewsFa
 
     private static final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE", Locale.getDefault());
 
-    @Inject RealmHelper mRealmHelper;
+    @Inject TasksHelper mTasksHelper;
 
     private List<TaskItem> mTasks;
     private Context mContext;
@@ -67,10 +68,10 @@ public class TasksRemoteViewsFactory implements RemoteViewsService.RemoteViewsFa
 
     @Override
     public void onDataSetChanged() {
-        mRealmHelper.getTaskLists()
-                .switchMap(taskLists -> mRealmHelper.getTasks(taskLists.get(0).getId())) // TODO: 2016-05-01 load the right task list
+        Realm realm = Realm.getDefaultInstance();
+        mTasksHelper.getTaskLists(realm)
+                .flatMap(taskLists -> mTasksHelper.getTasks(taskLists.get(0).getId(), realm)) // TODO: 2016-05-01 load the right task list
                 .compose(RxUtil.getTaskItems())
-                .flatMapIterable(taskItems -> taskItems)
                 .filter(taskItem -> taskItem instanceof TaskItem && ((TaskItem) taskItem).getCompleted() == null)
                 .cast(TaskItem.class)
                 .toList()
@@ -78,8 +79,12 @@ public class TasksRemoteViewsFactory implements RemoteViewsService.RemoteViewsFa
                         tasks -> {
                             mTasks.clear();
                             mTasks.addAll(tasks);
+                            realm.close();
                         },
-                        throwable -> Timber.e(throwable.toString()));
+                        throwable -> {
+                            Timber.e(throwable.toString());
+                            realm.close();
+                        });
     }
 
     @Override

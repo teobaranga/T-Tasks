@@ -1,26 +1,26 @@
 package com.teo.ttasks.injection.module;
 
-import android.os.HandlerThread;
 import android.support.annotation.NonNull;
 
+import com.google.android.gms.auth.api.Auth;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.Scope;
+import com.google.android.gms.plus.Plus;
 import com.teo.ttasks.TTasksApp;
 import com.teo.ttasks.data.local.PrefHelper;
-import com.teo.ttasks.data.local.RealmHelper;
-import com.teo.ttasks.ui.activities.main.MainActivityPresenter;
 
-import javax.inject.Named;
 import javax.inject.Singleton;
 
 import dagger.Module;
 import dagger.Provides;
-import rx.Scheduler;
-import rx.android.schedulers.AndroidSchedulers;
 
 /** It's a Dagger module that provides application level dependencies. */
 @Module
 public class ApplicationModule {
 
-    public static final String REALM_SCHEDULER = "realm_scheduler";
+    private static final String SCOPE_TASKS = "https://www.googleapis.com/auth/tasks";
+    public static final String SCOPE_GOOGLE_TASKS = "oauth2:https://www.googleapis.com/auth/tasks";
 
     @NonNull
     private final TTasksApp ttasksApp;
@@ -29,35 +29,28 @@ public class ApplicationModule {
         this.ttasksApp = ttasksApp;
     }
 
-    @Provides
-    @NonNull
-    @Singleton
-    public TTasksApp provideTTasksApp() {
+    @Provides @Singleton
+    TTasksApp provideTTasksApp() {
         return ttasksApp;
     }
 
-    @Provides
-    @NonNull
-    @Singleton
-    public PrefHelper providePrefHelper() {
+    @Provides @Singleton
+    PrefHelper providePrefHelper() {
         return new PrefHelper(ttasksApp);
     }
 
-    @Provides
-    @NonNull
-    @Named(REALM_SCHEDULER)
-    @Singleton
-    public Scheduler provideRealmScheduler() {
-        HandlerThread handlerThread = new HandlerThread("Realm");
-        handlerThread.start();
-        return AndroidSchedulers.from(handlerThread.getLooper());
-    }
+    @Provides @Singleton
+    GoogleApiClient provideGoogleApiClient(TTasksApp ttasksApp) {
 
-    @Provides
-    @NonNull
-    public MainActivityPresenter provideMainActivityPresenter(@NonNull RealmHelper realmHelper,
-                                                              @NonNull @Named(REALM_SCHEDULER) Scheduler realmScheduler) {
-        return new MainActivityPresenter(realmHelper, realmScheduler);
-    }
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestEmail()
+                .requestProfile()
+                .requestScopes(new Scope(SCOPE_TASKS))
+                .build();
 
+        return new GoogleApiClient.Builder(ttasksApp)
+                .addApi(Plus.API)
+                .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
+                .build();
+    }
 }

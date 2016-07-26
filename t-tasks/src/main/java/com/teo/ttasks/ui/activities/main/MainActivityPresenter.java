@@ -1,58 +1,40 @@
 package com.teo.ttasks.ui.activities.main;
 
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.plus.Plus;
 import com.google.android.gms.plus.model.people.Person;
 import com.google.android.gms.plus.model.people.PersonBuffer;
-import com.teo.ttasks.data.local.RealmHelper;
-import com.teo.ttasks.data.model.Task;
-import com.teo.ttasks.data.model.TaskList;
+import com.teo.ttasks.data.local.PrefHelper;
 import com.teo.ttasks.data.remote.TasksHelper;
 import com.teo.ttasks.ui.base.Presenter;
 
-import java.util.List;
-
-import javax.inject.Inject;
-
 import io.realm.Realm;
-import io.realm.RealmQuery;
 import rx.Observable;
-import rx.Scheduler;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 import timber.log.Timber;
 
-import static com.teo.ttasks.data.model.Task.TASK_LIST_ID;
+public class MainActivityPresenter extends Presenter<MainView> {
 
-public class MainActivityPresenter extends Presenter<MainActivityView> {
+    private final TasksHelper mTasksHelper;
+    private final PrefHelper mPrefHelper;
 
-    @Inject
-    @Nullable
-    public TasksHelper mTasksHelper;
+    private Realm mRealm;
 
-    @NonNull
-    private RealmHelper mRealmHelper;
-
-    @NonNull
-    private Scheduler mRealmScheduler;
-
-    @Inject
-    public MainActivityPresenter(@NonNull RealmHelper realmHelper, @NonNull Scheduler realmScheduler) {
-        mRealmHelper = realmHelper;
-        mRealmScheduler = realmScheduler;
+    public MainActivityPresenter(TasksHelper tasksHelper, PrefHelper prefHelper) {
+        mTasksHelper = tasksHelper;
+        mPrefHelper = prefHelper;
     }
 
     /**
      * Load the account information for the currently signed in Google user.
      * Must be called after onConnected
      */
-    public void loadCurrentUser(@NonNull GoogleApiClient googleApiClient) {
+    void loadCurrentUser(@NonNull GoogleApiClient googleApiClient) {
         final Subscription subscription = Observable.just(Plus.PeopleApi.load(googleApiClient, "me"))
-                .subscribeOn(Schedulers.io())
                 .flatMap(loadPeopleResultPendingResult -> Observable.just(loadPeopleResultPendingResult.await()))
                 .flatMap(loadPeopleResult -> {
                     if (loadPeopleResult.getStatus().isSuccess()) {
@@ -70,10 +52,11 @@ public class MainActivityPresenter extends Presenter<MainActivityView> {
                         return Observable.error(new Throwable(loadPeopleResult.getStatus().toString()));
                     }
                 })
+                .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
                         person -> {
-                            final MainActivityView view = view();
+                            final MainView view = view();
                             /**
                              * By default the profile url gives a 50x50 px image only,
                              * but we can replace the value with whatever dimension we want by replacing sz=X
@@ -81,13 +64,18 @@ public class MainActivityPresenter extends Presenter<MainActivityView> {
                             String pictureUrl = person.getImage().getUrl();
                             // Requesting a size of 400x400
                             pictureUrl = pictureUrl.substring(0, pictureUrl.length() - 2) + "400";
-                            if (view != null) view.onUserPicture(pictureUrl);
+                            if (!pictureUrl.equals(mPrefHelper.getUserPhoto())) {
+                                mPrefHelper.setUserPhoto(pictureUrl);
+                                if (view != null) view.onUserPicture(pictureUrl);
+                            }
 
                             // Get cover picture
                             if (person.hasCover()) {
-                                Timber.d("got cover");
                                 String coverUrl = person.getCover().getCoverPhoto().getUrl();
-                                if (coverUrl != null && view != null) view.onUserCover(coverUrl);
+                                if (!coverUrl.equals(mPrefHelper.getUserCover())) {
+                                    mPrefHelper.setUserCover(coverUrl);
+                                    if (view != null) view.onUserCover(coverUrl);
+                                }
                             }
                         },
                         error -> Timber.e(error.toString())
@@ -95,45 +83,53 @@ public class MainActivityPresenter extends Presenter<MainActivityView> {
         unsubscribeOnUnbindView(subscription);
     }
 
-
-    /**
-     * Fetch the task lists from Google and update the local copies, if requested
-     */
-    public void getTaskLists(boolean refresh) {
-        Observable<List<TaskList>> taskListObservable;
-        if (refresh && mTasksHelper != null) {
-            // Get task lists from Google
-            taskListObservable = mTasksHelper.getTaskLists().subscribeOn(mRealmScheduler)
-                    .flatMap(taskList -> mRealmHelper.refreshTaskLists(taskList))
-                    .map(taskLists -> {
-                        // Prune tasks - delete those that are associated with missing task lists
-                        Realm realm = Realm.getDefaultInstance();
-                        RealmQuery<Task> tasksToDelete = realm.where(Task.class);
-                        for (TaskList taskList : taskLists)
-                            tasksToDelete.notEqualTo(TASK_LIST_ID, taskList.getId());
-                        tasksToDelete.findAll().deleteAllFromRealm();
-
-                        return realm.copyFromRealm(taskLists);
-                    });
-        } else {
-            // Load only the cached task lists
-            taskListObservable = mRealmHelper.getTaskLists().subscribeOn(mRealmScheduler)
-                    .map(taskLists -> Realm.getDefaultInstance().copyFromRealm(taskLists));
+    void loadUserPictures() {
+        final MainView view = view();
+        if (view != null) {
+            view.onUserPicture(mPrefHelper.getUserPhoto());
+            if (mPrefHelper.getUserCover() != null)
+                view.onUserCover(mPrefHelper.getUserCover());
         }
-        final Subscription subscription = taskListObservable
-                .observeOn(AndroidSchedulers.mainThread())
+    }
+
+    void getTaskLists() {
+        final Subscription subscription = mTasksHelper.getTaskLists(mRealm)
                 .subscribe(
                         taskLists -> {
-                            // TODO: 2015-12-29 Show empty UI
-                            if (taskLists == null)
-                                return;
-                            final MainActivityView view = view();
-                            if (view != null)
-                                view.onTaskListsLoaded(taskLists);
+                            Timber.d("loaded %d task lists", taskLists.size());
+                            final MainView view = view();
+                            if (view != null) view.onTaskListsLoaded(taskLists);
                         },
-                        error -> Timber.e(error.toString()));
-
+                        throwable -> {
+                            Timber.e(throwable.toString());
+                            final MainView view = view();
+                            if (view != null) view.onTaskListsLoadError();
+                        });
         unsubscribeOnUnbindView(subscription);
     }
 
+    void refreshTaskLists() {
+        final Subscription subscription = mTasksHelper.refreshTaskLists()
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        taskListsResponse -> {
+                        },
+                        throwable -> {
+                            Timber.e(throwable.toString());
+                        }
+                );
+        unsubscribeOnUnbindView(subscription);
+    }
+
+    @Override
+    public void bindView(@NonNull MainView view) {
+        super.bindView(view);
+        mRealm = Realm.getDefaultInstance();
+    }
+
+    @Override
+    public void unbindView(@NonNull MainView view) {
+        super.unbindView(view);
+        mRealm.close();
+    }
 }

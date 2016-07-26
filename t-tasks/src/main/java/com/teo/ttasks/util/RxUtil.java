@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import io.realm.RealmResults;
 import rx.Observable;
 import rx.Observable.Transformer;
 
@@ -23,14 +22,14 @@ public class RxUtil {
      * 3. Sorts the first group by due date and the second group by completion date
      */
     @NonNull
-    public static Transformer<RealmResults<Task>, List<IItem>> getTaskItems() {
+    public static Transformer<List<Task>, List<IItem>> getTaskItems() {
         return observable -> observable
                 .flatMap(tasks -> {
                     List<TaskItem> activeTasks = new ArrayList<>();
                     List<TaskItem> completedTasks = new ArrayList<>();
                     List<IItem> taskItems = new ArrayList<>();
                     for (Task task : tasks) {
-                        if (task.getCompleted() == null || task.getDue() == null) {
+                        if (task.getCompleted() == null) {
                             // Active task
                             activeTasks.add(new TaskItem(task));
                         } else {
@@ -42,9 +41,10 @@ public class RxUtil {
                     taskItems.addAll(activeTasks);
 
                     Collections.sort(completedTasks, TaskItem.completionDateComparator);
-                    if (completedTasks.size() > 0)
+                    if (completedTasks.size() > 0) {
                         taskItems.add(new CategoryItem().withName("Completed"));
-                    taskItems.addAll(completedTasks);
+                        taskItems.addAll(completedTasks);
+                    }
 
                     return Observable.just(taskItems);
                 });

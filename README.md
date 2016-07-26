@@ -25,7 +25,6 @@ More features are planned and will be added in the future.
 - **Android Support Library**
 - **Google Tasks API**: https://developers.google.com/google-apps/tasks/
 - **Google APIs Client Library for Java**: https://github.com/google/google-api-java-client
-- **Google AutoValue**: https://github.com/google/auto/tree/master/value
 - **MaterialDrawer**: https://github.com/mikepenz/MaterialDrawer
 - **AboutLibraries**: https://github.com/mikepenz/AboutLibraries
 - **Android-Iconics**: https://github.com/mikepenz/Android-Iconics
@@ -36,14 +35,13 @@ More features are planned and will be added in the future.
 - **ButterKnife**: https://github.com/JakeWharton/butterknife
 - **Timber**: https://github.com/JakeWharton/timber
 - **Picasso**: https://github.com/square/picasso
-- **Permiso**: https://github.com/greysonp/permiso
 
 
 ### License
 
 
 ```
-Copyright 2015,  Teo Baranga
+Copyright 2016, Teo Baranga
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

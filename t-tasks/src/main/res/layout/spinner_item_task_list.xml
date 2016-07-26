@@ -6,7 +6,7 @@
           android:layout_width="match_parent"
           android:layout_height="wrap_content"
           android:ellipsize="marquee"
-          android:singleLine="true"
           android:textAlignment="inherit"
           android:textAppearance="@style/TextAppearance.AppCompat.Title"
-          tools:text="My Task List"/>
+          tools:text="My Task List"
+          android:maxLines="1"/>

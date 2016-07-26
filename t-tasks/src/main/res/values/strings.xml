@@ -19,15 +19,42 @@
     <string name="menu_sort_my_order">My order</string>
     <string name="menu_sort_due_date">Due date</string>
     <string name="menu_sort_alphabetical">Alphabetical</string>
+    <string name="menu_hide_completed">Hide completed</string>
 
     <!-- Tasks -->
-    <string name="msg_task_empty">Empty task list</string>
+    <string name="msg_task_list_empty">Empty task list</string>
     <string name="error_tasks_loading">Error loading tasks</string>
 
+    <!-- Edit Task -->
+    <string name="title_activity_edit_task">Edit Task</string>
+    <string name="completed_on">"Completed on %s"</string>
+    <string name="done">Done</string>
+    <string name="completed">Completed</string>
+    <string name="title">Title</string>
+    <string name="due_date_and_time">Due date and time</string>
+    <string name="due_date_missing">No due date</string>
+    <string name="due_time_all_day">All day</string>
+    <string name="add_reminder">Add a reminder</string>
+    <string name="reminder">Reminder</string>
+    <string name="notes">Notes</string>
+
     <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="appwidget_text">EXAMPLE</string>
     <string name="configure">Configure</string>
     <string name="add_widget">Add widget</string>
+    <string name="msg_task_list_empty_extra">You can start by creating a new task!</string>
+    <string name="share">Share</string>
+    <string name="delete">Delete</string>
+    <string name="no_reminder_set">No reminder set</string>
+
+    <!-- Transition names -->
+    <string name="transition_task_header">task_header</string>
+    <string name="transition_task_title">task_title</string>
+    <string name="transition_fab">fab</string>
+
+    <!-- Content description -->
+    <string name="description_delete_task">Delete task</string>
+    <string name="description_return_to_task_list">Return to the task list</string>
+    <string name="description_more">More</string>
 
 </resources>

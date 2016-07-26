@@ -1,0 +1,303 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+        <import type="com.teo.ttasks.R"/>
+
+        <variable
+            name="task"
+            type="com.teo.ttasks.data.model.Task"/>
+
+        <variable
+            name="taskList"
+            type="com.teo.ttasks.data.model.TaskList"/>
+    </data>
+
+    <android.support.design.widget.CoordinatorLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipChildren="false"
+        android:clipToPadding="false">
+
+        <LinearLayout
+            android:id="@id/container"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <FrameLayout
+                android:id="@id/task_header"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/task_background"
+                android:minHeight="142dp"
+                android:transitionName="@string/transition_task_header"
+                tools:targetApi="lollipop">
+
+                <FrameLayout
+                    android:id="@id/back_container"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+
+                    <ImageButton
+                        android:id="@id/back"
+                        android:layout_width="?android:actionBarSize"
+                        android:layout_height="?android:actionBarSize"
+                        android:alpha="0"
+                        android:background="?selectableItemBackgroundBorderless"
+                        android:contentDescription="@string/description_return_to_task_list"
+                        android:onClick="onBackClicked"
+                        app:srcCompat="@drawable/ic_clear_white_24dp"
+                        tools:alpha="1"/>
+
+                </FrameLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="end"
+                    android:orientation="horizontal">
+
+                    <ImageButton
+                        android:id="@+id/edit"
+                        android:layout_width="36dp"
+                        android:layout_height="?android:actionBarSize"
+                        android:alpha="0"
+                        android:background="?selectableItemBackgroundBorderless"
+                        android:contentDescription="@string/description_delete_task"
+                        android:onClick="onEditClicked"
+                        app:srcCompat="@drawable/ic_edit_24dp"
+                        tools:alpha="1"/>
+
+                    <ImageButton
+                        android:id="@+id/more"
+                        android:layout_width="46dp"
+                        android:layout_height="?android:actionBarSize"
+                        android:alpha="0"
+                        android:background="?selectableItemBackgroundBorderless"
+                        android:contentDescription="@string/description_more"
+                        android:onClick="onOverflowClicked"
+                        app:srcCompat="@drawable/ic_more_vert_24dp"
+                        tools:alpha="1"/>
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="@dimen/activity_horizontal_margin"
+                    android:layout_marginLeft="@dimen/margin_icon_horizontal"
+                    android:layout_marginRight="@dimen/activity_horizontal_margin"
+                    android:layout_marginStart="@dimen/margin_icon_horizontal"
+                    android:layout_marginTop="56dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@id/task_title"
+                        style="@style/TextAppearance.AppCompat.Title.Inverse"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:alpha="0"
+                        android:ellipsize="end"
+                        android:gravity="bottom"
+                        android:maxLines="2"
+                        android:minLines="2"
+                        android:text="@{task.title}"
+                        android:transitionName="@string/transition_task_title"
+                        tools:alpha="1"
+                        tools:text="Do your laundry"/>
+
+                    <TextView
+                        android:id="@+id/task_list_title"
+                        style="@style/TextAppearance.AppCompat.Subhead.Inverse"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:alpha="0"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:text="@{taskList.title}"
+                        tools:alpha="1"
+                        tools:text="House work"/>
+
+                </LinearLayout>
+
+            </FrameLayout>
+
+            <android.support.v4.widget.NestedScrollView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:fillViewport="true">
+
+                <LinearLayout
+                    android:id="@id/task_content"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@android:color/background_light"
+                    android:clipChildren="false"
+                    android:clipToPadding="false"
+                    android:orientation="vertical"
+                    android:padding="@dimen/text_margin">
+
+                    <TextView
+                        android:id="@+id/task_completion_status"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@{task.completed != null ? `Completed` : `In progress`}"
+                        tools:text="In progress"/>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginBottom="16dp"
+                        android:layout_marginTop="16dp"
+                        android:background="?android:attr/listDivider"/>
+
+                    <GridLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp"
+                        android:alignmentMode="alignBounds"
+                        android:columnCount="3"
+                        android:columnOrderPreserved="false">
+
+                        <ImageView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:layout_marginEnd="@dimen/margin_edit_task"
+                            android:layout_marginRight="@dimen/margin_edit_task"
+                            android:layout_rowSpan="2"
+                            android:alpha="0.54"
+                            app:srcCompat="@drawable/ic_event_black_24dp"
+                            tools:ignore="ContentDescription"/>
+
+                        <TextView
+                            android:id="@+id/due_date"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="start"
+                            android:textColor="?android:textColorPrimary"
+                            android:textSize="18sp"
+                            app:dueDate="@{task.due}"
+                            tools:text="Fri, May 20, 2016"/>
+
+                        <TextView
+                            android:id="@+id/due_time"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_horizontal"
+                            android:textColor="?android:textColorPrimary"
+                            android:textSize="18sp"
+                            app:dueTime="@{task.due}"
+                            tools:text="6:00 PM"/>
+
+                        <TextView
+                            style="@style/TextAppearance.AppCompat.Caption"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/due_date_and_time"/>
+
+                    </GridLayout>
+
+                    <GridLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp"
+                        android:layout_marginTop="8dp"
+                        android:alignmentMode="alignBounds"
+                        android:columnCount="2"
+                        android:columnOrderPreserved="false">
+
+                        <ImageView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:layout_marginEnd="@dimen/margin_edit_task"
+                            android:layout_marginRight="@dimen/margin_edit_task"
+                            android:layout_rowSpan="2"
+                            android:alpha="0.54"
+                            app:srcCompat="@drawable/ic_notifications_black_24dp"
+                            tools:ignore="ContentDescription"/>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="start"
+                            android:hint="@string/no_reminder_set"
+                            android:textColor="?android:textColorPrimary"
+                            android:textSize="18sp"
+                            tools:text="1 hour before"/>
+
+                        <TextView
+                            style="@style/TextAppearance.AppCompat.Caption"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/reminder"/>
+
+                    </GridLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:orientation="horizontal"
+                        tools:ignore="UseCompoundDrawables">
+
+                        <ImageView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="@dimen/margin_edit_task"
+                            android:layout_marginRight="@dimen/margin_edit_task"
+                            android:alpha="0.54"
+                            app:srcCompat="@drawable/ic_bookmark_black_24dp"
+                            tools:ignore="ContentDescription"/>
+
+                        <TextView
+                            android:id="@+id/task_notes"
+                            style="@style/TextAppearance.AppCompat.Medium"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@{task.notes ?? `No notes`}"
+                            tools:text="Don't forget to separate the colors!"/>
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </android.support.v4.widget.NestedScrollView>
+
+        </LinearLayout>
+
+        <FrameLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:clipChildren="false"
+            android:clipToPadding="false"
+            app:layout_anchor="@id/task_content"
+            app:layout_anchorGravity="end">
+
+            <android.support.design.widget.FloatingActionButton
+                android:id="@id/fab"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="@dimen/activity_horizontal_margin"
+                android:layout_marginRight="@dimen/activity_horizontal_margin"
+                android:alpha="0"
+                android:onClick="onFabClicked"
+                android:scaleX="0"
+                android:scaleY="0"
+                app:elevation="9dp"
+                app:srcCompat="@{task.completed == null ? R.drawable.ic_done_white_24dp : R.drawable.ic_settings_backup_restore_24dp}"
+                tools:alpha="1"
+                tools:scaleX="1"
+                tools:scaleY="1"
+                tools:src="@drawable/ic_done_white_24dp"/>
+
+        </FrameLayout>
+
+    </android.support.design.widget.CoordinatorLayout>
+
+</layout>

@@ -1,6 +1,7 @@
 package com.teo.ttasks.data;
 
 import android.content.Context;
+import android.support.annotation.LayoutRes;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,19 +11,19 @@ import android.widget.TextView;
 import com.teo.ttasks.R;
 import com.teo.ttasks.data.model.TaskList;
 
-import java.util.ArrayList;
-
 public class TaskListsAdapter extends ArrayAdapter<TaskList> {
 
-    private static final int layoutResId = R.layout.spinner_item_task_list;
-    private static final int layoutResDropDownId = R.layout.spinner_item_task_list_dropdown;
+    private static int layoutResId = R.layout.spinner_item_task_list;
+    private static int layoutResDropDownId = R.layout.spinner_item_task_list_dropdown;
 
     public TaskListsAdapter(Context context) {
         super(context, layoutResId);
     }
 
-    public TaskListsAdapter(Context context, ArrayList<TaskList> taskLists) {
-        super(context, layoutResId, taskLists);
+    @Override
+    public void setDropDownViewResource(@LayoutRes int resource) {
+        layoutResDropDownId = resource;
+        super.setDropDownViewResource(resource);
     }
 
     @Override
