@@ -108,3 +108,4 @@ fabric.properties
 
 # Google Services
 t-tasks/google-services.json
+t-tasks/keystore/release.jks

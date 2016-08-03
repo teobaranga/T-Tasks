@@ -5,19 +5,9 @@
 
     <data>
 
-        <import type="java.util.List"/>
-
         <variable
             name="task"
             type="com.teo.ttasks.data.model.Task"/>
-
-        <variable
-            name="taskList"
-            type="com.teo.ttasks.data.model.TaskList"/>
-
-        <variable
-            name="taskLists"
-            type="String[]"/>
     </data>
 
     <ScrollView
@@ -86,8 +76,6 @@
                     app:srcCompat="@drawable/ic_task_list_24dp"
                     tools:ignore="ContentDescription"/>
 
-                <!-- Set the spinner to a predetermined width to avoid
-                the visual glitch that happens when the task lists get loaded -->
                 <Spinner
                     android:id="@+id/task_lists"
                     android:layout_width="wrap_content"

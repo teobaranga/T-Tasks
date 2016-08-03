@@ -56,6 +56,7 @@ public class EditTaskActivity extends AppCompatActivity implements EditTaskView 
 
     private TaskListsAdapter mTaskListsAdapter;
 
+    private String taskId;
     private String taskListId;
 
     public static void startEdit(Context context, String taskId, String taskListId, Bundle bundle) {
@@ -69,6 +70,15 @@ public class EditTaskActivity extends AppCompatActivity implements EditTaskView 
         Intent starter = new Intent(fragment.getContext(), EditTaskActivity.class);
         starter.putExtra(EXTRA_TASK_LIST_ID, taskListId);
         fragment.startActivityForResult(starter, requestCode, bundle);
+    }
+
+    /**
+     * Used when starting this activity from the widget
+     */
+    public static Intent getTaskCreateIntent(Context context, String taskListId) {
+        Intent starter = new Intent(context, EditTaskActivity.class);
+        starter.putExtra(EXTRA_TASK_LIST_ID, taskListId);
+        return starter;
     }
 
     @OnClick(R.id.due_date)
@@ -122,7 +132,7 @@ public class EditTaskActivity extends AppCompatActivity implements EditTaskView 
         ButterKnife.bind(this);
         mEditTaskPresenter.bindView(this);
 
-        String taskId = getIntent().getStringExtra(EXTRA_TASK_ID);
+        taskId = getIntent().getStringExtra(EXTRA_TASK_ID);
         taskListId = getIntent().getStringExtra(EXTRA_TASK_LIST_ID);
 
         //noinspection ConstantConditions
@@ -136,7 +146,7 @@ public class EditTaskActivity extends AppCompatActivity implements EditTaskView 
         if (taskId == null) {
             getSupportActionBar().setTitle("New Task");
         } else {
-            mEditTaskPresenter.loadTaskInfo(taskId, taskListId);
+            mEditTaskPresenter.loadTaskInfo(taskId);
         }
 
         // Load the available task lists
@@ -146,11 +156,6 @@ public class EditTaskActivity extends AppCompatActivity implements EditTaskView 
     @Override
     public void onTaskLoaded(Task task) {
         mBinding.setTask(task);
-    }
-
-    @Override
-    public void onTaskListLoaded(TaskList taskList) {
-        mBinding.setTaskList(taskList);
     }
 
     @Override
@@ -207,7 +212,9 @@ public class EditTaskActivity extends AppCompatActivity implements EditTaskView 
                 finish();
                 return true;
             case R.id.done:
-                mEditTaskPresenter.saveTask(taskListId);
+                if (taskId == null)
+                    mEditTaskPresenter.newTask(taskListId);
+                else
 //                finish();
                 return true;
         }

@@ -5,44 +5,27 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.support.annotation.Nullable;
 
 /**
  * @author Teo
  */
 public class NetworkInfoReceiver extends BroadcastReceiver {
 
-    private boolean isOnline;
     private OnConnectionChangedListener mOnConnectionChangedListener;
-
-    @SuppressWarnings("unused")
-    public NetworkInfoReceiver() {
-        super();
-    }
-
-    /**
-     * Constructor used in order to determine the Internet connectivity
-     * in a certain context
-     */
-    public NetworkInfoReceiver(Context context, @Nullable OnConnectionChangedListener onConnectionChangedListener) {
-        isOnline = isOnline(context);
-        mOnConnectionChangedListener = onConnectionChangedListener;
-    }
 
     @Override
     public void onReceive(Context context, Intent intent) {
         if (intent.getAction().equals(ConnectivityManager.CONNECTIVITY_ACTION)) {
-            isOnline = isOnline(context);
             if (mOnConnectionChangedListener != null)
-                mOnConnectionChangedListener.onConnectionChanged(isOnline);
+                mOnConnectionChangedListener.onConnectionChanged(isOnline(context));
         }
     }
 
-    public boolean isOnline() {
-        return isOnline;
+    public void setOnConnectionChangedListener(OnConnectionChangedListener onConnectionChangedListener) {
+        mOnConnectionChangedListener = onConnectionChangedListener;
     }
 
-    private boolean isOnline(Context context) {
+    public boolean isOnline(Context context) {
         if (context != null) {
             ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
             NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
@@ -53,5 +36,4 @@ public class NetworkInfoReceiver extends BroadcastReceiver {
     public interface OnConnectionChangedListener {
         void onConnectionChanged(boolean isOnline);
     }
-
 }

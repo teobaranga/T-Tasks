@@ -3,6 +3,7 @@ package com.teo.ttasks.ui.activities;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,7 +21,7 @@ import rx.schedulers.Schedulers;
 import static com.teo.ttasks.data.remote.TokenHelper.EXC_GOOGLE_AUTH;
 import static com.teo.ttasks.data.remote.TokenHelper.EXC_IO;
 
-public abstract class BaseActivity extends BaseGoogleApiClientActivity {
+public abstract class BaseActivity extends AppCompatActivity {
 
     private static final int RC_USER_RECOVERABLE = 1002;
 
@@ -63,13 +64,13 @@ public abstract class BaseActivity extends BaseGoogleApiClientActivity {
         super.onPostCreate(savedInstanceState);
 
         // TODO: 2016-07-25 is this necessary?
-        Observable.defer(() -> Observable.just(mTokenHelper.isTasksApiReady()))
+        Observable.defer(() -> Observable.just(mTokenHelper.isTokenAvailable()))
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
                         intent -> {
                             if (intent == null) {
-                                onTaskApiReady();
+                                onApiReady();
                             } else {
                                 switch (intent.getAction()) {
                                     case EXC_IO:
@@ -94,7 +95,7 @@ public abstract class BaseActivity extends BaseGoogleApiClientActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == RC_USER_RECOVERABLE) {
             if (resultCode == RESULT_OK)
-                onTaskApiReady();
+                onApiReady();
             else {
                 // User denied permission to his tasks, redirect to the sign in screen :(
                 SignInActivity.start(this);
@@ -103,5 +104,5 @@ public abstract class BaseActivity extends BaseGoogleApiClientActivity {
         }
     }
 
-    protected abstract void onTaskApiReady();
+    protected abstract void onApiReady();
 }

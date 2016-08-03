@@ -2,6 +2,7 @@ package com.teo.ttasks.ui.fragments.tasks;
 
 import android.support.annotation.NonNull;
 
+import com.google.android.gms.auth.UserRecoverableAuthException;
 import com.teo.ttasks.data.remote.TasksHelper;
 import com.teo.ttasks.ui.base.Presenter;
 import com.teo.ttasks.util.RxUtil;
@@ -43,9 +44,17 @@ public class TasksPresenter extends Presenter<TasksView> {
         final Subscription subscription = mTasksHelper.refreshTasks(taskListId)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
-                        tasksResponse -> {
+                        tasksResponse -> { /* ignored since onCompleted does the job, even when the tasks have not been updated */ },
+                        throwable -> {
+                            Timber.e(throwable.toString());
+                            final TasksView view = view();
+                            if (view != null) {
+                                if (throwable.getCause() instanceof UserRecoverableAuthException)
+                                    view.onTasksLoadError(((UserRecoverableAuthException) throwable.getCause()).getIntent());
+                                else
+                                    view.onTasksLoadError(null);
+                            }
                         },
-                        throwable -> Timber.e(throwable.toString()),
                         () -> {
                             final TasksView view = view();
                             if (view != null) view.onRefreshDone();

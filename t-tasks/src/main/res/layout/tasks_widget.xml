@@ -1,25 +1,43 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
               xmlns:tools="http://schemas.android.com/tools"
               android:layout_width="match_parent"
-              android:layout_height="wrap_content"
-              android:orientation="vertical"
-              android:padding="@dimen/widget_margin">
+              android:layout_height="match_parent"
+              android:background="@color/background_color"
+              android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/widget_tasklist_title"
+    <FrameLayout
+        android:id="@+id/task_list_header"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/colorPrimary"
-        android:padding="8dp"
-        android:textColor="#ffffff"
-        android:textSize="18sp"
-        tools:text="My Tasks"/>
+        android:background="@color/colorPrimary">
+
+        <TextView
+            android:id="@+id/task_list_title"
+            style="@style/TextAppearance.AppCompat.Title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:maxLines="1"
+            android:padding="8dp"
+            tools:text="My Tasks"/>
+
+        <ImageView
+            android:id="@+id/add_task"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end|center_vertical"
+            android:layout_margin="8dp"
+            android:contentDescription="@string/description_add_task"
+            tools:src="@drawable/ic_add_white_24dp"/>
+
+    </FrameLayout>
 
     <ListView
         android:id="@+id/widget_task_list"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:divider="@null"
+        android:paddingBottom="6dp"
+        android:paddingTop="6dp"
         tools:listitem="@layout/item_task_widget"/>
 
 </LinearLayout>

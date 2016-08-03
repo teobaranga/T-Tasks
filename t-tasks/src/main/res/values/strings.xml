@@ -4,7 +4,9 @@
     <!-- Sign In -->
     <string name="welcome">Welcome to T-Tasks</string>
     <string name="welcome_description">All your tasks beautifully organized in one place and easy to manage, so you can focus on having a most productive day :)</string>
-    <string name="sign_in_error">There was an error signing in, please try again</string>
+    <string name="error_sign_in">There was an error signing in, please try again</string>
+    <string name="error_sign_in_offline">Please make sure you\'re online before signing in for the first time</string>
+    <string name="error_google_permissions_denied">This app needs permission to access your Google Tasks</string>
 
     <!-- Drawer items -->
     <string name="drawer_add_task_list">New task list</string>
@@ -38,6 +40,11 @@
     <string name="reminder">Reminder</string>
     <string name="notes">Notes</string>
 
+    <!-- About -->
+    <string name="about">About</string>
+    <string name="about_description">T-Tasks is an app designed to help you manage your tasks. It expands upon the features provided by
+        Google Tasks and the whole experience is delivered through the beauty of Material Design. Have a most productive day!</string>
+
     <!-- TODO: Remove or change this placeholder text -->
     <string name="appwidget_text">EXAMPLE</string>
     <string name="configure">Configure</string>
@@ -56,5 +63,6 @@
     <string name="description_delete_task">Delete task</string>
     <string name="description_return_to_task_list">Return to the task list</string>
     <string name="description_more">More</string>
+    <string name="description_add_task">Add task</string>
 
 </resources>

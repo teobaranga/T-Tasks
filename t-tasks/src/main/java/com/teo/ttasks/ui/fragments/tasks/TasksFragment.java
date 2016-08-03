@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v4.app.Fragment;
@@ -14,12 +15,14 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.mikepenz.fastadapter.FastAdapter;
 import com.mikepenz.fastadapter.IItem;
 import com.mikepenz.fastadapter.adapters.ItemAdapter;
 import com.teo.ttasks.R;
 import com.teo.ttasks.TTasksApp;
+import com.teo.ttasks.receivers.NetworkInfoReceiver;
 import com.teo.ttasks.ui.activities.edit_task.EditTaskActivity;
 import com.teo.ttasks.ui.activities.task_detail.TaskDetailActivity;
 import com.teo.ttasks.ui.items.TaskItem;
@@ -41,6 +44,7 @@ public class TasksFragment extends Fragment implements TasksView, SwipeRefreshLa
 
     private static final String ARG_TASK_LIST_ID = "taskListId";
 
+    private static final int RC_USER_RECOVERABLE = 1;
     private static final int RC_CREATE_TASK = 100;
 
     @BindView(R.id.list) RecyclerView mTaskList;
@@ -51,6 +55,7 @@ public class TasksFragment extends Fragment implements TasksView, SwipeRefreshLa
     @BindView(R.id.swipe_refresh_layout) SwipeRefreshLayout mSwipeRefreshLayout;
 
     @Inject TasksPresenter mTasksPresenter;
+    @Inject NetworkInfoReceiver mNetworkInfoReceiver;
 
     private FastAdapter<IItem> mFastAdapter;
     private ItemAdapter<IItem> mItemAdapter;
@@ -112,27 +117,37 @@ public class TasksFragment extends Fragment implements TasksView, SwipeRefreshLa
         mSwipeRefreshLayout.setOnRefreshListener(this);
 
         mTasksPresenter.getTasks(mTaskListId);
-        mTasksPresenter.refreshTasks(mTaskListId);
+
+        if (mNetworkInfoReceiver.isOnline(getContext()))
+            mTasksPresenter.refreshTasks(mTaskListId);
     }
 
     @Override
     public void onRefresh() {
-        mTasksPresenter.refreshTasks(mTaskListId);
+        if (mNetworkInfoReceiver.isOnline(getContext())) {
+            mTasksPresenter.refreshTasks(mTaskListId);
+        } else {
+            onRefreshDone();
+        }
     }
 
     @Override
-    public void showLoadingUi() {
+    public void onTasksLoading() {
         loadingUiView.setVisibility(VISIBLE);
         errorUiView.setVisibility(GONE);
         emptyUiView.setVisibility(GONE);
     }
 
     @Override
-    public void showErrorUi() {
-        mItemAdapter.clear();
-        loadingUiView.setVisibility(GONE);
-        errorUiView.setVisibility(VISIBLE);
-        emptyUiView.setVisibility(GONE);
+    public void onTasksLoadError(@Nullable Intent resolveIntent) {
+        if (resolveIntent != null) {
+            startActivityForResult(resolveIntent, RC_USER_RECOVERABLE);
+        } else {
+            mItemAdapter.clear();
+            loadingUiView.setVisibility(GONE);
+            errorUiView.setVisibility(VISIBLE);
+            emptyUiView.setVisibility(GONE);
+        }
         onRefreshDone();
     }
 
@@ -168,7 +183,14 @@ public class TasksFragment extends Fragment implements TasksView, SwipeRefreshLa
                     mTasksPresenter.refreshTasks(mTaskListId);
                     Timber.d("refreshed task");
                 }
-                break;
+                return;
+            case RC_USER_RECOVERABLE:
+                if (resultCode == RESULT_OK) {
+                    // Re-authorization successful, refresh the tasks
+                    mTasksPresenter.refreshTasks(mTaskListId);
+                    return;
+                }
+                Toast.makeText(getContext(), R.string.error_google_permissions_denied, Toast.LENGTH_SHORT).show();
         }
     }
 

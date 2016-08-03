@@ -3,7 +3,6 @@ package com.teo.ttasks.ui.activities.main;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.IntentSender;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -12,19 +11,11 @@ import android.graphics.drawable.Drawable;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.view.Menu;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Spinner;
-import android.widget.Toast;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.Scopes;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
-import com.google.android.gms.common.api.Scope;
-import com.google.android.gms.plus.Plus;
 import com.mikepenz.google_material_typeface_library.GoogleMaterial;
 import com.mikepenz.iconics.IconicsDrawable;
 import com.mikepenz.materialdrawer.AccountHeader;
@@ -45,7 +36,6 @@ import com.teo.ttasks.TTasksApp;
 import com.teo.ttasks.data.TaskListsAdapter;
 import com.teo.ttasks.data.local.PrefHelper;
 import com.teo.ttasks.data.model.TaskList;
-import com.teo.ttasks.data.remote.TokenHelper;
 import com.teo.ttasks.receivers.NetworkInfoReceiver;
 import com.teo.ttasks.ui.activities.AboutActivity;
 import com.teo.ttasks.ui.activities.BaseActivity;
@@ -58,43 +48,34 @@ import javax.inject.Inject;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import rx.Observable;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.schedulers.Schedulers;
 import timber.log.Timber;
 
 import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
 
 // TODO: 2015-12-29 implement multiple accounts
-public final class MainActivity extends BaseActivity implements MainView, OnConnectionFailedListener {
+public final class MainActivity extends BaseActivity implements MainView {
 
     //private static final int RC_ADD = 4;
 
     private static final int ID_TASKS = 0x10;
     private static final int ID_TASK_LISTS = 0x20;
-    private static final int ID_REFRESH_TOKEN = 0xF0;
     private static final int ID_ADD_ACCOUNT = 0x01;
     private static final int ID_MANAGE_ACCOUNT = 0x02;
     private static final int ID_ABOUT = 0xFF;
-
-    /** Unique tag for the error dialog fragment */
-    private static final String STATE_RESOLVING_ERROR = "resolving_error";
 
     /** The spinner displaying the user's task lists in the toolbar **/
     @BindView(R.id.spinner_task_lists) Spinner mTaskLists;
 
     @Inject PrefHelper mPrefHelper;
     @Inject MainActivityPresenter mMainActivityPresenter;
-    @Inject TokenHelper mTokenHelper;
+    @Inject NetworkInfoReceiver mNetworkInfoReceiver;
 
-    private GoogleApiClient mGoogleApiClient;
     private TaskListsAdapter mTaskListsAdapter;
 
     /** The profile of the currently logged in user */
     private ProfileDrawerItem mProfile = null;
     private Drawer drawer = null;
-    private NetworkInfoReceiver mNetworkInfoReceiver;
     private TasksFragment tasksFragment;
     private AccountHeader accountHeader = null;
 
@@ -115,19 +96,6 @@ public final class MainActivity extends BaseActivity implements MainView, OnConn
             finish();
             return;
         }
-
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .enableAutoManage(this, 0, this)
-                .addConnectionCallbacks(new GoogleApiClient.ConnectionCallbacks() {
-                    @Override public void onConnected(@Nullable Bundle bundle) {
-                        mMainActivityPresenter.loadCurrentUser(mGoogleApiClient);
-                    }
-
-                    @Override public void onConnectionSuspended(int i) { }
-                })
-                .addApi(Plus.API)
-                .addScope(new Scope(Scopes.PLUS_ME))
-                .build();
 
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
@@ -150,17 +118,13 @@ public final class MainActivity extends BaseActivity implements MainView, OnConn
             @Override public void onNothingSelected(AdapterView<?> adapterView) { }
         });
 
-        // Create the network info receiver
-        mNetworkInfoReceiver = new NetworkInfoReceiver(this, isOnline -> {
+        mNetworkInfoReceiver.setOnConnectionChangedListener(isOnline -> {
             // Internet connection changed
             // TODO: 2015-12-29 Display/Hide info
 //            Toast.makeText(MainActivity.this, isOnline ? "Online" : "Offline", Toast.LENGTH_SHORT).show();
         });
 
-        mResolvingError = savedInstanceState != null && savedInstanceState.getBoolean(STATE_RESOLVING_ERROR, false);
-
         mProfile = new ProfileDrawerItem()
-                .withIcon(mPrefHelper.getUserPhoto())
                 .withName(mPrefHelper.getUserName())
                 .withEmail(mPrefHelper.getUserEmail())
                 .withNameShown(true)
@@ -204,9 +168,6 @@ public final class MainActivity extends BaseActivity implements MainView, OnConn
                         new PrimaryDrawerItem()
                                 .withName("Task Lists")
                                 .withIdentifier(ID_TASK_LISTS),
-                        new PrimaryDrawerItem()
-                                .withName("Refresh token")
-                                .withIdentifier(ID_REFRESH_TOKEN),
                         new DividerDrawerItem(),
                         new SecondaryDrawerItem()
                                 .withName(getResources().getString(R.string.drawer_settings))
@@ -237,12 +198,6 @@ public final class MainActivity extends BaseActivity implements MainView, OnConn
                             case ID_ABOUT:
                                 startActivity(new Intent(this, AboutActivity.class));
                                 break;
-                            case ID_REFRESH_TOKEN:
-                                Observable.defer(() -> mTokenHelper.refreshAccessToken())
-                                        .subscribeOn(Schedulers.io())
-                                        .observeOn(AndroidSchedulers.mainThread())
-                                        .subscribe(s -> Toast.makeText(this, "got new token", Toast.LENGTH_SHORT).show());
-                                break;
                             default:
                                 // If we're being restored from a previous state,
                                 // then we don't need to do anything and should return or else
@@ -268,13 +223,17 @@ public final class MainActivity extends BaseActivity implements MainView, OnConn
             //set the active profile
             accountHeader.setActiveProfile(mProfile);
         }
+
+        mMainActivityPresenter.getTaskLists();
+        mMainActivityPresenter.loadUserPictures();
     }
 
     @Override
-    protected void onTaskApiReady() {
-        mMainActivityPresenter.getTaskLists();
-        mMainActivityPresenter.refreshTaskLists();
-        mMainActivityPresenter.loadUserPictures();
+    protected void onApiReady() {
+        if (mNetworkInfoReceiver.isOnline(this)) {
+            mMainActivityPresenter.refreshTaskLists();
+            mMainActivityPresenter.loadCurrentUser();
+        }
     }
 
     @Override
@@ -287,12 +246,6 @@ public final class MainActivity extends BaseActivity implements MainView, OnConn
     protected void onPause() {
         unregisterReceiver(mNetworkInfoReceiver);
         super.onPause();
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        mMainActivityPresenter.unbindView(this);
     }
 
     /**
@@ -343,7 +296,7 @@ public final class MainActivity extends BaseActivity implements MainView, OnConn
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        switch (requestCode) {
+//        switch (requestCode) {
 //            case RC_ADD:
 //                if(resultCode == RESULT_OK) {
 //                    MaterialAccount acc = new MaterialAccount(this.getResources(), data.getStringExtra(AccountManager.KEY_ACCOUNT_NAME),"", R.drawable.ic_photo, R.drawable.ic_cover);
@@ -351,15 +304,7 @@ public final class MainActivity extends BaseActivity implements MainView, OnConn
 //                    Toast.makeText(MainActivity.this, data.getStringExtra(AccountManager.KEY_ACCOUNT_NAME), Toast.LENGTH_SHORT).show();
 //                }
 //                break;
-            case RC_RESOLVE_ERROR:
-                mResolvingError = false;
-                if (resultCode == RESULT_OK) {
-                    if (!mGoogleApiClient.isConnecting() && !mGoogleApiClient.isConnected()) {
-                        mGoogleApiClient.connect();
-                    }
-                }
-                break;
-        }
+//        }
     }
 
     @Override
@@ -374,8 +319,6 @@ public final class MainActivity extends BaseActivity implements MainView, OnConn
         outState = drawer.saveInstanceState(outState);
         // add the values which need to be saved from the accountHeader to the bundle
         outState = accountHeader.saveInstanceState(outState);
-        // Keep track of the mResolvingError boolean across activity restarts
-        outState.putBoolean(STATE_RESOLVING_ERROR, mResolvingError);
         super.onSaveInstanceState(outState);
     }
 
@@ -386,26 +329,9 @@ public final class MainActivity extends BaseActivity implements MainView, OnConn
     }
 
     @Override
-    public void onConnectionFailed(@NonNull ConnectionResult result) {
-        // This callback is important for handling errors that
-        // may occur while attempting to connect with Google.
-        Timber.w("Connection failed!");
-        if (!mResolvingError) {
-            // Not already attempting to resolve an error.
-            if (result.hasResolution()) {
-                try {
-                    mResolvingError = true;
-                    result.startResolutionForResult(this, RC_RESOLVE_ERROR);
-                } catch (IntentSender.SendIntentException e) {
-                    // There was an error with the resolution intent. Try again.
-                    mGoogleApiClient.connect();
-                }
-
-            } else {
-                showGooglePlayServicesAvailabilityErrorDialog(result.getErrorCode());
-                mResolvingError = true;
-            }
-        }
+    protected void onDestroy() {
+        super.onDestroy();
+        mMainActivityPresenter.unbindView(this);
     }
 
     private class ProfileIconTarget implements Target {

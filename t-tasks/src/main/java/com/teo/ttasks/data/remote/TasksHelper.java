@@ -116,7 +116,18 @@ public final class TasksHelper {
         HashMap<String, Object> taskFields = new HashMap<>();
         taskFields.put("completed", task.getCompleted());
         taskFields.put("status", task.getStatus());
-        return mTasksApi.updateTask(taskListId, task.getId(), taskFields);
+        return updateTask(taskListId, task.getId(), taskFields);
+    }
+
+    /**
+     * Update the task, changing only the specified fields
+     *
+     * @param taskListId task list identifier
+     * @param taskId     task identifier
+     * @param taskFields HashMap containing the fields to be modified and their values
+     */
+    public Observable<Task> updateTask(String taskListId, String taskId, HashMap<String, Object> taskFields) {
+        return mTasksApi.updateTask(taskListId, taskId, taskFields);
     }
 
     /**

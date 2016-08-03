@@ -1,6 +1,5 @@
 package com.teo.ttasks.util;
 
-import android.os.Build;
 import android.support.v4.view.ViewCompat;
 import android.support.v4.view.ViewPropertyAnimatorCompat;
 import android.support.v4.view.animation.FastOutSlowInInterpolator;
@@ -12,8 +11,8 @@ public class AnimUtils {
     public static class TaskDetailAnim {
 
         private static final Interpolator interpolator = new FastOutSlowInInterpolator();
-        private static final int duration = Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP ? 200 : 0;
-        private static final int delay = Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP ? 200 : 0;
+        private static final int duration = 200;
+        private static final int delay = 200;
 
         public static ViewPropertyAnimatorCompat animate(View view) {
             return ViewCompat.animate(view)

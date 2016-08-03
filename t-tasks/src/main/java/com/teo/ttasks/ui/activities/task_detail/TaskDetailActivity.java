@@ -17,6 +17,7 @@ import android.view.View;
 import android.view.animation.OvershootInterpolator;
 import android.widget.Toast;
 
+import com.teo.ttasks.BuildConfig;
 import com.teo.ttasks.R;
 import com.teo.ttasks.TTasksApp;
 import com.teo.ttasks.data.model.Task;
@@ -29,9 +30,9 @@ import javax.inject.Inject;
 
 public class TaskDetailActivity extends AppCompatActivity implements TaskDetailView {
 
-    private static final String EXTRA_TASK_ID = "taskId";
-    private static final String EXTRA_TASK_LIST_ID = "taskListId";
-
+    public static final String EXTRA_TASK_ID = "taskId";
+    public static final String EXTRA_TASK_LIST_ID = "taskListId";
+    private static final String ACTION_SKIP_ANIMATION = BuildConfig.APPLICATION_ID + "SKIP_ANIMATION";
     @Inject TaskDetailPresenter mTaskDetailPresenter;
 
     private ActivityTaskDetailBinding mBinding;
@@ -43,7 +44,16 @@ public class TaskDetailActivity extends AppCompatActivity implements TaskDetailV
         Intent starter = new Intent(context, TaskDetailActivity.class);
         starter.putExtra(EXTRA_TASK_ID, taskId);
         starter.putExtra(EXTRA_TASK_LIST_ID, taskListId);
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP)
+            starter.setAction(ACTION_SKIP_ANIMATION);
         context.startActivity(starter, bundle);
+    }
+
+    public static Intent getIntentTemplate(Context context, String taskListId) {
+        Intent starter = new Intent(context, TaskDetailActivity.class);
+        starter.putExtra(EXTRA_TASK_LIST_ID, taskListId);
+        starter.setAction(ACTION_SKIP_ANIMATION);
+        return starter;
     }
 
     @Override
@@ -53,7 +63,12 @@ public class TaskDetailActivity extends AppCompatActivity implements TaskDetailV
         mTaskDetailPresenter.bindView(this);
         mBinding = DataBindingUtil.setContentView(this, R.layout.activity_task_detail);
 
-        enterAnimation();
+
+        String action = getIntent().getAction();
+        if (action != null && action.equals(ACTION_SKIP_ANIMATION))
+            skipEnterAnimation();
+        else
+            enterAnimation();
 
         // Add a context menu to the task header
         registerForContextMenu(mBinding.taskHeader);
@@ -160,6 +175,24 @@ public class TaskDetailActivity extends AppCompatActivity implements TaskDetailV
         titleAnimator.start();
         taskListTitleAnimator.start();
         fabAnimator.start();
+    }
+
+    /**
+     * Skip the enter animation.<br>
+     * Used on versions below Lollipop because the lack of content transitions
+     * makes the animations look like the app is slow.<br>
+     * Also used when starting this activity from the widget, again because
+     * there are no content transitions.
+     */
+    private void skipEnterAnimation() {
+        mBinding.back.setAlpha(1f);
+        mBinding.edit.setAlpha(1f);
+        mBinding.more.setAlpha(1f);
+        mBinding.taskTitle.setAlpha(1f);
+        mBinding.taskListTitle.setAlpha(1f);
+        mBinding.fab.setScaleX(1f);
+        mBinding.fab.setScaleY(1f);
+        mBinding.fab.setAlpha(1f);
     }
 
     @Override

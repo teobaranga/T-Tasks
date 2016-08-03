@@ -28,16 +28,11 @@ public class EditTaskPresenter extends Presenter<EditTaskView> {
         mTasksHelper = tasksHelper;
     }
 
-    void loadTaskInfo(String taskId, String taskListId) {
+    void loadTaskInfo(String taskId) {
         mTasksHelper.getTask(taskId, mRealm)
                 .doOnNext(task -> {
                     final EditTaskView view = view();
                     if (view != null) view.onTaskLoaded(task);
-                })
-                .flatMap(ignored -> mTasksHelper.getTaskList(taskListId, mRealm))
-                .doOnNext(taskList -> {
-                    final EditTaskView view = view();
-                    if (view != null) view.onTaskListLoaded(taskList);
                 })
                 .subscribe(
                         ignored -> { },
@@ -51,6 +46,7 @@ public class EditTaskPresenter extends Presenter<EditTaskView> {
     }
 
     void loadTaskLists(String currentTaskListId) {
+        Timber.d("loading task lists, %s", currentTaskListId);
         mTasksHelper.getTaskLists(mRealm)
                 .subscribe(
                         taskLists -> {
@@ -64,6 +60,7 @@ public class EditTaskPresenter extends Presenter<EditTaskView> {
                             }
                         },
                         throwable -> {
+                            Timber.e(throwable.toString());
                             // TODO: 2016-07-24 implement error
                             final EditTaskView view = view();
                             if (view != null) view.onTaskInfoError();
@@ -120,12 +117,31 @@ public class EditTaskPresenter extends Presenter<EditTaskView> {
         mTaskNotes = taskNotes;
     }
 
-    void saveTask(String taskListId) {
+    void newTask(String taskListId) {
         HashMap<String, Object> newTask = new HashMap<>();
         newTask.put("title", mTaskTitle);
         newTask.put("due", mDateDue);
         newTask.put("notes", mTaskNotes);
         mTasksHelper.newTask(taskListId, newTask)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        task -> {
+                            mRealm.executeTransaction(realm1 -> realm1.copyToRealmOrUpdate(task));
+                            final EditTaskView view = view();
+                            if (view != null) view.onTaskSaved();
+                        },
+                        throwable -> {
+                            Timber.e(throwable.toString());
+                            final EditTaskView view = view();
+                            if (view != null) view.onTaskSaveError();
+                        }
+                );
+    }
+
+    // TODO: 2016-07-28 finish this
+    void updateTask(String taskListId, String taskId) {
+        HashMap<String, Object> taskFields = new HashMap<>();
+        mTasksHelper.updateTask(taskListId, taskId, taskFields)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
                         task -> {

@@ -8,6 +8,7 @@ import com.mikepenz.aboutlibraries.ui.LibsActivity;
 import com.teo.ttasks.R;
 
 public class AboutActivity extends LibsActivity {
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
 
@@ -16,12 +17,11 @@ public class AboutActivity extends LibsActivity {
                 .withFields(R.string.class.getFields())
                 .withAboutAppName(getResources().getString(R.string.app_name))
                 .withAboutVersionShownName(true)
-                .withAboutDescription("Description")
+                .withAboutDescription(getString(R.string.about_description))
                 .withAboutIconShown(true)
                 .withActivityStyle(Libs.ActivityStyle.LIGHT_DARK_TOOLBAR)
                 .withLicenseShown(true)
-                .withVersionShown(true)
-                .withActivityTitle("About")
+                .withActivityTitle(getString(R.string.about))
                 .intent(this));
 
         super.onCreate(savedInstanceState);

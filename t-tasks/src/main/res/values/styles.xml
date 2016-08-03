@@ -53,6 +53,9 @@
 
     <style name="Theme.TTasks.TaskDetail" parent="Base.Theme.TTasks.TaskDetail"/>
 
+    <!-- Widget configure -->
+    <style name="Theme.TTasks.TasksWidgetConfigure" parent="Theme.AppCompat.Light.Dialog"/>
+
     <!-- Widget -->
     <style name="WidgetFontChip">
         <item name="android:textSize">@dimen/widget_font_chip</item>

@@ -60,13 +60,21 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".ui.activities.main.MainActivity"/>
         </activity>
+        <activity
+            android:name=".widget.configure.TasksWidgetConfigureActivity"
+            android:label="Configure widget"
+            android:theme="@style/Theme.TTasks.TasksWidgetConfigure">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE"/>
+            </intent-filter>
+        </activity>
 
         <receiver android:name=".receivers.NetworkInfoReceiver">
             <intent-filter>
                 <action android:name="android.net.conn.CONNECTIVITY_CHANGE"/>
             </intent-filter>
         </receiver>
-        <receiver android:name=".widget.TasksWidget">
+        <receiver android:name=".widget.TasksWidgetProvider">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
             </intent-filter>
@@ -75,12 +83,6 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/tasks_widget_info"/>
         </receiver>
-
-        <activity android:name=".widget.TasksWidgetConfigureActivity">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE"/>
-            </intent-filter>
-        </activity>
 
         <service
             android:name=".widget.TasksWidgetService"

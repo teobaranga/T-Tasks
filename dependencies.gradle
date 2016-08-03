@@ -11,7 +11,7 @@ ext.versions = [
 
         dagger                       : '2.5',
 
-        playServices                 : '9.2.1',
+        playServices                 : '9.4.0',
         rxJava                       : '1.1.8',
         rxLint                       : '1.0',
         rxAndroid                    : '1.2.1',

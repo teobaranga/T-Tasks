@@ -2,7 +2,6 @@ package com.teo.ttasks.data.local;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.net.Uri;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 
@@ -20,6 +19,8 @@ public final class PrefHelper {
 
     private static final String PREF_TASK_LISTS_RESPONSE_ETAG = "taskListsEtag";
 
+    private static final String PREF_WIDGET_PREFIX = "tasksWidget_";
+
     private SharedPreferences mSharedPreferences;
 
     public PrefHelper(Context context) {
@@ -36,10 +37,9 @@ public final class PrefHelper {
                 getAccessToken() != null;
     }
 
-    public void setUser(String email, String displayName, @Nullable Uri photoUrl) {
+    public void setUser(String email, String displayName) {
         mSharedPreferences.edit().putString(PREF_USER_EMAIL, email)
                 .putString(PREF_USER_NAME, displayName)
-                .putString(PREF_USER_PHOTO, photoUrl != null ? photoUrl.toString() : "")
                 .apply();
     }
 
@@ -52,8 +52,9 @@ public final class PrefHelper {
         return mSharedPreferences.getString(PREF_USER_NAME, "");
     }
 
+    @Nullable
     public String getUserPhoto() {
-        return mSharedPreferences.getString(PREF_USER_PHOTO, "");
+        return mSharedPreferences.getString(PREF_USER_PHOTO, null);
     }
 
     public void setUserPhoto(String photoUrl) {
@@ -110,5 +111,30 @@ public final class PrefHelper {
 
     public void updateCurrentTaskList(String currentTaskListId) {
         mSharedPreferences.edit().putString(PREF_CURRENT_TASK_LIST_ID, currentTaskListId).apply();
+    }
+
+    /**
+     * Save the task list ID associated with the specified widget
+     *
+     * @param appWidgetId tasks widget identifier
+     * @param taskListId  task list identifier
+     */
+    public void setWidgetTaskListId(int appWidgetId, String taskListId) {
+        mSharedPreferences.edit().putString(PREF_WIDGET_PREFIX + appWidgetId, taskListId).apply();
+    }
+
+    /**
+     * Retrieve the task list ID associated with a given tasks widget
+     *
+     * @param appWidgetId task widget identifier
+     * @return the task list identifier
+     */
+    @Nullable
+    public String getWidgetTaskListId(int appWidgetId) {
+        return mSharedPreferences.getString(PREF_WIDGET_PREFIX + appWidgetId, null);
+    }
+
+    public void deleteWidgetTaskId(int appWidgetId) {
+        mSharedPreferences.edit().remove(PREF_WIDGET_PREFIX + appWidgetId).apply();
     }
 }

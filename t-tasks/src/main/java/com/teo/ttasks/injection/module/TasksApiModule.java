@@ -2,6 +2,7 @@ package com.teo.ttasks.injection.module;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.teo.ttasks.api.PeopleApi;
 import com.teo.ttasks.TTasksApp;
 import com.teo.ttasks.api.TasksApi;
 import com.teo.ttasks.data.local.PrefHelper;
@@ -27,7 +28,8 @@ import timber.log.Timber;
 @Module
 public class TasksApiModule {
 
-    private static final String BASE_URL = "https://www.googleapis.com/tasks/v1/";
+    private static final String TASKS_BASE_URL = "https://www.googleapis.com/tasks/v1/";
+    private static final String PEOPLE_BASE_URL = "https://www.googleapis.com/plus/v1/";
 
     @Provides @Singleton
     TokenHelper provideTokenHelper(PrefHelper prefHelper, TTasksApp tTasksApp) {
@@ -40,19 +42,23 @@ public class TasksApiModule {
     }
 
     @Provides @Singleton
-    TasksApi provideTasksApi(Retrofit retrofit) {
-        return retrofit.create(TasksApi.class);
+    TasksApi provideTasksApi(Retrofit.Builder retrofitBuilder) {
+        return retrofitBuilder.baseUrl(TASKS_BASE_URL).build().create(TasksApi.class);
     }
 
     @Provides @Singleton
-    Retrofit provideRetrofitForTasksApi(TokenHelper tokenHelper, PrefHelper prefHelper) {
+    PeopleApi providePeopleApi(Retrofit.Builder retrofitBuilder) {
+        return retrofitBuilder.baseUrl(PEOPLE_BASE_URL).build().create(PeopleApi.class);
+    }
+
+    @Provides @Singleton
+    Retrofit.Builder provideRetrofitBuilder(TokenHelper tokenHelper, PrefHelper prefHelper) {
         Gson gson = new GsonBuilder()
                 .setDateFormat("yyyy-MM-dd'T'HH:mm:ss.000ZZZZZ")
                 .excludeFieldsWithoutExposeAnnotation()
                 .serializeNulls()
                 .create();
         return new Retrofit.Builder()
-                .baseUrl(BASE_URL)
                 .client(new OkHttpClient.Builder()
                         .addInterceptor(new HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BASIC))
                         .addInterceptor(chain -> {
@@ -83,7 +89,6 @@ public class TasksApiModule {
                         })
                         .build())
                 .addConverterFactory(GsonConverterFactory.create(gson))
-                .addCallAdapterFactory(RxJavaCallAdapterFactory.createWithScheduler(Schedulers.io()))
-                .build();
+                .addCallAdapterFactory(RxJavaCallAdapterFactory.createWithScheduler(Schedulers.io()));
     }
 }

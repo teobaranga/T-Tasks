@@ -10,12 +10,16 @@ import android.widget.Toast;
 
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.auth.api.signin.GoogleSignInResult;
 import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.Scopes;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
+import com.google.android.gms.common.api.Scope;
 import com.teo.ttasks.R;
 import com.teo.ttasks.TTasksApp;
+import com.teo.ttasks.receivers.NetworkInfoReceiver;
 import com.teo.ttasks.ui.activities.BaseGoogleApiClientActivity;
 import com.teo.ttasks.ui.activities.main.MainActivity;
 
@@ -25,12 +29,17 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import timber.log.Timber;
 
+import static com.teo.ttasks.injection.module.ApplicationModule.SCOPE_TASKS;
+
 public class SignInActivity extends BaseGoogleApiClientActivity implements SignInView, OnConnectionFailedListener {
 
     private static final int RC_SIGN_IN = 0;
+    private static final int RC_USER_RECOVERABLE = 1;
 
     @Inject SignInPresenter mSignInPresenter;
-    @Inject GoogleApiClient mGoogleApiClient;
+    @Inject NetworkInfoReceiver mNetworkInfoReceiver;
+
+    private GoogleApiClient mGoogleApiClient;
 
     // Bool to track whether the app is already resolving an error
     private boolean mResolvingError = false;
@@ -42,8 +51,12 @@ public class SignInActivity extends BaseGoogleApiClientActivity implements SignI
 
     @OnClick(R.id.sign_in_button)
     void onSignInClicked() {
-        Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
-        startActivityForResult(signInIntent, RC_SIGN_IN);
+        if (!mNetworkInfoReceiver.isOnline(this)) {
+            Toast.makeText(this, R.string.error_sign_in_offline, Toast.LENGTH_SHORT).show();
+        } else {
+            Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
+            startActivityForResult(signInIntent, RC_SIGN_IN);
+        }
     }
 
     @Override
@@ -54,7 +67,15 @@ public class SignInActivity extends BaseGoogleApiClientActivity implements SignI
         ButterKnife.bind(this);
         mSignInPresenter.bindView(this);
 
-        mGoogleApiClient.registerConnectionFailedListener(this);
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestEmail()
+                .requestScopes(new Scope(SCOPE_TASKS), new Scope(Scopes.PLUS_ME))
+                .build();
+
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .enableAutoManage(this, this)
+                .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
+                .build();
 
 //        Auth.GoogleSignInApi.revokeAccess(mGoogleApiClient).setResultCallback(status -> {
 //            Timber.d("done revoking access");
@@ -73,19 +94,25 @@ public class SignInActivity extends BaseGoogleApiClientActivity implements SignI
                     if (!mGoogleApiClient.isConnecting() && !mGoogleApiClient.isConnected())
                         mGoogleApiClient.connect();
                 }
-                break;
+                return;
             case RC_SIGN_IN:
                 final GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
                 Timber.d("handleSignInResult: %s", result.isSuccess());
                 if (result.isSuccess()) {
                     GoogleSignInAccount account = result.getSignInAccount();
-                    mSignInPresenter.signIn(account);
+                    mSignInPresenter.saveUser(account);
+                    mSignInPresenter.signIn();
                 } else {
-                    Timber.d(result.getStatus().toString());
-                    // Signed out, show unauthenticated UI.
-                    Toast.makeText(this, R.string.sign_in_error, Toast.LENGTH_LONG).show();
+                    Timber.e(result.getStatus().toString());
+                    Toast.makeText(this, R.string.error_sign_in, Toast.LENGTH_SHORT).show();
                 }
-                break;
+                return;
+            case RC_USER_RECOVERABLE:
+                if (resultCode == RESULT_OK) {
+                    mSignInPresenter.signIn();
+                    return;
+                }
+                Toast.makeText(this, R.string.error_google_permissions_denied, Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -96,8 +123,12 @@ public class SignInActivity extends BaseGoogleApiClientActivity implements SignI
     }
 
     @Override
-    public void onSignInError() {
-        Toast.makeText(this, "There was an error while signing you in, please try again", Toast.LENGTH_LONG).show();
+    public void onSignInError(@Nullable Intent resolveIntent) {
+        if (resolveIntent != null) {
+            startActivityForResult(resolveIntent, RC_USER_RECOVERABLE);
+        } else {
+            Toast.makeText(this, R.string.error_sign_in, Toast.LENGTH_SHORT).show();
+        }
     }
 
     @Override

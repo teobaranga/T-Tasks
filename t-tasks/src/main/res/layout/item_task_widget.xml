@@ -1,27 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
+    android:id="@+id/item_task_widget"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@color/background_color"
-    android:orientation="horizontal">
+    android:orientation="horizontal"
+    android:paddingBottom="2dp"
+    android:paddingTop="2dp">
 
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="4dp"
         android:layout_marginLeft="2dp"
         android:layout_marginStart="2dp"
-        android:layout_marginTop="4dp"
         android:orientation="vertical">
 
         <TextView
             android:id="@+id/date_day_number"
-            style="@style/TextAppearance.AppCompat.Large.Inverse"
+            style="@style/TextAppearance.AppCompat.Title.Inverse"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="-8dp"
+            android:layout_marginTop="-2dp"
             tools:text="31"/>
 
         <TextView
@@ -39,7 +42,8 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="8dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
         android:background="@drawable/background_task"
         android:padding="8dp">
 
@@ -48,8 +52,8 @@
             style="@style/TextAppearance.AppCompat"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="2dp"
-            android:singleLine="true"
+            android:ellipsize="marquee"
+            android:maxLines="1"
             android:textStyle="bold"
             tools:text="Buy groceries"/>
 
@@ -60,7 +64,9 @@
             android:layout_height="wrap_content"
             android:layout_below="@+id/task_title"
             android:layout_marginBottom="4dp"
-            android:singleLine="true"
+            android:layout_marginTop="2dp"
+            android:ellipsize="marquee"
+            android:maxLines="1"
             android:textStyle="italic"
             android:visibility="gone"
             tools:text="Go to the supermarket and pick them up"/>
@@ -74,7 +80,6 @@
             android:drawableLeft="@drawable/ic_alarm_18dp"
             android:drawableStart="@drawable/ic_alarm_18dp"
             android:gravity="bottom"
-            android:singleLine="true"
             android:visibility="gone"
             tools:text="5:00PM"/>
 

@@ -1,14 +1,16 @@
 package com.teo.ttasks.widget;
 
-import android.appwidget.AppWidgetManager;
 import android.content.Context;
 import android.content.Intent;
 import android.widget.RemoteViews;
 import android.widget.RemoteViewsService;
 
+import com.mikepenz.fastadapter.IItem;
 import com.teo.ttasks.R;
 import com.teo.ttasks.TTasksApp;
-import com.teo.ttasks.data.remote.TasksHelper;
+import com.teo.ttasks.api.entities.TasksResponse;
+import com.teo.ttasks.data.model.Task;
+import com.teo.ttasks.ui.activities.task_detail.TaskDetailActivity;
 import com.teo.ttasks.ui.items.TaskItem;
 import com.teo.ttasks.util.RxUtil;
 
@@ -18,27 +20,26 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-import javax.inject.Inject;
-
 import io.realm.Realm;
+import rx.Observable;
 import timber.log.Timber;
 
 import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
+import static com.teo.ttasks.ui.activities.task_detail.TaskDetailActivity.EXTRA_TASK_ID;
 
 public class TasksRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactory {
 
     private static final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE", Locale.getDefault());
 
-    @Inject TasksHelper mTasksHelper;
+    private final String taskListId;
 
-    private List<TaskItem> mTasks;
     private Context mContext;
-    private int mAppWidgetId;
+    private List<TaskItem> mTasks;
 
-    public TasksRemoteViewsFactory(Context context, Intent intent) {
+    TasksRemoteViewsFactory(Context context, Intent intent) {
         mContext = context;
-        mAppWidgetId = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID);
+        taskListId = intent.getStringExtra(TaskDetailActivity.EXTRA_TASK_LIST_ID);
     }
 
     @Override
@@ -52,7 +53,6 @@ public class TasksRemoteViewsFactory implements RemoteViewsService.RemoteViewsFa
 
     @Override
     public void onDestroy() {
-        mTasks.clear();
         mTasks = null;
     }
 
@@ -69,16 +69,28 @@ public class TasksRemoteViewsFactory implements RemoteViewsService.RemoteViewsFa
     @Override
     public void onDataSetChanged() {
         Realm realm = Realm.getDefaultInstance();
-        mTasksHelper.getTaskLists(realm)
-                .flatMap(taskLists -> mTasksHelper.getTasks(taskLists.get(0).getId(), realm)) // TODO: 2016-05-01 load the right task list
+        TasksResponse tasksResponse = realm.where(TasksResponse.class).equalTo("id", taskListId).findFirst();
+        if (tasksResponse == null) {
+            // Empty task list
+            return;
+        }
+        List<Task> tasks = tasksResponse.items;
+        Observable.just(tasks)
                 .compose(RxUtil.getTaskItems())
-                .filter(taskItem -> taskItem instanceof TaskItem && ((TaskItem) taskItem).getCompleted() == null)
-                .cast(TaskItem.class)
-                .toList()
+                .map(iItems -> {
+                    // Get only tasks that are in progress
+                    List<TaskItem> taskItems = new ArrayList<>();
+                    for (IItem iItem : iItems) {
+                        if (iItem instanceof TaskItem && ((TaskItem) iItem).getCompleted() == null)
+                            taskItems.add((TaskItem) iItem);
+                    }
+                    return taskItems;
+                })
                 .subscribe(
-                        tasks -> {
+                        taskItems -> {
+                            Timber.d("Widget tasks count %d", taskItems.size());
                             mTasks.clear();
-                            mTasks.addAll(tasks);
+                            mTasks.addAll(taskItems);
                             realm.close();
                         },
                         throwable -> {
@@ -98,6 +110,11 @@ public class TasksRemoteViewsFactory implements RemoteViewsService.RemoteViewsFa
 
         RemoteViews rv = new RemoteViews(mContext.getPackageName(), R.layout.item_task_widget);
         rv.setTextViewText(R.id.task_title, task.getTitle());
+
+        // Set the click action
+        Intent intent = new Intent();
+        intent.putExtra(EXTRA_TASK_ID, task.getTaskId());
+        rv.setOnClickFillInIntent(R.id.item_task_widget, intent);
 
         // Task description
         if (task.getNotes() == null) {
@@ -123,7 +140,6 @@ public class TasksRemoteViewsFactory implements RemoteViewsService.RemoteViewsFa
                 rv.setViewVisibility(R.id.task_reminder, GONE);
             }
         } else {
-            rv.setViewVisibility(R.id.task_description, VISIBLE);
             rv.setTextViewText(R.id.date_day_name, null);
             rv.setTextViewText(R.id.date_day_number, null);
         }
@@ -134,7 +150,7 @@ public class TasksRemoteViewsFactory implements RemoteViewsService.RemoteViewsFa
 
     @Override
     public long getItemId(int position) {
-        return position;
+        return mTasks.get(position).getIdentifier();
     }
 
     @Override

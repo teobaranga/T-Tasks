@@ -1,5 +1,6 @@
 package com.teo.ttasks.ui.activities.sign_in;
 
+import com.google.android.gms.auth.UserRecoverableAuthException;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.teo.ttasks.data.local.PrefHelper;
 import com.teo.ttasks.data.remote.TasksHelper;
@@ -23,9 +24,16 @@ public class SignInPresenter extends Presenter<SignInView> {
         mTasksHelper = tasksHelper;
     }
 
-    void signIn(GoogleSignInAccount account) {
-        // Save the other user info
-        mPrefHelper.setUser(account.getEmail(), account.getDisplayName(), account.getPhotoUrl());
+    /**
+     * Save some user info. Useful to detect when a user is signed in.
+     *
+     * @param account the current user's account
+     */
+    void saveUser(GoogleSignInAccount account) {
+        mPrefHelper.setUser(account.getEmail(), account.getDisplayName());
+    }
+
+    void signIn() {
         final Subscription subscription = mTokenHelper.refreshAccessToken()
                 .flatMap(accessToken -> mTasksHelper.refreshTaskLists())
                 .subscribeOn(Schedulers.io())
@@ -38,7 +46,12 @@ public class SignInPresenter extends Presenter<SignInView> {
                         throwable -> {
                             Timber.e("Error signing in: %s", throwable.toString());
                             final SignInView view = view();
-                            if (view != null) view.onSignInError();
+                            if (view != null) {
+                                if (throwable.getCause() instanceof UserRecoverableAuthException)
+                                    view.onSignInError(((UserRecoverableAuthException) throwable.getCause()).getIntent());
+                                else
+                                    view.onSignInError(null);
+                            }
                         }
                 );
         unsubscribeOnUnbindView(subscription);

@@ -7,6 +7,6 @@ public class TasksWidgetService extends RemoteViewsService {
 
     @Override
     public RemoteViewsFactory onGetViewFactory(Intent intent) {
-        return new TasksRemoteViewsFactory(this.getApplicationContext(), intent);
+        return new TasksRemoteViewsFactory(getApplicationContext(), intent);
     }
 }

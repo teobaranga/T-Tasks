@@ -1,13 +1,13 @@
 package com.teo.ttasks.injection.module;
 
+import com.teo.ttasks.api.PeopleApi;
 import com.teo.ttasks.data.local.PrefHelper;
 import com.teo.ttasks.data.remote.TasksHelper;
 import com.teo.ttasks.ui.activities.edit_task.EditTaskPresenter;
 import com.teo.ttasks.ui.activities.main.MainActivityPresenter;
 import com.teo.ttasks.ui.activities.task_detail.TaskDetailPresenter;
 import com.teo.ttasks.ui.fragments.tasks.TasksPresenter;
-
-import javax.inject.Singleton;
+import com.teo.ttasks.widget.configure.TasksWidgetConfigurePresenter;
 
 import dagger.Module;
 import dagger.Provides;
@@ -15,14 +15,14 @@ import dagger.Provides;
 @Module
 public class UserModule {
 
-    @Provides @Singleton
+    @Provides
     TasksPresenter provideTasksPresenter(TasksHelper tasksHelper) {
         return new TasksPresenter(tasksHelper);
     }
 
-    @Provides @Singleton
-    MainActivityPresenter provideMainActivityPresenter(TasksHelper tasksHelper, PrefHelper prefHelper) {
-        return new MainActivityPresenter(tasksHelper, prefHelper);
+    @Provides
+    MainActivityPresenter provideMainActivityPresenter(TasksHelper tasksHelper, PrefHelper prefHelper, PeopleApi peopleApi) {
+        return new MainActivityPresenter(tasksHelper, prefHelper, peopleApi);
     }
 
     @Provides
@@ -33,5 +33,11 @@ public class UserModule {
     @Provides
     TaskDetailPresenter provideTaskDetailPresenter(TasksHelper tasksHelper) {
         return new TaskDetailPresenter(tasksHelper);
+    }
+
+    // TODO: 2016-07-27 maybe this belongs to another component
+    @Provides
+    TasksWidgetConfigurePresenter provideTasksWidgetConfigurePresenter(TasksHelper tasksHelper, PrefHelper prefHelper) {
+        return new TasksWidgetConfigurePresenter(tasksHelper, prefHelper);
     }
 }

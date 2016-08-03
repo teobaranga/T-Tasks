@@ -6,6 +6,7 @@ import com.teo.ttasks.injection.module.SignInModule;
 import com.teo.ttasks.injection.module.TasksApiModule;
 import com.teo.ttasks.injection.module.UserModule;
 import com.teo.ttasks.widget.TasksRemoteViewsFactory;
+import com.teo.ttasks.widget.TasksWidgetProvider;
 
 import javax.inject.Singleton;
 
@@ -21,6 +22,8 @@ public interface ApplicationComponent {
     void inject(TTasksApp tTasksApp);
 
     void inject(TasksRemoteViewsFactory tasksRemoteViewsFactory);
+
+    void inject(TasksWidgetProvider tasksWidgetProvider);
 
     SignInComponent plus(SignInModule signInModule);
 

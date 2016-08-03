@@ -13,8 +13,6 @@ interface EditTaskView extends MvpView, OnDateSetListener, OnTimeSetListener {
 
     void onTaskLoaded(Task task);
 
-    void onTaskListLoaded(TaskList taskList);
-
     void onTaskListsLoaded(List<TaskList> taskLists, int selectedPosition);
 
     void onTaskInfoError();
