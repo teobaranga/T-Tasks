@@ -12,6 +12,7 @@ import retrofit2.http.GET;
 import retrofit2.http.Header;
 import retrofit2.http.PATCH;
 import retrofit2.http.POST;
+import retrofit2.http.PUT;
 import retrofit2.http.Path;
 import rx.Observable;
 
@@ -42,6 +43,9 @@ public interface TasksApi {
      */
     @PATCH("lists/{taskList}/tasks/{task}/")
     Observable<Task> updateTask(@Path("taskList") String taskListId, @Path("task") String taskId, @Body HashMap taskFields);
+
+    @PUT("lists/{taskList}/tasks/{task}/")
+    Observable<Task> updateTask(@Path("taskList") String taskListId, @Path("task") String taskId, @Body Task task);
 
     /**
      * Creates a new task on the specified task list

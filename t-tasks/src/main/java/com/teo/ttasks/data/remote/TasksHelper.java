@@ -71,7 +71,9 @@ public final class TasksHelper {
     }
 
     /**
-     * Get the tasks associated with a given task list from the local database
+     * Get the tasks associated with a given task list from the local database.
+     * Also acts as a listener, pushing a new set of tasks every time they are updated.
+     * Never calls onComplete.
      *
      * @param taskListId the ID of the task list
      * @param realm      an instance of Realm
@@ -85,12 +87,46 @@ public final class TasksHelper {
                 .map(taskResponse -> taskResponse.items);
     }
 
+    /**
+     * Get the tasks associated with a given task list from the local database.
+     *
+     * @param taskListId task list identifier
+     * @return an Observable of a list of un-managed {@link Task}s
+     */
+    public Observable<List<Task>> getTasks(String taskListId) {
+        return Observable.defer(() -> {
+            Realm realm = Realm.getDefaultInstance();
+            TasksResponse tasksResponse = realm.where(TasksResponse.class).equalTo("id", taskListId).findFirst();
+            if (tasksResponse == null) {
+                realm.close();
+                return Observable.empty();
+            } else {
+                tasksResponse = realm.copyFromRealm(tasksResponse);
+                realm.close();
+                return Observable.just(tasksResponse.items);
+            }
+        });
+    }
+
     public Observable<Task> getTask(String taskId, Realm realm) {
         return realm.where(Task.class).equalTo("id", taskId)
                 .findFirstAsync()
                 .<Task>asObservable()
                 .filter(task -> task.isLoaded())
                 .filter(task -> task.isValid());
+    }
+
+    /**
+     * Sync the tasks from the specified task list that are not currently marked as synced.
+     *
+     * @param taskListId task list identifier
+     * @return an Observable returning every task after it was successfully synced
+     */
+    public Observable<Task> syncTasks(String taskListId) {
+        return getTasks(taskListId)
+                .flatMapIterable(tasks -> tasks)
+                .filter(task -> !task.isSynced())
+                .flatMap(task -> updateTask(taskListId, task));
     }
 
     public Observable<TasksResponse> refreshTasks(String taskListId) {
@@ -117,6 +153,10 @@ public final class TasksHelper {
         taskFields.put("completed", task.getCompleted());
         taskFields.put("status", task.getStatus());
         return updateTask(taskListId, task.getId(), taskFields);
+    }
+
+    public Observable<Task> updateTask(String taskListId, Task task) {
+        return mTasksApi.updateTask(taskListId, task.getId(), task);
     }
 
     /**

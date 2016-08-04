@@ -118,12 +118,6 @@ public final class MainActivity extends BaseActivity implements MainView {
             @Override public void onNothingSelected(AdapterView<?> adapterView) { }
         });
 
-        mNetworkInfoReceiver.setOnConnectionChangedListener(isOnline -> {
-            // Internet connection changed
-            // TODO: 2015-12-29 Display/Hide info
-//            Toast.makeText(MainActivity.this, isOnline ? "Online" : "Offline", Toast.LENGTH_SHORT).show();
-        });
-
         mProfile = new ProfileDrawerItem()
                 .withName(mPrefHelper.getUserName())
                 .withEmail(mPrefHelper.getUserEmail())

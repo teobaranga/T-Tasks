@@ -106,11 +106,6 @@ public class TaskDetailActivity extends AppCompatActivity implements TaskDetailV
     }
 
     @Override
-    public void onTaskUpdateError() {
-        // TODO: 2016-07-25 implement
-    }
-
-    @Override
     public void onTaskDeleted() {
         Toast.makeText(this, "Task deleted", Toast.LENGTH_SHORT).show();
         onBackPressed();

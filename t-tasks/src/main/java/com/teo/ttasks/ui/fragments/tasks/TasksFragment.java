@@ -34,7 +34,6 @@ import javax.inject.Inject;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
-import timber.log.Timber;
 
 import static android.app.Activity.RESULT_OK;
 import static android.view.View.GONE;
@@ -88,6 +87,14 @@ public class TasksFragment extends Fragment implements TasksView, SwipeRefreshLa
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_tasks, container, false);
         mUnbinder = ButterKnife.bind(this, view);
+
+        mNetworkInfoReceiver.setOnConnectionChangedListener(isOnline -> {
+            if (isOnline) {
+                // Sync tasks
+                mTasksPresenter.syncTasks(mTaskListId);
+            }
+        });
+
         return view;
     }
 
@@ -102,9 +109,9 @@ public class TasksFragment extends Fragment implements TasksView, SwipeRefreshLa
         mFastAdapter.withOnClickListener((v, adapter, item, position) -> {
             if (item instanceof TaskItem) {
                 TaskItem.ViewHolder viewHolder = ((TaskItem) item).getViewHolder(v);
+                Pair<View, String> taskHeader = Pair.create(viewHolder.taskLayout, getResources().getString(R.string.transition_task_header));
                 //noinspection unchecked
-                ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(getActivity(),
-                        Pair.create(viewHolder.taskLayout, getResources().getString(R.string.transition_task_header)));
+                ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(getActivity(), taskHeader);
                 TaskDetailActivity.start(getContext(), ((TaskItem) item).getTaskId(), mTaskListId, options.toBundle());
             }
             return true;
@@ -118,14 +125,15 @@ public class TasksFragment extends Fragment implements TasksView, SwipeRefreshLa
 
         mTasksPresenter.getTasks(mTaskListId);
 
+        // Synchronize tasks and then refresh this task list
         if (mNetworkInfoReceiver.isOnline(getContext()))
-            mTasksPresenter.refreshTasks(mTaskListId);
+            mTasksPresenter.syncTasks(mTaskListId);
     }
 
     @Override
     public void onRefresh() {
         if (mNetworkInfoReceiver.isOnline(getContext())) {
-            mTasksPresenter.refreshTasks(mTaskListId);
+            mTasksPresenter.syncTasks(mTaskListId);
         } else {
             onRefreshDone();
         }
@@ -170,6 +178,12 @@ public class TasksFragment extends Fragment implements TasksView, SwipeRefreshLa
     }
 
     @Override
+    public void onSyncDone(int taskSyncCount) {
+        Toast.makeText(getContext(), "Synchronized " + taskSyncCount + " tasks", Toast.LENGTH_SHORT).show();
+        mTasksPresenter.refreshTasks(mTaskListId);
+    }
+
+    @Override
     public void onRefreshDone() {
         mSwipeRefreshLayout.setRefreshing(false);
     }
@@ -181,13 +195,12 @@ public class TasksFragment extends Fragment implements TasksView, SwipeRefreshLa
             case RC_CREATE_TASK:
                 if (resultCode == RESULT_OK) {
                     mTasksPresenter.refreshTasks(mTaskListId);
-                    Timber.d("refreshed task");
                 }
                 return;
             case RC_USER_RECOVERABLE:
                 if (resultCode == RESULT_OK) {
-                    // Re-authorization successful, refresh the tasks
-                    mTasksPresenter.refreshTasks(mTaskListId);
+                    // Re-authorization successful, sync & refresh the tasks
+                    mTasksPresenter.syncTasks(mTaskListId);
                     return;
                 }
                 Toast.makeText(getContext(), R.string.error_google_permissions_denied, Toast.LENGTH_SHORT).show();

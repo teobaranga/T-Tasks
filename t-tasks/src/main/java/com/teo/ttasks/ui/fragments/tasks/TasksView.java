@@ -24,4 +24,6 @@ interface TasksView extends MvpView {
     void showContentUi(@NonNull List<IItem> taskItems);
 
     void onRefreshDone();
+
+    void onSyncDone(int taskSyncCount);
 }

@@ -7,6 +7,8 @@ import com.teo.ttasks.data.remote.TasksHelper;
 import com.teo.ttasks.ui.base.Presenter;
 import com.teo.ttasks.util.RxUtil;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 import io.realm.Realm;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
@@ -35,6 +37,7 @@ public class TasksPresenter extends Presenter<TasksView> {
                             }
                         },
                         throwable -> {
+                            Timber.e(throwable.toString());
                             // TODO: 2016-07-12 error
                         });
         unsubscribeOnUnbindView(subscription);
@@ -58,6 +61,37 @@ public class TasksPresenter extends Presenter<TasksView> {
                         () -> {
                             final TasksView view = view();
                             if (view != null) view.onRefreshDone();
+                        }
+                );
+        unsubscribeOnUnbindView(subscription);
+    }
+
+    /**
+     * Synchronize the local tasks from the specified task list.
+     *
+     * @param taskListId task list identifier
+     */
+    void syncTasks(String taskListId) {
+        // Keep track of the number of synced tasks
+        AtomicInteger taskSyncCount = new AtomicInteger(0);
+        final Subscription subscription = mTasksHelper.syncTasks(taskListId)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        syncedTask -> {
+                            // Sync successful for this task
+                            mRealm.executeTransaction(realm -> syncedTask.setSynced(true));
+                            taskSyncCount.incrementAndGet();
+                        },
+                        throwable -> {
+                            // Sync failed for some or all tasks
+                            Timber.e(throwable.toString());
+                        },
+                        () -> {
+                            // Syncing done
+                            if (taskSyncCount.get() != 0) {
+                                final TasksView view = view();
+                                if (view != null) view.onSyncDone(taskSyncCount.get());
+                            }
                         }
                 );
         unsubscribeOnUnbindView(subscription);

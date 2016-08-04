@@ -67,6 +67,8 @@ public class TaskDetailPresenter extends Presenter<TaskDetailView> {
      */
     void updateCompletionStatus(String taskListId) {
         mRealm.executeTransaction(realm -> {
+            // Task is not synced at this point
+            mTask.setSynced(false);
             boolean completed = mTask.getCompleted() != null;
             if (!completed) {
                 mTask.setCompleted(new Date());
@@ -82,12 +84,18 @@ public class TaskDetailPresenter extends Presenter<TaskDetailView> {
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
                         task -> {
+                            // Update successful, update sync status
+                            mRealm.executeTransaction(realm -> mTask.setSynced(true));
                             final TaskDetailView view = view();
                             if (view != null) view.onTaskUpdated();
                         },
                         throwable -> {
+                            // Update unsuccessful, keep the task marked as "not synced"
+                            // The app will retry later, as soon as the user is online
+                            // TODO: 2016-08-04 provide the user with the option of retrying
+                            Timber.e(throwable.toString());
                             final TaskDetailView view = view();
-                            if (view != null) view.onTaskUpdateError();
+                            if (view != null) view.onTaskUpdated();
                         }
                 );
     }

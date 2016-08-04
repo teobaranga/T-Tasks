@@ -16,7 +16,5 @@ interface TaskDetailView extends MvpView {
 
     void onTaskUpdated();
 
-    void onTaskUpdateError();
-
     void onTaskDeleted();
 }
