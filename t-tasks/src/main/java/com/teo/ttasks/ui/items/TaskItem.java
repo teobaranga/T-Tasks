@@ -4,12 +4,14 @@ import android.graphics.drawable.Drawable;
 import android.support.annotation.NonNull;
 import android.support.graphics.drawable.VectorDrawableCompat;
 import android.support.v7.widget.RecyclerView;
+import android.util.DisplayMetrics;
+import android.util.TypedValue;
 import android.view.View;
 import android.widget.TextView;
 
 import com.mikepenz.fastadapter.items.AbstractItem;
 import com.teo.ttasks.R;
-import com.teo.ttasks.data.model.Task;
+import com.teo.ttasks.data.model.TTask;
 
 import java.text.SimpleDateFormat;
 import java.util.Comparator;
@@ -20,52 +22,65 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import lombok.Getter;
 import lombok.experimental.Accessors;
+import timber.log.Timber;
 
 import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
 
-@Accessors(prefix = "m")
+@Accessors()
 public class TaskItem extends AbstractItem<TaskItem, TaskItem.ViewHolder> implements Comparable<TaskItem> {
 
     private static final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE", Locale.getDefault());
+    private static final SimpleDateFormat fmt = new SimpleDateFormat("yyyyMMdd", Locale.getDefault());
 
     /**
      * Comparator that sorts {@link TaskItem}s by their completion date in descending order
      */
     public static Comparator<TaskItem> completionDateComparator = (lhs, rhs) -> {
-        // Check the due date
-        if (lhs.mDueDate == null && rhs.mDueDate == null)
-            return 0;
-        else if (lhs.mDueDate == null)
-            return -1;
-        else if (rhs.mDueDate == null)
-            return 1;
+
+        boolean sameDay = fmt.format(lhs.completed).equals(fmt.format(rhs.completed));
+
+        int returnCode;
 
         // Check the completed date
-        if (lhs.mCompleted == null && rhs.mCompleted == null)
-            return 0;
-        if (lhs.mCompleted == null)
-            return 1;
-        if (rhs.mCompleted == null)
-            return -1;
+        if (lhs.completed == null && rhs.completed == null) {
+            returnCode = 0;
+        } else if (lhs.completed == null) {
+            returnCode = 1;
+        } else if (rhs.completed == null) {
+            returnCode = -1;
+        } else {
+            returnCode = rhs.completed.compareTo(lhs.completed);
+        }
 
-        return rhs.mCompleted.compareTo(lhs.mCompleted);
+        if (sameDay) {
+            if (returnCode == 0 || returnCode == -1)
+                rhs.combined = true;
+            else lhs.combined = true;
+        }
+
+        return returnCode;
     };
 
-    @Getter private String mTitle;
-    @Getter private String mNotes;
-    @Getter private Date mDueDate;
-    @Getter private Date mCompleted;
-    @Getter private Date mReminderDate;
-    @Getter public String mTaskId;
+    private static DisplayMetrics sDisplayMetrics;
 
-    public TaskItem(@NonNull Task task) {
-        mTitle = task.getTitle();
-        mNotes = task.getNotes();
-        mDueDate = task.getDue();
-        mCompleted = task.getCompleted();
-        mReminderDate = task.getReminder();
-        mTaskId = task.getId();
+    @Getter public String taskId;
+    @Getter private String title;
+    @Getter private String notes;
+    @Getter private Date dueDate;
+    @Getter private Date completed;
+    @Getter private Date reminder;
+
+    /** Flag indicating that this task item should combine with the previous task item in the list */
+    private boolean combined;
+
+    public TaskItem(TTask task) {
+        title = task.getTitle();
+        notes = task.getNotes();
+        dueDate = task.getDue();
+        completed = task.getCompleted();
+        reminder = task.getReminder();
+        taskId = task.getId();
     }
 
     @Override
@@ -82,39 +97,57 @@ public class TaskItem extends AbstractItem<TaskItem, TaskItem.ViewHolder> implem
     public void bindView(ViewHolder viewHolder) {
         super.bindView(viewHolder);
 
+        int px = 0;
+        RecyclerView.LayoutParams layoutParams = ((RecyclerView.LayoutParams) viewHolder.itemView.getLayoutParams());
+        if (combined)
+            px = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 10, sDisplayMetrics);
+        layoutParams.setMargins(0, -px, 0, 0);
+        viewHolder.itemView.setLayoutParams(layoutParams);
+
         // Task description
-        if (mNotes == null) {
+        if (notes == null) {
             viewHolder.taskDescription.setVisibility(GONE);
         } else {
-            viewHolder.taskDescription.setText(mNotes);
+            viewHolder.taskDescription.setText(notes);
             viewHolder.taskDescription.setVisibility(VISIBLE);
         }
 
-        if (mDueDate != null) {
+        if (completed != null && !combined) {
             // Mon
             simpleDateFormat.applyLocalizedPattern("EEE");
-            viewHolder.dateDayName.setText(simpleDateFormat.format(mDueDate));
+            viewHolder.dateDayName.setText(simpleDateFormat.format(completed));
             // 1
             simpleDateFormat.applyLocalizedPattern("d");
-            viewHolder.dateDayNumber.setText(simpleDateFormat.format(mDueDate));
+            viewHolder.dateDayNumber.setText(simpleDateFormat.format(completed));
+            // 12:00PM
+            viewHolder.layoutDate.setVisibility(VISIBLE);
+        } else if (dueDate != null && !combined) {
+            // Mon
+            simpleDateFormat.applyLocalizedPattern("EEE");
+            viewHolder.dateDayName.setText(simpleDateFormat.format(dueDate));
+            // 1
+            simpleDateFormat.applyLocalizedPattern("d");
+            viewHolder.dateDayNumber.setText(simpleDateFormat.format(dueDate));
             // 12:00PM
             viewHolder.layoutDate.setVisibility(VISIBLE);
         } else {
             viewHolder.dateDayNumber.setText(null);
             viewHolder.dateDayName.setText(null);
-            viewHolder.layoutDate.setVisibility(GONE);
+            if (!combined)
+                viewHolder.layoutDate.setVisibility(GONE);
         }
 
-        if (mReminderDate != null) {
+        if (reminder != null) {
+            Timber.d("reminder is not null");
             simpleDateFormat.applyLocalizedPattern("hh:mma");
-            viewHolder.reminderTime.setText(simpleDateFormat.format(mReminderDate));
+            viewHolder.reminderTime.setText(simpleDateFormat.format(reminder));
             viewHolder.reminderTime.setVisibility(VISIBLE);
         } else {
             viewHolder.reminderTime.setVisibility(GONE);
         }
 
         // Set item views based on the data model
-        viewHolder.taskTitle.setText(mTitle);
+        viewHolder.taskTitle.setText(title);
     }
 
     /**
@@ -123,13 +156,13 @@ public class TaskItem extends AbstractItem<TaskItem, TaskItem.ViewHolder> implem
      */
     @Override
     public int compareTo(@NonNull TaskItem another) {
-        if (mDueDate != null) {
-            // Compare non-null due dates
-            if (another.mDueDate != null)
-                return mDueDate.compareTo(another.mDueDate);
+        if (dueDate != null) {
+            // Compare non-null due dates, most recent ones at the top
+            if (another.dueDate != null)
+                return another.dueDate.compareTo(dueDate);
             // This task comes after the other task
             return 1;
-        } else if (another.mDueDate != null) {
+        } else if (another.dueDate != null) {
             // This task comes before the other task
             return -1;
         }
@@ -141,7 +174,7 @@ public class TaskItem extends AbstractItem<TaskItem, TaskItem.ViewHolder> implem
     public static class ViewHolder extends RecyclerView.ViewHolder {
 
         @BindView(R.id.layout_task) public View taskLayout;
-        @BindView(R.id.task_title) public TextView taskTitle;
+        @BindView(R.id.task_title) TextView taskTitle;
         @BindView(R.id.task_description) TextView taskDescription;
         @BindView(R.id.layout_date) View layoutDate;
         @BindView(R.id.date_day_number) TextView dateDayNumber;
@@ -152,7 +185,8 @@ public class TaskItem extends AbstractItem<TaskItem, TaskItem.ViewHolder> implem
             super(view);
             ButterKnife.bind(this, view);
             Drawable reminderIcon = VectorDrawableCompat.create(view.getResources(), R.drawable.ic_alarm_18dp, view.getContext().getTheme());
-            reminderTime.setCompoundDrawables(reminderIcon, null, null, null);
+            reminderTime.setCompoundDrawablesWithIntrinsicBounds(reminderIcon, null, null, null);
+            sDisplayMetrics = view.getContext().getResources().getDisplayMetrics();
         }
     }
 }

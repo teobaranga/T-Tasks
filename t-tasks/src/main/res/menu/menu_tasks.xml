@@ -23,4 +23,7 @@
     <item
         android:id="@+id/menu_show_hide_completed"
         android:title="@string/menu_hide_completed"/>
+    <item
+        android:id="@+id/schedule_notification"
+        android:title="Schedule notification"/>
 </menu>

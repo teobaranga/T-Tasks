@@ -2,7 +2,7 @@ package com.teo.ttasks.ui.activities.task_detail;
 
 import android.support.annotation.NonNull;
 
-import com.teo.ttasks.data.model.Task;
+import com.teo.ttasks.data.model.TTask;
 import com.teo.ttasks.data.remote.TasksHelper;
 import com.teo.ttasks.ui.base.Presenter;
 
@@ -21,7 +21,7 @@ public class TaskDetailPresenter extends Presenter<TaskDetailView> {
 
     private Realm mRealm;
 
-    private Task mTask;
+    private TTask mTask;
 
     public TaskDetailPresenter(TasksHelper tasksHelper) {
         mTasksHelper = tasksHelper;

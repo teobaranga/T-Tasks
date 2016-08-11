@@ -30,6 +30,7 @@
     <!-- Edit Task -->
     <string name="title_activity_edit_task">Edit Task</string>
     <string name="completed_on">"Completed on %s"</string>
+    <string name="in_progress">In Progress</string>
     <string name="done">Done</string>
     <string name="completed">Completed</string>
     <string name="title">Title</string>

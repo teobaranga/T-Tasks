@@ -4,6 +4,7 @@ import com.teo.ttasks.api.TasksApi;
 import com.teo.ttasks.api.entities.TaskListsResponse;
 import com.teo.ttasks.api.entities.TasksResponse;
 import com.teo.ttasks.data.local.PrefHelper;
+import com.teo.ttasks.data.model.TTask;
 import com.teo.ttasks.data.model.Task;
 import com.teo.ttasks.data.model.TaskList;
 
@@ -11,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import io.realm.Realm;
+import io.realm.RealmResults;
 import retrofit2.adapter.rxjava.HttpException;
 import rx.Observable;
 import rx.schedulers.Schedulers;
@@ -18,12 +20,12 @@ import timber.log.Timber;
 
 public final class TasksHelper {
 
-    private final TasksApi mTasksApi;
-    private final PrefHelper mPrefHelper;
+    private final TasksApi tasksApi;
+    private final PrefHelper prefHelper;
 
     public TasksHelper(TasksApi tasksApi, PrefHelper prefHelper) {
-        mTasksApi = tasksApi;
-        mPrefHelper = prefHelper;
+        this.tasksApi = tasksApi;
+        this.prefHelper = prefHelper;
     }
 
     private Observable handleResourceNotModified(Throwable throwable) {
@@ -52,7 +54,7 @@ public final class TasksHelper {
     }
 
     public Observable<TaskListsResponse> refreshTaskLists() {
-        return mTasksApi.getTaskLists(mPrefHelper.getTaskListsResponseEtag())
+        return tasksApi.getTaskLists(prefHelper.getTaskListsResponseEtag())
                 .onErrorResumeNext(this::handleResourceNotModified)
                 .doOnNext(taskListsResponse -> {
                     Timber.d("handling new task list response");
@@ -62,8 +64,8 @@ public final class TasksHelper {
                     if (oldTaskListResponse == null || !taskListsResponse.etag.equals(oldTaskListResponse.etag)) {
                         // Task lists have changed
                         Timber.d("Task lists have changed");
-                        mPrefHelper.setTaskListsResponseEtag(taskListsResponse.etag);
-                        taskListsResponse.id = mPrefHelper.getUserEmail();
+                        prefHelper.setTaskListsResponseEtag(taskListsResponse.etag);
+                        taskListsResponse.id = prefHelper.getUserEmail();
                         realm.executeTransaction(realm1 -> realm1.copyToRealmOrUpdate(taskListsResponse));
                     } else Timber.d("Task lists are up-to-date");
                     realm.close();
@@ -78,13 +80,12 @@ public final class TasksHelper {
      * @param taskListId the ID of the task list
      * @param realm      an instance of Realm
      */
-    public Observable<List<Task>> getTasks(String taskListId, Realm realm) {
-        return realm.where(TasksResponse.class).equalTo("id", taskListId)
-                .findFirstAsync()
-                .<TasksResponse>asObservable()
-                .filter(tasksResponse -> tasksResponse.isLoaded())
-                .filter(tasksResponse -> tasksResponse.isValid())
-                .map(taskResponse -> taskResponse.items);
+    public Observable<RealmResults<TTask>> getTasks(String taskListId, Realm realm) {
+        return realm.where(TTask.class).equalTo("taskListId", taskListId)
+                .findAllAsync()
+                .asObservable()
+                .filter(RealmResults::isLoaded)
+                .filter(RealmResults::isValid);
     }
 
     /**
@@ -93,25 +94,25 @@ public final class TasksHelper {
      * @param taskListId task list identifier
      * @return an Observable of a list of un-managed {@link Task}s
      */
-    public Observable<List<Task>> getTasks(String taskListId) {
+    public Observable<List<TTask>> getTasks(String taskListId) {
         return Observable.defer(() -> {
             Realm realm = Realm.getDefaultInstance();
-            TasksResponse tasksResponse = realm.where(TasksResponse.class).equalTo("id", taskListId).findFirst();
-            if (tasksResponse == null) {
+            List<TTask> tasks = realm.where(TTask.class).equalTo("taskListId", taskListId).findAll();
+            if (tasks.isEmpty()) {
                 realm.close();
                 return Observable.empty();
             } else {
-                tasksResponse = realm.copyFromRealm(tasksResponse);
+                tasks = realm.copyFromRealm(tasks);
                 realm.close();
-                return Observable.just(tasksResponse.items);
+                return Observable.just(tasks);
             }
         });
     }
 
-    public Observable<Task> getTask(String taskId, Realm realm) {
-        return realm.where(Task.class).equalTo("id", taskId)
+    public Observable<TTask> getTask(String taskId, Realm realm) {
+        return realm.where(TTask.class).equalTo("id", taskId)
                 .findFirstAsync()
-                .<Task>asObservable()
+                .<TTask>asObservable()
                 .filter(task -> task.isLoaded())
                 .filter(task -> task.isValid());
     }
@@ -122,7 +123,7 @@ public final class TasksHelper {
      * @param taskListId task list identifier
      * @return an Observable returning every task after it was successfully synced
      */
-    public Observable<Task> syncTasks(String taskListId) {
+    public Observable<TTask> syncTasks(String taskListId) {
         return getTasks(taskListId)
                 .flatMapIterable(tasks -> tasks)
                 .filter(task -> !task.isSynced())
@@ -130,7 +131,7 @@ public final class TasksHelper {
     }
 
     public Observable<TasksResponse> refreshTasks(String taskListId) {
-        return mTasksApi.getTasks(taskListId, mPrefHelper.getTasksResponseEtag(taskListId))
+        return tasksApi.getTasks(taskListId, prefHelper.getTasksResponseEtag(taskListId))
                 .onErrorResumeNext(this::handleResourceNotModified)
                 .doOnNext(tasksResponse -> {
                     // Save the tasks if required
@@ -140,23 +141,34 @@ public final class TasksHelper {
                     if (oldTaskResponse == null || !tasksResponse.etag.equals(oldTaskResponse.etag)) {
                         // The old task list doesn't exist or it has outdated data
                         Timber.d("Tasks have changed");
-                        mPrefHelper.setTasksResponseEtag(taskListId, tasksResponse.etag);
+                        prefHelper.setTasksResponseEtag(taskListId, tasksResponse.etag);
                         tasksResponse.id = taskListId;
-                        realm.executeTransaction(realm1 -> realm1.copyToRealmOrUpdate(tasksResponse));
+
+                        realm.executeTransaction(realm1 -> {
+                            realm1.copyToRealmOrUpdate(tasksResponse);
+                            // Create a new TTask for each Task
+                            for (Task task : tasksResponse.items) {
+                                TTask tTask = realm1.where(TTask.class).equalTo("id", task.getId()).findFirst();
+                                if (tTask == null)
+                                    realm1.copyToRealmOrUpdate(new TTask(task, taskListId));
+                            }
+                        });
                     } else Timber.d("Tasks are up-to-date");
                     realm.close();
                 });
     }
 
-    public Observable<Task> updateCompletionStatus(String taskListId, Task task) {
+    public Observable<TTask> updateCompletionStatus(String taskListId, TTask task) {
         HashMap<String, Object> taskFields = new HashMap<>();
         taskFields.put("completed", task.getCompleted());
         taskFields.put("status", task.getStatus());
-        return updateTask(taskListId, task.getId(), taskFields);
+        return updateTask(taskListId, task.getId(), taskFields)
+                .map(task1 -> task);
     }
 
-    public Observable<Task> updateTask(String taskListId, Task task) {
-        return mTasksApi.updateTask(taskListId, task.getId(), task);
+    public Observable<TTask> updateTask(String taskListId, TTask tTask) {
+        return tasksApi.updateTask(taskListId, tTask.getId(), tTask.task)
+                .map(task -> tTask);
     }
 
     /**
@@ -167,7 +179,7 @@ public final class TasksHelper {
      * @param taskFields HashMap containing the fields to be modified and their values
      */
     public Observable<Task> updateTask(String taskListId, String taskId, HashMap<String, Object> taskFields) {
-        return mTasksApi.updateTask(taskListId, taskId, taskFields);
+        return tasksApi.updateTask(taskListId, taskId, taskFields);
     }
 
     /**
@@ -179,10 +191,10 @@ public final class TasksHelper {
      * @return an Observable containing the full task
      */
     public Observable<Task> newTask(String taskListId, HashMap task) {
-        return mTasksApi.insertTask(taskListId, task);
+        return tasksApi.insertTask(taskListId, task);
     }
 
     public Observable<Void> deleteTask(String taskListId, String taskId) {
-        return mTasksApi.deleteTask(taskListId, taskId);
+        return tasksApi.deleteTask(taskListId, taskId);
     }
 }

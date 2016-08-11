@@ -7,12 +7,10 @@ import android.widget.RemoteViewsService;
 
 import com.mikepenz.fastadapter.IItem;
 import com.teo.ttasks.R;
-import com.teo.ttasks.TTasksApp;
-import com.teo.ttasks.api.entities.TasksResponse;
-import com.teo.ttasks.data.model.Task;
+import com.teo.ttasks.data.model.TTask;
 import com.teo.ttasks.ui.activities.task_detail.TaskDetailActivity;
 import com.teo.ttasks.ui.items.TaskItem;
-import com.teo.ttasks.util.RxUtil;
+import com.teo.ttasks.util.RxUtils;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -21,6 +19,7 @@ import java.util.List;
 import java.util.Locale;
 
 import io.realm.Realm;
+import io.realm.RealmResults;
 import rx.Observable;
 import timber.log.Timber;
 
@@ -34,12 +33,13 @@ public class TasksRemoteViewsFactory implements RemoteViewsService.RemoteViewsFa
 
     private final String taskListId;
 
-    private Context mContext;
-    private List<TaskItem> mTasks;
+    private Context context;
+    private List<TaskItem> taskItems;
+    private Realm realm;
 
     TasksRemoteViewsFactory(Context context, Intent intent) {
-        mContext = context;
-        taskListId = intent.getStringExtra(TaskDetailActivity.EXTRA_TASK_LIST_ID);
+        this.context = context;
+        this.taskListId = intent.getStringExtra(TaskDetailActivity.EXTRA_TASK_LIST_ID);
     }
 
     @Override
@@ -47,13 +47,15 @@ public class TasksRemoteViewsFactory implements RemoteViewsService.RemoteViewsFa
         // In onCreate() you setup any connections / cursors to your data source. Heavy lifting,
         // for example downloading or creating content etc, should be deferred to onDataSetChanged()
         // or getViewAt(). Taking more than 20 seconds in this call will result in an ANR.
-        TTasksApp.get(mContext).applicationComponent().inject(this);
-        mTasks = new ArrayList<>();
+        taskItems = new ArrayList<>();
+        realm = Realm.getDefaultInstance();
     }
 
     @Override
     public void onDestroy() {
-        mTasks = null;
+        context = null;
+        taskItems = null;
+        realm.close();
     }
 
     @Override
@@ -63,22 +65,18 @@ public class TasksRemoteViewsFactory implements RemoteViewsService.RemoteViewsFa
 
     @Override
     public int getCount() {
-        return mTasks.size();
+        return taskItems.size();
     }
 
     @Override
     public void onDataSetChanged() {
-        Realm realm = Realm.getDefaultInstance();
-        TasksResponse tasksResponse = realm.where(TasksResponse.class).equalTo("id", taskListId).findFirst();
-        if (tasksResponse == null) {
-            // Empty task list
+        RealmResults<TTask> tasks = realm.where(TTask.class).equalTo("taskListId", taskListId).findAll();
+        if (tasks.isEmpty())
             return;
-        }
-        List<Task> tasks = tasksResponse.items;
         Observable.just(tasks)
-                .compose(RxUtil.getTaskItems())
+                .compose(RxUtils.getTaskItems())
                 .map(iItems -> {
-                    // Get only tasks that are in progress
+                    // Get only taskItems that are in progress
                     List<TaskItem> taskItems = new ArrayList<>();
                     for (IItem iItem : iItems) {
                         if (iItem instanceof TaskItem && ((TaskItem) iItem).getCompleted() == null)
@@ -88,15 +86,10 @@ public class TasksRemoteViewsFactory implements RemoteViewsService.RemoteViewsFa
                 })
                 .subscribe(
                         taskItems -> {
-                            Timber.d("Widget tasks count %d", taskItems.size());
-                            mTasks.clear();
-                            mTasks.addAll(taskItems);
-                            realm.close();
+                            this.taskItems = taskItems;
+                            Timber.d("Widget taskItems count %d", taskItems.size());
                         },
-                        throwable -> {
-                            Timber.e(throwable.toString());
-                            realm.close();
-                        });
+                        throwable -> Timber.e(throwable.toString()));
     }
 
     @Override
@@ -106,9 +99,9 @@ public class TasksRemoteViewsFactory implements RemoteViewsService.RemoteViewsFa
 
     @Override
     public RemoteViews getViewAt(int position) {
-        TaskItem task = mTasks.get(position);
+        TaskItem task = taskItems.get(position);
 
-        RemoteViews rv = new RemoteViews(mContext.getPackageName(), R.layout.item_task_widget);
+        RemoteViews rv = new RemoteViews(context.getPackageName(), R.layout.item_task_widget);
         rv.setTextViewText(R.id.task_title, task.getTitle());
 
         // Set the click action
@@ -131,7 +124,7 @@ public class TasksRemoteViewsFactory implements RemoteViewsService.RemoteViewsFa
             simpleDateFormat.applyLocalizedPattern("d");
             rv.setTextViewText(R.id.date_day_number, simpleDateFormat.format(dueDate));
 
-            Date reminder = task.getReminderDate();
+            Date reminder = task.getReminder();
             if (reminder != null) {
                 simpleDateFormat.applyLocalizedPattern("hh:mma");
                 rv.setTextViewText(R.id.task_reminder, simpleDateFormat.format(reminder));
@@ -150,7 +143,7 @@ public class TasksRemoteViewsFactory implements RemoteViewsService.RemoteViewsFa
 
     @Override
     public long getItemId(int position) {
-        return mTasks.get(position).getIdentifier();
+        return taskItems.get(position).getIdentifier();
     }
 
     @Override

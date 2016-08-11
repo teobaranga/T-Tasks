@@ -8,6 +8,8 @@ import android.view.animation.Interpolator;
 
 public class AnimUtils {
 
+    private AnimUtils() { }
+
     public static class TaskDetailAnim {
 
         private static final Interpolator interpolator = new FastOutSlowInInterpolator();

@@ -2,6 +2,7 @@ package com.teo.ttasks.ui.activities.edit_task;
 
 import android.support.annotation.NonNull;
 
+import com.teo.ttasks.data.model.TTask;
 import com.teo.ttasks.data.model.TaskList;
 import com.teo.ttasks.data.remote.TasksHelper;
 import com.teo.ttasks.ui.base.Presenter;
@@ -16,21 +17,26 @@ import timber.log.Timber;
 
 public class EditTaskPresenter extends Presenter<EditTaskView> {
 
-    private final TasksHelper mTasksHelper;
+    private final TasksHelper tasksHelper;
 
-    private String mTaskTitle;
-    private Date mDateDue;
-    private String mTaskNotes;
+    private String taskTitle;
+    private Date dueDate;
+    private Date reminder;
+    private String notes;
 
-    private Realm mRealm;
+    private Realm realm;
 
     public EditTaskPresenter(TasksHelper tasksHelper) {
-        mTasksHelper = tasksHelper;
+        this.tasksHelper = tasksHelper;
     }
 
     void loadTaskInfo(String taskId) {
-        mTasksHelper.getTask(taskId, mRealm)
+        tasksHelper.getTask(taskId, realm)
                 .doOnNext(task -> {
+                    taskTitle = task.getTitle();
+                    dueDate = task.getDue();
+                    reminder = task.getReminder();
+                    notes = task.getNotes();
                     final EditTaskView view = view();
                     if (view != null) view.onTaskLoaded(task);
                 })
@@ -47,7 +53,7 @@ public class EditTaskPresenter extends Presenter<EditTaskView> {
 
     void loadTaskLists(String currentTaskListId) {
         Timber.d("loading task lists, %s", currentTaskListId);
-        mTasksHelper.getTaskLists(mRealm)
+        tasksHelper.getTaskLists(realm)
                 .subscribe(
                         taskLists -> {
                             for (int i = 0; i < taskLists.size(); i++) {
@@ -74,61 +80,85 @@ public class EditTaskPresenter extends Presenter<EditTaskView> {
      * @param date the due date
      */
     void setDueDate(Date date) {
-        if (mDateDue == null) {
-            mDateDue = date;
+        if (dueDate == null) {
+            dueDate = date;
         } else {
-            Timber.d("old date %s", mDateDue.toString());
+            Timber.d("old date %s", dueDate.toString());
             Calendar oldCal = Calendar.getInstance();
-            oldCal.setTime(mDateDue);
+            oldCal.setTime(dueDate);
 
             Calendar newCal = Calendar.getInstance();
             newCal.setTime(date);
 
             oldCal.set(newCal.get(Calendar.YEAR), newCal.get(Calendar.MONTH), newCal.get(Calendar.DAY_OF_MONTH));
-            mDateDue = oldCal.getTime();
-            Timber.d("new date %s", mDateDue.toString());
+            dueDate = oldCal.getTime();
+            Timber.d("new date %s", dueDate.toString());
         }
     }
 
     void setDueTime(Date date) {
-        if (mDateDue == null) {
-            mDateDue = date;
+        if (dueDate == null) {
+            dueDate = date;
         } else {
-            Timber.d("old date %s", mDateDue.toString());
+            Timber.d("old date %s", dueDate.toString());
             Calendar oldCal = Calendar.getInstance();
-            oldCal.setTime(mDateDue);
+            oldCal.setTime(dueDate);
 
             Calendar newCal = Calendar.getInstance();
             newCal.setTime(date);
 
             oldCal.set(Calendar.HOUR_OF_DAY, newCal.get(Calendar.HOUR_OF_DAY));
             oldCal.set(Calendar.MINUTE, newCal.get(Calendar.MINUTE));
-            mDateDue = oldCal.getTime();
-            Timber.d("new date %s", mDateDue.toString());
+            dueDate = oldCal.getTime();
+            Timber.d("new date %s", dueDate.toString());
         }
     }
 
+    /**
+     * Set the reminder time. This requires that the due date is already set.
+     *
+     * @param date the reminder time
+     */
+    void setReminderTime(Date date) {
+        if (dueDate == null)
+            return;
+
+        Calendar oldCal = Calendar.getInstance();
+        oldCal.setTime(dueDate);
+
+        Calendar newCal = Calendar.getInstance();
+        newCal.setTime(date);
+
+        oldCal.set(Calendar.HOUR_OF_DAY, newCal.get(Calendar.HOUR_OF_DAY));
+        oldCal.set(Calendar.MINUTE, newCal.get(Calendar.MINUTE));
+        reminder = oldCal.getTime();
+    }
+
     void setTaskTitle(String taskTitle) {
-        mTaskTitle = taskTitle;
-        Timber.d("Title: %s", mTaskTitle);
+        this.taskTitle = taskTitle;
+        Timber.d("Title: %s", this.taskTitle);
     }
 
     public void setTaskNotes(String taskNotes) {
-        mTaskNotes = taskNotes;
+        notes = taskNotes;
     }
 
     void newTask(String taskListId) {
         HashMap<String, Object> newTask = new HashMap<>();
-        newTask.put("title", mTaskTitle);
-        newTask.put("due", mDateDue);
-        newTask.put("notes", mTaskNotes);
-        mTasksHelper.newTask(taskListId, newTask)
+        newTask.put("title", taskTitle);
+        newTask.put("due", dueDate);
+        newTask.put("notes", notes);
+        // TODO: 2016-08-09 save the reminder online
+        tasksHelper.newTask(taskListId, newTask)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
                         task -> {
-                            mRealm.executeTransaction(realm1 -> realm1.copyToRealmOrUpdate(task));
+                            // Create the TTask, set the reminder and save it to Realm
+                            TTask tTask = new TTask(task, taskListId);
+                            tTask.setReminder(reminder);
+                            realm.executeTransaction(realm -> realm.copyToRealmOrUpdate(tTask));
                             final EditTaskView view = view();
-                            if (view != null) view.onTaskSaved();
+                            if (view != null) view.onTaskSaved(tTask);
                         },
                         throwable -> {
                             Timber.e(throwable.toString());
@@ -141,13 +171,13 @@ public class EditTaskPresenter extends Presenter<EditTaskView> {
     // TODO: 2016-07-28 finish this
     void updateTask(String taskListId, String taskId) {
         HashMap<String, Object> taskFields = new HashMap<>();
-        mTasksHelper.updateTask(taskListId, taskId, taskFields)
+        tasksHelper.updateTask(taskListId, taskId, taskFields)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
                         task -> {
-                            mRealm.executeTransaction(realm1 -> realm1.copyToRealmOrUpdate(task));
+                            realm.executeTransaction(realm -> realm.copyToRealmOrUpdate(task));
                             final EditTaskView view = view();
-                            if (view != null) view.onTaskSaved();
+//                            if (view != null) view.onTaskSaved(task);
                         },
                         throwable -> {
                             Timber.e(throwable.toString());
@@ -157,15 +187,33 @@ public class EditTaskPresenter extends Presenter<EditTaskView> {
                 );
     }
 
+    /**
+     * Check if the due date is set.
+     *
+     * @return {@code true} if the due date is set, {@code false} otherwise
+     */
+    boolean hasDueDate() {
+        return dueDate != null;
+    }
+
+    /**
+     * Remove the due date.
+     * The reminder date cannot exist without it so it is removed as well.
+     */
+    void removeDueDate() {
+        dueDate = null;
+        reminder = null;
+    }
+
     @Override
     public void bindView(@NonNull EditTaskView view) {
         super.bindView(view);
-        mRealm = Realm.getDefaultInstance();
+        realm = Realm.getDefaultInstance();
     }
 
     @Override
     public void unbindView(@NonNull EditTaskView view) {
         super.unbindView(view);
-        mRealm.close();
+        realm.close();
     }
 }

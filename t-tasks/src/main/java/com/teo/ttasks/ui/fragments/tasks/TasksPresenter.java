@@ -5,7 +5,7 @@ import android.support.annotation.NonNull;
 import com.google.android.gms.auth.UserRecoverableAuthException;
 import com.teo.ttasks.data.remote.TasksHelper;
 import com.teo.ttasks.ui.base.Presenter;
-import com.teo.ttasks.util.RxUtil;
+import com.teo.ttasks.util.RxUtils;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -16,17 +16,17 @@ import timber.log.Timber;
 
 public class TasksPresenter extends Presenter<TasksView> {
 
-    private final TasksHelper mTasksHelper;
+    private final TasksHelper tasksHelper;
 
-    private Realm mRealm;
+    private Realm realm;
 
     public TasksPresenter(TasksHelper tasksHelper) {
-        mTasksHelper = tasksHelper;
+        this.tasksHelper = tasksHelper;
     }
 
     void getTasks(String taskListId) {
-        final Subscription subscription = mTasksHelper.getTasks(taskListId, mRealm)
-                .compose(RxUtil.getTaskItems())
+        final Subscription subscription = tasksHelper.getTasks(taskListId, realm)
+                .compose(RxUtils.getTaskItems())
                 .subscribe(
                         tasks -> {
                             Timber.d("loaded %d tasks", tasks.size());
@@ -44,7 +44,7 @@ public class TasksPresenter extends Presenter<TasksView> {
     }
 
     void refreshTasks(String taskListId) {
-        final Subscription subscription = mTasksHelper.refreshTasks(taskListId)
+        final Subscription subscription = tasksHelper.refreshTasks(taskListId)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
                         tasksResponse -> { /* ignored since onCompleted does the job, even when the tasks have not been updated */ },
@@ -74,12 +74,12 @@ public class TasksPresenter extends Presenter<TasksView> {
     void syncTasks(String taskListId) {
         // Keep track of the number of synced tasks
         AtomicInteger taskSyncCount = new AtomicInteger(0);
-        final Subscription subscription = mTasksHelper.syncTasks(taskListId)
+        final Subscription subscription = tasksHelper.syncTasks(taskListId)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
                         syncedTask -> {
                             // Sync successful for this task
-                            mRealm.executeTransaction(realm -> syncedTask.setSynced(true));
+                            realm.executeTransaction(realm -> syncedTask.setSynced(true));
                             taskSyncCount.incrementAndGet();
                         },
                         throwable -> {
@@ -88,10 +88,8 @@ public class TasksPresenter extends Presenter<TasksView> {
                         },
                         () -> {
                             // Syncing done
-                            if (taskSyncCount.get() != 0) {
-                                final TasksView view = view();
-                                if (view != null) view.onSyncDone(taskSyncCount.get());
-                            }
+                            final TasksView view = view();
+                            if (view != null) view.onSyncDone(taskSyncCount.get());
                         }
                 );
         unsubscribeOnUnbindView(subscription);
@@ -100,12 +98,12 @@ public class TasksPresenter extends Presenter<TasksView> {
     @Override
     public void bindView(@NonNull TasksView view) {
         super.bindView(view);
-        mRealm = Realm.getDefaultInstance();
+        realm = Realm.getDefaultInstance();
     }
 
     @Override
     public void unbindView(@NonNull TasksView view) {
         super.unbindView(view);
-        mRealm.close();
+        realm.close();
     }
 }

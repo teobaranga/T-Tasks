@@ -1,12 +1,12 @@
 package com.teo.ttasks.ui.activities.task_detail;
 
-import com.teo.ttasks.data.model.Task;
+import com.teo.ttasks.data.model.TTask;
 import com.teo.ttasks.data.model.TaskList;
 import com.teo.ttasks.ui.base.MvpView;
 
 interface TaskDetailView extends MvpView {
 
-    void onTaskLoaded(Task task);
+    void onTaskLoaded(TTask task);
 
     void onTaskLoadError();
 

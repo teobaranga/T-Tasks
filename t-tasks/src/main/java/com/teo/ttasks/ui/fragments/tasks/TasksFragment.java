@@ -44,24 +44,25 @@ public class TasksFragment extends Fragment implements TasksView, SwipeRefreshLa
     private static final String ARG_TASK_LIST_ID = "taskListId";
 
     private static final int RC_USER_RECOVERABLE = 1;
-    private static final int RC_CREATE_TASK = 100;
 
-    @BindView(R.id.list) RecyclerView mTaskList;
-    @BindView(R.id.fab) FloatingActionButton mFloatingActionButton;
+    @BindView(R.id.list) RecyclerView taskList;
+    @BindView(R.id.fab) FloatingActionButton fab;
     @BindView(R.id.items_loading_ui) View loadingUiView;
     @BindView(R.id.items_loading_error_ui) View errorUiView;
     @BindView(R.id.items_empty) View emptyUiView;
-    @BindView(R.id.swipe_refresh_layout) SwipeRefreshLayout mSwipeRefreshLayout;
+    @BindView(R.id.swipe_refresh_layout) SwipeRefreshLayout swipeRefreshLayout;
 
-    @Inject TasksPresenter mTasksPresenter;
-    @Inject NetworkInfoReceiver mNetworkInfoReceiver;
+    @Inject TasksPresenter tasksPresenter;
+    @Inject NetworkInfoReceiver networkInfoReceiver;
 
-    private FastAdapter<IItem> mFastAdapter;
-    private ItemAdapter<IItem> mItemAdapter;
+    private FastAdapter<IItem> fastAdapter;
+    private ItemAdapter<IItem> itemAdapter;
 
-    private String mTaskListId;
+    private String taskListId;
 
-    private Unbinder mUnbinder;
+    private Unbinder unbinder;
+
+    private Pair<View, String> navBar;
 
     /**
      * Create a new instance of this fragment using the provided task list ID
@@ -77,21 +78,24 @@ public class TasksFragment extends Fragment implements TasksView, SwipeRefreshLa
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        mTaskListId = getArguments().getString(ARG_TASK_LIST_ID);
+        taskListId = getArguments().getString(ARG_TASK_LIST_ID);
         TTasksApp.get(context).userComponent().inject(this);
-        mFastAdapter = new FastAdapter<>();
-        mItemAdapter = new ItemAdapter<>();
+        fastAdapter = new FastAdapter<>();
+        itemAdapter = new ItemAdapter<>();
+
+        View navigationBar = getActivity().getWindow().getDecorView().findViewById(android.R.id.navigationBarBackground);
+        navBar = Pair.create(navigationBar, "navBar");
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_tasks, container, false);
-        mUnbinder = ButterKnife.bind(this, view);
+        unbinder = ButterKnife.bind(this, view);
 
-        mNetworkInfoReceiver.setOnConnectionChangedListener(isOnline -> {
+        networkInfoReceiver.setOnConnectionChangedListener(isOnline -> {
             if (isOnline) {
                 // Sync tasks
-                mTasksPresenter.syncTasks(mTaskListId);
+                tasksPresenter.syncTasks(taskListId);
             }
         });
 
@@ -101,39 +105,39 @@ public class TasksFragment extends Fragment implements TasksView, SwipeRefreshLa
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        mTasksPresenter.bindView(this);
+        tasksPresenter.bindView(this);
 
-        mFloatingActionButton.setOnClickListener(view1 ->
-                EditTaskActivity.startCreate(this, mTaskListId, RC_CREATE_TASK, null));
+        fab.setOnClickListener(view1 ->
+                EditTaskActivity.startCreate(this, taskListId, null));
 
-        mFastAdapter.withOnClickListener((v, adapter, item, position) -> {
+        fastAdapter.withOnClickListener((v, adapter, item, position) -> {
             if (item instanceof TaskItem) {
                 TaskItem.ViewHolder viewHolder = ((TaskItem) item).getViewHolder(v);
                 Pair<View, String> taskHeader = Pair.create(viewHolder.taskLayout, getResources().getString(R.string.transition_task_header));
                 //noinspection unchecked
-                ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(getActivity(), taskHeader);
-                TaskDetailActivity.start(getContext(), ((TaskItem) item).getTaskId(), mTaskListId, options.toBundle());
+                ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(getActivity(), taskHeader, navBar);
+                TaskDetailActivity.start(getContext(), ((TaskItem) item).getTaskId(), taskListId, options.toBundle());
             }
             return true;
         });
 
         // All the task items have the same size
-        mTaskList.setLayoutManager(new LinearLayoutManager(getContext()));
-        mTaskList.setAdapter(mItemAdapter.wrap(mFastAdapter));
+        taskList.setLayoutManager(new LinearLayoutManager(getContext()));
+        taskList.setAdapter(itemAdapter.wrap(fastAdapter));
 
-        mSwipeRefreshLayout.setOnRefreshListener(this);
+        swipeRefreshLayout.setOnRefreshListener(this);
 
-        mTasksPresenter.getTasks(mTaskListId);
+        tasksPresenter.getTasks(taskListId);
 
         // Synchronize tasks and then refresh this task list
-        if (mNetworkInfoReceiver.isOnline(getContext()))
-            mTasksPresenter.syncTasks(mTaskListId);
+        if (networkInfoReceiver.isOnline(getContext()))
+            tasksPresenter.syncTasks(taskListId);
     }
 
     @Override
     public void onRefresh() {
-        if (mNetworkInfoReceiver.isOnline(getContext())) {
-            mTasksPresenter.syncTasks(mTaskListId);
+        if (networkInfoReceiver.isOnline(getContext())) {
+            tasksPresenter.syncTasks(taskListId);
         } else {
             onRefreshDone();
         }
@@ -151,7 +155,7 @@ public class TasksFragment extends Fragment implements TasksView, SwipeRefreshLa
         if (resolveIntent != null) {
             startActivityForResult(resolveIntent, RC_USER_RECOVERABLE);
         } else {
-            mItemAdapter.clear();
+            itemAdapter.clear();
             loadingUiView.setVisibility(GONE);
             errorUiView.setVisibility(VISIBLE);
             emptyUiView.setVisibility(GONE);
@@ -161,7 +165,7 @@ public class TasksFragment extends Fragment implements TasksView, SwipeRefreshLa
 
     @Override
     public void showEmptyUi() {
-        mItemAdapter.clear();
+        itemAdapter.clear();
         loadingUiView.setVisibility(GONE);
         errorUiView.setVisibility(GONE);
         emptyUiView.setVisibility(VISIBLE);
@@ -170,7 +174,7 @@ public class TasksFragment extends Fragment implements TasksView, SwipeRefreshLa
 
     @Override
     public void showContentUi(@NonNull List<IItem> taskItems) {
-        mItemAdapter.setNewList(taskItems);
+        itemAdapter.setNewList(taskItems);
         loadingUiView.setVisibility(GONE);
         errorUiView.setVisibility(GONE);
         emptyUiView.setVisibility(GONE);
@@ -179,28 +183,24 @@ public class TasksFragment extends Fragment implements TasksView, SwipeRefreshLa
 
     @Override
     public void onSyncDone(int taskSyncCount) {
-        Toast.makeText(getContext(), "Synchronized " + taskSyncCount + " tasks", Toast.LENGTH_SHORT).show();
-        mTasksPresenter.refreshTasks(mTaskListId);
+        if (taskSyncCount != 0)
+            Toast.makeText(getContext(), "Synchronized " + taskSyncCount + " tasks", Toast.LENGTH_SHORT).show();
+        tasksPresenter.refreshTasks(taskListId);
     }
 
     @Override
     public void onRefreshDone() {
-        mSwipeRefreshLayout.setRefreshing(false);
+        swipeRefreshLayout.setRefreshing(false);
     }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         switch (requestCode) {
-            case RC_CREATE_TASK:
-                if (resultCode == RESULT_OK) {
-                    mTasksPresenter.refreshTasks(mTaskListId);
-                }
-                return;
             case RC_USER_RECOVERABLE:
                 if (resultCode == RESULT_OK) {
                     // Re-authorization successful, sync & refresh the tasks
-                    mTasksPresenter.syncTasks(mTaskListId);
+                    tasksPresenter.syncTasks(taskListId);
                     return;
                 }
                 Toast.makeText(getContext(), R.string.error_google_permissions_denied, Toast.LENGTH_SHORT).show();
@@ -210,11 +210,11 @@ public class TasksFragment extends Fragment implements TasksView, SwipeRefreshLa
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        mTasksPresenter.unbindView(this);
-        mUnbinder.unbind();
+        tasksPresenter.unbindView(this);
+        unbinder.unbind();
     }
 
     public String getTaskListId() {
-        return mTaskListId;
+        return taskListId;
     }
 }

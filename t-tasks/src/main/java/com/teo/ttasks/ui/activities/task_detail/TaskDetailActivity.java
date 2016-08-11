@@ -20,7 +20,7 @@ import android.widget.Toast;
 import com.teo.ttasks.BuildConfig;
 import com.teo.ttasks.R;
 import com.teo.ttasks.TTasksApp;
-import com.teo.ttasks.data.model.Task;
+import com.teo.ttasks.data.model.TTask;
 import com.teo.ttasks.data.model.TaskList;
 import com.teo.ttasks.databinding.ActivityTaskDetailBinding;
 import com.teo.ttasks.ui.activities.edit_task.EditTaskActivity;
@@ -81,7 +81,7 @@ public class TaskDetailActivity extends AppCompatActivity implements TaskDetailV
     }
 
     @Override
-    public void onTaskLoaded(Task task) {
+    public void onTaskLoaded(TTask task) {
         mBinding.setTask(task);
     }
 

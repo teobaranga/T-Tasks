@@ -14,20 +14,24 @@ import android.support.v7.app.AppCompatActivity;
 import android.text.format.DateFormat;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.TimePicker;
+import android.widget.Toast;
 
 import com.teo.ttasks.R;
 import com.teo.ttasks.TTasksApp;
 import com.teo.ttasks.data.TaskListsAdapter;
-import com.teo.ttasks.data.model.Task;
+import com.teo.ttasks.data.model.TTask;
 import com.teo.ttasks.data.model.TaskList;
 import com.teo.ttasks.databinding.ActivityEditTaskBinding;
-import com.teo.ttasks.util.DateUtil;
+import com.teo.ttasks.util.DateUtils;
+import com.teo.ttasks.util.NotificationUtils;
 
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -43,21 +47,25 @@ public class EditTaskActivity extends AppCompatActivity implements EditTaskView 
     private static final String EXTRA_TASK_ID = "taskId";
     private static final String EXTRA_TASK_LIST_ID = "taskListId";
 
-    @BindView(R.id.due_date) TextView mDueDate;
-    @BindView(R.id.due_time) TextView mDueTime;
-    @BindView(R.id.task_notes) EditText mTaskNotes;
+    @BindView(R.id.due_date) TextView dueDate;
+    @BindView(R.id.due_time) TextView dueTime;
+    @BindView(R.id.reminder) TextView reminder;
+    @BindView(R.id.notes) EditText notes;
 
-    @Inject EditTaskPresenter mEditTaskPresenter;
+    @Inject EditTaskPresenter editTaskPresenter;
 
-    private DatePickerFragment mDatePickerFragment;
-    private TimePickerFragment mTimePickerFragment;
+    private DatePickerFragment datePickerFragment;
+    private TimePickerFragment timePickerFragment;
 
-    private ActivityEditTaskBinding mBinding;
+    private ActivityEditTaskBinding editTaskBinding;
 
-    private TaskListsAdapter mTaskListsAdapter;
+    private TaskListsAdapter taskListsAdapter;
 
     private String taskId;
     private String taskListId;
+
+    /** Flag indicating that the reminder time has been clicked */
+    private boolean reminderTimeClicked;
 
     public static void startEdit(Context context, String taskId, String taskListId, Bundle bundle) {
         Intent starter = new Intent(context, EditTaskActivity.class);
@@ -66,10 +74,10 @@ public class EditTaskActivity extends AppCompatActivity implements EditTaskView 
         context.startActivity(starter, bundle);
     }
 
-    public static void startCreate(Fragment fragment, String taskListId, int requestCode, Bundle bundle) {
+    public static void startCreate(Fragment fragment, String taskListId, Bundle bundle) {
         Intent starter = new Intent(fragment.getContext(), EditTaskActivity.class);
         starter.putExtra(EXTRA_TASK_LIST_ID, taskListId);
-        fragment.startActivityForResult(starter, requestCode, bundle);
+        fragment.startActivity(starter, bundle);
     }
 
     /**
@@ -83,28 +91,31 @@ public class EditTaskActivity extends AppCompatActivity implements EditTaskView 
 
     @OnClick(R.id.due_date)
     void onDueDateClicked() {
-        if (mDatePickerFragment == null)
-            mDatePickerFragment = new DatePickerFragment();
-        mDatePickerFragment.show(getSupportFragmentManager(), "datePicker");
+        if (datePickerFragment == null)
+            datePickerFragment = new DatePickerFragment();
+        datePickerFragment.show(getSupportFragmentManager(), "datePicker");
     }
 
     /**
-     * Reset the due date
+     * Reset the due date. This also resets the reminder date/time.
      *
      * @return true if the due date was reset, false otherwise
      */
     @OnLongClick(R.id.due_date)
     boolean onDueDateLongClicked() {
-        // TODO: 2016-05-18 return false if the due date is already reset
-        mDueDate.setText(R.string.due_date_missing);
+        if (!editTaskPresenter.hasDueDate())
+            return false;
+        dueDate.setText(R.string.due_date_missing);
+        reminder.setText(null);
+        editTaskPresenter.removeDueDate();
         return true;
     }
 
     @OnClick(R.id.due_time)
     void onDueTimeClicked() {
-        if (mTimePickerFragment == null)
-            mTimePickerFragment = new TimePickerFragment();
-        mTimePickerFragment.show(getSupportFragmentManager(), "timePicker");
+        if (timePickerFragment == null)
+            timePickerFragment = new TimePickerFragment();
+        timePickerFragment.show(getSupportFragmentManager(), "timePicker");
     }
 
     /**
@@ -115,22 +126,22 @@ public class EditTaskActivity extends AppCompatActivity implements EditTaskView 
     @OnLongClick(R.id.due_time)
     boolean onDueTimeLongClicked() {
         // TODO: 2016-05-18 return false if the due time is already reset
-        mDueTime.setText(R.string.due_time_all_day);
+        dueTime.setText(R.string.due_time_all_day);
         return true;
     }
 
     @OnTextChanged(R.id.task_title)
     void onTitleChanged(CharSequence title) {
-        mEditTaskPresenter.setTaskTitle(title.toString());
+        editTaskPresenter.setTaskTitle(title.toString());
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mBinding = DataBindingUtil.setContentView(this, R.layout.activity_edit_task);
+        editTaskBinding = DataBindingUtil.setContentView(this, R.layout.activity_edit_task);
         TTasksApp.get(this).userComponent().inject(this);
         ButterKnife.bind(this);
-        mEditTaskPresenter.bindView(this);
+        editTaskPresenter.bindView(this);
 
         taskId = getIntent().getStringExtra(EXTRA_TASK_ID);
         taskListId = getIntent().getStringExtra(EXTRA_TASK_LIST_ID);
@@ -138,30 +149,30 @@ public class EditTaskActivity extends AppCompatActivity implements EditTaskView 
         //noinspection ConstantConditions
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        mTaskListsAdapter = new TaskListsAdapter(this);
-        mTaskListsAdapter.setDropDownViewResource(R.layout.spinner_item_task_list_edit_dropdown);
-        mBinding.taskLists.setAdapter(mTaskListsAdapter);
+        taskListsAdapter = new TaskListsAdapter(this);
+        taskListsAdapter.setDropDownViewResource(R.layout.spinner_item_task_list_edit_dropdown);
+        editTaskBinding.taskLists.setAdapter(taskListsAdapter);
 
         // Handle a new task or an existing task
         if (taskId == null) {
             getSupportActionBar().setTitle("New Task");
         } else {
-            mEditTaskPresenter.loadTaskInfo(taskId);
+            editTaskPresenter.loadTaskInfo(taskId);
         }
 
         // Load the available task lists
-        mEditTaskPresenter.loadTaskLists(taskListId);
+        editTaskPresenter.loadTaskLists(taskListId);
     }
 
     @Override
-    public void onTaskLoaded(Task task) {
-        mBinding.setTask(task);
+    public void onTaskLoaded(TTask task) {
+        editTaskBinding.setTask(task);
     }
 
     @Override
     public void onTaskListsLoaded(List<TaskList> taskLists, int selectedPosition) {
-        mTaskListsAdapter.addAll(taskLists);
-        mBinding.taskLists.setSelection(selectedPosition);
+        taskListsAdapter.addAll(taskLists);
+        editTaskBinding.taskLists.setSelection(selectedPosition);
     }
 
     @Override
@@ -170,8 +181,9 @@ public class EditTaskActivity extends AppCompatActivity implements EditTaskView 
     }
 
     @Override
-    public void onTaskSaved() {
-        setResult(RESULT_OK);
+    public void onTaskSaved(TTask task) {
+        // Schedule the notification if it exists
+        NotificationUtils.scheduleTaskNotification(this, task);
         onBackPressed();
     }
 
@@ -184,9 +196,9 @@ public class EditTaskActivity extends AppCompatActivity implements EditTaskView 
     public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
         Calendar c = Calendar.getInstance();
         c.set(year, monthOfYear, dayOfMonth);
-        mDueDate.setText(DateUtil.formatDate(this, c.getTime()));
-        mDueTime.setText(DateUtil.formatTime(this, c.getTime()));
-        mEditTaskPresenter.setDueDate(c.getTime());
+        Date time = c.getTime();
+        dueDate.setText(DateUtils.formatDate(this, time));
+        editTaskPresenter.setDueDate(time);
     }
 
     @Override
@@ -194,9 +206,16 @@ public class EditTaskActivity extends AppCompatActivity implements EditTaskView 
         Calendar c = Calendar.getInstance();
         c.set(Calendar.HOUR_OF_DAY, hourOfDay);
         c.set(Calendar.MINUTE, minute);
-        mDueDate.setText(DateUtil.formatDate(this, c.getTime()));
-        mDueTime.setText(DateUtil.formatTime(this, c.getTime()));
-        mEditTaskPresenter.setDueTime(c.getTime());
+        Date time = c.getTime();
+        if (reminderTimeClicked) {
+            reminder.setText(DateUtils.formatTime(this, time));
+            editTaskPresenter.setReminderTime(time);
+            reminderTimeClicked = false;
+        } else {
+            dueDate.setText(DateUtils.formatDate(this, time));
+            dueTime.setText(DateUtils.formatTime(this, time));
+            editTaskPresenter.setDueTime(time);
+        }
     }
 
     @Override
@@ -213,7 +232,7 @@ public class EditTaskActivity extends AppCompatActivity implements EditTaskView 
                 return true;
             case R.id.done:
                 if (taskId == null)
-                    mEditTaskPresenter.newTask(taskListId);
+                    editTaskPresenter.newTask(taskListId);
                 else
 //                finish();
                 return true;
@@ -222,10 +241,21 @@ public class EditTaskActivity extends AppCompatActivity implements EditTaskView 
 
     }
 
+    public void onReminderClicked(View v) {
+        if (!editTaskPresenter.hasDueDate()) {
+            Toast.makeText(this, "You need to set a due date before adding a reminder", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        reminderTimeClicked = true;
+        if (timePickerFragment == null)
+            timePickerFragment = new TimePickerFragment();
+        timePickerFragment.show(getSupportFragmentManager(), "timePicker");
+    }
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        mEditTaskPresenter.unbindView(this);
+        editTaskPresenter.unbindView(this);
     }
 
     @SuppressWarnings("WeakerAccess")
@@ -239,7 +269,7 @@ public class EditTaskActivity extends AppCompatActivity implements EditTaskView 
             int day = c.get(Calendar.DAY_OF_MONTH);
 
             // Create a new instance of DatePickerDialog and return it
-            return new DatePickerDialog(getActivity(), ((EditTaskActivity) getActivity()), year, month, day);
+            return new DatePickerDialog(getContext(), ((EditTaskActivity) getActivity()), year, month, day);
         }
     }
 
@@ -253,7 +283,7 @@ public class EditTaskActivity extends AppCompatActivity implements EditTaskView 
             int minute = c.get(Calendar.MINUTE);
 
             // Create a new instance of TimePickerDialog and return it
-            return new TimePickerDialog(getActivity(), ((EditTaskActivity) getActivity()), hour, minute, DateFormat.is24HourFormat(getActivity()));
+            return new TimePickerDialog(getContext(), ((EditTaskActivity) getActivity()), hour, minute, DateFormat.is24HourFormat(getContext()));
         }
     }
 }

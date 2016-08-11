@@ -1,5 +1,8 @@
 package com.teo.ttasks.ui.activities.main;
 
+import android.app.AlarmManager;
+import android.app.Notification;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -10,8 +13,10 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Spinner;
@@ -37,11 +42,13 @@ import com.teo.ttasks.data.TaskListsAdapter;
 import com.teo.ttasks.data.local.PrefHelper;
 import com.teo.ttasks.data.model.TaskList;
 import com.teo.ttasks.receivers.NetworkInfoReceiver;
+import com.teo.ttasks.receivers.NotificationPublisher;
 import com.teo.ttasks.ui.activities.AboutActivity;
 import com.teo.ttasks.ui.activities.BaseActivity;
 import com.teo.ttasks.ui.activities.sign_in.SignInActivity;
 import com.teo.ttasks.ui.fragments.tasks.TasksFragment;
 
+import java.util.Date;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -305,6 +312,48 @@ public final class MainActivity extends BaseActivity implements MainView {
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_tasks, menu);
         return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.schedule_notification:
+                scheduleNotification(getNotification("Testing"), new Date());
+//                scheduleNotification(getTaskNotification("3 second delay"), 3000);
+                return false;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void scheduleNotification(Notification notification, Date date) {
+
+        Intent notificationIntent = new Intent(this, NotificationPublisher.class);
+        notificationIntent.putExtra(NotificationPublisher.NOTIFICATION_ID, 1);
+        notificationIntent.putExtra(NotificationPublisher.NOTIFICATION, notification);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        AlarmManager alarmManager = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
+        alarmManager.set(AlarmManager.RTC_WAKEUP, date.getTime(), pendingIntent);
+    }
+
+    private void scheduleNotification(Notification notification, int delay) {
+
+        Intent notificationIntent = new Intent(this, NotificationPublisher.class);
+        notificationIntent.putExtra(NotificationPublisher.NOTIFICATION_ID, 1);
+        notificationIntent.putExtra(NotificationPublisher.NOTIFICATION, notification);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        long futureInMillis = SystemClock.elapsedRealtime() + delay;
+        AlarmManager alarmManager = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
+        alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, futureInMillis, pendingIntent);
+    }
+
+    private Notification getNotification(String content) {
+        Notification.Builder builder = new Notification.Builder(this)
+                .setContentTitle("Scheduled Notification")
+                .setContentText(content)
+                .setSmallIcon(R.drawable.ic_assignment_turned_in_24dp);
+        return builder.build();
     }
 
     @Override

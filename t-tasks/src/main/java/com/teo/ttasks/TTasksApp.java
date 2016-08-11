@@ -2,8 +2,8 @@ package com.teo.ttasks;
 
 import android.app.Application;
 import android.content.Context;
-import android.support.annotation.NonNull;
 
+import com.teo.ttasks.data.local.PrefHelper;
 import com.teo.ttasks.injection.component.ApplicationComponent;
 import com.teo.ttasks.injection.component.DaggerApplicationComponent;
 import com.teo.ttasks.injection.component.SignInComponent;
@@ -11,6 +11,8 @@ import com.teo.ttasks.injection.component.UserComponent;
 import com.teo.ttasks.injection.module.ApplicationModule;
 import com.teo.ttasks.injection.module.SignInModule;
 import com.teo.ttasks.injection.module.UserModule;
+
+import javax.inject.Inject;
 
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
@@ -21,16 +23,15 @@ import timber.log.Timber;
  */
 public class TTasksApp extends Application {
 
-    // Initialized in onCreate. But be careful if you have ContentProviders in different processes -> their onCreate will be called before app.onCreate().
-    @SuppressWarnings("NullableProblems") @NonNull
-    private ApplicationComponent mApplicationComponent;
+    @Inject PrefHelper prefHelper;
 
-    private SignInComponent mSignInComponent;
-    private UserComponent mUserComponent;
+    // Initialized in onCreate. But be careful if you have ContentProviders in different processes -> their onCreate will be called before app.onCreate().
+    private ApplicationComponent applicationComponent;
+    private SignInComponent signInComponent;
+    private UserComponent userComponent;
 
     // Prevent need in a singleton (global) reference to the application object.
-    @NonNull
-    public static TTasksApp get(@NonNull Context context) {
+    public static TTasksApp get(Context context) {
         return (TTasksApp) context.getApplicationContext();
     }
 
@@ -42,11 +43,11 @@ public class TTasksApp extends Application {
         if (BuildConfig.DEBUG)
             Timber.plant(new Timber.DebugTree());
 
-        mApplicationComponent = DaggerApplicationComponent.builder()
+        applicationComponent = DaggerApplicationComponent.builder()
                 .applicationModule(new ApplicationModule(this))
                 .build();
 
-        mApplicationComponent.inject(this);
+        applicationComponent.inject(this);
 
         initRealmConfiguration();
     }
@@ -54,32 +55,36 @@ public class TTasksApp extends Application {
     private void initRealmConfiguration() {
         RealmConfiguration realmConfiguration = new RealmConfiguration.Builder(this)
                 .deleteRealmIfMigrationNeeded()
+                .initialData(realm -> {
+                    // Reset the ETags saved, even though this has nothing to do with Realm
+                    // This is needed so that the app doesn't stop working on a schema change
+                    prefHelper.deleteAllEtags();
+                })
                 .build();
         Realm.setDefaultConfiguration(realmConfiguration);
     }
 
-    @NonNull
     public ApplicationComponent applicationComponent() {
-        return mApplicationComponent;
+        return applicationComponent;
     }
 
     public SignInComponent signInComponent() {
-        if (mSignInComponent == null)
-            mSignInComponent = mApplicationComponent.plus(new SignInModule());
-        return mSignInComponent;
+        if (signInComponent == null)
+            signInComponent = applicationComponent.plus(new SignInModule());
+        return signInComponent;
     }
 
     public void releaseSignInComponent() {
-        mSignInComponent = null;
+        signInComponent = null;
     }
 
     public UserComponent userComponent() {
-        if (mUserComponent == null)
-            mUserComponent = mApplicationComponent.plus(new UserModule());
-        return mUserComponent;
+        if (userComponent == null)
+            userComponent = applicationComponent.plus(new UserModule());
+        return userComponent;
     }
 
     public void releaseUserComponent() {
-        mUserComponent = null;
+        userComponent = null;
     }
 }

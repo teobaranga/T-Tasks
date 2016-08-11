@@ -93,36 +93,4 @@ public class Task extends RealmObject {
 
     @Expose
     private boolean hidden;
-
-    @Nullable
-    private Date reminder;
-
-    /**
-     * Field indicating whether the task is synced and up-to-date with the server.
-     * This is used to keep track of tasks updated locally but while offline.
-     */
-    private boolean synced = true;
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    @Nullable
-    public String getNotes() {
-        return notes;
-    }
-
-    @Nullable
-    public Date getDue() {
-        return due;
-    }
-
-    @Nullable
-    public Date getCompleted() {
-        return completed;
-    }
 }

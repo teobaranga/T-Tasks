@@ -9,7 +9,7 @@
 
         <variable
             name="task"
-            type="com.teo.ttasks.data.model.Task"/>
+            type="com.teo.ttasks.data.model.TTask"/>
 
         <variable
             name="taskList"
@@ -145,7 +145,7 @@
                         android:id="@+id/task_completion_status"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@{task.completed != null ? `Completed` : `In progress`}"
+                        app:completed="@{task.completed}"
                         tools:text="In progress"/>
 
                     <View
@@ -256,7 +256,7 @@
                             tools:ignore="ContentDescription"/>
 
                         <TextView
-                            android:id="@+id/task_notes"
+                            android:id="@+id/notes"
                             style="@style/TextAppearance.AppCompat.Medium"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
