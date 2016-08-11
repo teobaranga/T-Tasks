@@ -8,6 +8,7 @@ import com.teo.ttasks.data.model.TTask;
 import com.teo.ttasks.data.model.Task;
 import com.teo.ttasks.data.model.TaskList;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
@@ -17,6 +18,9 @@ import retrofit2.adapter.rxjava.HttpException;
 import rx.Observable;
 import rx.schedulers.Schedulers;
 import timber.log.Timber;
+
+import static com.teo.ttasks.data.model.Task.STATUS_COMPLETED;
+import static com.teo.ttasks.data.model.Task.STATUS_NEEDS_ACTION;
 
 public final class TasksHelper {
 
@@ -158,12 +162,44 @@ public final class TasksHelper {
                 });
     }
 
-    public Observable<TTask> updateCompletionStatus(String taskListId, TTask task) {
+    /**
+     * Mark the task as completed if it's not and vice-versa.
+     *
+     * @param taskListId task list identifier
+     * @param tTask      the task whose status will change
+     * @param realm      a Realm instance
+     * @return an Observable containing the updated task
+     */
+    public Observable<TTask> updateCompletionStatus(String taskListId, TTask tTask, Realm realm) {
+        // Update the status of the local task
+        realm.executeTransaction(realm1 -> {
+            // Task is not synced at this point
+            tTask.setSynced(false);
+            boolean completed = tTask.getCompleted() != null;
+            if (!completed) {
+                tTask.setCompleted(new Date());
+                tTask.setStatus(STATUS_COMPLETED);
+                Timber.d("task was completed");
+            } else {
+                tTask.setCompleted(null);
+                tTask.setStatus(STATUS_NEEDS_ACTION);
+                Timber.d("task needs action");
+            }
+        });
+
         HashMap<String, Object> taskFields = new HashMap<>();
-        taskFields.put("completed", task.getCompleted());
-        taskFields.put("status", task.getStatus());
-        return updateTask(taskListId, task.getId(), taskFields)
-                .map(task1 -> task);
+        taskFields.put("completed", tTask.getCompleted());
+        taskFields.put("status", tTask.getStatus());
+        return updateTask(taskListId, tTask.getId(), taskFields)
+                .map(task -> tTask);
+    }
+
+    public Observable<TTask> updateCompletionStatus(String taskListId, String taskId, Realm realm) {
+        TTask tTask = realm.where(TTask.class).equalTo("id", taskId).findFirst();
+        if (tTask != null) {
+            return updateCompletionStatus(taskListId, tTask, realm);
+        }
+        return Observable.error(new RuntimeException("Task not found"));
     }
 
     public Observable<TTask> updateTask(String taskListId, TTask tTask) {

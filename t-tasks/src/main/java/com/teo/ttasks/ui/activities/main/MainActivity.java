@@ -42,7 +42,7 @@ import com.teo.ttasks.data.TaskListsAdapter;
 import com.teo.ttasks.data.local.PrefHelper;
 import com.teo.ttasks.data.model.TaskList;
 import com.teo.ttasks.receivers.NetworkInfoReceiver;
-import com.teo.ttasks.receivers.NotificationPublisher;
+import com.teo.ttasks.receivers.TaskNotificationReceiver;
 import com.teo.ttasks.ui.activities.AboutActivity;
 import com.teo.ttasks.ui.activities.BaseActivity;
 import com.teo.ttasks.ui.activities.sign_in.SignInActivity;
@@ -327,9 +327,9 @@ public final class MainActivity extends BaseActivity implements MainView {
 
     private void scheduleNotification(Notification notification, Date date) {
 
-        Intent notificationIntent = new Intent(this, NotificationPublisher.class);
-        notificationIntent.putExtra(NotificationPublisher.NOTIFICATION_ID, 1);
-        notificationIntent.putExtra(NotificationPublisher.NOTIFICATION, notification);
+        Intent notificationIntent = new Intent(this, TaskNotificationReceiver.class);
+        notificationIntent.putExtra(TaskNotificationReceiver.NOTIFICATION_ID, 1);
+        notificationIntent.putExtra(TaskNotificationReceiver.NOTIFICATION, notification);
         PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
         AlarmManager alarmManager = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
@@ -338,9 +338,9 @@ public final class MainActivity extends BaseActivity implements MainView {
 
     private void scheduleNotification(Notification notification, int delay) {
 
-        Intent notificationIntent = new Intent(this, NotificationPublisher.class);
-        notificationIntent.putExtra(NotificationPublisher.NOTIFICATION_ID, 1);
-        notificationIntent.putExtra(NotificationPublisher.NOTIFICATION, notification);
+        Intent notificationIntent = new Intent(this, TaskNotificationReceiver.class);
+        notificationIntent.putExtra(TaskNotificationReceiver.NOTIFICATION_ID, 1);
+        notificationIntent.putExtra(TaskNotificationReceiver.NOTIFICATION, notification);
         PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
         long futureInMillis = SystemClock.elapsedRealtime() + delay;

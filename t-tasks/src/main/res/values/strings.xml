@@ -66,4 +66,8 @@
     <string name="description_more">More</string>
     <string name="description_add_task">Add task</string>
 
+    <!-- Notifications -->
+    <string name="task_due">Task due: %s</string>
+    <string name="notification_more_info">Tap for more information</string>
+
 </resources>

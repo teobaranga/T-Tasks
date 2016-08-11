@@ -83,7 +83,7 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/tasks_widget_info"/>
         </receiver>
-        <receiver android:name=".receivers.NotificationPublisher" />
+        <receiver android:name=".receivers.TaskNotificationReceiver" />
 
         <service
             android:name=".widget.TasksWidgetService"

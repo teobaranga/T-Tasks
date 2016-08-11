@@ -32,7 +32,9 @@ public class TaskDetailActivity extends AppCompatActivity implements TaskDetailV
 
     public static final String EXTRA_TASK_ID = "taskId";
     public static final String EXTRA_TASK_LIST_ID = "taskListId";
+
     private static final String ACTION_SKIP_ANIMATION = BuildConfig.APPLICATION_ID + "SKIP_ANIMATION";
+
     @Inject TaskDetailPresenter mTaskDetailPresenter;
 
     private ActivityTaskDetailBinding mBinding;
@@ -41,18 +43,32 @@ public class TaskDetailActivity extends AppCompatActivity implements TaskDetailV
     private String taskListId;
 
     public static void start(Context context, String taskId, String taskListId, @Nullable Bundle bundle) {
-        Intent starter = new Intent(context, TaskDetailActivity.class);
-        starter.putExtra(EXTRA_TASK_ID, taskId);
-        starter.putExtra(EXTRA_TASK_LIST_ID, taskListId);
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP)
-            starter.setAction(ACTION_SKIP_ANIMATION);
+        Intent starter = getStartIntent(context, taskId, taskListId, Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP);
         context.startActivity(starter, bundle);
     }
 
+    /**
+     * Get the Intent template used to start this activity from outside the application.
+     * This is part of the process used when starting this activity from the widget.
+     *
+     * @param context    context
+     * @param taskListId task list identifier
+     * @return an incomplete Intent that needs to be completed by adding the extra
+     * {@link #EXTRA_TASK_ID} before being used to start this activity
+     */
     public static Intent getIntentTemplate(Context context, String taskListId) {
         Intent starter = new Intent(context, TaskDetailActivity.class);
         starter.putExtra(EXTRA_TASK_LIST_ID, taskListId);
         starter.setAction(ACTION_SKIP_ANIMATION);
+        return starter;
+    }
+
+    public static Intent getStartIntent(Context context, String taskId, String taskListId, boolean skipAnimation) {
+        Intent starter = new Intent(context, TaskDetailActivity.class);
+        starter.putExtra(EXTRA_TASK_ID, taskId);
+        starter.putExtra(EXTRA_TASK_LIST_ID, taskListId);
+        if (skipAnimation)
+            starter.setAction(ACTION_SKIP_ANIMATION);
         return starter;
     }
 
