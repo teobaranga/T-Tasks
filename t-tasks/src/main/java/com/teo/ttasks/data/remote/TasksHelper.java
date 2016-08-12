@@ -16,6 +16,7 @@ import io.realm.Realm;
 import io.realm.RealmResults;
 import retrofit2.adapter.rxjava.HttpException;
 import rx.Observable;
+import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 import timber.log.Timber;
 
@@ -42,19 +43,15 @@ public final class TasksHelper {
 
     public Observable<List<TaskList>> getTaskLists(Realm realm) {
         return realm.where(TaskListsResponse.class)
-                .findFirstAsync()
+                .findFirst()
                 .<TaskListsResponse>asObservable()
-                .filter(taskListsResponse -> taskListsResponse.isLoaded())
-                .filter(taskListsResponse -> taskListsResponse.isValid())
                 .map(taskListsResponse -> taskListsResponse.items);
     }
 
     public Observable<TaskList> getTaskList(String taskListId, Realm realm) {
         return realm.where(TaskList.class).equalTo("id", taskListId)
-                .findFirstAsync()
-                .<TaskList>asObservable()
-                .filter(task -> task.isLoaded())
-                .filter(task -> task.isValid());
+                .findFirst()
+                .asObservable();
     }
 
     public Observable<TaskListsResponse> refreshTaskLists() {
@@ -70,7 +67,7 @@ public final class TasksHelper {
                         Timber.d("Task lists have changed");
                         prefHelper.setTaskListsResponseEtag(taskListsResponse.etag);
                         taskListsResponse.id = prefHelper.getUserEmail();
-                        realm.executeTransaction(realm1 -> realm1.copyToRealmOrUpdate(taskListsResponse));
+                        realm.executeTransaction(realm1 -> realm1.insertOrUpdate(taskListsResponse));
                     } else Timber.d("Task lists are up-to-date");
                     realm.close();
                 });
@@ -86,10 +83,8 @@ public final class TasksHelper {
      */
     public Observable<RealmResults<TTask>> getTasks(String taskListId, Realm realm) {
         return realm.where(TTask.class).equalTo("taskListId", taskListId)
-                .findAllAsync()
-                .asObservable()
-                .filter(RealmResults::isLoaded)
-                .filter(RealmResults::isValid);
+                .findAll()
+                .asObservable();
     }
 
     /**
@@ -98,7 +93,7 @@ public final class TasksHelper {
      * @param taskListId task list identifier
      * @return an Observable of a list of un-managed {@link Task}s
      */
-    public Observable<List<TTask>> getTasks(String taskListId) {
+    private Observable<List<TTask>> getTasks(String taskListId) {
         return Observable.defer(() -> {
             Realm realm = Realm.getDefaultInstance();
             List<TTask> tasks = realm.where(TTask.class).equalTo("taskListId", taskListId).findAll();
@@ -115,10 +110,8 @@ public final class TasksHelper {
 
     public Observable<TTask> getTask(String taskId, Realm realm) {
         return realm.where(TTask.class).equalTo("id", taskId)
-                .findFirstAsync()
-                .<TTask>asObservable()
-                .filter(task -> task.isLoaded())
-                .filter(task -> task.isValid());
+                .findFirst()
+                .asObservable();
     }
 
     /**
@@ -149,12 +142,12 @@ public final class TasksHelper {
                         tasksResponse.id = taskListId;
 
                         realm.executeTransaction(realm1 -> {
-                            realm1.copyToRealmOrUpdate(tasksResponse);
+                            realm1.insertOrUpdate(tasksResponse);
                             // Create a new TTask for each Task
                             for (Task task : tasksResponse.items) {
                                 TTask tTask = realm1.where(TTask.class).equalTo("id", task.getId()).findFirst();
                                 if (tTask == null)
-                                    realm1.copyToRealmOrUpdate(new TTask(task, taskListId));
+                                    realm1.insertOrUpdate(new TTask(task, taskListId));
                             }
                         });
                     } else Timber.d("Tasks are up-to-date");
@@ -165,12 +158,11 @@ public final class TasksHelper {
     /**
      * Mark the task as completed if it's not and vice-versa.
      *
-     * @param taskListId task list identifier
      * @param tTask      the task whose status will change
      * @param realm      a Realm instance
      * @return an Observable containing the updated task
      */
-    public Observable<TTask> updateCompletionStatus(String taskListId, TTask tTask, Realm realm) {
+    public Observable<TTask> updateCompletionStatus(TTask tTask, Realm realm) {
         // Update the status of the local task
         realm.executeTransaction(realm1 -> {
             // Task is not synced at this point
@@ -179,30 +171,32 @@ public final class TasksHelper {
             if (!completed) {
                 tTask.setCompleted(new Date());
                 tTask.setStatus(STATUS_COMPLETED);
-                Timber.d("task was completed");
             } else {
                 tTask.setCompleted(null);
                 tTask.setStatus(STATUS_NEEDS_ACTION);
-                Timber.d("task needs action");
             }
         });
 
         HashMap<String, Object> taskFields = new HashMap<>();
         taskFields.put("completed", tTask.getCompleted());
         taskFields.put("status", tTask.getStatus());
-        return updateTask(taskListId, tTask.getId(), taskFields)
-                .map(task -> tTask);
+        return updateTask(tTask.getTaskListId(), tTask.getId(), taskFields)
+                .map(task -> tTask)
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnCompleted(() -> {
+                    // Update successful, update sync status
+                    realm.executeTransaction(realm1 -> tTask.setSynced(true));
+                });
     }
 
-    public Observable<TTask> updateCompletionStatus(String taskListId, String taskId, Realm realm) {
+    public Observable<TTask> updateCompletionStatus(String taskId, Realm realm) {
         TTask tTask = realm.where(TTask.class).equalTo("id", taskId).findFirst();
-        if (tTask != null) {
-            return updateCompletionStatus(taskListId, tTask, realm);
-        }
+        if (tTask != null)
+            return updateCompletionStatus(tTask, realm);
         return Observable.error(new RuntimeException("Task not found"));
     }
 
-    public Observable<TTask> updateTask(String taskListId, TTask tTask) {
+    private Observable<TTask> updateTask(String taskListId, TTask tTask) {
         return tasksApi.updateTask(taskListId, tTask.getId(), tTask.task)
                 .map(task -> tTask);
     }
@@ -230,7 +224,17 @@ public final class TasksHelper {
         return tasksApi.insertTask(taskListId, task);
     }
 
-    public Observable<Void> deleteTask(String taskListId, String taskId) {
-        return tasksApi.deleteTask(taskListId, taskId);
+    /**
+     * Delete a task from the Google servers and then remove the local copy as well.
+     *
+     * @param taskListId task list identifier
+     * @param taskId     task identifier
+     * @param realm      Realm instance
+     */
+    public Observable<Void> deleteTask(String taskListId, String taskId, Realm realm) {
+        return tasksApi.deleteTask(taskListId, taskId)
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnCompleted(() -> realm.executeTransaction(realm1 ->
+                        realm1.where(TTask.class).equalTo("id", taskId).findFirst().deleteFromRealm()));
     }
 }

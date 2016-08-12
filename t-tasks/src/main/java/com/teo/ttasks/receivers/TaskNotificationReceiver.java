@@ -22,7 +22,6 @@ public class TaskNotificationReceiver extends BroadcastReceiver {
     public static final String NOTIFICATION = "notification";
 
     public static final String TASK_ID = "taskId";
-    public static final String TASK_LIST_ID = "taskListId";
 
     public static final String ACTION_PUBLISH = "publish";
     public static final String ACTION_COMPLETE = "complete";
@@ -37,15 +36,16 @@ public class TaskNotificationReceiver extends BroadcastReceiver {
 
         switch (intent.getAction()) {
             case ACTION_PUBLISH:
+                // Display the notification
                 Notification notification = intent.getParcelableExtra(NOTIFICATION);
                 notificationManager.notify(id, notification);
                 break;
             case ACTION_COMPLETE:
                 TTasksApp.get(context).applicationComponent().inject(this);
                 String taskId = intent.getStringExtra(TASK_ID);
-                String taskListId = intent.getStringExtra(TASK_LIST_ID);
                 Realm realm = Realm.getDefaultInstance();
-                tasksHelper.updateCompletionStatus(taskListId, taskId, realm)
+                // Mark the task as completed
+                tasksHelper.updateCompletionStatus(taskId, realm)
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe(
                                 tTask -> {

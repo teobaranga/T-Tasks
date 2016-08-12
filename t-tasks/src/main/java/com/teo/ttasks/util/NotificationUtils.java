@@ -48,6 +48,7 @@ public class NotificationUtils {
      */
     public static void scheduleTaskNotification(Context context, TTask task) {
         if (task.getReminder() != null) {
+            // TODO: 2016-08-11 have a unique notification id for every task
             int notificationId = 1;
 
             // Creates an explicit intent for an Activity in your app
@@ -67,7 +68,6 @@ public class NotificationUtils {
             Intent completedIntent = new Intent(context, TaskNotificationReceiver.class);
             completedIntent.putExtra(TaskNotificationReceiver.NOTIFICATION_ID, notificationId);
             completedIntent.putExtra(TaskNotificationReceiver.TASK_ID, task.getId());
-            completedIntent.putExtra(TaskNotificationReceiver.TASK_LIST_ID, task.getTaskListId());
             completedIntent.setAction(TaskNotificationReceiver.ACTION_COMPLETE);
             PendingIntent completedPendingIntent = PendingIntent.getBroadcast(context, 0, completedIntent, PendingIntent.FLAG_UPDATE_CURRENT);
             NotificationCompat.Action completedAction = new NotificationCompat.Action(R.drawable.ic_done_white_24dp, "Mark as completed", completedPendingIntent);

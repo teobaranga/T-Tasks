@@ -2,6 +2,8 @@ package com.teo.ttasks.ui.fragments.tasks;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -53,7 +55,8 @@ public class TasksFragment extends Fragment implements TasksView, SwipeRefreshLa
     @BindView(R.id.swipe_refresh_layout) SwipeRefreshLayout swipeRefreshLayout;
 
     @Inject TasksPresenter tasksPresenter;
-    @Inject NetworkInfoReceiver networkInfoReceiver;
+
+    private NetworkInfoReceiver networkInfoReceiver;
 
     private FastAdapter<IItem> fastAdapter;
     private ItemAdapter<IItem> itemAdapter;
@@ -85,12 +88,27 @@ public class TasksFragment extends Fragment implements TasksView, SwipeRefreshLa
 
         View navigationBar = getActivity().getWindow().getDecorView().findViewById(android.R.id.navigationBarBackground);
         navBar = Pair.create(navigationBar, "navBar");
+
+        fastAdapter.withOnClickListener((v, adapter, item, position) -> {
+            if (item instanceof TaskItem) {
+                TaskItem.ViewHolder viewHolder = ((TaskItem) item).getViewHolder(v);
+                Pair<View, String> taskHeader = Pair.create(viewHolder.taskLayout, getResources().getString(R.string.transition_task_header));
+                //noinspection unchecked
+                ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(getActivity(), taskHeader, navBar);
+                TaskDetailActivity.start(getContext(), ((TaskItem) item).getTaskId(), taskListId, options.toBundle());
+            }
+            return true;
+        });
+
+        networkInfoReceiver = new NetworkInfoReceiver();
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_tasks, container, false);
         unbinder = ButterKnife.bind(this, view);
+
+        getContext().registerReceiver(networkInfoReceiver, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
 
         networkInfoReceiver.setOnConnectionChangedListener(isOnline -> {
             if (isOnline) {
@@ -107,19 +125,7 @@ public class TasksFragment extends Fragment implements TasksView, SwipeRefreshLa
         super.onViewCreated(view, savedInstanceState);
         tasksPresenter.bindView(this);
 
-        fab.setOnClickListener(view1 ->
-                EditTaskActivity.startCreate(this, taskListId, null));
-
-        fastAdapter.withOnClickListener((v, adapter, item, position) -> {
-            if (item instanceof TaskItem) {
-                TaskItem.ViewHolder viewHolder = ((TaskItem) item).getViewHolder(v);
-                Pair<View, String> taskHeader = Pair.create(viewHolder.taskLayout, getResources().getString(R.string.transition_task_header));
-                //noinspection unchecked
-                ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(getActivity(), taskHeader, navBar);
-                TaskDetailActivity.start(getContext(), ((TaskItem) item).getTaskId(), taskListId, options.toBundle());
-            }
-            return true;
-        });
+        fab.setOnClickListener(view1 -> EditTaskActivity.startCreate(this, taskListId, null));
 
         // All the task items have the same size
         taskList.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -212,6 +218,7 @@ public class TasksFragment extends Fragment implements TasksView, SwipeRefreshLa
         super.onDestroyView();
         tasksPresenter.unbindView(this);
         unbinder.unbind();
+        getContext().unregisterReceiver(networkInfoReceiver);
     }
 
     public String getTaskListId() {

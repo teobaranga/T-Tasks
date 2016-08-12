@@ -35,9 +35,9 @@ public class TaskDetailActivity extends AppCompatActivity implements TaskDetailV
 
     private static final String ACTION_SKIP_ANIMATION = BuildConfig.APPLICATION_ID + "SKIP_ANIMATION";
 
-    @Inject TaskDetailPresenter mTaskDetailPresenter;
+    @Inject TaskDetailPresenter taskDetailPresenter;
 
-    private ActivityTaskDetailBinding mBinding;
+    private ActivityTaskDetailBinding taskDetailBinding;
 
     private String taskId;
     private String taskListId;
@@ -76,8 +76,8 @@ public class TaskDetailActivity extends AppCompatActivity implements TaskDetailV
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         TTasksApp.get(this).userComponent().inject(this);
-        mTaskDetailPresenter.bindView(this);
-        mBinding = DataBindingUtil.setContentView(this, R.layout.activity_task_detail);
+        taskDetailPresenter.bindView(this);
+        taskDetailBinding = DataBindingUtil.setContentView(this, R.layout.activity_task_detail);
 
 
         String action = getIntent().getAction();
@@ -87,18 +87,18 @@ public class TaskDetailActivity extends AppCompatActivity implements TaskDetailV
             enterAnimation();
 
         // Add a context menu to the task header
-        registerForContextMenu(mBinding.taskHeader);
+        registerForContextMenu(taskDetailBinding.taskHeader);
 
         // Get the task
         taskId = getIntent().getStringExtra(EXTRA_TASK_ID);
         taskListId = getIntent().getStringExtra(EXTRA_TASK_LIST_ID);
-        mTaskDetailPresenter.getTask(taskId);
-        mTaskDetailPresenter.getTaskList(taskListId);
+        taskDetailPresenter.getTask(taskId);
+        taskDetailPresenter.getTaskList(taskListId);
     }
 
     @Override
     public void onTaskLoaded(TTask task) {
-        mBinding.setTask(task);
+        taskDetailBinding.setTask(task);
     }
 
     @Override
@@ -108,7 +108,7 @@ public class TaskDetailActivity extends AppCompatActivity implements TaskDetailV
 
     @Override
     public void onTaskListLoaded(TaskList taskList) {
-        mBinding.setTaskList(taskList);
+        taskDetailBinding.setTaskList(taskList);
     }
 
     @Override
@@ -128,7 +128,7 @@ public class TaskDetailActivity extends AppCompatActivity implements TaskDetailV
     }
 
     public void onFabClicked(View v) {
-        mTaskDetailPresenter.updateCompletionStatus(taskListId);
+        taskDetailPresenter.updateCompletionStatus();
     }
 
     public void onBackClicked(View v) {
@@ -149,7 +149,7 @@ public class TaskDetailActivity extends AppCompatActivity implements TaskDetailV
                     DialogInterface.OnClickListener dialogClickListener = (dialog, choice) -> {
                         switch (choice) {
                             case DialogInterface.BUTTON_POSITIVE:
-                                mTaskDetailPresenter.deleteTask(taskListId, taskId);
+                                taskDetailPresenter.deleteTask();
                                 break;
                             case DialogInterface.BUTTON_NEGATIVE:
                                 break;
@@ -168,12 +168,12 @@ public class TaskDetailActivity extends AppCompatActivity implements TaskDetailV
     }
 
     private void enterAnimation() {
-        ViewPropertyAnimatorCompat backAnimator = TaskDetailAnim.animate(mBinding.back);
-        ViewPropertyAnimatorCompat editAnimator = TaskDetailAnim.animate(mBinding.edit);
-        ViewPropertyAnimatorCompat moreAnimation = TaskDetailAnim.animate(mBinding.more);
-        ViewPropertyAnimatorCompat titleAnimator = TaskDetailAnim.animate(mBinding.taskTitle);
-        ViewPropertyAnimatorCompat taskListTitleAnimator = TaskDetailAnim.animate(mBinding.taskListTitle);
-        ViewPropertyAnimatorCompat fabAnimator = ViewCompat.animate(mBinding.fab)
+        ViewPropertyAnimatorCompat backAnimator = TaskDetailAnim.animate(taskDetailBinding.back);
+        ViewPropertyAnimatorCompat editAnimator = TaskDetailAnim.animate(taskDetailBinding.edit);
+        ViewPropertyAnimatorCompat moreAnimation = TaskDetailAnim.animate(taskDetailBinding.more);
+        ViewPropertyAnimatorCompat titleAnimator = TaskDetailAnim.animate(taskDetailBinding.taskTitle);
+        ViewPropertyAnimatorCompat taskListTitleAnimator = TaskDetailAnim.animate(taskDetailBinding.taskListTitle);
+        ViewPropertyAnimatorCompat fabAnimator = ViewCompat.animate(taskDetailBinding.fab)
                 .scaleX(1.0F)
                 .scaleY(1.0F)
                 .alpha(1.0F)
@@ -196,26 +196,26 @@ public class TaskDetailActivity extends AppCompatActivity implements TaskDetailV
      * there are no content transitions.
      */
     private void skipEnterAnimation() {
-        mBinding.back.setAlpha(1f);
-        mBinding.edit.setAlpha(1f);
-        mBinding.more.setAlpha(1f);
-        mBinding.taskTitle.setAlpha(1f);
-        mBinding.taskListTitle.setAlpha(1f);
-        mBinding.fab.setScaleX(1f);
-        mBinding.fab.setScaleY(1f);
-        mBinding.fab.setAlpha(1f);
+        taskDetailBinding.back.setAlpha(1f);
+        taskDetailBinding.edit.setAlpha(1f);
+        taskDetailBinding.more.setAlpha(1f);
+        taskDetailBinding.taskTitle.setAlpha(1f);
+        taskDetailBinding.taskListTitle.setAlpha(1f);
+        taskDetailBinding.fab.setScaleX(1f);
+        taskDetailBinding.fab.setScaleY(1f);
+        taskDetailBinding.fab.setAlpha(1f);
     }
 
     @Override
     public void onBackPressed() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
-            mBinding.taskHeader.setTransitionName(null);
+            taskDetailBinding.taskHeader.setTransitionName(null);
         super.onBackPressed();
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        mTaskDetailPresenter.unbindView(this);
+        taskDetailPresenter.unbindView(this);
     }
 }

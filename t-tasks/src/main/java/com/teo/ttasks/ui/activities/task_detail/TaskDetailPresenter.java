@@ -7,7 +7,6 @@ import com.teo.ttasks.data.remote.TasksHelper;
 import com.teo.ttasks.ui.base.Presenter;
 
 import io.realm.Realm;
-import rx.android.schedulers.AndroidSchedulers;
 import timber.log.Timber;
 
 public class TaskDetailPresenter extends Presenter<TaskDetailView> {
@@ -57,36 +56,29 @@ public class TaskDetailPresenter extends Presenter<TaskDetailView> {
     /**
      * Mark the task as completed if it isn't and vice versa.
      * If the task is completed, the completion date is set to the current date.
-     *
-     * @param taskListId the ID of the task list containing this task (required for the API call)
      */
-    void updateCompletionStatus(String taskListId) {
-        tasksHelper.updateCompletionStatus(taskListId, realm.copyFromRealm(tTask), realm)
-                .observeOn(AndroidSchedulers.mainThread())
+    void updateCompletionStatus() {
+        tasksHelper.updateCompletionStatus(tTask, realm)
                 .subscribe(
-                        task -> {
-                            // Update successful, update sync status
-                            realm.executeTransaction(realm -> tTask.setSynced(true));
-                            final TaskDetailView view = view();
-                            if (view != null) view.onTaskUpdated();
-                        },
+                        task -> { },
                         throwable -> {
                             // Update unsuccessful, keep the task marked as "not synced"
                             // The app will retry later, as soon as the user is online
                             // TODO: 2016-08-04 provide the user with the option of retrying
                             Timber.e(throwable.toString());
-                            final TaskDetailView view = view();
-                            if (view != null) view.onTaskUpdated();
                         }
                 );
+        final TaskDetailView view = view();
+        if (view != null) view.onTaskUpdated();
     }
 
-    void deleteTask(String taskListId, String taskId) {
-        tasksHelper.deleteTask(taskListId, taskId)
-                .observeOn(AndroidSchedulers.mainThread())
+    /**
+     * Delete the task
+     */
+    void deleteTask() {
+        tasksHelper.deleteTask(tTask.getTaskListId(), tTask.getId(), realm)
                 .subscribe(
                         aVoid -> {
-                            realm.executeTransaction(realm -> tTask.deleteFromRealm());
                             final TaskDetailView view = view();
                             if (view != null) view.onTaskDeleted();
                         },

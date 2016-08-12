@@ -156,7 +156,7 @@ public class EditTaskPresenter extends Presenter<EditTaskView> {
                             // Create the TTask, set the reminder and save it to Realm
                             TTask tTask = new TTask(task, taskListId);
                             tTask.setReminder(reminder);
-                            realm.executeTransaction(realm -> realm.copyToRealmOrUpdate(tTask));
+                            realm.executeTransaction(realm -> realm.insertOrUpdate(tTask));
                             final EditTaskView view = view();
                             if (view != null) view.onTaskSaved(tTask);
                         },
@@ -175,9 +175,12 @@ public class EditTaskPresenter extends Presenter<EditTaskView> {
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
                         task -> {
-                            realm.executeTransaction(realm -> realm.copyToRealmOrUpdate(task));
+                            // Create the TTask, set the reminder and save it to Realm
+                            TTask tTask = new TTask(task, taskListId);
+                            tTask.setReminder(reminder);
+                            realm.executeTransaction(realm -> realm.insertOrUpdate(tTask));
                             final EditTaskView view = view();
-//                            if (view != null) view.onTaskSaved(task);
+                            if (view != null) view.onTaskSaved(tTask);
                         },
                         throwable -> {
                             Timber.e(throwable.toString());
