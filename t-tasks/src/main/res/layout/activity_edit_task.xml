@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--suppress AndroidUnknownAttribute -->
+<!-- suppress the warnings caused by "unknown" attributes handled by data binding -->
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
         xmlns:tools="http://schemas.android.com/tools">
@@ -8,6 +10,10 @@
         <variable
             name="task"
             type="com.teo.ttasks.data.model.TTask"/>
+
+        <variable
+            name="view"
+            type="com.teo.ttasks.ui.activities.edit_task.EditTaskView"/>
     </data>
 
     <ScrollView
@@ -54,6 +60,7 @@
                     android:background="@null"
                     android:hint="@string/title"
                     android:inputType="textCapSentences|textMultiLine"
+                    android:onTextChanged="@{view.onTitleChanged}"
                     android:text="@{task.title}"
                     tools:text="Do your laundry"/>
 
@@ -90,9 +97,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
                 android:layout_marginTop="12dp"
-                android:alignmentMode="alignBounds"
-                android:columnCount="3"
-                android:columnOrderPreserved="false">
+                android:columnCount="3">
 
                 <ImageView
                     android:layout_width="wrap_content"
@@ -110,18 +115,27 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="start"
+                    android:hint="@string/set_due_date"
+                    android:longClickable="true"
+                    android:onClick="onDueDateClicked"
+                    android:onLongClick="@{view.onDueDateLongClicked}"
                     android:textColor="?android:textColorPrimary"
                     android:textSize="18sp"
                     app:dueDate="@{task.due}"
                     tools:text="Fri, May 20, 2016"/>
 
+                <!-- TODO: enable the due time once it is implemented -->
                 <TextView
                     android:id="@+id/due_time"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_horizontal"
+                    android:longClickable="true"
+                    android:onClick="onDueTimeClicked"
+                    android:onLongClick="@{view.onDueTimeLongClicked}"
                     android:textColor="?android:textColorPrimary"
                     android:textSize="18sp"
+                    android:visibility="gone"
                     app:dueTime="@{task.due}"
                     tools:text="6:00 PM"/>
 
@@ -129,7 +143,7 @@
                     style="@style/TextAppearance.AppCompat.Caption"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/due_date_and_time"/>
+                    android:text="@string/due_date"/>
 
             </GridLayout>
 
@@ -139,9 +153,9 @@
                 android:layout_marginBottom="@dimen/margin_items_edit_task"
                 android:layout_marginTop="@dimen/margin_items_edit_task"
                 android:alignmentMode="alignBounds"
-                android:onClick="onReminderClicked"
                 android:columnCount="2"
-                android:columnOrderPreserved="false">
+                android:columnOrderPreserved="false"
+                android:onClick="onReminderClicked">
 
                 <ImageView
                     android:layout_width="wrap_content"
@@ -198,6 +212,7 @@
                     android:hint="@string/notes"
                     android:inputType="textCapSentences|textMultiLine|textAutoCorrect"
                     android:maxLines="3"
+                    android:onTextChanged="@{view.onNotesChanged}"
                     android:text="@{task.notes}"
                     tools:text="Don't forget to separate the colors!"/>
 

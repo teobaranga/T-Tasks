@@ -1,5 +1,6 @@
 package com.teo.ttasks.ui.items;
 
+import android.databinding.DataBindingUtil;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.NonNull;
 import android.support.graphics.drawable.VectorDrawableCompat;
@@ -12,6 +13,7 @@ import android.widget.TextView;
 import com.mikepenz.fastadapter.items.AbstractItem;
 import com.teo.ttasks.R;
 import com.teo.ttasks.data.model.TTask;
+import com.teo.ttasks.databinding.ItemTaskBinding;
 
 import java.text.SimpleDateFormat;
 import java.util.Comparator;
@@ -65,22 +67,21 @@ public class TaskItem extends AbstractItem<TaskItem, TaskItem.ViewHolder> implem
     private static DisplayMetrics sDisplayMetrics;
 
     @Getter public String taskId;
-    @Getter private String title;
-    @Getter private String notes;
     @Getter private Date dueDate;
     @Getter private Date completed;
     @Getter private Date reminder;
 
+    private final TTask tTask;
+
     /** Flag indicating that this task item should combine with the previous task item in the list */
     private boolean combined;
 
-    public TaskItem(TTask task) {
-        title = task.getTitle();
-        notes = task.getNotes();
-        dueDate = task.getDue();
-        completed = task.getCompleted();
-        reminder = task.getReminder();
-        taskId = task.getId();
+    public TaskItem(TTask tTask) {
+        this.tTask = tTask;
+        dueDate = tTask.getDue();
+        completed = tTask.getCompleted();
+        reminder = tTask.getReminder();
+        taskId = tTask.getId();
     }
 
     @Override
@@ -97,6 +98,9 @@ public class TaskItem extends AbstractItem<TaskItem, TaskItem.ViewHolder> implem
     public void bindView(ViewHolder viewHolder) {
         super.bindView(viewHolder);
 
+        ItemTaskBinding itemTaskBinding = viewHolder.itemTaskBinding;
+        itemTaskBinding.setTask(tTask);
+
         int px = 0;
         RecyclerView.LayoutParams layoutParams = ((RecyclerView.LayoutParams) viewHolder.itemView.getLayoutParams());
         if (combined)
@@ -105,12 +109,7 @@ public class TaskItem extends AbstractItem<TaskItem, TaskItem.ViewHolder> implem
         viewHolder.itemView.setLayoutParams(layoutParams);
 
         // Task description
-        if (notes == null) {
-            viewHolder.taskDescription.setVisibility(GONE);
-        } else {
-            viewHolder.taskDescription.setText(notes);
-            viewHolder.taskDescription.setVisibility(VISIBLE);
-        }
+        itemTaskBinding.taskDescription.setVisibility(tTask.getNotes() == null ? GONE : VISIBLE);
 
         if (completed != null && !combined) {
             // Mon
@@ -145,9 +144,14 @@ public class TaskItem extends AbstractItem<TaskItem, TaskItem.ViewHolder> implem
         } else {
             viewHolder.reminderTime.setVisibility(GONE);
         }
+    }
 
-        // Set item views based on the data model
-        viewHolder.taskTitle.setText(title);
+    public String getTitle() {
+        return tTask.getTitle();
+    }
+
+    public String getNotes() {
+        return tTask.getNotes();
     }
 
     /**
@@ -174,15 +178,16 @@ public class TaskItem extends AbstractItem<TaskItem, TaskItem.ViewHolder> implem
     public static class ViewHolder extends RecyclerView.ViewHolder {
 
         @BindView(R.id.layout_task) public View taskLayout;
-        @BindView(R.id.task_title) TextView taskTitle;
-        @BindView(R.id.task_description) TextView taskDescription;
         @BindView(R.id.layout_date) View layoutDate;
         @BindView(R.id.date_day_number) TextView dateDayNumber;
         @BindView(R.id.date_day_name) TextView dateDayName;
         @BindView(R.id.task_reminder) TextView reminderTime;
 
+        ItemTaskBinding itemTaskBinding;
+
         public ViewHolder(View view) {
             super(view);
+            itemTaskBinding = DataBindingUtil.bind(view);
             ButterKnife.bind(this, view);
             Drawable reminderIcon = VectorDrawableCompat.create(view.getResources(), R.drawable.ic_alarm_18dp, view.getContext().getTheme());
             reminderTime.setCompoundDrawablesWithIntrinsicBounds(reminderIcon, null, null, null);

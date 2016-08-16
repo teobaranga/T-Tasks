@@ -3,6 +3,7 @@ package com.teo.ttasks.ui.activities.sign_in;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
+import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -19,14 +20,13 @@ import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListe
 import com.google.android.gms.common.api.Scope;
 import com.teo.ttasks.R;
 import com.teo.ttasks.TTasksApp;
+import com.teo.ttasks.databinding.ActivitySignInBinding;
 import com.teo.ttasks.receivers.NetworkInfoReceiver;
 import com.teo.ttasks.ui.activities.BaseGoogleApiClientActivity;
 import com.teo.ttasks.ui.activities.main.MainActivity;
 
 import javax.inject.Inject;
 
-import butterknife.ButterKnife;
-import butterknife.OnClick;
 import timber.log.Timber;
 
 import static com.teo.ttasks.injection.module.ApplicationModule.SCOPE_TASKS;
@@ -49,22 +49,11 @@ public class SignInActivity extends BaseGoogleApiClientActivity implements SignI
         context.startActivity(starter);
     }
 
-    @OnClick(R.id.sign_in_button)
-    void onSignInClicked() {
-        if (!mNetworkInfoReceiver.isOnline(this)) {
-            Toast.makeText(this, R.string.error_sign_in_offline, Toast.LENGTH_SHORT).show();
-        } else {
-            Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
-            startActivityForResult(signInIntent, RC_SIGN_IN);
-        }
-    }
-
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_sign_in);
+        ActivitySignInBinding signInBinding = DataBindingUtil.setContentView(this, R.layout.activity_sign_in);
         TTasksApp.get(this).signInComponent().inject(this);
-        ButterKnife.bind(this);
         mSignInPresenter.bindView(this);
 
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -76,6 +65,15 @@ public class SignInActivity extends BaseGoogleApiClientActivity implements SignI
                 .enableAutoManage(this, this)
                 .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
                 .build();
+
+        signInBinding.signInButton.setOnClickListener(view -> {
+            if (!mNetworkInfoReceiver.isOnline(this)) {
+                Toast.makeText(this, R.string.error_sign_in_offline, Toast.LENGTH_SHORT).show();
+            } else {
+                Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
+                startActivityForResult(signInIntent, RC_SIGN_IN);
+            }
+        });
 
 //        Auth.GoogleSignInApi.revokeAccess(mGoogleApiClient).setResultCallback(status -> {
 //            Timber.d("done revoking access");

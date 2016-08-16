@@ -34,12 +34,16 @@
     <string name="done">Done</string>
     <string name="completed">Completed</string>
     <string name="title">Title</string>
+    <string name="set_due_date">Set due date</string>
+    <string name="due_date">Due date</string>
     <string name="due_date_and_time">Due date and time</string>
     <string name="due_date_missing">No due date</string>
     <string name="due_time_all_day">All day</string>
     <string name="add_reminder">Add a reminder</string>
     <string name="reminder">Reminder</string>
     <string name="notes">Notes</string>
+    <string name="error_task_loading">There was an error loading this task, please try again</string>
+    <string name="task_deleted">Task deleted</string>
 
     <!-- About -->
     <string name="about">About</string>

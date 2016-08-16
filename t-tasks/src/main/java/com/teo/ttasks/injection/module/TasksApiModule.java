@@ -2,12 +2,14 @@ package com.teo.ttasks.injection.module;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.teo.ttasks.api.PeopleApi;
 import com.teo.ttasks.TTasksApp;
+import com.teo.ttasks.api.PeopleApi;
 import com.teo.ttasks.api.TasksApi;
 import com.teo.ttasks.data.local.PrefHelper;
 import com.teo.ttasks.data.remote.TasksHelper;
 import com.teo.ttasks.data.remote.TokenHelper;
+
+import java.util.concurrent.TimeUnit;
 
 import javax.inject.Singleton;
 
@@ -60,6 +62,8 @@ public class TasksApiModule {
                 .create();
         return new Retrofit.Builder()
                 .client(new OkHttpClient.Builder()
+                        .connectTimeout(5, TimeUnit.MINUTES)
+                        .readTimeout(5, TimeUnit.MINUTES)
                         .addInterceptor(new HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BASIC))
                         .addInterceptor(chain -> {
                             // Use the access token to access the Tasks API

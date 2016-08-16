@@ -126,7 +126,7 @@ public final class PrefHelper {
         return sharedPreferences.getString(PREF_CURRENT_TASK_LIST_ID, null);
     }
 
-    public void updateCurrentTaskList(String currentTaskListId) {
+    public void setLastAccessedTaskList(String currentTaskListId) {
         sharedPreferences.edit().putString(PREF_CURRENT_TASK_LIST_ID, currentTaskListId).apply();
     }
 

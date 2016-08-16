@@ -143,11 +143,13 @@ public final class TasksHelper {
 
                         realm.executeTransaction(realm1 -> {
                             realm1.insertOrUpdate(tasksResponse);
-                            // Create a new TTask for each Task
-                            for (Task task : tasksResponse.items) {
-                                TTask tTask = realm1.where(TTask.class).equalTo("id", task.getId()).findFirst();
-                                if (tTask == null)
-                                    realm1.insertOrUpdate(new TTask(task, taskListId));
+                            // Create a new TTask for each Task, if the task list isn't empty
+                            if (tasksResponse.items != null) {
+                                for (Task task : tasksResponse.items) {
+                                    TTask tTask = realm1.where(TTask.class).equalTo("id", task.getId()).findFirst();
+                                    if (tTask == null)
+                                        realm1.insertOrUpdate(new TTask(task, taskListId));
+                                }
                             }
                         });
                     } else Timber.d("Tasks are up-to-date");

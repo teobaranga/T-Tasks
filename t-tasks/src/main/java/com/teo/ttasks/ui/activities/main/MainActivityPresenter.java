@@ -1,9 +1,11 @@
 package com.teo.ttasks.ui.activities.main;
 
 import android.support.annotation.NonNull;
+import android.support.v4.util.Pair;
 
 import com.teo.ttasks.api.PeopleApi;
 import com.teo.ttasks.data.local.PrefHelper;
+import com.teo.ttasks.data.model.TaskList;
 import com.teo.ttasks.data.remote.TasksHelper;
 import com.teo.ttasks.ui.base.Presenter;
 
@@ -14,16 +16,37 @@ import timber.log.Timber;
 
 public class MainActivityPresenter extends Presenter<MainView> {
 
-    private final TasksHelper mTasksHelper;
-    private final PrefHelper mPrefHelper;
-    private final PeopleApi mPeopleApi;
+    private final TasksHelper tasksHelper;
+    private final PrefHelper prefHelper;
+    private final PeopleApi peopleApi;
 
     private Realm mRealm;
 
     public MainActivityPresenter(TasksHelper tasksHelper, PrefHelper prefHelper, PeopleApi peopleApi) {
-        mTasksHelper = tasksHelper;
-        mPrefHelper = prefHelper;
-        mPeopleApi = peopleApi;
+        this.tasksHelper = tasksHelper;
+        this.prefHelper = prefHelper;
+        this.peopleApi = peopleApi;
+    }
+
+    boolean isUserPresent() {
+        return prefHelper.isUserPresent();
+    }
+
+    String getUserName() {
+        return prefHelper.getUserName();
+    }
+
+    String getUserEmail() {
+        return prefHelper.getUserEmail();
+    }
+
+    /**
+     * Save the ID of the last accessed task list so that it can be displayed the next time the user opens the app
+     *
+     * @param taskListId task list identifier
+     */
+    void setLastAccessedTaskList(String taskListId) {
+        prefHelper.setLastAccessedTaskList(taskListId);
     }
 
     /**
@@ -31,7 +54,7 @@ public class MainActivityPresenter extends Presenter<MainView> {
      * Must be called after onConnected
      */
     void loadCurrentUser() {
-        final Subscription subscription = mPeopleApi.getCurrentUserProfile()
+        final Subscription subscription = peopleApi.getCurrentUserProfile()
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
                         person -> {
@@ -41,16 +64,16 @@ public class MainActivityPresenter extends Presenter<MainView> {
                              * but we can replace the value with whatever dimension we want by replacing sz=X
                              */
                             String pictureUrl = person.image.url.split("\\?")[0];
-                            if (!pictureUrl.equals(mPrefHelper.getUserPhoto())) {
-                                mPrefHelper.setUserPhoto(pictureUrl);
+                            if (!pictureUrl.equals(prefHelper.getUserPhoto())) {
+                                prefHelper.setUserPhoto(pictureUrl);
                                 if (view != null) view.onUserPicture(pictureUrl);
                             }
 
                             // Get cover picture
                             if (person.cover != null && person.cover.coverPhoto != null) {
                                 String coverUrl = person.cover.coverPhoto.url;
-                                if (!coverUrl.equals(mPrefHelper.getUserCover())) {
-                                    mPrefHelper.setUserCover(coverUrl);
+                                if (!coverUrl.equals(prefHelper.getUserCover())) {
+                                    prefHelper.setUserCover(coverUrl);
                                     if (view != null) view.onUserCover(coverUrl);
                                 }
                             }
@@ -63,20 +86,29 @@ public class MainActivityPresenter extends Presenter<MainView> {
     void loadUserPictures() {
         final MainView view = view();
         if (view != null) {
-            if (mPrefHelper.getUserPhoto() != null)
-                view.onUserPicture(mPrefHelper.getUserPhoto());
-            if (mPrefHelper.getUserCover() != null)
-                view.onUserCover(mPrefHelper.getUserCover());
+            if (prefHelper.getUserPhoto() != null)
+                view.onUserPicture(prefHelper.getUserPhoto());
+            if (prefHelper.getUserCover() != null)
+                view.onUserCover(prefHelper.getUserCover());
         }
     }
 
     void getTaskLists() {
-        final Subscription subscription = mTasksHelper.getTaskLists(mRealm)
+        final Subscription subscription = tasksHelper.getTaskLists(mRealm)
+                .map(taskLists -> {
+                    String currentTaskListId = prefHelper.getCurrentTaskListId();
+                    // Find the index of the current task list
+                    for (int i = 0; i < taskLists.size(); i++) {
+                        TaskList taskList = taskLists.get(i);
+                        if (taskList.getId().equals(currentTaskListId))
+                            return new Pair<>(taskLists, i);
+                    }
+                    return new Pair<>(taskLists, 0);
+                })
                 .subscribe(
-                        taskLists -> {
-                            Timber.d("loaded %d task lists", taskLists.size());
+                        taskListsIndexPair -> {
                             final MainView view = view();
-                            if (view != null) view.onTaskListsLoaded(taskLists);
+                            if (view != null) view.onTaskListsLoaded(taskListsIndexPair.first, taskListsIndexPair.second);
                         },
                         throwable -> {
                             Timber.e(throwable.toString());
@@ -87,7 +119,7 @@ public class MainActivityPresenter extends Presenter<MainView> {
     }
 
     void refreshTaskLists() {
-        final Subscription subscription = mTasksHelper.refreshTaskLists()
+        final Subscription subscription = tasksHelper.refreshTaskLists()
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
                         taskListsResponse -> {

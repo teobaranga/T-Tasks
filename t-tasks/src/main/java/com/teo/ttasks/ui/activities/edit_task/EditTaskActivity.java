@@ -16,11 +16,10 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.DatePicker;
-import android.widget.EditText;
-import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
+import com.mikepenz.materialdrawer.util.KeyboardUtil;
 import com.teo.ttasks.R;
 import com.teo.ttasks.TTasksApp;
 import com.teo.ttasks.data.TaskListsAdapter;
@@ -36,21 +35,10 @@ import java.util.List;
 
 import javax.inject.Inject;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
-import butterknife.OnLongClick;
-import butterknife.OnTextChanged;
-
 public class EditTaskActivity extends AppCompatActivity implements EditTaskView {
 
     private static final String EXTRA_TASK_ID = "taskId";
     private static final String EXTRA_TASK_LIST_ID = "taskListId";
-
-    @BindView(R.id.due_date) TextView dueDate;
-    @BindView(R.id.due_time) TextView dueTime;
-    @BindView(R.id.reminder) TextView reminder;
-    @BindView(R.id.notes) EditText notes;
 
     @Inject EditTaskPresenter editTaskPresenter;
 
@@ -89,58 +77,12 @@ public class EditTaskActivity extends AppCompatActivity implements EditTaskView 
         return starter;
     }
 
-    @OnClick(R.id.due_date)
-    void onDueDateClicked() {
-        if (datePickerFragment == null)
-            datePickerFragment = new DatePickerFragment();
-        datePickerFragment.show(getSupportFragmentManager(), "datePicker");
-    }
-
-    /**
-     * Reset the due date. This also resets the reminder date/time.
-     *
-     * @return true if the due date was reset, false otherwise
-     */
-    @OnLongClick(R.id.due_date)
-    boolean onDueDateLongClicked() {
-        if (!editTaskPresenter.hasDueDate())
-            return false;
-        dueDate.setText(R.string.due_date_missing);
-        reminder.setText(null);
-        editTaskPresenter.removeDueDate();
-        return true;
-    }
-
-    @OnClick(R.id.due_time)
-    void onDueTimeClicked() {
-        if (timePickerFragment == null)
-            timePickerFragment = new TimePickerFragment();
-        timePickerFragment.show(getSupportFragmentManager(), "timePicker");
-    }
-
-    /**
-     * Reset the due time
-     *
-     * @return true if the due time was reset, false otherwise
-     */
-    @OnLongClick(R.id.due_time)
-    boolean onDueTimeLongClicked() {
-        // TODO: 2016-05-18 return false if the due time is already reset
-        dueTime.setText(R.string.due_time_all_day);
-        return true;
-    }
-
-    @OnTextChanged(R.id.task_title)
-    void onTitleChanged(CharSequence title) {
-        editTaskPresenter.setTaskTitle(title.toString());
-    }
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        editTaskBinding = DataBindingUtil.setContentView(this, R.layout.activity_edit_task);
         TTasksApp.get(this).userComponent().inject(this);
-        ButterKnife.bind(this);
+        editTaskBinding = DataBindingUtil.setContentView(this, R.layout.activity_edit_task);
+        editTaskBinding.setView(this);
         editTaskPresenter.bindView(this);
 
         taskId = getIntent().getStringExtra(EXTRA_TASK_ID);
@@ -176,8 +118,9 @@ public class EditTaskActivity extends AppCompatActivity implements EditTaskView 
     }
 
     @Override
-    public void onTaskInfoError() {
-        // TODO: 2016-07-24 implement
+    public void onTaskLoadError() {
+        Toast.makeText(this, R.string.error_task_loading, Toast.LENGTH_SHORT).show();
+        finish();
     }
 
     @Override
@@ -197,7 +140,7 @@ public class EditTaskActivity extends AppCompatActivity implements EditTaskView 
         Calendar c = Calendar.getInstance();
         c.set(year, monthOfYear, dayOfMonth);
         Date time = c.getTime();
-        dueDate.setText(DateUtils.formatDate(this, time));
+        editTaskBinding.dueDate.setText(DateUtils.formatDate(this, time));
         editTaskPresenter.setDueDate(time);
     }
 
@@ -208,12 +151,12 @@ public class EditTaskActivity extends AppCompatActivity implements EditTaskView 
         c.set(Calendar.MINUTE, minute);
         Date time = c.getTime();
         if (reminderTimeClicked) {
-            reminder.setText(DateUtils.formatTime(this, time));
+            editTaskBinding.reminder.setText(DateUtils.formatTime(this, time));
             editTaskPresenter.setReminderTime(time);
             reminderTimeClicked = false;
         } else {
-            dueDate.setText(DateUtils.formatDate(this, time));
-            dueTime.setText(DateUtils.formatTime(this, time));
+            editTaskBinding.dueDate.setText(DateUtils.formatDate(this, time));
+            editTaskBinding.dueTime.setText(DateUtils.formatTime(this, time));
             editTaskPresenter.setDueTime(time);
         }
     }
@@ -235,10 +178,53 @@ public class EditTaskActivity extends AppCompatActivity implements EditTaskView 
                     editTaskPresenter.newTask(taskListId);
                 else
 //                finish();
-                return true;
+                    return true;
         }
         return super.onOptionsItemSelected(item);
 
+    }
+
+    public void onTitleChanged(CharSequence title, int start, int before, int count) {
+        editTaskPresenter.setTaskTitle(title.toString());
+    }
+
+    public void onDueDateClicked(View v) {
+        KeyboardUtil.hideKeyboard(this);
+        if (datePickerFragment == null)
+            datePickerFragment = new DatePickerFragment();
+        datePickerFragment.show(getSupportFragmentManager(), "datePicker");
+    }
+
+    /**
+     * Reset the due date. This also resets the reminder date/time.
+     *
+     * @return true if the due date was reset, false otherwise
+     */
+    public boolean onDueDateLongClicked(View v) {
+        if (!editTaskPresenter.hasDueDate())
+            return false;
+        editTaskBinding.dueDate.setText(null);
+        editTaskBinding.reminder.setText(null);
+        editTaskPresenter.removeDueDate();
+        return true;
+    }
+
+    public void onDueTimeClicked(View v) {
+        KeyboardUtil.hideKeyboard(this);
+        if (timePickerFragment == null)
+            timePickerFragment = new TimePickerFragment();
+        timePickerFragment.show(getSupportFragmentManager(), "timePicker");
+    }
+
+    /**
+     * Reset the due time
+     *
+     * @return true if the due time was reset, false otherwise
+     */
+    public boolean onDueTimeLongClicked(View v) {
+        // TODO: 2016-05-18 return false if the due time is already reset
+        editTaskBinding.dueTime.setText(R.string.due_time_all_day);
+        return true;
     }
 
     public void onReminderClicked(View v) {
@@ -250,6 +236,10 @@ public class EditTaskActivity extends AppCompatActivity implements EditTaskView 
         if (timePickerFragment == null)
             timePickerFragment = new TimePickerFragment();
         timePickerFragment.show(getSupportFragmentManager(), "timePicker");
+    }
+
+    public void onNotesChanged(CharSequence notes, int start, int before, int count) {
+        editTaskPresenter.setTaskNotes(notes.toString());
     }
 
     @Override

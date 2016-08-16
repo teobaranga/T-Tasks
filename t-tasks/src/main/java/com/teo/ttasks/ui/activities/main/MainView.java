@@ -15,7 +15,7 @@ interface MainView extends MvpView {
     /** Called when the user has a cover picture */
     void onUserCover(@NonNull String coverUrl);
 
-    void onTaskListsLoaded(List<TaskList> taskLists);
+    void onTaskListsLoaded(List<TaskList> taskLists, int currentTaskListIndex);
 
     void onTaskListsLoadError();
 }

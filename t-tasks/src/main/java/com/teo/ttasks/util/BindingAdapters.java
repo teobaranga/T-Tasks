@@ -14,7 +14,7 @@ public class BindingAdapters {
 
     @BindingAdapter({"dueDate"})
     public static void bindDueDate(TextView view, Date date) {
-        view.setText(date != null ? DateUtils.formatDate(view.getContext(), date) : view.getResources().getString(R.string.due_date_missing));
+        view.setText(date != null ? DateUtils.formatDate(view.getContext(), date) : null);
     }
 
     @BindingAdapter({"dueTime"})

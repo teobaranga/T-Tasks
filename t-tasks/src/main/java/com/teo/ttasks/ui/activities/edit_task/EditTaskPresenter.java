@@ -1,6 +1,8 @@
 package com.teo.ttasks.ui.activities.edit_task;
 
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.v4.util.Pair;
 
 import com.teo.ttasks.data.model.TTask;
 import com.teo.ttasks.data.model.TaskList;
@@ -20,9 +22,9 @@ public class EditTaskPresenter extends Presenter<EditTaskView> {
     private final TasksHelper tasksHelper;
 
     private String taskTitle;
-    private Date dueDate;
-    private Date reminder;
-    private String notes;
+    @Nullable private Date dueDate;
+    @Nullable private Date reminder;
+    @Nullable private String notes;
 
     private Realm realm;
 
@@ -32,44 +34,50 @@ public class EditTaskPresenter extends Presenter<EditTaskView> {
 
     void loadTaskInfo(String taskId) {
         tasksHelper.getTask(taskId, realm)
-                .doOnNext(task -> {
-                    taskTitle = task.getTitle();
-                    dueDate = task.getDue();
-                    reminder = task.getReminder();
-                    notes = task.getNotes();
-                    final EditTaskView view = view();
-                    if (view != null) view.onTaskLoaded(task);
-                })
                 .subscribe(
-                        ignored -> { },
+                        task -> {
+                            taskTitle = task.getTitle();
+                            dueDate = task.getDue();
+                            reminder = task.getReminder();
+                            notes = task.getNotes();
+                            final EditTaskView view = view();
+                            if (view != null) view.onTaskLoaded(task);
+                        },
                         throwable -> {
+                            // Task not found, should never happen
                             Timber.e(throwable.toString());
                             final EditTaskView view = view();
-                            if (view != null) view.onTaskInfoError();
+                            if (view != null) view.onTaskLoadError();
                         }
                 );
 
     }
 
+    /**
+     * Load the task lists and find the index of the provided task list in the list
+     *
+     * @param currentTaskListId task list identifier
+     */
     void loadTaskLists(String currentTaskListId) {
-        Timber.d("loading task lists, %s", currentTaskListId);
         tasksHelper.getTaskLists(realm)
+                .map(taskLists -> {
+                    // Find the index of the current task list
+                    for (int i = 0; i < taskLists.size(); i++) {
+                        TaskList taskList = taskLists.get(i);
+                        if (taskList.getId().equals(currentTaskListId))
+                            return new Pair<>(taskLists, i);
+                    }
+                    return new Pair<>(taskLists, 0);
+                })
                 .subscribe(
-                        taskLists -> {
-                            for (int i = 0; i < taskLists.size(); i++) {
-                                TaskList taskList = taskLists.get(i);
-                                if (taskList.getId().equals(currentTaskListId)) {
-                                    final EditTaskView view = view();
-                                    if (view != null) view.onTaskListsLoaded(taskLists, i);
-                                    return;
-                                }
-                            }
+                        taskListsIndexPair -> {
+                            final EditTaskView view = view();
+                            if (view != null) view.onTaskListsLoaded(taskListsIndexPair.first, taskListsIndexPair.second);
                         },
                         throwable -> {
                             Timber.e(throwable.toString());
-                            // TODO: 2016-07-24 implement error
                             final EditTaskView view = view();
-                            if (view != null) view.onTaskInfoError();
+                            if (view != null) view.onTaskLoadError();
                         }
                 );
     }
@@ -79,7 +87,7 @@ public class EditTaskPresenter extends Presenter<EditTaskView> {
      *
      * @param date the due date
      */
-    void setDueDate(Date date) {
+    void setDueDate(@Nullable Date date) {
         if (dueDate == null) {
             dueDate = date;
         } else {
@@ -139,8 +147,10 @@ public class EditTaskPresenter extends Presenter<EditTaskView> {
         Timber.d("Title: %s", this.taskTitle);
     }
 
-    public void setTaskNotes(String taskNotes) {
+    void setTaskNotes(String taskNotes) {
         notes = taskNotes;
+        if (notes != null && notes.isEmpty())
+            notes = null;
     }
 
     void newTask(String taskListId) {

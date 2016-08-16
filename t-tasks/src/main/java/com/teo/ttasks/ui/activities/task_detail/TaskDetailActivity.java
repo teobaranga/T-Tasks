@@ -8,12 +8,13 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.view.ViewCompat;
-import android.support.v4.view.ViewPropertyAnimatorCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.PopupMenu;
+import android.transition.Transition;
 import android.view.Gravity;
 import android.view.View;
+import android.view.animation.AlphaAnimation;
 import android.view.animation.OvershootInterpolator;
 import android.widget.Toast;
 
@@ -24,7 +25,7 @@ import com.teo.ttasks.data.model.TTask;
 import com.teo.ttasks.data.model.TaskList;
 import com.teo.ttasks.databinding.ActivityTaskDetailBinding;
 import com.teo.ttasks.ui.activities.edit_task.EditTaskActivity;
-import com.teo.ttasks.util.AnimUtils.TaskDetailAnim;
+import com.teo.ttasks.util.AnimUtils;
 
 import javax.inject.Inject;
 
@@ -76,15 +77,29 @@ public class TaskDetailActivity extends AppCompatActivity implements TaskDetailV
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         TTasksApp.get(this).userComponent().inject(this);
-        taskDetailPresenter.bindView(this);
         taskDetailBinding = DataBindingUtil.setContentView(this, R.layout.activity_task_detail);
+        taskDetailPresenter.bindView(this);
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            getWindow().getEnterTransition().addListener(new AnimUtils.TransitionListener() {
+                @Override public void onTransitionEnd(Transition transition) {
+                    ViewCompat.animate(taskDetailBinding.fab)
+                            .scaleX(1.0F)
+                            .scaleY(1.0F)
+                            .alpha(1.0F)
+                            .setInterpolator(new OvershootInterpolator())
+                            .withLayer().start();
+                }
+            });
+        }
 
         String action = getIntent().getAction();
-        if (action != null && action.equals(ACTION_SKIP_ANIMATION))
+        if (savedInstanceState != null || action != null && action.equals(ACTION_SKIP_ANIMATION)) {
+            // Skip the animation if requested or if the activity is getting recreated
             skipEnterAnimation();
-        else
+        } else {
             enterAnimation();
+        }
 
         // Add a context menu to the task header
         registerForContextMenu(taskDetailBinding.taskHeader);
@@ -103,7 +118,8 @@ public class TaskDetailActivity extends AppCompatActivity implements TaskDetailV
 
     @Override
     public void onTaskLoadError() {
-        // TODO: 2016-07-24 implement
+        Toast.makeText(this, R.string.error_task_loading, Toast.LENGTH_SHORT).show();
+        finish();
     }
 
     @Override
@@ -123,7 +139,7 @@ public class TaskDetailActivity extends AppCompatActivity implements TaskDetailV
 
     @Override
     public void onTaskDeleted() {
-        Toast.makeText(this, "Task deleted", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, R.string.task_deleted, Toast.LENGTH_SHORT).show();
         onBackPressed();
     }
 
@@ -168,24 +184,14 @@ public class TaskDetailActivity extends AppCompatActivity implements TaskDetailV
     }
 
     private void enterAnimation() {
-        ViewPropertyAnimatorCompat backAnimator = TaskDetailAnim.animate(taskDetailBinding.back);
-        ViewPropertyAnimatorCompat editAnimator = TaskDetailAnim.animate(taskDetailBinding.edit);
-        ViewPropertyAnimatorCompat moreAnimation = TaskDetailAnim.animate(taskDetailBinding.more);
-        ViewPropertyAnimatorCompat titleAnimator = TaskDetailAnim.animate(taskDetailBinding.taskTitle);
-        ViewPropertyAnimatorCompat taskListTitleAnimator = TaskDetailAnim.animate(taskDetailBinding.taskListTitle);
-        ViewPropertyAnimatorCompat fabAnimator = ViewCompat.animate(taskDetailBinding.fab)
-                .scaleX(1.0F)
-                .scaleY(1.0F)
-                .alpha(1.0F)
-                .setStartDelay(400)
-                .setInterpolator(new OvershootInterpolator())
-                .withLayer();
-        backAnimator.start();
-        editAnimator.start();
-        moreAnimation.start();
-        titleAnimator.start();
-        taskListTitleAnimator.start();
-        fabAnimator.start();
+        AlphaAnimation fadeInAnimation = new AlphaAnimation(0.0f, 1.0f);
+        fadeInAnimation.setDuration(200);
+        fadeInAnimation.setStartOffset(100);
+        taskDetailBinding.back.startAnimation(fadeInAnimation);
+        taskDetailBinding.edit.startAnimation(fadeInAnimation);
+        taskDetailBinding.more.startAnimation(fadeInAnimation);
+        taskDetailBinding.taskTitle.startAnimation(fadeInAnimation);
+        taskDetailBinding.taskListTitle.startAnimation(fadeInAnimation);
     }
 
     /**
@@ -196,11 +202,6 @@ public class TaskDetailActivity extends AppCompatActivity implements TaskDetailV
      * there are no content transitions.
      */
     private void skipEnterAnimation() {
-        taskDetailBinding.back.setAlpha(1f);
-        taskDetailBinding.edit.setAlpha(1f);
-        taskDetailBinding.more.setAlpha(1f);
-        taskDetailBinding.taskTitle.setAlpha(1f);
-        taskDetailBinding.taskListTitle.setAlpha(1f);
         taskDetailBinding.fab.setScaleX(1f);
         taskDetailBinding.fab.setScaleY(1f);
         taskDetailBinding.fab.setAlpha(1f);
@@ -208,6 +209,7 @@ public class TaskDetailActivity extends AppCompatActivity implements TaskDetailV
 
     @Override
     public void onBackPressed() {
+        // Remove the transition name so that the reverse shared transition doesn't play
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
             taskDetailBinding.taskHeader.setTransitionName(null);
         super.onBackPressed();

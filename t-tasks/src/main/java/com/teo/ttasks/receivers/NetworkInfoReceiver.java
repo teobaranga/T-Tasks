@@ -15,7 +15,8 @@ public class NetworkInfoReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        if (intent.getAction().equals(ConnectivityManager.CONNECTIVITY_ACTION)) {
+        // Ignore the initial broadcast because CONNECTIVITY_ACTION seems to be sticky
+        if (intent.getAction().equals(ConnectivityManager.CONNECTIVITY_ACTION) && !isInitialStickyBroadcast()) {
             if (mOnConnectionChangedListener != null)
                 mOnConnectionChangedListener.onConnectionChanged(isOnline(context));
         }
@@ -29,7 +30,7 @@ public class NetworkInfoReceiver extends BroadcastReceiver {
         if (context != null) {
             ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
             NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
-            return (activeNetworkInfo != null && activeNetworkInfo.isConnectedOrConnecting());
+            return (activeNetworkInfo != null && activeNetworkInfo.isConnected());
         } else return false;
     }
 

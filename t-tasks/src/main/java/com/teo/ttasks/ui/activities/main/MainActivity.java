@@ -5,13 +5,12 @@ import android.app.Notification;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
+import android.databinding.DataBindingUtil;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.support.annotation.NonNull;
@@ -19,7 +18,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.Spinner;
 
 import com.mikepenz.google_material_typeface_library.GoogleMaterial;
 import com.mikepenz.iconics.IconicsDrawable;
@@ -39,8 +37,8 @@ import com.squareup.picasso.Target;
 import com.teo.ttasks.R;
 import com.teo.ttasks.TTasksApp;
 import com.teo.ttasks.data.TaskListsAdapter;
-import com.teo.ttasks.data.local.PrefHelper;
 import com.teo.ttasks.data.model.TaskList;
+import com.teo.ttasks.databinding.ActivityMainBinding;
 import com.teo.ttasks.receivers.NetworkInfoReceiver;
 import com.teo.ttasks.receivers.TaskNotificationReceiver;
 import com.teo.ttasks.ui.activities.AboutActivity;
@@ -53,8 +51,6 @@ import java.util.List;
 
 import javax.inject.Inject;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
 import timber.log.Timber;
 
 import static android.view.View.GONE;
@@ -71,20 +67,18 @@ public final class MainActivity extends BaseActivity implements MainView {
     private static final int ID_MANAGE_ACCOUNT = 0x02;
     private static final int ID_ABOUT = 0xFF;
 
-    /** The spinner displaying the user's task lists in the toolbar **/
-    @BindView(R.id.spinner_task_lists) Spinner mTaskLists;
+    @Inject MainActivityPresenter mainActivityPresenter;
+    @Inject NetworkInfoReceiver networkInfoReceiver;
 
-    @Inject PrefHelper mPrefHelper;
-    @Inject MainActivityPresenter mMainActivityPresenter;
-    @Inject NetworkInfoReceiver mNetworkInfoReceiver;
+    private ActivityMainBinding mainBinding;
 
-    private TaskListsAdapter mTaskListsAdapter;
+    private TaskListsAdapter taskListsAdapter;
 
     /** The profile of the currently logged in user */
-    private ProfileDrawerItem mProfile = null;
+    private ProfileDrawerItem profile = null;
     private Drawer drawer = null;
-    private TasksFragment tasksFragment;
     private AccountHeader accountHeader = null;
+    private TasksFragment tasksFragment;
 
     public static void start(Context context) {
         Intent starter = new Intent(context, MainActivity.class);
@@ -95,25 +89,24 @@ public final class MainActivity extends BaseActivity implements MainView {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         TTasksApp.get(this).userComponent().inject(this);
-        mMainActivityPresenter.bindView(this);
+        mainActivityPresenter.bindView(this);
 
         // Show the SignIn activity if there's no user connected
-        if (!mPrefHelper.isUserPresent()) {
+        if (!mainActivityPresenter.isUserPresent()) {
             SignInActivity.start(this);
             finish();
             return;
         }
 
-        setContentView(R.layout.activity_main);
-        ButterKnife.bind(this);
+        mainBinding = DataBindingUtil.setContentView(this, R.layout.activity_main);
 
         //noinspection ConstantConditions
-        mTaskListsAdapter = new TaskListsAdapter(getSupportActionBar().getThemedContext());
-        mTaskLists.setAdapter(mTaskListsAdapter);
-        mTaskLists.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+        taskListsAdapter = new TaskListsAdapter(getSupportActionBar().getThemedContext());
+        mainBinding.spinnerTaskLists.setAdapter(taskListsAdapter);
+        mainBinding.spinnerTaskLists.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
                 TaskList taskList = ((TaskList) adapterView.getItemAtPosition(position));
-                mPrefHelper.updateCurrentTaskList(taskList.getId());
+                mainActivityPresenter.setLastAccessedTaskList(taskList.getId());
                 tasksFragment = TasksFragment.newInstance(taskList.getId());
                 // TODO: 2016-07-24 how about one fragment with changing data?
                 getSupportFragmentManager()
@@ -125,9 +118,9 @@ public final class MainActivity extends BaseActivity implements MainView {
             @Override public void onNothingSelected(AdapterView<?> adapterView) { }
         });
 
-        mProfile = new ProfileDrawerItem()
-                .withName(mPrefHelper.getUserName())
-                .withEmail(mPrefHelper.getUserEmail())
+        profile = new ProfileDrawerItem()
+                .withName(mainActivityPresenter.getUserName())
+                .withEmail(mainActivityPresenter.getUserEmail())
                 .withNameShown(true)
                 .withTag(new ProfileIconTarget());
 
@@ -137,7 +130,7 @@ public final class MainActivity extends BaseActivity implements MainView {
                 .withHeaderBackground(R.color.colorPrimary)
                 .withCurrentProfileHiddenInList(true)
                 .addProfiles(
-                        mProfile,
+                        profile,
                         new ProfileSettingDrawerItem()
                                 .withName(getResources().getString(R.string.drawer_add_account))
                                 .withIcon(GoogleMaterial.Icon.gmd_account_add)
@@ -190,11 +183,11 @@ public final class MainActivity extends BaseActivity implements MainView {
                         switch ((int) drawerItem.getIdentifier()) {
                             case ID_TASKS:
                                 getSupportActionBar().setDisplayShowTitleEnabled(false);
-                                mTaskLists.setVisibility(VISIBLE);
+                                mainBinding.spinnerTaskLists.setVisibility(VISIBLE);
                                 break;
                             case ID_TASK_LISTS:
                                 getSupportActionBar().setDisplayShowTitleEnabled(true);
-                                mTaskLists.setVisibility(GONE);
+                                mainBinding.spinnerTaskLists.setVisibility(GONE);
                                 break;
                             case ID_ABOUT:
                                 startActivity(new Intent(this, AboutActivity.class));
@@ -222,31 +215,19 @@ public final class MainActivity extends BaseActivity implements MainView {
             // set the selection to the first item
             drawer.setSelectionAtPosition(1);
             //set the active profile
-            accountHeader.setActiveProfile(mProfile);
+            accountHeader.setActiveProfile(profile);
         }
 
-        mMainActivityPresenter.getTaskLists();
-        mMainActivityPresenter.loadUserPictures();
+        mainActivityPresenter.getTaskLists();
+        mainActivityPresenter.loadUserPictures();
     }
 
     @Override
     protected void onApiReady() {
-        if (mNetworkInfoReceiver.isOnline(this)) {
-            mMainActivityPresenter.refreshTaskLists();
-            mMainActivityPresenter.loadCurrentUser();
+        if (networkInfoReceiver.isOnline(this)) {
+            mainActivityPresenter.refreshTaskLists();
+            mainActivityPresenter.loadCurrentUser();
         }
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        registerReceiver(mNetworkInfoReceiver, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
-    }
-
-    @Override
-    protected void onPause() {
-        unregisterReceiver(mNetworkInfoReceiver);
-        super.onPause();
     }
 
     /**
@@ -258,7 +239,7 @@ public final class MainActivity extends BaseActivity implements MainView {
         Picasso.with(this)
                 .load(pictureUrl)
                 .placeholder(DrawerUIUtils.getPlaceHolder(this))
-                .into(((Target) mProfile.getTag()));
+                .into(((Target) profile.getTag()));
     }
 
     @Override
@@ -274,19 +255,11 @@ public final class MainActivity extends BaseActivity implements MainView {
      * Select the last accessed task list
      */
     @Override
-    public void onTaskListsLoaded(List<TaskList> taskLists) {
-        mTaskListsAdapter.clear();
-        mTaskListsAdapter.addAll(taskLists);
-
+    public void onTaskListsLoaded(List<TaskList> taskLists, int currentTaskListIndex) {
+        taskListsAdapter.clear();
+        taskListsAdapter.addAll(taskLists);
         // Restore previously selected task list
-        String currentTaskListId = mPrefHelper.getCurrentTaskListId();
-        for (int i = 0, size = mTaskListsAdapter.getCount(); i < size; i++) {
-            TaskList taskList = mTaskListsAdapter.getItem(i);
-            if (taskList.getId().equals(currentTaskListId)) {
-                mTaskLists.setSelection(i);
-                break;
-            }
-        }
+        mainBinding.spinnerTaskLists.setSelection(currentTaskListIndex);
     }
 
     @Override
@@ -332,7 +305,7 @@ public final class MainActivity extends BaseActivity implements MainView {
         notificationIntent.putExtra(TaskNotificationReceiver.NOTIFICATION, notification);
         PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
-        AlarmManager alarmManager = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
+        AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         alarmManager.set(AlarmManager.RTC_WAKEUP, date.getTime(), pendingIntent);
     }
 
@@ -344,7 +317,7 @@ public final class MainActivity extends BaseActivity implements MainView {
         PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
         long futureInMillis = SystemClock.elapsedRealtime() + delay;
-        AlarmManager alarmManager = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
+        AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, futureInMillis, pendingIntent);
     }
 
@@ -374,7 +347,7 @@ public final class MainActivity extends BaseActivity implements MainView {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        mMainActivityPresenter.unbindView(this);
+        mainActivityPresenter.unbindView(this);
     }
 
     private class ProfileIconTarget implements Target {
@@ -383,8 +356,8 @@ public final class MainActivity extends BaseActivity implements MainView {
             imageWithBG.eraseColor(Color.WHITE);  // set its background to white, or whatever color you want
             Canvas canvas = new Canvas(imageWithBG);  // create a canvas to draw on the new image
             canvas.drawBitmap(bitmap, 0f, 0f, null); // draw old image on the background
-            mProfile.withIcon(imageWithBG);
-            accountHeader.updateProfile(mProfile);
+            profile.withIcon(imageWithBG);
+            accountHeader.updateProfile(profile);
         }
 
         @Override public void onBitmapFailed(Drawable errorDrawable) { }
