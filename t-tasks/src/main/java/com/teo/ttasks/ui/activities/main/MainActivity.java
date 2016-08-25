@@ -12,8 +12,8 @@ import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.os.SystemClock;
 import android.support.annotation.NonNull;
+import android.support.v4.app.Fragment;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -28,7 +28,6 @@ import com.mikepenz.materialdrawer.DrawerBuilder;
 import com.mikepenz.materialdrawer.model.DividerDrawerItem;
 import com.mikepenz.materialdrawer.model.PrimaryDrawerItem;
 import com.mikepenz.materialdrawer.model.ProfileDrawerItem;
-import com.mikepenz.materialdrawer.model.ProfileSettingDrawerItem;
 import com.mikepenz.materialdrawer.model.SecondaryDrawerItem;
 import com.mikepenz.materialdrawer.model.interfaces.IProfile;
 import com.mikepenz.materialdrawer.util.DrawerUIUtils;
@@ -44,6 +43,7 @@ import com.teo.ttasks.receivers.TaskNotificationReceiver;
 import com.teo.ttasks.ui.activities.AboutActivity;
 import com.teo.ttasks.ui.activities.BaseActivity;
 import com.teo.ttasks.ui.activities.sign_in.SignInActivity;
+import com.teo.ttasks.ui.fragments.task_lists.TaskListsFragment;
 import com.teo.ttasks.ui.fragments.tasks.TasksFragment;
 
 import java.util.Date;
@@ -63,8 +63,8 @@ public final class MainActivity extends BaseActivity implements MainView {
 
     private static final int ID_TASKS = 0x10;
     private static final int ID_TASK_LISTS = 0x20;
-    private static final int ID_ADD_ACCOUNT = 0x01;
-    private static final int ID_MANAGE_ACCOUNT = 0x02;
+    //    private static final int ID_ADD_ACCOUNT = 0x01;
+//    private static final int ID_MANAGE_ACCOUNT = 0x02;
     private static final int ID_ABOUT = 0xFF;
 
     @Inject MainActivityPresenter mainActivityPresenter;
@@ -75,10 +75,10 @@ public final class MainActivity extends BaseActivity implements MainView {
     private TaskListsAdapter taskListsAdapter;
 
     /** The profile of the currently logged in user */
-    private ProfileDrawerItem profile = null;
     private Drawer drawer = null;
-    private AccountHeader accountHeader = null;
-    private TasksFragment tasksFragment;
+    ProfileDrawerItem profile = null;
+    AccountHeader accountHeader = null;
+    TasksFragment tasksFragment;
 
     public static void start(Context context) {
         Intent starter = new Intent(context, MainActivity.class);
@@ -100,19 +100,18 @@ public final class MainActivity extends BaseActivity implements MainView {
 
         mainBinding = DataBindingUtil.setContentView(this, R.layout.activity_main);
 
+        // Create the tasks fragment
+        tasksFragment = TasksFragment.newInstance(null);
+
         //noinspection ConstantConditions
         taskListsAdapter = new TaskListsAdapter(getSupportActionBar().getThemedContext());
         mainBinding.spinnerTaskLists.setAdapter(taskListsAdapter);
         mainBinding.spinnerTaskLists.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
-                TaskList taskList = ((TaskList) adapterView.getItemAtPosition(position));
-                mainActivityPresenter.setLastAccessedTaskList(taskList.getId());
-                tasksFragment = TasksFragment.newInstance(taskList.getId());
-                // TODO: 2016-07-24 how about one fragment with changing data?
-                getSupportFragmentManager()
-                        .beginTransaction()
-                        .replace(R.id.fragment_container, tasksFragment)
-                        .commitAllowingStateLoss();
+                final TaskList taskList = ((TaskList) adapterView.getItemAtPosition(position));
+                final String taskListId = taskList.getId();
+                mainActivityPresenter.setLastAccessedTaskList(taskListId);
+                tasksFragment.setTaskList(taskListId);
             }
 
             @Override public void onNothingSelected(AdapterView<?> adapterView) { }
@@ -129,16 +128,17 @@ public final class MainActivity extends BaseActivity implements MainView {
                 .withActivity(this)
                 .withHeaderBackground(R.color.colorPrimary)
                 .withCurrentProfileHiddenInList(true)
+                .withSelectionListEnabledForSingleProfile(false)
                 .addProfiles(
-                        profile,
-                        new ProfileSettingDrawerItem()
-                                .withName(getResources().getString(R.string.drawer_add_account))
-                                .withIcon(GoogleMaterial.Icon.gmd_account_add)
-                                .withIdentifier(ID_ADD_ACCOUNT),
-                        new ProfileSettingDrawerItem()
-                                .withName(getResources().getString(R.string.drawer_manage_account))
-                                .withIcon(GoogleMaterial.Icon.gmd_settings)
-                                .withIdentifier(ID_MANAGE_ACCOUNT)
+                        profile
+//                        new ProfileSettingDrawerItem()
+//                                .withName(getResources().getString(R.string.drawer_add_account))
+//                                .withIcon(GoogleMaterial.Icon.gmd_account_add)
+//                                .withIdentifier(ID_ADD_ACCOUNT),
+//                        new ProfileSettingDrawerItem()
+//                                .withName(getResources().getString(R.string.drawer_manage_account))
+//                                .withIcon(GoogleMaterial.Icon.gmd_settings)
+//                                .withIdentifier(ID_MANAGE_ACCOUNT)
                 )
                 .withOnAccountHeaderListener((View view, IProfile profile, boolean current) -> {
                     Timber.d(profile.toString());
@@ -157,10 +157,12 @@ public final class MainActivity extends BaseActivity implements MainView {
                 .withAccountHeader(accountHeader)
                 .addDrawerItems(
                         new PrimaryDrawerItem()
-                                .withName("Tasks")
+                                .withName(R.string.tasks)
+                                .withIcon(R.drawable.ic_tasks_24dp)
                                 .withIdentifier(ID_TASKS),
                         new PrimaryDrawerItem()
-                                .withName("Task Lists")
+                                .withName(R.string.task_lists)
+                                .withIcon(R.drawable.ic_task_lists_24dp)
                                 .withIdentifier(ID_TASK_LISTS),
                         new DividerDrawerItem(),
                         new SecondaryDrawerItem()
@@ -180,14 +182,17 @@ public final class MainActivity extends BaseActivity implements MainView {
                 .withOnDrawerItemClickListener((view, position, drawerItem) -> {
                     // The header and footer items don't contain a drawerItem
                     if (drawerItem != null) {
+                        Fragment fragment = null;
                         switch ((int) drawerItem.getIdentifier()) {
                             case ID_TASKS:
                                 getSupportActionBar().setDisplayShowTitleEnabled(false);
                                 mainBinding.spinnerTaskLists.setVisibility(VISIBLE);
+                                fragment = tasksFragment;
                                 break;
                             case ID_TASK_LISTS:
                                 getSupportActionBar().setDisplayShowTitleEnabled(true);
                                 mainBinding.spinnerTaskLists.setVisibility(GONE);
+                                fragment = TaskListsFragment.newInstance();
                                 break;
                             case ID_ABOUT:
                                 startActivity(new Intent(this, AboutActivity.class));
@@ -198,12 +203,13 @@ public final class MainActivity extends BaseActivity implements MainView {
                                 // we could end up with overlapping fragments.
                                 if (savedInstanceState != null)
                                     break;
-
-                                // Create a new Fragment to be placed in the activity layout
-                                // Avoid recreating the same fragment
-                                if (tasksFragment != null && tasksFragment.getTaskListId().equals(drawerItem.getTag()))
-                                    break;
                         }
+                        Timber.d("fragment is %s", fragment);
+                        if (fragment != null)
+                            getSupportFragmentManager()
+                                    .beginTransaction()
+                                    .replace(R.id.fragment_container, fragment)
+                                    .commitAllowingStateLoss();
                     }
                     return false;
                 })
@@ -309,18 +315,6 @@ public final class MainActivity extends BaseActivity implements MainView {
         alarmManager.set(AlarmManager.RTC_WAKEUP, date.getTime(), pendingIntent);
     }
 
-    private void scheduleNotification(Notification notification, int delay) {
-
-        Intent notificationIntent = new Intent(this, TaskNotificationReceiver.class);
-        notificationIntent.putExtra(TaskNotificationReceiver.NOTIFICATION_ID, 1);
-        notificationIntent.putExtra(TaskNotificationReceiver.NOTIFICATION, notification);
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-
-        long futureInMillis = SystemClock.elapsedRealtime() + delay;
-        AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-        alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, futureInMillis, pendingIntent);
-    }
-
     private Notification getNotification(String content) {
         Notification.Builder builder = new Notification.Builder(this)
                 .setContentTitle("Scheduled Notification")
@@ -350,7 +344,7 @@ public final class MainActivity extends BaseActivity implements MainView {
         mainActivityPresenter.unbindView(this);
     }
 
-    private class ProfileIconTarget implements Target {
+    class ProfileIconTarget implements Target {
         @Override public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
             Bitmap imageWithBG = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), bitmap.getConfig());  // Create another image the same size
             imageWithBG.eraseColor(Color.WHITE);  // set its background to white, or whatever color you want
@@ -365,7 +359,7 @@ public final class MainActivity extends BaseActivity implements MainView {
         @Override public void onPrepareLoad(Drawable placeHolderDrawable) { }
     }
 
-    private class CoverPhotoTarget implements Target {
+    class CoverPhotoTarget implements Target {
         @Override public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
             accountHeader.setBackground(new BitmapDrawable(getResources(), bitmap));
         }

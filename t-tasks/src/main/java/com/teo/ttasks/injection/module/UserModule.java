@@ -6,6 +6,7 @@ import com.teo.ttasks.data.remote.TasksHelper;
 import com.teo.ttasks.ui.activities.edit_task.EditTaskPresenter;
 import com.teo.ttasks.ui.activities.main.MainActivityPresenter;
 import com.teo.ttasks.ui.activities.task_detail.TaskDetailPresenter;
+import com.teo.ttasks.ui.fragments.task_lists.TaskListsPresenter;
 import com.teo.ttasks.ui.fragments.tasks.TasksPresenter;
 import com.teo.ttasks.widget.configure.TasksWidgetConfigurePresenter;
 
@@ -21,13 +22,18 @@ public class UserModule {
     }
 
     @Provides
+    TaskListsPresenter provideTaskListsPresenter(TasksHelper tasksHelper) {
+        return new TaskListsPresenter(tasksHelper);
+    }
+
+    @Provides
     MainActivityPresenter provideMainActivityPresenter(TasksHelper tasksHelper, PrefHelper prefHelper, PeopleApi peopleApi) {
         return new MainActivityPresenter(tasksHelper, prefHelper, peopleApi);
     }
 
     @Provides
-    EditTaskPresenter provideEditTaskPresenter(TasksHelper tasksHelper) {
-        return new EditTaskPresenter(tasksHelper);
+    EditTaskPresenter provideEditTaskPresenter(TasksHelper tasksHelper, PrefHelper prefHelper) {
+        return new EditTaskPresenter(tasksHelper, prefHelper);
     }
 
     @Provides

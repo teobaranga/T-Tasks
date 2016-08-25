@@ -24,15 +24,15 @@ public class TaskDetailPresenter extends Presenter<TaskDetailView> {
     void getTask(String taskId) {
         tasksHelper.getTask(taskId, realm)
                 .subscribe(
+                        // Realm observables do not throw errors
                         tTask -> {
-                            this.tTask = tTask;
                             final TaskDetailView view = view();
-                            if (view != null) view.onTaskLoaded(tTask);
-                        },
-                        throwable -> {
-                            Timber.e(throwable.toString());
-                            final TaskDetailView view = view();
-                            if (view != null) view.onTaskLoadError();
+                            if (tTask == null) {
+                                if (view != null) view.onTaskLoadError();
+                            } else {
+                                this.tTask = tTask;
+                                if (view != null) view.onTaskLoaded(tTask);
+                            }
                         }
                 );
 
@@ -41,14 +41,13 @@ public class TaskDetailPresenter extends Presenter<TaskDetailView> {
     void getTaskList(String taskListId) {
         tasksHelper.getTaskList(taskListId, realm)
                 .subscribe(
+                        // Realm observables do not throw errors
                         taskList -> {
                             final TaskDetailView view = view();
-                            if (view != null) view.onTaskListLoaded(taskList);
-                        },
-                        throwable -> {
-                            Timber.e(throwable.toString());
-                            final TaskDetailView view = view();
-                            if (view != null) view.onTaskListLoadError();
+                            if (view != null) {
+                                if (taskList == null) view.onTaskListLoadError();
+                                else view.onTaskListLoaded(taskList);
+                            }
                         }
                 );
     }
@@ -76,12 +75,13 @@ public class TaskDetailPresenter extends Presenter<TaskDetailView> {
      * Delete the task
      */
     void deleteTask() {
-        tasksHelper.deleteTask(tTask.getTaskListId(), tTask.getId(), realm)
+        // Mark it as deleted so it doesn't show up in the list
+        realm.executeTransaction(realm -> tTask.setDeleted(true));
+        final TaskDetailView view = view();
+        if (view != null) view.onTaskDeleted();
+        tasksHelper.deleteTask(tTask.getTaskListId(), tTask.getId())
                 .subscribe(
-                        aVoid -> {
-                            final TaskDetailView view = view();
-                            if (view != null) view.onTaskDeleted();
-                        },
+                        aVoid -> { /* Do nothing */ },
                         throwable -> {
                             Timber.e(throwable.toString());
                         }

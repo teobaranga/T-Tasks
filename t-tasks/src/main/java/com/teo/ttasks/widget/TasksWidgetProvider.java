@@ -3,6 +3,7 @@ package com.teo.ttasks.widget;
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -30,27 +31,46 @@ import timber.log.Timber;
  */
 public class TasksWidgetProvider extends AppWidgetProvider {
 
-    @Inject PrefHelper mPrefHelper;
+    @Inject PrefHelper prefHelper;
+
+    /**
+     * Update all the widgets
+     *
+     * @param context    context
+     * @param taskListId task list identifier
+     */
+    public static void updateWidgets(Context context, String taskListId) {
+        final AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
+        int[] ids = appWidgetManager.getAppWidgetIds(new ComponentName(context, TasksWidgetProvider.class));
+        PrefHelper prefHelper = new PrefHelper(context);
+        for (int id : ids) {
+            if (taskListId.equals(prefHelper.getWidgetTaskListId(id)))
+                appWidgetManager.notifyAppWidgetViewDataChanged(id, R.id.widget_task_list);
+        }
+    }
 
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
         Timber.d("onUpdate with ids %s", Arrays.toString(appWidgetIds));
-        TTasksApp.get(context).applicationComponent().inject(this);
+        if (prefHelper == null)
+            TTasksApp.get(context).userComponent().inject(this);
         Realm realm = Realm.getDefaultInstance();
         // There may be multiple widgets active, so update all of them
         for (int appWidgetId : appWidgetIds) {
-            if (mPrefHelper.getWidgetTaskListId(appWidgetId) != null)
+            if (prefHelper.getWidgetTaskListId(appWidgetId) != null)
                 updateAppWidget(context, appWidgetManager, appWidgetId, realm);
+            else Timber.d("widget id %d not found", appWidgetId);
         }
         realm.close();
     }
 
     @Override
     public void onDeleted(Context context, int[] appWidgetIds) {
-        TTasksApp.get(context).applicationComponent().inject(this);
+        if (prefHelper == null)
+            TTasksApp.get(context).userComponent().inject(this);
         // When the user deletes the widget, delete the preference associated with it.
         for (int appWidgetId : appWidgetIds) {
-            mPrefHelper.deleteWidgetTaskId(appWidgetId);
+            prefHelper.deleteWidgetTaskId(appWidgetId);
         }
     }
 
@@ -65,8 +85,8 @@ public class TasksWidgetProvider extends AppWidgetProvider {
     }
 
     private void updateAppWidget(Context context, AppWidgetManager appWidgetManager, int appWidgetId, Realm realm) {
+        Timber.d("updating widget with id %d", appWidgetId);
 
-        PrefHelper prefHelper = new PrefHelper(context);
         String taskListId = prefHelper.getWidgetTaskListId(appWidgetId);
 
         // Set up the intent that starts the TasksWidgetService, which will
@@ -110,8 +130,12 @@ public class TasksWidgetProvider extends AppWidgetProvider {
                 .equalTo("id", taskListId)
                 .findFirst();
 
-        // Set the task list title
-        views.setTextViewText(R.id.task_list_title, taskList.getTitle());
+        // The task list can be null when upgrading the Realm scheme
+        if (taskList != null) {
+            // Set the task list title
+            views.setTextViewText(R.id.task_list_title, taskList.getTitle());
+        }
+        // TODO: 2016-08-24 handle null task list
 
         // Setup the header
         Intent viewTaskListIntent = new Intent(context, MainActivity.class);

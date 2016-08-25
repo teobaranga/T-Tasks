@@ -41,7 +41,7 @@ public class TaskNotificationReceiver extends BroadcastReceiver {
                 notificationManager.notify(id, notification);
                 break;
             case ACTION_COMPLETE:
-                TTasksApp.get(context).applicationComponent().inject(this);
+                TTasksApp.get(context).userComponent().inject(this);
                 String taskId = intent.getStringExtra(TASK_ID);
                 Realm realm = Realm.getDefaultInstance();
                 // Mark the task as completed

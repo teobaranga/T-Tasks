@@ -24,17 +24,17 @@ import javax.inject.Inject;
  */
 public class TasksWidgetConfigureActivity extends AppCompatActivity implements TasksWidgetConfigureView {
 
-    @Inject TasksWidgetConfigurePresenter mPresenter;
+    @Inject TasksWidgetConfigurePresenter presenter;
 
     private int mAppWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID;
 
-    private TaskListsAdapter mTaskListsAdapter;
+    private TaskListsAdapter taskListsAdapter;
 
-    private TasksWidgetConfigureBinding mBinding;
+    private TasksWidgetConfigureBinding binding;
 
     public void onAddClicked(View v) {
         // Store the task list ID associated with this widget locally
-        mPresenter.saveWidgetTaskListId(mAppWidgetId, mTaskListsAdapter.getItem(mBinding.taskLists.getSelectedItemPosition()).getId());
+        presenter.saveWidgetTaskListId(mAppWidgetId, taskListsAdapter.getItem(binding.taskLists.getSelectedItemPosition()).getId());
 
         // It is the responsibility of the configuration activity to update the app widget
         // Trigger the AppWidgetProvider in order to update the widget
@@ -60,10 +60,10 @@ public class TasksWidgetConfigureActivity extends AppCompatActivity implements T
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mBinding = DataBindingUtil.setContentView(this, R.layout.tasks_widget_configure);
+        binding = DataBindingUtil.setContentView(this, R.layout.tasks_widget_configure);
         getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         TTasksApp.get(this).userComponent().inject(this);
-        mPresenter.bindView(this);
+        presenter.bindView(this);
 
         // Set the result to CANCELED.  This will cause the widget host to cancel
         // out of the widget placement if the user presses the back button.
@@ -82,16 +82,16 @@ public class TasksWidgetConfigureActivity extends AppCompatActivity implements T
         }
 
         // Set the task list adapter
-        mTaskListsAdapter = new TaskListsAdapter(this);
-        mTaskListsAdapter.setDropDownViewResource(R.layout.spinner_item_task_list_edit_dropdown);
-        mBinding.taskLists.setAdapter(mTaskListsAdapter);
+        taskListsAdapter = new TaskListsAdapter(this);
+        taskListsAdapter.setDropDownViewResource(R.layout.spinner_item_task_list_edit_dropdown);
+        binding.taskLists.setAdapter(taskListsAdapter);
 
-        mPresenter.loadTaskLists();
+        presenter.loadTaskLists();
     }
 
     @Override
     public void onTaskListsLoaded(List<TaskList> taskLists) {
-        mTaskListsAdapter.addAll(taskLists);
+        taskListsAdapter.addAll(taskLists);
     }
 
     @Override
@@ -102,6 +102,6 @@ public class TasksWidgetConfigureActivity extends AppCompatActivity implements T
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        mPresenter.unbindView(this);
+        presenter.unbindView(this);
     }
 }

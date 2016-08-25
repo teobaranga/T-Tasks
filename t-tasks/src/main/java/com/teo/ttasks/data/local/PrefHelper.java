@@ -25,6 +25,8 @@ public final class PrefHelper {
 
     private static final String PREF_WIDGET_PREFIX = "tasksWidget_";
 
+    private static final String PREF_LAST_TASK_ID = "lastTaskId";
+
     private SharedPreferences sharedPreferences;
 
     public PrefHelper(Context context) {
@@ -153,5 +155,35 @@ public final class PrefHelper {
 
     public void deleteWidgetTaskId(int appWidgetId) {
         sharedPreferences.edit().remove(PREF_WIDGET_PREFIX + appWidgetId).apply();
+    }
+
+    /**
+     * Get a task ID to be used when creating a new task locally.
+     *
+     * @return a task list identifier
+     */
+    public String getNextTaskId() {
+        String nextTaskId = sharedPreferences.getString(PREF_LAST_TASK_ID, "1");
+        // Increment the ID and save it
+        sharedPreferences.edit().putString(PREF_LAST_TASK_ID, String.valueOf(Integer.valueOf(nextTaskId) + 1)).apply();
+        return nextTaskId;
+    }
+
+    /**
+     * Must be called after deleting a local-only task or after a local task is synced.
+     */
+    public void deleteLastTaskId() {
+        String lastTaskId = sharedPreferences.getString(PREF_LAST_TASK_ID, null);
+        if (lastTaskId == null)
+            return;
+        // Remove or decrease the last task ID
+        final SharedPreferences.Editor edit = sharedPreferences.edit();
+        final Integer id = Integer.valueOf(lastTaskId);
+        if (id <= 1) {
+            edit.remove(PREF_LAST_TASK_ID);
+        } else {
+            edit.putString(PREF_LAST_TASK_ID, String.valueOf(id - 1));
+        }
+        edit.apply();
     }
 }

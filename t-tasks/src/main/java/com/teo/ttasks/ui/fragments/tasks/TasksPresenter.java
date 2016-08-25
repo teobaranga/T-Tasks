@@ -1,6 +1,7 @@
 package com.teo.ttasks.ui.fragments.tasks;
 
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import com.google.android.gms.auth.UserRecoverableAuthException;
 import com.teo.ttasks.data.remote.TasksHelper;
@@ -24,10 +25,17 @@ public class TasksPresenter extends Presenter<TasksView> {
         this.tasksHelper = tasksHelper;
     }
 
-    void getTasks(String taskListId) {
+    void getTasks(@Nullable String taskListId) {
+        if (taskListId == null)
+            return;
+        {
+            final TasksView view = view();
+            if (view != null) view.onTasksLoading();
+        }
         final Subscription subscription = tasksHelper.getTasks(taskListId, realm)
                 .compose(RxUtils.getTaskItems())
                 .subscribe(
+                        // The Realm observable will not throw errors
                         tasks -> {
                             Timber.d("loaded %d tasks", tasks.size());
                             final TasksView view = view();
@@ -35,15 +43,13 @@ public class TasksPresenter extends Presenter<TasksView> {
                                 if (tasks.isEmpty()) view.showEmptyUi();
                                 else view.showContentUi(tasks);
                             }
-                        },
-                        throwable -> {
-                            Timber.e(throwable.toString());
-                            // TODO: 2016-07-12 error
                         });
         unsubscribeOnUnbindView(subscription);
     }
 
-    void refreshTasks(String taskListId) {
+    void refreshTasks(@Nullable String taskListId) {
+        if (taskListId == null)
+            return;
         final Subscription subscription = tasksHelper.refreshTasks(taskListId)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
@@ -71,7 +77,9 @@ public class TasksPresenter extends Presenter<TasksView> {
      *
      * @param taskListId task list identifier
      */
-    void syncTasks(String taskListId) {
+    void syncTasks(@Nullable String taskListId) {
+        if (taskListId == null)
+            return;
         // Keep track of the number of synced tasks
         AtomicInteger taskSyncCount = new AtomicInteger(0);
         final Subscription subscription = tasksHelper.syncTasks(taskListId)
@@ -79,12 +87,18 @@ public class TasksPresenter extends Presenter<TasksView> {
                 .subscribe(
                         syncedTask -> {
                             // Sync successful for this task
-                            realm.executeTransaction(realm -> syncedTask.setSynced(true));
+                            realm.executeTransaction(realm -> {
+                                syncedTask.setSynced(true);
+                                // This task is not managed by Realm so it needs to be updated manually
+                                realm.insertOrUpdate(syncedTask);
+                            });
                             taskSyncCount.incrementAndGet();
                         },
                         throwable -> {
                             // Sync failed for some or all tasks
                             Timber.e(throwable.toString());
+                            final TasksView view = view();
+                            if (view != null) view.onSyncDone(taskSyncCount.get());
                         },
                         () -> {
                             // Syncing done

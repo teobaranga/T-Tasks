@@ -1,19 +1,18 @@
 package com.teo.ttasks.util;
 
-import android.support.annotation.NonNull;
-
 import com.mikepenz.fastadapter.IItem;
 import com.teo.ttasks.data.model.TTask;
 import com.teo.ttasks.data.model.Task;
+import com.teo.ttasks.data.model.TaskList;
 import com.teo.ttasks.ui.items.CategoryItem;
 import com.teo.ttasks.ui.items.TaskItem;
+import com.teo.ttasks.ui.items.TaskListItem;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import io.realm.RealmResults;
-import rx.Observable;
 import rx.Observable.Transformer;
 
 public class RxUtils {
@@ -25,10 +24,9 @@ public class RxUtils {
      * 2. Groups them by completion status (not completed or no due date first followed by completed ones)<br>
      * 3. Sorts the first group by due date and the second group by completion date
      */
-    @NonNull
     public static Transformer<RealmResults<TTask>, List<IItem>> getTaskItems() {
         return observable -> observable
-                .flatMap(tasks -> {
+                .map(tasks -> {
                     List<TaskItem> activeTasks = new ArrayList<>();
                     List<TaskItem> completedTasks = new ArrayList<>();
                     List<IItem> taskItems = new ArrayList<>();
@@ -50,7 +48,21 @@ public class RxUtils {
                         taskItems.addAll(completedTasks);
                     }
 
-                    return Observable.just(taskItems);
+                    return taskItems;
+                });
+    }
+
+    public static Transformer<List<TaskList>, List<IItem>> getTaskListItems() {
+        return observable -> observable
+                .map(taskLists -> {
+                    List<IItem> taskListItems = new ArrayList<>(taskLists.size());
+
+                    for (int i = 0, taskListsSize = taskLists.size(); i < taskListsSize; i++) {
+                        TaskList taskList = taskLists.get(i);
+                        taskListItems.add(new TaskListItem(taskList));
+                    }
+
+                    return taskListItems;
                 });
     }
 }

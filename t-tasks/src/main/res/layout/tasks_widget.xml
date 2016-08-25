@@ -38,6 +38,7 @@
         android:divider="@null"
         android:paddingBottom="6dp"
         android:paddingTop="6dp"
+        android:scrollbars="vertical"
         tools:listitem="@layout/item_task_widget"/>
 
 </LinearLayout>

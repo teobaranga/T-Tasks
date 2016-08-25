@@ -1,28 +1,23 @@
 package com.teo.ttasks.ui.items;
 
+import android.databinding.DataBindingUtil;
 import android.support.annotation.StringRes;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
-import android.widget.TextView;
 
 import com.mikepenz.fastadapter.IExpandable;
 import com.mikepenz.fastadapter.IItem;
 import com.mikepenz.fastadapter.items.AbstractItem;
-import com.mikepenz.fastadapter.utils.ViewHolderFactory;
 import com.mikepenz.materialdrawer.holder.StringHolder;
 import com.teo.ttasks.R;
+import com.teo.ttasks.databinding.ItemCategoryBinding;
 
 import java.util.List;
-
-import butterknife.BindView;
-import butterknife.ButterKnife;
 
 /**
  * RecyclerView Item which represents a Date in an Order list
  */
 public class CategoryItem extends AbstractItem<CategoryItem, CategoryItem.ViewHolder> implements IExpandable<CategoryItem, IItem> {
-
-    private static final ViewHolderFactory<? extends ViewHolder> FACTORY = new ItemFactory();
 
     public StringHolder name;
 
@@ -79,33 +74,19 @@ public class CategoryItem extends AbstractItem<CategoryItem, CategoryItem.ViewHo
     public void bindView(ViewHolder viewHolder) {
         super.bindView(viewHolder);
 
+        final ItemCategoryBinding binding = viewHolder.itemCategoryBinding;
+
         //set the text for the name
-        StringHolder.applyTo(name, viewHolder.name);
+        StringHolder.applyTo(name, binding.text);
     }
 
-    @Override
-    public ViewHolderFactory<? extends ViewHolder> getFactory() {
-        return FACTORY;
-    }
+    public static class ViewHolder extends RecyclerView.ViewHolder {
 
-    /**
-     * our ItemFactory implementation which creates the ViewHolder for our adapter.
-     * It is highly recommended to implement a ViewHolderFactory as it is 0-1ms faster for ViewHolder creation,
-     * and it is also many many times more efficient if you define custom listeners on views within your item.
-     */
-    private static class ItemFactory implements ViewHolderFactory<ViewHolder> {
-        public ViewHolder create(View v) {
-            return new ViewHolder(v);
-        }
-    }
-
-    protected static class ViewHolder extends RecyclerView.ViewHolder {
-
-        @BindView(R.id.material_drawer_name) TextView name;
+        ItemCategoryBinding itemCategoryBinding;
 
         public ViewHolder(View view) {
             super(view);
-            ButterKnife.bind(this, view);
+            itemCategoryBinding = DataBindingUtil.bind(view);
         }
     }
 }

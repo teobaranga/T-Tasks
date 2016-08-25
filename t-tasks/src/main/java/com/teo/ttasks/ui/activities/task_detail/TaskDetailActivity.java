@@ -26,6 +26,7 @@ import com.teo.ttasks.data.model.TaskList;
 import com.teo.ttasks.databinding.ActivityTaskDetailBinding;
 import com.teo.ttasks.ui.activities.edit_task.EditTaskActivity;
 import com.teo.ttasks.util.AnimUtils;
+import com.teo.ttasks.widget.TasksWidgetProvider;
 
 import javax.inject.Inject;
 
@@ -38,7 +39,7 @@ public class TaskDetailActivity extends AppCompatActivity implements TaskDetailV
 
     @Inject TaskDetailPresenter taskDetailPresenter;
 
-    private ActivityTaskDetailBinding taskDetailBinding;
+    ActivityTaskDetailBinding taskDetailBinding;
 
     private String taskId;
     private String taskListId;
@@ -134,11 +135,13 @@ public class TaskDetailActivity extends AppCompatActivity implements TaskDetailV
 
     @Override
     public void onTaskUpdated() {
+        TasksWidgetProvider.updateWidgets(this, taskListId);
         onBackPressed();
     }
 
     @Override
     public void onTaskDeleted() {
+        TasksWidgetProvider.updateWidgets(this, taskListId);
         Toast.makeText(this, R.string.task_deleted, Toast.LENGTH_SHORT).show();
         onBackPressed();
     }

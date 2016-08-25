@@ -4,44 +4,53 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.util.Pair;
 
+import com.teo.ttasks.data.local.PrefHelper;
 import com.teo.ttasks.data.model.TTask;
+import com.teo.ttasks.data.model.Task;
+import com.teo.ttasks.data.model.TaskFields;
 import com.teo.ttasks.data.model.TaskList;
 import com.teo.ttasks.data.remote.TasksHelper;
 import com.teo.ttasks.ui.base.Presenter;
 
 import java.util.Calendar;
 import java.util.Date;
-import java.util.HashMap;
 
 import io.realm.Realm;
 import rx.android.schedulers.AndroidSchedulers;
 import timber.log.Timber;
 
+// TODO: 2016-08-09 save the reminder on new task and task update
 public class EditTaskPresenter extends Presenter<EditTaskView> {
 
     private final TasksHelper tasksHelper;
+    private final PrefHelper prefHelper;
 
     private String taskTitle;
     @Nullable private Date dueDate;
     @Nullable private Date reminder;
-    @Nullable private String notes;
+
+    /**
+     * Object containing the task fields that have been modified.
+     */
+    private TaskFields editTaskFields;
 
     private Realm realm;
 
-    public EditTaskPresenter(TasksHelper tasksHelper) {
+    public EditTaskPresenter(TasksHelper tasksHelper, PrefHelper prefHelper) {
         this.tasksHelper = tasksHelper;
+        this.prefHelper = prefHelper;
+        editTaskFields = new TaskFields();
     }
 
     void loadTaskInfo(String taskId) {
         tasksHelper.getTask(taskId, realm)
                 .subscribe(
-                        task -> {
-                            taskTitle = task.getTitle();
-                            dueDate = task.getDue();
-                            reminder = task.getReminder();
-                            notes = task.getNotes();
+                        tTask -> {
+                            taskTitle = tTask.getTitle();
+                            dueDate = tTask.getDue();
+                            reminder = tTask.getReminder();
                             final EditTaskView view = view();
-                            if (view != null) view.onTaskLoaded(task);
+                            if (view != null) view.onTaskLoaded(tTask);
                         },
                         throwable -> {
                             // Task not found, should never happen
@@ -91,7 +100,7 @@ public class EditTaskPresenter extends Presenter<EditTaskView> {
         if (dueDate == null) {
             dueDate = date;
         } else {
-            Timber.d("old date %s", dueDate.toString());
+            // Change only the date and not the time
             Calendar oldCal = Calendar.getInstance();
             oldCal.setTime(dueDate);
 
@@ -100,10 +109,11 @@ public class EditTaskPresenter extends Presenter<EditTaskView> {
 
             oldCal.set(newCal.get(Calendar.YEAR), newCal.get(Calendar.MONTH), newCal.get(Calendar.DAY_OF_MONTH));
             dueDate = oldCal.getTime();
-            Timber.d("new date %s", dueDate.toString());
         }
+        editTaskFields.putDueDate(dueDate);
     }
 
+    // TODO: 2016-08-19 implement this using Firebase
     void setDueTime(Date date) {
         if (dueDate == null) {
             dueDate = date;
@@ -145,59 +155,94 @@ public class EditTaskPresenter extends Presenter<EditTaskView> {
     void setTaskTitle(String taskTitle) {
         this.taskTitle = taskTitle;
         Timber.d("Title: %s", this.taskTitle);
+        editTaskFields.putTitle(taskTitle);
     }
 
     void setTaskNotes(String taskNotes) {
-        notes = taskNotes;
-        if (notes != null && notes.isEmpty())
-            notes = null;
+        editTaskFields.putNotes(taskNotes);
     }
 
-    void newTask(String taskListId) {
-        HashMap<String, Object> newTask = new HashMap<>();
-        newTask.put("title", taskTitle);
-        newTask.put("due", dueDate);
-        newTask.put("notes", notes);
-        // TODO: 2016-08-09 save the reminder online
-        tasksHelper.newTask(taskListId, newTask)
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(
-                        task -> {
-                            // Create the TTask, set the reminder and save it to Realm
-                            TTask tTask = new TTask(task, taskListId);
-                            tTask.setReminder(reminder);
-                            realm.executeTransaction(realm -> realm.insertOrUpdate(tTask));
-                            final EditTaskView view = view();
-                            if (view != null) view.onTaskSaved(tTask);
-                        },
-                        throwable -> {
-                            Timber.e(throwable.toString());
-                            final EditTaskView view = view();
-                            if (view != null) view.onTaskSaveError();
-                        }
-                );
+    /**
+     * Create a new task in the specified task list and include the fields inserted by the user.
+     * The task is first created locally and then synced online if there is an active network connection.
+     * If that's not the case, the task will be synced on the next refresh.
+     *
+     * @param taskListId task list identifier
+     * @param isOnline   {@code true} if there is an active network connection
+     */
+    void newTask(String taskListId, boolean isOnline) {
+        // Nothing entered
+        if (editTaskFields.isEmpty()) {
+            final EditTaskView view = view();
+            if (view != null) view.onTaskSaved(null);
+            return;
+        }
+        // Create the TTask offline
+        Task task = new Task(prefHelper.getNextTaskId(), editTaskFields);
+        TTask tTask = new TTask(task, taskListId);
+        tTask.setSynced(false);
+        tTask.setReminder(reminder);
+        realm.executeTransaction(realm -> realm.copyToRealm(tTask));
+        // Save the task on an active network connection
+        if (isOnline) {
+            tasksHelper.newTask(taskListId, editTaskFields)
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(
+                            savedTask -> {
+                                // Update the local task with the full information and delete the old task
+                                TTask managedTask = tasksHelper.getTask(tTask.getId(), realm).toBlocking().first();
+                                realm.executeTransaction(realm -> {
+                                    managedTask.getTask().deleteFromRealm();
+                                    managedTask.switchTask(realm.copyToRealm(savedTask));
+                                    managedTask.setSynced(true);
+                                });
+                                Timber.d("new task with id %s", managedTask.getId());
+                                prefHelper.deleteLastTaskId();
+                                final EditTaskView view = view();
+                                if (view != null) view.triggerWidgetUpdate();
+                            },
+                            throwable -> {
+                                Timber.e(throwable.toString());
+                                final EditTaskView view = view();
+                                if (view != null) view.onTaskSaveError();
+                            }
+                    );
+        }
+        final EditTaskView view = view();
+        if (view != null) view.onTaskSaved(tTask);
     }
 
-    // TODO: 2016-07-28 finish this
-    void updateTask(String taskListId, String taskId) {
-        HashMap<String, Object> taskFields = new HashMap<>();
-        tasksHelper.updateTask(taskListId, taskId, taskFields)
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(
-                        task -> {
-                            // Create the TTask, set the reminder and save it to Realm
-                            TTask tTask = new TTask(task, taskListId);
-                            tTask.setReminder(reminder);
-                            realm.executeTransaction(realm -> realm.insertOrUpdate(tTask));
-                            final EditTaskView view = view();
-                            if (view != null) view.onTaskSaved(tTask);
-                        },
-                        throwable -> {
-                            Timber.e(throwable.toString());
-                            final EditTaskView view = view();
-                            if (view != null) view.onTaskSaveError();
-                        }
-                );
+    void updateTask(String taskListId, String taskId, boolean isOnline) {
+        // No changes, return
+        if (editTaskFields.isEmpty()) {
+            final EditTaskView view = view();
+            if (view != null) view.onTaskSaved(null);
+            return;
+        }
+        // Update the task locally
+        TTask managedTask = tasksHelper.getTask(taskId, realm).toBlocking().first();
+        realm.executeTransaction(realm -> {
+            managedTask.update(editTaskFields);
+            managedTask.setSynced(false);
+        });
+        // Update the task on an active network connection
+        if (isOnline) {
+            tasksHelper.updateTask(taskListId, taskId, editTaskFields)
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(
+                            task -> realm.executeTransaction(realm -> {
+                                realm.insertOrUpdate(task);
+                                managedTask.setSynced(true);
+                            }),
+                            throwable -> {
+                                Timber.e(throwable.toString());
+                                final EditTaskView view = view();
+                                if (view != null) view.onTaskSaveError();
+                            }
+                    );
+        }
+        final EditTaskView view = view();
+        if (view != null) view.onTaskSaved(managedTask);
     }
 
     /**

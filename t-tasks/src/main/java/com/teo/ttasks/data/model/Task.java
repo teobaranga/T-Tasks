@@ -93,4 +93,20 @@ public class Task extends RealmObject {
 
     @Expose
     private boolean hidden;
+
+    public Task() { }
+
+    /**
+     * Create a new Task locally.<br>
+     * The ID needs to be unique so it doesn't conflict with other tasks.
+     *
+     * @param id         task identifier
+     * @param taskFields the task information
+     */
+    public Task(String id, TaskFields taskFields) {
+        this.id = id;
+        title = taskFields.getTitle();
+        due = taskFields.getDueDate();
+        notes = taskFields.getNotes();
+    }
 }

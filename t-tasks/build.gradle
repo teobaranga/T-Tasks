@@ -7,7 +7,7 @@ apply plugin: 'me.tatarka.retrolambda'
 
 android {
     compileSdkVersion 24
-    buildToolsVersion '24.0.1'
+    buildToolsVersion '24.0.2'
     defaultConfig {
         applicationId "com.teo.ttasks"
         minSdkVersion 16
@@ -81,9 +81,6 @@ dependencies {
 
     compile libraries.supportDesign
 
-    compile libraries.butterKnife
-    apt libraries.butterKnifeCompiler
-
     compile libraries.timber
 
     compile libraries.playServicesAuth
@@ -104,10 +101,10 @@ dependencies {
     }
     compile('com.mikepenz:aboutlibraries:5.7.1@aar') { transitive = true }
     compile('com.mikepenz:fastadapter:1.6.1@aar') { transitive = true }
-    compile('com.mikepenz:materialdrawer:5.4.0@aar') { transitive = true }
+    compile('com.mikepenz:materialdrawer:5.5.0@aar') { transitive = true }
     compile 'com.mikepenz:google-material-typeface:2.2.0.1@aar'
     compile 'com.squareup.picasso:picasso:2.5.2'
-    compile 'com.artemzin.rxjava:proguard-rules:1.1.8.0'
+    compile 'com.artemzin.rxjava:proguard-rules:1.1.9.0'
 
     apt 'org.projectlombok:lombok:1.16.10'
 

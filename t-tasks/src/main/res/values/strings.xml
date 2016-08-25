@@ -12,7 +12,7 @@
     <string name="drawer_add_task_list">New task list</string>
     <string name="drawer_settings">Settings</string>
     <string name="drawer_help_and_feedback">Help &amp; Feedback</string>
-    <string name="drawer_about">About T-Tasks</string>
+    <string name="drawer_about">About</string>
     <string name="drawer_add_account">Add Account</string>
     <string name="drawer_manage_account">Manage Account</string>
 
@@ -25,7 +25,17 @@
 
     <!-- Tasks -->
     <string name="msg_task_list_empty">Empty task list</string>
+    <string name="msg_task_list_empty_extra">Start by creating a new task!</string>
     <string name="error_tasks_loading">Error loading tasks</string>
+
+    <!-- Task Lists -->
+    <string name="msg_task_lists_empty">No task lists</string>
+    <string name="msg_task_lists_empty_extra">Start by creating a new task list!</string>
+    <string name="error_task_lists_loading">Error loading task lists</string>
+
+    <!-- Task Detail -->
+    <string name="share">Share</string>
+    <string name="delete">Delete</string>
 
     <!-- Edit Task -->
     <string name="title_activity_edit_task">Edit Task</string>
@@ -41,6 +51,7 @@
     <string name="due_time_all_day">All day</string>
     <string name="add_reminder">Add a reminder</string>
     <string name="reminder">Reminder</string>
+    <string name="no_reminder_set">No reminder set</string>
     <string name="notes">Notes</string>
     <string name="error_task_loading">There was an error loading this task, please try again</string>
     <string name="task_deleted">Task deleted</string>
@@ -49,15 +60,6 @@
     <string name="about">About</string>
     <string name="about_description">T-Tasks is an app designed to help you manage your tasks. It expands upon the features provided by
         Google Tasks and the whole experience is delivered through the beauty of Material Design. Have a most productive day!</string>
-
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="appwidget_text">EXAMPLE</string>
-    <string name="configure">Configure</string>
-    <string name="add_widget">Add widget</string>
-    <string name="msg_task_list_empty_extra">You can start by creating a new task!</string>
-    <string name="share">Share</string>
-    <string name="delete">Delete</string>
-    <string name="no_reminder_set">No reminder set</string>
 
     <!-- Transition names -->
     <string name="transition_task_header">task_header</string>
@@ -73,5 +75,7 @@
     <!-- Notifications -->
     <string name="task_due">Task due: %s</string>
     <string name="notification_more_info">Tap for more information</string>
+    <string name="tasks">Tasks</string>
+    <string name="task_lists">Task Lists</string>
 
 </resources>

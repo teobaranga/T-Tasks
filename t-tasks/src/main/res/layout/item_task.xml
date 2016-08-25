@@ -3,13 +3,6 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <data>
-
-        <variable
-            name="task"
-            type="com.teo.ttasks.data.model.TTask"/>
-    </data>
-
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -17,7 +10,7 @@
         android:paddingTop="12dp">
 
         <LinearLayout
-            android:id="@+id/layout_date"
+            android:id="@+id/date_layout"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="12dp"
@@ -67,7 +60,6 @@
                 android:maxLines="1"
                 android:textAppearance="@style/TextAppearance.AppCompat.Inverse"
                 android:textStyle="bold"
-                android:text="@{task.title}"
                 android:transitionName="@string/transition_task_title"
                 tools:text="Buy groceries"/>
 
@@ -77,13 +69,12 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="2dp"
                 android:maxLines="1"
-                android:text="@{task.notes}"
                 android:textAppearance="@style/TextAppearance.AppCompat.Small.Inverse"
                 android:textStyle="italic"
                 tools:text="Go to the supermarket and pick them up"/>
 
             <TextView
-                android:id="@+id/task_reminder"
+                android:id="@+id/reminder"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:drawablePadding="4dp"

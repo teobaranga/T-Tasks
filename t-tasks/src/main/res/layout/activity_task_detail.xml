@@ -56,32 +56,6 @@
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="end"
-                    android:orientation="horizontal">
-
-                    <ImageButton
-                        android:id="@+id/edit"
-                        android:layout_width="36dp"
-                        android:layout_height="?android:actionBarSize"
-                        android:background="?selectableItemBackgroundBorderless"
-                        android:contentDescription="@string/description_delete_task"
-                        android:onClick="onEditClicked"
-                        app:srcCompat="@drawable/ic_edit_24dp"/>
-
-                    <ImageButton
-                        android:id="@+id/more"
-                        android:layout_width="46dp"
-                        android:layout_height="?android:actionBarSize"
-                        android:background="?selectableItemBackgroundBorderless"
-                        android:contentDescription="@string/description_more"
-                        android:onClick="onOverflowClicked"
-                        app:srcCompat="@drawable/ic_more_vert_24dp"/>
-
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
                     android:layout_marginEnd="@dimen/activity_horizontal_margin"
                     android:layout_marginLeft="@dimen/margin_icon_horizontal"
                     android:layout_marginRight="@dimen/activity_horizontal_margin"
@@ -111,6 +85,38 @@
                         android:text="@{taskList.title}"
                         android:textAppearance="@style/TextAppearance.AppCompat.Subhead.Inverse"
                         tools:text="House work"/>
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="end"
+                    android:layout_marginEnd="@dimen/margin_end_toolbar_actions"
+                    android:layout_marginRight="@dimen/margin_end_toolbar_actions"
+                    android:orientation="horizontal">
+
+                    <ImageButton
+                        android:id="@+id/edit"
+                        android:layout_width="wrap_content"
+                        android:layout_height="?android:actionBarSize"
+                        android:layout_marginLeft="@dimen/margin_toolbar_action"
+                        android:layout_marginRight="@dimen/margin_toolbar_action"
+                        android:background="?selectableItemBackgroundBorderless"
+                        android:contentDescription="@string/description_delete_task"
+                        android:onClick="onEditClicked"
+                        app:srcCompat="@drawable/ic_edit_24dp"/>
+
+                    <ImageButton
+                        android:id="@+id/more"
+                        android:layout_width="wrap_content"
+                        android:layout_height="?android:actionBarSize"
+                        android:layout_marginLeft="@dimen/margin_toolbar_action"
+                        android:layout_marginRight="@dimen/margin_toolbar_action"
+                        android:background="?selectableItemBackgroundBorderless"
+                        android:contentDescription="@string/description_more"
+                        android:onClick="onOverflowClicked"
+                        app:srcCompat="@drawable/ic_more_vert_24dp"/>
 
                 </LinearLayout>
 
@@ -278,6 +284,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="@dimen/activity_horizontal_margin"
                 android:layout_marginRight="@dimen/activity_horizontal_margin"
+                android:alpha="0"
                 android:onClick="onFabClicked"
                 android:scaleX="0"
                 android:scaleY="0"

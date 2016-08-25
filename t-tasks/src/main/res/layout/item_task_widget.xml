@@ -72,7 +72,7 @@
             tools:text="Go to the supermarket and pick them up"/>
 
         <TextView
-            android:id="@+id/task_reminder"
+            android:id="@+id/reminder"
             style="@style/TextAppearance.AppCompat.Small"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

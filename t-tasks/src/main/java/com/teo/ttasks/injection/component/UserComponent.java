@@ -1,10 +1,14 @@
 package com.teo.ttasks.injection.component;
 
 import com.teo.ttasks.injection.module.UserModule;
+import com.teo.ttasks.receivers.TaskNotificationReceiver;
 import com.teo.ttasks.ui.activities.edit_task.EditTaskActivity;
 import com.teo.ttasks.ui.activities.main.MainActivity;
 import com.teo.ttasks.ui.activities.task_detail.TaskDetailActivity;
+import com.teo.ttasks.ui.fragments.task_lists.TaskListsFragment;
 import com.teo.ttasks.ui.fragments.tasks.TasksFragment;
+import com.teo.ttasks.widget.TasksRemoteViewsFactory;
+import com.teo.ttasks.widget.TasksWidgetProvider;
 import com.teo.ttasks.widget.configure.TasksWidgetConfigureActivity;
 
 import javax.inject.Singleton;
@@ -23,5 +27,13 @@ public interface UserComponent {
 
     void inject(TasksFragment tasksFragment);
 
+    void inject(TaskListsFragment taskListsFragment);
+
     void inject(TasksWidgetConfigureActivity tasksWidgetConfigureActivity);
+
+    void inject(TasksWidgetProvider tasksWidgetProvider);
+
+    void inject(TasksRemoteViewsFactory tasksRemoteViewsFactory);
+
+    void inject(TaskNotificationReceiver taskNotificationReceiver);
 }

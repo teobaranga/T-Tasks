@@ -26,8 +26,10 @@ import com.teo.ttasks.data.TaskListsAdapter;
 import com.teo.ttasks.data.model.TTask;
 import com.teo.ttasks.data.model.TaskList;
 import com.teo.ttasks.databinding.ActivityEditTaskBinding;
+import com.teo.ttasks.receivers.NetworkInfoReceiver;
 import com.teo.ttasks.util.DateUtils;
 import com.teo.ttasks.util.NotificationUtils;
+import com.teo.ttasks.widget.TasksWidgetProvider;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -35,12 +37,15 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import timber.log.Timber;
+
 public class EditTaskActivity extends AppCompatActivity implements EditTaskView {
 
     private static final String EXTRA_TASK_ID = "taskId";
     private static final String EXTRA_TASK_LIST_ID = "taskListId";
 
     @Inject EditTaskPresenter editTaskPresenter;
+    @Inject NetworkInfoReceiver networkInfoReceiver;
 
     private DatePickerFragment datePickerFragment;
     private TimePickerFragment timePickerFragment;
@@ -124,15 +129,25 @@ public class EditTaskActivity extends AppCompatActivity implements EditTaskView 
     }
 
     @Override
-    public void onTaskSaved(TTask task) {
-        // Schedule the notification if it exists
-        NotificationUtils.scheduleTaskNotification(this, task);
+    public void onTaskSaved(TTask tTask) {
+        if (tTask != null) {
+            // Schedule the notification if it exists
+            NotificationUtils.scheduleTaskNotification(this, tTask);
+            // Trigger the widget update
+            triggerWidgetUpdate();
+        }
         onBackPressed();
     }
 
     @Override
     public void onTaskSaveError() {
         // TODO: 2016-07-24 implement
+    }
+
+    @Override
+    public void triggerWidgetUpdate() {
+        Timber.d("triggering widget update");
+        TasksWidgetProvider.updateWidgets(this, taskListId);
     }
 
     @Override
@@ -175,10 +190,10 @@ public class EditTaskActivity extends AppCompatActivity implements EditTaskView 
                 return true;
             case R.id.done:
                 if (taskId == null)
-                    editTaskPresenter.newTask(taskListId);
+                    editTaskPresenter.newTask(taskListId, networkInfoReceiver.isOnline(this));
                 else
-//                finish();
-                    return true;
+                    editTaskPresenter.updateTask(taskListId, taskId, networkInfoReceiver.isOnline(this));
+                return true;
         }
         return super.onOptionsItemSelected(item);
 

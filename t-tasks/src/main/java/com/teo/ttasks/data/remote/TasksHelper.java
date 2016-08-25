@@ -6,6 +6,7 @@ import com.teo.ttasks.api.entities.TasksResponse;
 import com.teo.ttasks.data.local.PrefHelper;
 import com.teo.ttasks.data.model.TTask;
 import com.teo.ttasks.data.model.Task;
+import com.teo.ttasks.data.model.TaskFields;
 import com.teo.ttasks.data.model.TaskList;
 
 import java.util.Date;
@@ -74,6 +75,20 @@ public final class TasksHelper {
     }
 
     /**
+     * Get all the valid (not deleted) tasks from the local database.
+     *
+     * @param taskListId task list identifier
+     * @param realm      Realm instance
+     * @return a RealmResults containing objects. If no objects match the condition, a list with zero objects is returned.
+     */
+    public RealmResults<TTask> getValidTasks(String taskListId, Realm realm) {
+        return realm.where(TTask.class)
+                .equalTo("taskListId", taskListId)
+                .equalTo("deleted", false)
+                .findAll();
+    }
+
+    /**
      * Get the tasks associated with a given task list from the local database.
      * Also acts as a listener, pushing a new set of tasks every time they are updated.
      * Never calls onComplete.
@@ -82,9 +97,7 @@ public final class TasksHelper {
      * @param realm      an instance of Realm
      */
     public Observable<RealmResults<TTask>> getTasks(String taskListId, Realm realm) {
-        return realm.where(TTask.class).equalTo("taskListId", taskListId)
-                .findAll()
-                .asObservable();
+        return getValidTasks(taskListId, realm).asObservable();
     }
 
     /**
@@ -116,6 +129,7 @@ public final class TasksHelper {
 
     /**
      * Sync the tasks from the specified task list that are not currently marked as synced.
+     * Delete the tasks that are marked as deleted.
      *
      * @param taskListId task list identifier
      * @return an Observable returning every task after it was successfully synced
@@ -123,8 +137,15 @@ public final class TasksHelper {
     public Observable<TTask> syncTasks(String taskListId) {
         return getTasks(taskListId)
                 .flatMapIterable(tasks -> tasks)
-                .filter(task -> !task.isSynced())
-                .flatMap(task -> updateTask(taskListId, task));
+                .filter(task -> !task.isSynced() || task.isDeleted())
+                .flatMap(task -> {
+                    if (task.isDeleted())
+                        return deleteTask(taskListId, task.getId())
+                                .flatMap(aVoid -> Observable.empty());
+                    if (!task.isSynced())
+                        return updateTask(taskListId, task);
+                    return Observable.empty();
+                });
     }
 
     public Observable<TasksResponse> refreshTasks(String taskListId) {
@@ -160,8 +181,8 @@ public final class TasksHelper {
     /**
      * Mark the task as completed if it's not and vice-versa.
      *
-     * @param tTask      the task whose status will change
-     * @param realm      a Realm instance
+     * @param tTask the task whose status will change
+     * @param realm a Realm instance
      * @return an Observable containing the updated task
      */
     public Observable<TTask> updateCompletionStatus(TTask tTask, Realm realm) {
@@ -179,9 +200,8 @@ public final class TasksHelper {
             }
         });
 
-        HashMap<String, Object> taskFields = new HashMap<>();
-        taskFields.put("completed", tTask.getCompleted());
-        taskFields.put("status", tTask.getStatus());
+        TaskFields taskFields = new TaskFields();
+        taskFields.putCompleted(tTask.isCompleted(), tTask.getCompleted());
         return updateTask(tTask.getTaskListId(), tTask.getId(), taskFields)
                 .map(task -> tTask)
                 .observeOn(AndroidSchedulers.mainThread())
@@ -199,6 +219,7 @@ public final class TasksHelper {
     }
 
     private Observable<TTask> updateTask(String taskListId, TTask tTask) {
+        Timber.d("updating task %s, %s, %s", tTask.getId(), tTask.isSynced(), tTask.isDeleted());
         return tasksApi.updateTask(taskListId, tTask.getId(), tTask.task)
                 .map(task -> tTask);
     }
@@ -231,12 +252,14 @@ public final class TasksHelper {
      *
      * @param taskListId task list identifier
      * @param taskId     task identifier
-     * @param realm      Realm instance
      */
-    public Observable<Void> deleteTask(String taskListId, String taskId, Realm realm) {
+    public Observable<Void> deleteTask(String taskListId, String taskId) {
         return tasksApi.deleteTask(taskListId, taskId)
                 .observeOn(AndroidSchedulers.mainThread())
-                .doOnCompleted(() -> realm.executeTransaction(realm1 ->
-                        realm1.where(TTask.class).equalTo("id", taskId).findFirst().deleteFromRealm()));
+                .doOnCompleted(() -> {
+                    Realm realm = Realm.getDefaultInstance();
+                    realm.executeTransaction(realm1 -> realm1.where(TTask.class).equalTo("id", taskId).findFirst().deleteFromRealm());
+                    realm.close();
+                });
     }
 }

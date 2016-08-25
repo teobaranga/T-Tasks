@@ -25,6 +25,16 @@ public class TTask extends RealmObject {
 
     public Task task;
 
+    @Nullable
+    private Date reminder;
+    /**
+     * Field indicating whether the task is synced and up-to-date with the server.
+     * This is used to keep track of tasks updated locally but while offline.
+     */
+    private boolean synced = true;
+
+    private boolean deleted = false;
+
     public TTask() { }
 
     public TTask(Task task, String taskListId) {
@@ -33,14 +43,28 @@ public class TTask extends RealmObject {
         this.taskListId = taskListId;
     }
 
-    @Nullable
-    private Date reminder;
+    public void switchTask(Task task) {
+        this.task = task;
+        this.id = task.getId();
+    }
 
     /**
-     * Field indicating whether the task is synced and up-to-date with the server.
-     * This is used to keep track of tasks updated locally but while offline.
+     * Update the task with the specified fields.
+     * Requires to executed in a Realm transaction.
+     *
+     * @param taskFields fields to be updated
      */
-    private boolean synced = true;
+    public void update(TaskFields taskFields) {
+        String title = taskFields.getTitle();
+        String notes = taskFields.getNotes();
+        Date due = taskFields.getDueDate();
+        if (title != null)
+            task.setTitle(title);
+        if (notes != null)
+            task.setNotes(notes);
+        if (due != null)
+            task.setDue(due);
+    }
 
     public String getTitle() {
         return task.getTitle();
@@ -58,6 +82,10 @@ public class TTask extends RealmObject {
     @Nullable
     public Date getDue() {
         return task.getDue();
+    }
+
+    public boolean isCompleted() {
+        return task.getCompleted() != null;
     }
 
     @Nullable

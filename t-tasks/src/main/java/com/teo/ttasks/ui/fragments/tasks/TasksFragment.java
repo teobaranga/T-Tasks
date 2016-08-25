@@ -14,6 +14,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.util.Pair;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,6 +32,7 @@ import com.teo.ttasks.ui.activities.edit_task.EditTaskActivity;
 import com.teo.ttasks.ui.activities.task_detail.TaskDetailActivity;
 import com.teo.ttasks.ui.items.TaskItem;
 
+import java.util.Arrays;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -55,9 +57,9 @@ public class TasksFragment extends Fragment implements TasksView, SwipeRefreshLa
     private FastAdapter<IItem> fastAdapter;
     private ItemAdapter<IItem> itemAdapter;
 
-    private String taskListId;
+    @Nullable String taskListId;
 
-    private FragmentTasksBinding tasksBinding;
+    FragmentTasksBinding tasksBinding;
 
     /**
      * The navigation bar view along with its associated transition name, used as a shared
@@ -69,7 +71,10 @@ public class TasksFragment extends Fragment implements TasksView, SwipeRefreshLa
      *
      * @see <a href="http://stackoverflow.com/q/32501024/5606622">Shared elements overflow navigation bar in transition animation</a>
      */
-    private Pair<View, String> navBar;
+    Pair<View, String> navBar;
+
+    @SuppressWarnings("unchecked")
+    Pair<View, String>[] pairs = new Pair[3];
 
     private final FastAdapter.OnClickListener<IItem> taskItemClickListener = new FastAdapter.OnClickListener<IItem>() {
         // Reject quick, successive clicks because they break the app
@@ -85,11 +90,11 @@ public class TasksFragment extends Fragment implements TasksView, SwipeRefreshLa
                     if (navBar.first == null)
                         createNavBarPair();
 
-                    TaskItem.ViewHolder viewHolder = ((TaskItem) item).getViewHolder(v);
-                    Pair<View, String> fab = Pair.create(tasksBinding.fab, getString(R.string.transition_fab));
-                    Pair<View, String> taskHeader = Pair.create(viewHolder.taskLayout, getString(R.string.transition_task_header));
-                    //noinspection unchecked
-                    ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(getActivity(), taskHeader, fab);
+                    pairs[1] = Pair.create(((TaskItem) item).getViewHolder(v).binding.layoutTask, getString(R.string.transition_task_header));
+
+                    Pair<View, String>[] sharedElements = tasksBinding.fab.isShown() ? pairs : Arrays.copyOf(pairs, 2);
+
+                    ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(getActivity(), sharedElements);
                     TaskDetailActivity.start(getContext(), ((TaskItem) item).getTaskId(), taskListId, options.toBundle());
                 }
             }
@@ -100,7 +105,7 @@ public class TasksFragment extends Fragment implements TasksView, SwipeRefreshLa
     /**
      * Create a new instance of this fragment using the provided task list ID
      */
-    public static TasksFragment newInstance(String taskListId) {
+    public static TasksFragment newInstance(@Nullable String taskListId) {
         TasksFragment tasksFragment = new TasksFragment();
         Bundle args = new Bundle();
         args.putString(ARG_TASK_LIST_ID, taskListId);
@@ -111,12 +116,21 @@ public class TasksFragment extends Fragment implements TasksView, SwipeRefreshLa
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        taskListId = getArguments().getString(ARG_TASK_LIST_ID);
         TTasksApp.get(getContext()).userComponent().inject(this);
         fastAdapter = new FastAdapter<>();
         itemAdapter = new ItemAdapter<>();
 
+        String taskListArg = getArguments().getString(ARG_TASK_LIST_ID);
+        if (taskListArg != null) {
+            taskListId = taskListArg;
+        } else if (savedInstanceState != null) {
+            taskListArg = savedInstanceState.getString(ARG_TASK_LIST_ID);
+            if (taskListArg != null)
+                taskListId = taskListArg;
+        }
+
         createNavBarPair();
+
         fastAdapter.withOnClickListener(taskItemClickListener);
 
         networkInfoReceiver = new NetworkInfoReceiver();
@@ -134,6 +148,8 @@ public class TasksFragment extends Fragment implements TasksView, SwipeRefreshLa
         tasksBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_tasks, container, false);
         View view = tasksBinding.getRoot();
 
+        pairs[2] = Pair.create(tasksBinding.fab, getString(R.string.transition_fab));
+
         getContext().registerReceiver(networkInfoReceiver, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
 
         return view;
@@ -146,26 +162,31 @@ public class TasksFragment extends Fragment implements TasksView, SwipeRefreshLa
 
         tasksBinding.fab.setOnClickListener(view1 -> EditTaskActivity.startCreate(this, taskListId, null));
 
-        // All the task items have the same size
         tasksBinding.tasksList.setLayoutManager(new LinearLayoutManager(getContext()));
         tasksBinding.tasksList.setAdapter(itemAdapter.wrap(fastAdapter));
+        tasksBinding.tasksList.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            private static final int THRESHOLD = 0;
+
+            @Override public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+                if (dy > THRESHOLD)
+                    tasksBinding.fab.hide();
+                else if (dy < -THRESHOLD)
+                    tasksBinding.fab.show();
+            }
+        });
 
         tasksBinding.swipeRefreshLayout.setOnRefreshListener(this);
 
         tasksPresenter.getTasks(taskListId);
 
         // Synchronize tasks and then refresh this task list
-        if (networkInfoReceiver.isOnline(getContext()))
-            tasksPresenter.syncTasks(taskListId);
+        refreshTasks();
     }
 
     @Override
     public void onRefresh() {
-        if (networkInfoReceiver.isOnline(getContext())) {
-            tasksPresenter.syncTasks(taskListId);
-        } else {
-            onRefreshDone();
-        }
+        refreshTasks();
     }
 
     @Override
@@ -233,6 +254,12 @@ public class TasksFragment extends Fragment implements TasksView, SwipeRefreshLa
     }
 
     @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString(ARG_TASK_LIST_ID, taskListId);
+    }
+
+    @Override
     public void onDestroyView() {
         super.onDestroyView();
         tasksPresenter.unbindView(this);
@@ -240,14 +267,29 @@ public class TasksFragment extends Fragment implements TasksView, SwipeRefreshLa
     }
 
     /** Cache the Pair holding the navigation bar view and its associated transition name */
-    private void createNavBarPair() {
+    void createNavBarPair() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             final View navBarView = getActivity().getWindow().getDecorView().findViewById(android.R.id.navigationBarBackground);
             navBar = Pair.create(navBarView, NAVIGATION_BAR_BACKGROUND_TRANSITION_NAME);
+            pairs[0] = navBar;
         }
     }
 
-    public String getTaskListId() {
-        return taskListId;
+    private void refreshTasks() {
+        if (!networkInfoReceiver.isOnline(getContext()) || taskListId == null) {
+            onRefreshDone();
+        } else {
+            tasksPresenter.syncTasks(taskListId);
+        }
+    }
+
+    public void setTaskList(String newTaskListId) {
+        if (!newTaskListId.equals(taskListId)) {
+            taskListId = newTaskListId;
+            if (tasksPresenter != null) {
+                tasksPresenter.getTasks(taskListId);
+                refreshTasks();
+            }
+        }
     }
 }

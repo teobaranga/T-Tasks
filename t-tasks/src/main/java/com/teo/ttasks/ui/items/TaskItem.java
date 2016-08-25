@@ -8,7 +8,6 @@ import android.support.v7.widget.RecyclerView;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
 import android.view.View;
-import android.widget.TextView;
 
 import com.mikepenz.fastadapter.items.AbstractItem;
 import com.teo.ttasks.R;
@@ -20,8 +19,6 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.Locale;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import timber.log.Timber;
@@ -64,20 +61,19 @@ public class TaskItem extends AbstractItem<TaskItem, TaskItem.ViewHolder> implem
         return returnCode;
     };
 
-    private static DisplayMetrics sDisplayMetrics;
-
-    @Getter public String taskId;
+    @Getter private String taskId;
+    @Getter private String title;
+    @Getter private String notes;
     @Getter private Date dueDate;
     @Getter private Date completed;
     @Getter private Date reminder;
-
-    private final TTask tTask;
 
     /** Flag indicating that this task item should combine with the previous task item in the list */
     private boolean combined;
 
     public TaskItem(TTask tTask) {
-        this.tTask = tTask;
+        title = tTask.getTitle();
+        notes = tTask.getNotes();
         dueDate = tTask.getDue();
         completed = tTask.getCompleted();
         reminder = tTask.getReminder();
@@ -98,60 +94,61 @@ public class TaskItem extends AbstractItem<TaskItem, TaskItem.ViewHolder> implem
     public void bindView(ViewHolder viewHolder) {
         super.bindView(viewHolder);
 
-        ItemTaskBinding itemTaskBinding = viewHolder.itemTaskBinding;
-        itemTaskBinding.setTask(tTask);
+        final ItemTaskBinding binding = viewHolder.binding;
 
         int px = 0;
         RecyclerView.LayoutParams layoutParams = ((RecyclerView.LayoutParams) viewHolder.itemView.getLayoutParams());
         if (combined)
-            px = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 10, sDisplayMetrics);
+            px = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 10, ViewHolder.displayMetrics);
         layoutParams.setMargins(0, -px, 0, 0);
         viewHolder.itemView.setLayoutParams(layoutParams);
 
-        // Task description
-        itemTaskBinding.taskDescription.setVisibility(tTask.getNotes() == null ? GONE : VISIBLE);
+        // Title
+        binding.taskTitle.setText(title);
 
+        // Task description
+        if (notes != null) {
+            binding.taskDescription.setText(notes);
+            binding.taskDescription.setVisibility(VISIBLE);
+        } else {
+            binding.taskDescription.setVisibility(GONE);
+        }
+
+        // Due date / Completed date
         if (completed != null && !combined) {
             // Mon
             simpleDateFormat.applyLocalizedPattern("EEE");
-            viewHolder.dateDayName.setText(simpleDateFormat.format(completed));
+            binding.dateDayName.setText(simpleDateFormat.format(completed));
             // 1
             simpleDateFormat.applyLocalizedPattern("d");
-            viewHolder.dateDayNumber.setText(simpleDateFormat.format(completed));
+            binding.dateDayNumber.setText(simpleDateFormat.format(completed));
             // 12:00PM
-            viewHolder.layoutDate.setVisibility(VISIBLE);
+            binding.dateLayout.setVisibility(VISIBLE);
         } else if (dueDate != null && !combined) {
             // Mon
             simpleDateFormat.applyLocalizedPattern("EEE");
-            viewHolder.dateDayName.setText(simpleDateFormat.format(dueDate));
+            binding.dateDayName.setText(simpleDateFormat.format(dueDate));
             // 1
             simpleDateFormat.applyLocalizedPattern("d");
-            viewHolder.dateDayNumber.setText(simpleDateFormat.format(dueDate));
+            binding.dateDayNumber.setText(simpleDateFormat.format(dueDate));
             // 12:00PM
-            viewHolder.layoutDate.setVisibility(VISIBLE);
+            binding.dateLayout.setVisibility(VISIBLE);
         } else {
-            viewHolder.dateDayNumber.setText(null);
-            viewHolder.dateDayName.setText(null);
+            binding.dateDayNumber.setText(null);
+            binding.dateDayName.setText(null);
             if (!combined)
-                viewHolder.layoutDate.setVisibility(GONE);
+                binding.dateLayout.setVisibility(GONE);
         }
 
+        // Reminder
         if (reminder != null) {
             Timber.d("reminder is not null");
             simpleDateFormat.applyLocalizedPattern("hh:mma");
-            viewHolder.reminderTime.setText(simpleDateFormat.format(reminder));
-            viewHolder.reminderTime.setVisibility(VISIBLE);
+            binding.reminder.setText(simpleDateFormat.format(reminder));
+            binding.reminder.setVisibility(VISIBLE);
         } else {
-            viewHolder.reminderTime.setVisibility(GONE);
+            binding.reminder.setVisibility(GONE);
         }
-    }
-
-    public String getTitle() {
-        return tTask.getTitle();
-    }
-
-    public String getNotes() {
-        return tTask.getNotes();
     }
 
     /**
@@ -177,21 +174,16 @@ public class TaskItem extends AbstractItem<TaskItem, TaskItem.ViewHolder> implem
     //The viewHolder used for this item. This viewHolder is always reused by the RecyclerView so scrolling is blazing fast
     public static class ViewHolder extends RecyclerView.ViewHolder {
 
-        @BindView(R.id.layout_task) public View taskLayout;
-        @BindView(R.id.layout_date) View layoutDate;
-        @BindView(R.id.date_day_number) TextView dateDayNumber;
-        @BindView(R.id.date_day_name) TextView dateDayName;
-        @BindView(R.id.task_reminder) TextView reminderTime;
+        static DisplayMetrics displayMetrics;
 
-        ItemTaskBinding itemTaskBinding;
+        public ItemTaskBinding binding;
 
         public ViewHolder(View view) {
             super(view);
-            itemTaskBinding = DataBindingUtil.bind(view);
-            ButterKnife.bind(this, view);
+            binding = DataBindingUtil.bind(view);
             Drawable reminderIcon = VectorDrawableCompat.create(view.getResources(), R.drawable.ic_alarm_18dp, view.getContext().getTheme());
-            reminderTime.setCompoundDrawablesWithIntrinsicBounds(reminderIcon, null, null, null);
-            sDisplayMetrics = view.getContext().getResources().getDisplayMetrics();
+            binding.reminder.setCompoundDrawablesWithIntrinsicBounds(reminderIcon, null, null, null);
+            displayMetrics = view.getContext().getResources().getDisplayMetrics();
         }
     }
 }

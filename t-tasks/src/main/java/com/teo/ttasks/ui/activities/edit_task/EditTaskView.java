@@ -29,4 +29,6 @@ public interface EditTaskView extends MvpView, OnDateSetListener, OnTimeSetListe
     void onTitleChanged(CharSequence title, int start, int before, int count);
 
     void onNotesChanged(CharSequence notes, int start, int before, int count);
+
+    void triggerWidgetUpdate();
 }
