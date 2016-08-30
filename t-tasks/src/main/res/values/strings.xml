@@ -22,6 +22,7 @@
     <string name="menu_sort_due_date">Due date</string>
     <string name="menu_sort_alphabetical">Alphabetical</string>
     <string name="menu_hide_completed">Hide completed</string>
+    <string name="menu_show_completed">Show completed</string>
 
     <!-- Tasks -->
     <string name="msg_task_list_empty">Empty task list</string>
@@ -77,5 +78,10 @@
     <string name="notification_more_info">Tap for more information</string>
     <string name="tasks">Tasks</string>
     <string name="task_lists">Task Lists</string>
+
+    <!-- Share -->
+    <string name="share_task">Share task</string>
+    <string name="extra_due_date">\nDue date: %s</string>
+    <string name="extra_notes">\nNotes: %s</string>
 
 </resources>

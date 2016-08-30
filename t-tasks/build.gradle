@@ -41,6 +41,14 @@ android {
             resValue "string", "app_name", "T-Tasks"
         }
     }
+    splits {
+        abi {
+            enable true
+            reset()
+            include 'x86', 'armeabi-v7a', 'mips'
+            universalApk false
+        }
+    }
     dataBinding {
         enabled = true
     }
@@ -77,9 +85,9 @@ dependencies {
 
     compile libraries.rxJava
     compile libraries.rxAndroid
-    compile libraries.rxLint
 
     compile libraries.supportDesign
+    compile libraries.supportFragment
 
     compile libraries.timber
 
@@ -101,7 +109,7 @@ dependencies {
     }
     compile('com.mikepenz:aboutlibraries:5.7.1@aar') { transitive = true }
     compile('com.mikepenz:fastadapter:1.6.1@aar') { transitive = true }
-    compile('com.mikepenz:materialdrawer:5.5.0@aar') { transitive = true }
+    compile('com.mikepenz:materialdrawer:5.6.0@aar') { transitive = true }
     compile 'com.mikepenz:google-material-typeface:2.2.0.1@aar'
     compile 'com.squareup.picasso:picasso:2.5.2'
     compile 'com.artemzin.rxjava:proguard-rules:1.1.9.0'

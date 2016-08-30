@@ -9,6 +9,8 @@ import com.teo.ttasks.R;
 import com.teo.ttasks.data.model.TaskList;
 import com.teo.ttasks.databinding.ItemTaskListBinding;
 
+import java.util.List;
+
 public class TaskListItem extends AbstractItem<TaskListItem, TaskListItem.ViewHolder> {
 
     private final TaskList taskList;
@@ -28,8 +30,8 @@ public class TaskListItem extends AbstractItem<TaskListItem, TaskListItem.ViewHo
     }
 
     @Override
-    public void bindView(ViewHolder viewHolder) {
-        super.bindView(viewHolder);
+    public void bindView(ViewHolder viewHolder, List payloads) {
+        super.bindView(viewHolder, payloads);
 
         ItemTaskListBinding itemTaskBinding = viewHolder.itemTaskListBinding;
         itemTaskBinding.setTaskList(taskList);

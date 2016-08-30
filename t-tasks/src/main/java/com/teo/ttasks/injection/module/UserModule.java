@@ -2,6 +2,7 @@ package com.teo.ttasks.injection.module;
 
 import com.teo.ttasks.api.PeopleApi;
 import com.teo.ttasks.data.local.PrefHelper;
+import com.teo.ttasks.data.local.WidgetHelper;
 import com.teo.ttasks.data.remote.TasksHelper;
 import com.teo.ttasks.ui.activities.edit_task.EditTaskPresenter;
 import com.teo.ttasks.ui.activities.main.MainActivityPresenter;
@@ -17,8 +18,8 @@ import dagger.Provides;
 public class UserModule {
 
     @Provides
-    TasksPresenter provideTasksPresenter(TasksHelper tasksHelper) {
-        return new TasksPresenter(tasksHelper);
+    TasksPresenter provideTasksPresenter(TasksHelper tasksHelper, PrefHelper prefHelper) {
+        return new TasksPresenter(tasksHelper, prefHelper);
     }
 
     @Provides
@@ -32,13 +33,13 @@ public class UserModule {
     }
 
     @Provides
-    EditTaskPresenter provideEditTaskPresenter(TasksHelper tasksHelper, PrefHelper prefHelper) {
-        return new EditTaskPresenter(tasksHelper, prefHelper);
+    EditTaskPresenter provideEditTaskPresenter(TasksHelper tasksHelper, PrefHelper prefHelper, WidgetHelper widgetHelper) {
+        return new EditTaskPresenter(tasksHelper, prefHelper, widgetHelper);
     }
 
     @Provides
-    TaskDetailPresenter provideTaskDetailPresenter(TasksHelper tasksHelper) {
-        return new TaskDetailPresenter(tasksHelper);
+    TaskDetailPresenter provideTaskDetailPresenter(TasksHelper tasksHelper, WidgetHelper widgetHelper) {
+        return new TaskDetailPresenter(tasksHelper, widgetHelper);
     }
 
     // TODO: 2016-07-27 maybe this belongs to another component

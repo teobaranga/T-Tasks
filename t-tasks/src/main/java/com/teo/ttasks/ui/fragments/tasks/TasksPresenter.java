@@ -4,6 +4,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import com.google.android.gms.auth.UserRecoverableAuthException;
+import com.teo.ttasks.data.local.PrefHelper;
 import com.teo.ttasks.data.remote.TasksHelper;
 import com.teo.ttasks.ui.base.Presenter;
 import com.teo.ttasks.util.RxUtils;
@@ -18,22 +19,34 @@ import timber.log.Timber;
 public class TasksPresenter extends Presenter<TasksView> {
 
     private final TasksHelper tasksHelper;
+    private final PrefHelper prefHelper;
+
+    private Subscription tasksSubscription;
 
     private Realm realm;
 
-    public TasksPresenter(TasksHelper tasksHelper) {
+    public TasksPresenter(TasksHelper tasksHelper, PrefHelper prefHelper) {
         this.tasksHelper = tasksHelper;
+        this.prefHelper = prefHelper;
     }
 
+    /**
+     * Load the tasks associated with the provided task list from the local database.
+     *
+     * @param taskListId task list identifier
+     */
     void getTasks(@Nullable String taskListId) {
         if (taskListId == null)
             return;
+        // Since Realm observables do not complete, this subscription must be recreated every time
+        if (tasksSubscription != null && !tasksSubscription.isUnsubscribed())
+            tasksSubscription.unsubscribe();
         {
             final TasksView view = view();
             if (view != null) view.onTasksLoading();
         }
-        final Subscription subscription = tasksHelper.getTasks(taskListId, realm)
-                .compose(RxUtils.getTaskItems())
+        tasksSubscription = tasksHelper.getTasks(taskListId, realm)
+                .compose(RxUtils.getTaskItems(prefHelper.getHideCompleted()))
                 .subscribe(
                         // The Realm observable will not throw errors
                         tasks -> {
@@ -44,7 +57,7 @@ public class TasksPresenter extends Presenter<TasksView> {
                                 else view.showContentUi(tasks);
                             }
                         });
-        unsubscribeOnUnbindView(subscription);
+        unsubscribeOnUnbindView(tasksSubscription);
     }
 
     void refreshTasks(@Nullable String taskListId) {
@@ -107,6 +120,14 @@ public class TasksPresenter extends Presenter<TasksView> {
                         }
                 );
         unsubscribeOnUnbindView(subscription);
+    }
+
+    void setHideCompleted(boolean hideCompleted) {
+        prefHelper.setHideCompleted(hideCompleted);
+    }
+
+    boolean getHideCompleted() {
+        return prefHelper.getHideCompleted();
     }
 
     @Override

@@ -22,6 +22,11 @@ public class BindingAdapters {
         view.setText(date != null ? DateUtils.formatTime(view.getContext(), date) : view.getResources().getString(R.string.due_time_all_day));
     }
 
+    @BindingAdapter({"reminder"})
+    public static void bindReminder(TextView view, Date date) {
+        view.setText(date != null ? DateUtils.formatTime(view.getContext(), date) : null);
+    }
+
     @BindingAdapter({"srcCompat"})
     public static void bindSrcCompat(ImageView view, @DrawableRes int resId) {
         view.setImageResource(resId);

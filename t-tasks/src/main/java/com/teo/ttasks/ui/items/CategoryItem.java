@@ -71,8 +71,8 @@ public class CategoryItem extends AbstractItem<CategoryItem, CategoryItem.ViewHo
     }
 
     @Override
-    public void bindView(ViewHolder viewHolder) {
-        super.bindView(viewHolder);
+    public void bindView(ViewHolder viewHolder, List payloads) {
+        super.bindView(viewHolder, payloads);
 
         final ItemCategoryBinding binding = viewHolder.itemCategoryBinding;
 

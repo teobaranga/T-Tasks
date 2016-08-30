@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
               xmlns:tools="http://schemas.android.com/tools"
               android:layout_width="match_parent"
@@ -13,11 +14,13 @@
 
         <TextView
             android:id="@+id/task_list_title"
-            style="@style/TextAppearance.AppCompat.Title"
+            style="@style/TextAppearance.AppCompat.Large"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
             android:maxLines="1"
-            android:padding="8dp"
+            android:paddingLeft="8dp"
+            android:paddingRight="8dp"
             tools:text="My Tasks"/>
 
         <ImageView
@@ -25,8 +28,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="end|center_vertical"
-            android:layout_margin="8dp"
             android:contentDescription="@string/description_add_task"
+            android:padding="8dp"
             tools:src="@drawable/ic_add_white_24dp"/>
 
     </FrameLayout>
@@ -35,10 +38,11 @@
         android:id="@+id/widget_task_list"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:clipChildren="false"
+        android:clipToPadding="false"
         android:divider="@null"
         android:paddingBottom="6dp"
         android:paddingTop="6dp"
-        android:scrollbars="vertical"
         tools:listitem="@layout/item_task_widget"/>
 
 </LinearLayout>

@@ -3,7 +3,6 @@ package com.teo.ttasks.widget;
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -32,22 +31,6 @@ import timber.log.Timber;
 public class TasksWidgetProvider extends AppWidgetProvider {
 
     @Inject PrefHelper prefHelper;
-
-    /**
-     * Update all the widgets
-     *
-     * @param context    context
-     * @param taskListId task list identifier
-     */
-    public static void updateWidgets(Context context, String taskListId) {
-        final AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
-        int[] ids = appWidgetManager.getAppWidgetIds(new ComponentName(context, TasksWidgetProvider.class));
-        PrefHelper prefHelper = new PrefHelper(context);
-        for (int id : ids) {
-            if (taskListId.equals(prefHelper.getWidgetTaskListId(id)))
-                appWidgetManager.notifyAppWidgetViewDataChanged(id, R.id.widget_task_list);
-        }
-    }
 
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
@@ -130,12 +113,11 @@ public class TasksWidgetProvider extends AppWidgetProvider {
                 .equalTo("id", taskListId)
                 .findFirst();
 
-        // The task list can be null when upgrading the Realm scheme
+        // The task list can be null when upgrading the Realm scheme, prevent crashing
         if (taskList != null) {
             // Set the task list title
             views.setTextViewText(R.id.task_list_title, taskList.getTitle());
         }
-        // TODO: 2016-08-24 handle null task list
 
         // Setup the header
         Intent viewTaskListIntent = new Intent(context, MainActivity.class);

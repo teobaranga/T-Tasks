@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.widget.RemoteViews;
 import android.widget.RemoteViewsService;
 
-import com.mikepenz.fastadapter.IItem;
 import com.teo.ttasks.R;
 import com.teo.ttasks.TTasksApp;
 import com.teo.ttasks.data.model.TTask;
@@ -15,7 +14,6 @@ import com.teo.ttasks.ui.items.TaskItem;
 import com.teo.ttasks.util.RxUtils;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -77,16 +75,8 @@ public class TasksRemoteViewsFactory implements RemoteViewsService.RemoteViewsFa
         if (tasks.isEmpty())
             return;
         Observable.just(tasks)
-                .compose(RxUtils.getTaskItems())
-                .map(iItems -> {
-                    // Get only taskItems that are in progress
-                    List<TaskItem> taskItems = new ArrayList<>();
-                    for (IItem iItem : iItems) {
-                        if (iItem instanceof TaskItem && ((TaskItem) iItem).getCompleted() == null)
-                            taskItems.add((TaskItem) iItem);
-                    }
-                    return taskItems;
-                })
+                .compose(RxUtils.getTaskItems(true))
+                .cast((Class<List<TaskItem>>) (Class<?>) List.class)
                 .subscribe(
                         taskItems -> {
                             this.taskItems = taskItems;

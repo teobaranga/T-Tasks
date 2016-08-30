@@ -34,35 +34,37 @@ public class TaskNotificationReceiver extends BroadcastReceiver {
         NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         int id = intent.getIntExtra(NOTIFICATION_ID, 0);
 
-        switch (intent.getAction()) {
-            case ACTION_PUBLISH:
-                // Display the notification
-                Notification notification = intent.getParcelableExtra(NOTIFICATION);
-                notificationManager.notify(id, notification);
-                break;
-            case ACTION_COMPLETE:
-                TTasksApp.get(context).userComponent().inject(this);
-                String taskId = intent.getStringExtra(TASK_ID);
-                Realm realm = Realm.getDefaultInstance();
-                // Mark the task as completed
-                tasksHelper.updateCompletionStatus(taskId, realm)
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe(
-                                tTask -> {
-                                    Toast.makeText(context, "Task completed", Toast.LENGTH_SHORT).show();
-                                    // Update successful, update sync status
-                                    realm.executeTransaction(realm1 -> tTask.setSynced(true));
-                                    realm.close();
-                                    notificationManager.cancel(id);
-                                },
-                                throwable -> {
-                                    Timber.e(throwable.toString());
-                                    Toast.makeText(context, "Error: task not found", Toast.LENGTH_SHORT).show();
-                                    realm.close();
-                                    notificationManager.cancel(id);
-                                }
-                        );
-                break;
-        }
+        final String action = intent.getAction();
+        if (action != null)
+            switch (action) {
+                case ACTION_PUBLISH:
+                    // Display the notification
+                    Notification notification = intent.getParcelableExtra(NOTIFICATION);
+                    notificationManager.notify(id, notification);
+                    break;
+                case ACTION_COMPLETE:
+                    TTasksApp.get(context).userComponent().inject(this);
+                    String taskId = intent.getStringExtra(TASK_ID);
+                    Realm realm = Realm.getDefaultInstance();
+                    // Mark the task as completed
+                    tasksHelper.updateCompletionStatus(taskId, realm)
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(
+                                    tTask -> {
+                                        Toast.makeText(context, "Task completed", Toast.LENGTH_SHORT).show();
+                                        // Update successful, update sync status
+                                        realm.executeTransaction(realm1 -> tTask.setSynced(true));
+                                        realm.close();
+                                        notificationManager.cancel(id);
+                                    },
+                                    throwable -> {
+                                        Timber.e(throwable.toString());
+                                        Toast.makeText(context, "Error: task not found", Toast.LENGTH_SHORT).show();
+                                        realm.close();
+                                        notificationManager.cancel(id);
+                                    }
+                            );
+                    break;
+            }
     }
 }

@@ -6,6 +6,7 @@ import android.databinding.DataBindingUtil;
 import android.net.ConnectivityManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -16,6 +17,9 @@ import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
@@ -51,11 +55,6 @@ public class TasksFragment extends Fragment implements TasksView, SwipeRefreshLa
     private static final int RC_USER_RECOVERABLE = 1;
 
     @Inject TasksPresenter tasksPresenter;
-
-    private NetworkInfoReceiver networkInfoReceiver;
-
-    private FastAdapter<IItem> fastAdapter;
-    private ItemAdapter<IItem> itemAdapter;
 
     @Nullable String taskListId;
 
@@ -102,32 +101,31 @@ public class TasksFragment extends Fragment implements TasksView, SwipeRefreshLa
         }
     };
 
+    private NetworkInfoReceiver networkInfoReceiver;
+    private FastAdapter<IItem> fastAdapter;
+    private ItemAdapter<IItem> itemAdapter;
+
+    private boolean hideCompleted;
+
     /**
-     * Create a new instance of this fragment using the provided task list ID
+     * Create a new instance of this fragment
      */
-    public static TasksFragment newInstance(@Nullable String taskListId) {
-        TasksFragment tasksFragment = new TasksFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_TASK_LIST_ID, taskListId);
-        tasksFragment.setArguments(args);
-        return tasksFragment;
+    public static TasksFragment newInstance() {
+        return new TasksFragment();
     }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
         TTasksApp.get(getContext()).userComponent().inject(this);
         fastAdapter = new FastAdapter<>();
         itemAdapter = new ItemAdapter<>();
 
-        String taskListArg = getArguments().getString(ARG_TASK_LIST_ID);
-        if (taskListArg != null) {
-            taskListId = taskListArg;
-        } else if (savedInstanceState != null) {
-            taskListArg = savedInstanceState.getString(ARG_TASK_LIST_ID);
-            if (taskListArg != null)
-                taskListId = taskListArg;
+        if (savedInstanceState != null) {
+            taskListId = savedInstanceState.getString(ARG_TASK_LIST_ID);
         }
+        hideCompleted = tasksPresenter.getHideCompleted();
 
         createNavBarPair();
 
@@ -141,6 +139,32 @@ public class TasksFragment extends Fragment implements TasksView, SwipeRefreshLa
                 tasksPresenter.syncTasks(taskListId);
             }
         });
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        inflater.inflate(R.menu.menu_tasks, menu);
+        final MenuItem item = menu.findItem(R.id.menu_show_hide_completed);
+        item.setTitle(hideCompleted ? R.string.menu_show_completed : R.string.menu_hide_completed);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.menu_show_hide_completed:
+                // toggle the visibility of completed tasks
+                hideCompleted = !hideCompleted;
+                // update the presenter and reload the tasks
+                if (tasksPresenter != null) {
+                    tasksPresenter.setHideCompleted(hideCompleted);
+                    tasksPresenter.getTasks(taskListId);
+                }
+                // Update the menu item title after a small delay
+                new Handler().postDelayed(() -> item.setTitle(hideCompleted ? R.string.menu_show_completed : R.string.menu_hide_completed), 200);
+                return false;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
@@ -275,6 +299,9 @@ public class TasksFragment extends Fragment implements TasksView, SwipeRefreshLa
         }
     }
 
+    /**
+     * Trigger the refresh process on an active network connection.
+     */
     private void refreshTasks() {
         if (!networkInfoReceiver.isOnline(getContext()) || taskListId == null) {
             onRefreshDone();
@@ -283,6 +310,11 @@ public class TasksFragment extends Fragment implements TasksView, SwipeRefreshLa
         }
     }
 
+    /**
+     * Switch the task list associated with this fragment and reload the tasks.
+     *
+     * @param newTaskListId task list identifier
+     */
     public void setTaskList(String newTaskListId) {
         if (!newTaskListId.equals(taskListId)) {
             taskListId = newTaskListId;

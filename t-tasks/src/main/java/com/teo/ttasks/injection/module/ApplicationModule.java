@@ -2,6 +2,7 @@ package com.teo.ttasks.injection.module;
 
 import com.teo.ttasks.TTasksApp;
 import com.teo.ttasks.data.local.PrefHelper;
+import com.teo.ttasks.data.local.WidgetHelper;
 import com.teo.ttasks.receivers.NetworkInfoReceiver;
 
 import javax.inject.Singleton;
@@ -29,6 +30,11 @@ public class ApplicationModule {
     @Provides @Singleton
     PrefHelper providePrefHelper() {
         return new PrefHelper(ttasksApp);
+    }
+
+    @Provides @Singleton
+    WidgetHelper provideWidgetHelper() {
+        return new WidgetHelper(ttasksApp);
     }
 
     @Provides @Singleton

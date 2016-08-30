@@ -1,14 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Base.Theme.TTasks" parent="Theme.AppCompat.Light">
+    <style name="Base.Theme.TTasks" parent="Theme.AppCompat.Light.DarkActionBar">
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+
+        <!--<item name="colorControlHighlight">@color/ripple_material_dark</item>-->
     </style>
 
     <!-- Main Theme -->
-    <style name="Base.Theme.Main" parent="MaterialDrawerTheme.Light.DarkToolbar.TranslucentStatus">
+    <style name="Base.Theme.TTasks.Main" parent="MaterialDrawerTheme.Light.DarkToolbar.TranslucentStatus">
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
@@ -17,7 +19,7 @@
         <item name="windowActionModeOverlay">true</item>
     </style>
 
-    <style name="Theme.Main" parent="Base.Theme.Main"/>
+    <style name="Theme.Main" parent="Base.Theme.TTasks.Main"/>
 
     <!-- Main Theme preview, used only for a better preview in Android Studio -->
     <style name="Theme.MainPreview" parent="Theme.AppCompat.Light.DarkActionBar">

@@ -1,8 +1,5 @@
 package com.teo.ttasks.ui.activities.main;
 
-import android.app.AlarmManager;
-import android.app.Notification;
-import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.databinding.DataBindingUtil;
@@ -14,8 +11,6 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 
@@ -39,14 +34,12 @@ import com.teo.ttasks.data.TaskListsAdapter;
 import com.teo.ttasks.data.model.TaskList;
 import com.teo.ttasks.databinding.ActivityMainBinding;
 import com.teo.ttasks.receivers.NetworkInfoReceiver;
-import com.teo.ttasks.receivers.TaskNotificationReceiver;
 import com.teo.ttasks.ui.activities.AboutActivity;
 import com.teo.ttasks.ui.activities.BaseActivity;
 import com.teo.ttasks.ui.activities.sign_in.SignInActivity;
 import com.teo.ttasks.ui.fragments.task_lists.TaskListsFragment;
 import com.teo.ttasks.ui.fragments.tasks.TasksFragment;
 
-import java.util.Date;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -70,15 +63,17 @@ public final class MainActivity extends BaseActivity implements MainView {
     @Inject MainActivityPresenter mainActivityPresenter;
     @Inject NetworkInfoReceiver networkInfoReceiver;
 
+    ProfileDrawerItem profile = null;
+    AccountHeader accountHeader = null;
+    TasksFragment tasksFragment;
+    TaskListsFragment taskListsFragment;
+
     private ActivityMainBinding mainBinding;
 
     private TaskListsAdapter taskListsAdapter;
 
     /** The profile of the currently logged in user */
     private Drawer drawer = null;
-    ProfileDrawerItem profile = null;
-    AccountHeader accountHeader = null;
-    TasksFragment tasksFragment;
 
     public static void start(Context context) {
         Intent starter = new Intent(context, MainActivity.class);
@@ -100,10 +95,20 @@ public final class MainActivity extends BaseActivity implements MainView {
 
         mainBinding = DataBindingUtil.setContentView(this, R.layout.activity_main);
 
-        // Create the tasks fragment
-        tasksFragment = TasksFragment.newInstance(null);
+        if (savedInstanceState == null) {
+            // Create the tasks fragment
+            tasksFragment = TasksFragment.newInstance();
+            taskListsFragment = TaskListsFragment.newInstance();
+        } else {
+            Fragment fragment = getSupportFragmentManager().findFragmentByTag("tasks");
+            if (fragment instanceof TasksFragment)
+                tasksFragment = (TasksFragment) fragment;
+            else
+                tasksFragment = TasksFragment.newInstance();
+        }
 
         //noinspection ConstantConditions
+        getSupportActionBar().setDisplayShowTitleEnabled(false);
         taskListsAdapter = new TaskListsAdapter(getSupportActionBar().getThemedContext());
         mainBinding.spinnerTaskLists.setAdapter(taskListsAdapter);
         mainBinding.spinnerTaskLists.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -183,16 +188,19 @@ public final class MainActivity extends BaseActivity implements MainView {
                     // The header and footer items don't contain a drawerItem
                     if (drawerItem != null) {
                         Fragment fragment = null;
+                        String tag = null;
                         switch ((int) drawerItem.getIdentifier()) {
                             case ID_TASKS:
                                 getSupportActionBar().setDisplayShowTitleEnabled(false);
                                 mainBinding.spinnerTaskLists.setVisibility(VISIBLE);
                                 fragment = tasksFragment;
+                                tag = "tasks";
                                 break;
                             case ID_TASK_LISTS:
                                 getSupportActionBar().setDisplayShowTitleEnabled(true);
                                 mainBinding.spinnerTaskLists.setVisibility(GONE);
                                 fragment = TaskListsFragment.newInstance();
+                                tag = "taskLists";
                                 break;
                             case ID_ABOUT:
                                 startActivity(new Intent(this, AboutActivity.class));
@@ -205,11 +213,12 @@ public final class MainActivity extends BaseActivity implements MainView {
                                     break;
                         }
                         Timber.d("fragment is %s", fragment);
-                        if (fragment != null)
+                        if (fragment != null) {
                             getSupportFragmentManager()
                                     .beginTransaction()
-                                    .replace(R.id.fragment_container, fragment)
+                                    .replace(R.id.fragment_container, fragment, tag)
                                     .commitAllowingStateLoss();
+                        }
                     }
                     return false;
                 })
@@ -285,42 +294,6 @@ public final class MainActivity extends BaseActivity implements MainView {
 //                }
 //                break;
 //        }
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_tasks, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.schedule_notification:
-                scheduleNotification(getNotification("Testing"), new Date());
-//                scheduleNotification(getTaskNotification("3 second delay"), 3000);
-                return false;
-        }
-        return super.onOptionsItemSelected(item);
-    }
-
-    private void scheduleNotification(Notification notification, Date date) {
-
-        Intent notificationIntent = new Intent(this, TaskNotificationReceiver.class);
-        notificationIntent.putExtra(TaskNotificationReceiver.NOTIFICATION_ID, 1);
-        notificationIntent.putExtra(TaskNotificationReceiver.NOTIFICATION, notification);
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-
-        AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-        alarmManager.set(AlarmManager.RTC_WAKEUP, date.getTime(), pendingIntent);
-    }
-
-    private Notification getNotification(String content) {
-        Notification.Builder builder = new Notification.Builder(this)
-                .setContentTitle("Scheduled Notification")
-                .setContentText(content)
-                .setSmallIcon(R.drawable.ic_assignment_turned_in_24dp);
-        return builder.build();
     }
 
     @Override

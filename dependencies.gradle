@@ -15,7 +15,7 @@ ext.versions = [
         rxJava                       : '1.1.9',
         rxLint                       : '1.0',
         rxAndroid                    : '1.2.1',
-        supportLibs                  : '24.1.1',
+        supportLibs                  : '24.2.0',
         okHttp                       : '3.4.1',
         retrofit                     : '2.1.0',
         jackson                      : '2.6.3',
@@ -66,7 +66,7 @@ ext.libraries = [
         okHttpLoggingInterceptor: "com.squareup.okhttp3:logging-interceptor:$versions.okHttp",
         retrofit                : "com.squareup.retrofit2:retrofit:$versions.retrofit",
         retrofitMoshi           : "com.squareup.retrofit2:converter-moshi:$versions.retrofit",
-        retrofitGson           : "com.squareup.retrofit2:converter-gson:$versions.retrofit",
+        retrofitGson            : "com.squareup.retrofit2:converter-gson:$versions.retrofit",
         retrofitRxJavaAdapter   : "com.squareup.retrofit2:adapter-rxjava:$versions.retrofit",
         jacksonDataBind         : "com.fasterxml.jackson.core:jackson-databind:$versions.jackson",
 
@@ -75,6 +75,7 @@ ext.libraries = [
         supportDesign           : "com.android.support:design:$versions.supportLibs",
         supportRecyclerView     : "com.android.support:recyclerview-v7:$versions.supportLibs",
         supportCardView         : "com.android.support:cardview-v7:$versions.supportLibs",
+        supportFragment         : "com.android.support:support-fragment:$versions.supportLibs",
 
         butterKnife             : "com.jakewharton:butterknife:$versions.butterKnife",
         butterKnifeCompiler     : "com.jakewharton:butterknife-compiler:$versions.butterKnife",

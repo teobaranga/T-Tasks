@@ -10,44 +10,22 @@ import android.support.v4.app.TaskStackBuilder;
 
 import com.teo.ttasks.R;
 import com.teo.ttasks.data.model.TTask;
-import com.teo.ttasks.data.model.Task;
 import com.teo.ttasks.receivers.TaskNotificationReceiver;
 import com.teo.ttasks.ui.activities.task_detail.TaskDetailActivity;
-
-import java.util.Date;
 
 public class NotificationUtils {
 
     private NotificationUtils() { }
 
-    public static void scheduleNotification(Context context, Notification notification, Date date) {
-
-        Intent notificationIntent = new Intent(context, TaskNotificationReceiver.class);
-        notificationIntent.putExtra(TaskNotificationReceiver.NOTIFICATION_ID, 1);
-        notificationIntent.putExtra(TaskNotificationReceiver.NOTIFICATION, notification);
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-
-        AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-        alarmManager.set(AlarmManager.RTC_WAKEUP, date.getTime(), pendingIntent);
-    }
-
-    public static Notification getTaskNotification(Context context, Task task) {
-        Notification.Builder builder = new Notification.Builder(context)
-                .setContentTitle(task.getTitle())
-                .setContentText("Click for more information")
-                .setSmallIcon(R.drawable.ic_assignment_turned_in_24dp);
-        return builder.build();
-    }
-
     /**
      * Schedule a notification to show up at the task's reminder date and time.
-     * Does nothing if the reminder date doesn't exist.
+     * Does nothing if the reminder date doesn't exist or if the task is already completed.
      *
      * @param context context
      * @param task    task
      */
     public static void scheduleTaskNotification(Context context, TTask task) {
-        if (task.getReminder() != null) {
+        if (!task.isCompleted() && task.getReminder() != null) {
             // TODO: 2016-08-11 have a unique notification id for every task
             int notificationId = 1;
 

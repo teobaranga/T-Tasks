@@ -39,14 +39,16 @@
 
                 <FrameLayout
                     android:id="@id/back_container"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content">
+                    android:layout_width="?attr/actionBarSize"
+                    android:layout_height="?attr/actionBarSize"
+                    android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
 
                     <ImageButton
+                        style="@style/Widget.AppCompat.ActionButton"
                         android:id="@id/back"
-                        android:layout_width="?android:actionBarSize"
-                        android:layout_height="?android:actionBarSize"
-                        android:background="?selectableItemBackgroundBorderless"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
                         android:contentDescription="@string/description_return_to_task_list"
                         android:onClick="onBackClicked"
                         app:srcCompat="@drawable/ic_clear_white_24dp"/>
@@ -89,34 +91,28 @@
                 </LinearLayout>
 
                 <LinearLayout
+                    android:id="@+id/bar"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_height="?attr/actionBarSize"
                     android:layout_gravity="end"
-                    android:layout_marginEnd="@dimen/margin_end_toolbar_actions"
-                    android:layout_marginRight="@dimen/margin_end_toolbar_actions"
-                    android:orientation="horizontal">
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
 
                     <ImageButton
                         android:id="@+id/edit"
+                        style="@style/Widget.AppCompat.ActionButton"
                         android:layout_width="wrap_content"
-                        android:layout_height="?android:actionBarSize"
-                        android:layout_marginLeft="@dimen/margin_toolbar_action"
-                        android:layout_marginRight="@dimen/margin_toolbar_action"
-                        android:background="?selectableItemBackgroundBorderless"
+                        android:layout_height="wrap_content"
                         android:contentDescription="@string/description_delete_task"
                         android:onClick="onEditClicked"
                         app:srcCompat="@drawable/ic_edit_24dp"/>
 
-                    <ImageButton
+                    <com.teo.ttasks.ui.OverflowMenuButton
                         android:id="@+id/more"
+                        style="@style/Widget.AppCompat.ActionButton.Overflow"
                         android:layout_width="wrap_content"
-                        android:layout_height="?android:actionBarSize"
-                        android:layout_marginLeft="@dimen/margin_toolbar_action"
-                        android:layout_marginRight="@dimen/margin_toolbar_action"
-                        android:background="?selectableItemBackgroundBorderless"
-                        android:contentDescription="@string/description_more"
-                        android:onClick="onOverflowClicked"
-                        app:srcCompat="@drawable/ic_more_vert_24dp"/>
+                        android:layout_height="wrap_content"/>
 
                 </LinearLayout>
 
@@ -131,7 +127,7 @@
                     android:id="@id/task_content"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:background="@android:color/background_light"
+                    android:background="?android:colorBackground"
                     android:clipChildren="false"
                     android:clipToPadding="false"
                     android:orientation="vertical"
@@ -226,6 +222,7 @@
                             android:hint="@string/no_reminder_set"
                             android:textColor="?android:textColorPrimary"
                             android:textSize="18sp"
+                            app:reminder="@{task.reminder}"
                             tools:text="1 hour before"/>
 
                         <TextView
@@ -275,8 +272,8 @@
             android:layout_height="wrap_content"
             android:clipChildren="false"
             android:clipToPadding="false"
-            app:layout_anchor="@id/task_content"
-            app:layout_anchorGravity="end">
+            app:layout_anchor="@id/task_header"
+            app:layout_anchorGravity="bottom|end">
 
             <android.support.design.widget.FloatingActionButton
                 android:id="@id/fab"

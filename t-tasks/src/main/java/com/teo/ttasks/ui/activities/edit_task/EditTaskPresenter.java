@@ -5,6 +5,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.util.Pair;
 
 import com.teo.ttasks.data.local.PrefHelper;
+import com.teo.ttasks.data.local.WidgetHelper;
 import com.teo.ttasks.data.model.TTask;
 import com.teo.ttasks.data.model.Task;
 import com.teo.ttasks.data.model.TaskFields;
@@ -24,8 +25,8 @@ public class EditTaskPresenter extends Presenter<EditTaskView> {
 
     private final TasksHelper tasksHelper;
     private final PrefHelper prefHelper;
+    private final WidgetHelper widgetHelper;
 
-    private String taskTitle;
     @Nullable private Date dueDate;
     @Nullable private Date reminder;
 
@@ -36,34 +37,40 @@ public class EditTaskPresenter extends Presenter<EditTaskView> {
 
     private Realm realm;
 
-    public EditTaskPresenter(TasksHelper tasksHelper, PrefHelper prefHelper) {
+    public EditTaskPresenter(TasksHelper tasksHelper, PrefHelper prefHelper, WidgetHelper widgetHelper) {
         this.tasksHelper = tasksHelper;
         this.prefHelper = prefHelper;
+        this.widgetHelper = widgetHelper;
         editTaskFields = new TaskFields();
     }
 
+    /**
+     * Load the task and display its information into the view.
+     *
+     * @param taskId task list identifier
+     */
     void loadTaskInfo(String taskId) {
         tasksHelper.getTask(taskId, realm)
                 .subscribe(
                         tTask -> {
-                            taskTitle = tTask.getTitle();
+                            if (tTask == null) {
+                                // Task not found, should never happen
+                                final EditTaskView view = view();
+                                if (view != null) view.onTaskLoadError();
+                                return;
+                            }
                             dueDate = tTask.getDue();
                             reminder = tTask.getReminder();
                             final EditTaskView view = view();
                             if (view != null) view.onTaskLoaded(tTask);
-                        },
-                        throwable -> {
-                            // Task not found, should never happen
-                            Timber.e(throwable.toString());
-                            final EditTaskView view = view();
-                            if (view != null) view.onTaskLoadError();
                         }
                 );
 
     }
 
     /**
-     * Load the task lists and find the index of the provided task list in the list
+     * Load the task lists and find the index of the provided task list in it.
+     * This is used to automatically select the task list to which the current task belongs.
      *
      * @param currentTaskListId task list identifier
      */
@@ -76,6 +83,7 @@ public class EditTaskPresenter extends Presenter<EditTaskView> {
                         if (taskList.getId().equals(currentTaskListId))
                             return new Pair<>(taskLists, i);
                     }
+                    // Index not found, select the first task list
                     return new Pair<>(taskLists, 0);
                 })
                 .subscribe(
@@ -152,12 +160,20 @@ public class EditTaskPresenter extends Presenter<EditTaskView> {
         reminder = oldCal.getTime();
     }
 
+    /**
+     * Set the title to be saved when the task is modified or a new one is created.
+     *
+     * @param taskTitle task title
+     */
     void setTaskTitle(String taskTitle) {
-        this.taskTitle = taskTitle;
-        Timber.d("Title: %s", this.taskTitle);
         editTaskFields.putTitle(taskTitle);
     }
 
+    /**
+     * Set the notes to be saved when the task is modified or a new one is created.
+     *
+     * @param taskNotes task notes
+     */
     void setTaskNotes(String taskNotes) {
         editTaskFields.putNotes(taskNotes);
     }
@@ -198,8 +214,7 @@ public class EditTaskPresenter extends Presenter<EditTaskView> {
                                 });
                                 Timber.d("new task with id %s", managedTask.getId());
                                 prefHelper.deleteLastTaskId();
-                                final EditTaskView view = view();
-                                if (view != null) view.triggerWidgetUpdate();
+                                widgetHelper.updateWidgets(taskListId);
                             },
                             throwable -> {
                                 Timber.e(throwable.toString());
@@ -208,10 +223,20 @@ public class EditTaskPresenter extends Presenter<EditTaskView> {
                             }
                     );
         }
+        widgetHelper.updateWidgets(taskListId);
         final EditTaskView view = view();
         if (view != null) view.onTaskSaved(tTask);
     }
 
+    /**
+     * Modify the specified task using the fields changed by the user. The task is
+     * first updated locally and then, if an active network connection is available,
+     * it is updated on the server.
+     *
+     * @param taskListId task list identifier
+     * @param taskId     task identifier
+     * @param isOnline   {@code true} if there is an active network connection
+     */
     void updateTask(String taskListId, String taskId, boolean isOnline) {
         // No changes, return
         if (editTaskFields.isEmpty()) {
@@ -223,6 +248,7 @@ public class EditTaskPresenter extends Presenter<EditTaskView> {
         TTask managedTask = tasksHelper.getTask(taskId, realm).toBlocking().first();
         realm.executeTransaction(realm -> {
             managedTask.update(editTaskFields);
+            managedTask.setReminder(reminder);
             managedTask.setSynced(false);
         });
         // Update the task on an active network connection
@@ -230,10 +256,13 @@ public class EditTaskPresenter extends Presenter<EditTaskView> {
             tasksHelper.updateTask(taskListId, taskId, editTaskFields)
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(
-                            task -> realm.executeTransaction(realm -> {
-                                realm.insertOrUpdate(task);
-                                managedTask.setSynced(true);
-                            }),
+                            task -> {
+                                realm.executeTransaction(realm -> {
+                                    realm.insertOrUpdate(task);
+                                    managedTask.setSynced(true);
+                                });
+                                widgetHelper.updateWidgets(taskListId);
+                            },
                             throwable -> {
                                 Timber.e(throwable.toString());
                                 final EditTaskView view = view();
@@ -241,6 +270,7 @@ public class EditTaskPresenter extends Presenter<EditTaskView> {
                             }
                     );
         }
+        widgetHelper.updateWidgets(taskListId);
         final EditTaskView view = view();
         if (view != null) view.onTaskSaved(managedTask);
     }

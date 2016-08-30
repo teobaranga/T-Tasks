@@ -2,6 +2,7 @@ package com.teo.ttasks.ui.activities.task_detail;
 
 import android.support.annotation.NonNull;
 
+import com.teo.ttasks.data.local.WidgetHelper;
 import com.teo.ttasks.data.model.TTask;
 import com.teo.ttasks.data.remote.TasksHelper;
 import com.teo.ttasks.ui.base.Presenter;
@@ -12,13 +13,15 @@ import timber.log.Timber;
 public class TaskDetailPresenter extends Presenter<TaskDetailView> {
 
     private final TasksHelper tasksHelper;
+    private final WidgetHelper widgetHelper;
 
     private Realm realm;
 
     private TTask tTask;
 
-    public TaskDetailPresenter(TasksHelper tasksHelper) {
+    public TaskDetailPresenter(TasksHelper tasksHelper, WidgetHelper widgetHelper) {
         this.tasksHelper = tasksHelper;
+        this.widgetHelper = widgetHelper;
     }
 
     void getTask(String taskId) {
@@ -67,8 +70,13 @@ public class TaskDetailPresenter extends Presenter<TaskDetailView> {
                             Timber.e(throwable.toString());
                         }
                 );
+
+        // Trigger a widget update only if the task is marked as active
+        if (!tTask.isCompleted())
+            widgetHelper.updateWidgets(tTask.getTaskListId());
+
         final TaskDetailView view = view();
-        if (view != null) view.onTaskUpdated();
+        if (view != null) view.onTaskUpdated(tTask);
     }
 
     /**
@@ -77,8 +85,14 @@ public class TaskDetailPresenter extends Presenter<TaskDetailView> {
     void deleteTask() {
         // Mark it as deleted so it doesn't show up in the list
         realm.executeTransaction(realm -> tTask.setDeleted(true));
+
+        // Trigger a widget update only if the task is marked as active
+        if (!tTask.isCompleted())
+            widgetHelper.updateWidgets(tTask.getTaskListId());
+
         final TaskDetailView view = view();
         if (view != null) view.onTaskDeleted();
+
         tasksHelper.deleteTask(tTask.getTaskListId(), tTask.getId())
                 .subscribe(
                         aVoid -> { /* Do nothing */ },

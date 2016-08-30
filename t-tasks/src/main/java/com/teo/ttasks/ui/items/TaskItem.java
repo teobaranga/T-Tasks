@@ -17,6 +17,7 @@ import com.teo.ttasks.databinding.ItemTaskBinding;
 import java.text.SimpleDateFormat;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 import lombok.Getter;
@@ -61,12 +62,12 @@ public class TaskItem extends AbstractItem<TaskItem, TaskItem.ViewHolder> implem
         return returnCode;
     };
 
-    @Getter private String taskId;
-    @Getter private String title;
-    @Getter private String notes;
-    @Getter private Date dueDate;
-    @Getter private Date completed;
-    @Getter private Date reminder;
+    @Getter private final String taskId;
+    @Getter private final String title;
+    @Getter private final String notes;
+    @Getter private final Date dueDate;
+    @Getter private final Date completed;
+    @Getter private final Date reminder;
 
     /** Flag indicating that this task item should combine with the previous task item in the list */
     private boolean combined;
@@ -91,8 +92,8 @@ public class TaskItem extends AbstractItem<TaskItem, TaskItem.ViewHolder> implem
     }
 
     @Override
-    public void bindView(ViewHolder viewHolder) {
-        super.bindView(viewHolder);
+    public void bindView(ViewHolder viewHolder, List payloads) {
+        super.bindView(viewHolder, payloads);
 
         final ItemTaskBinding binding = viewHolder.binding;
 

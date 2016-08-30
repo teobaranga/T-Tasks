@@ -32,7 +32,6 @@ More features are planned and will be added in the future.
 - **RxJava**: https://github.com/ReactiveX/RxJava
 - **RxAndroid**: https://github.com/ReactiveX/RxAndroid
 - **Realm**: https://github.com/realm/realm-java
-- **ButterKnife**: https://github.com/JakeWharton/butterknife
 - **Timber**: https://github.com/JakeWharton/timber
 - **Picasso**: https://github.com/square/picasso
 

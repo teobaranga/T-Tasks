@@ -79,6 +79,11 @@ public class TTask extends RealmObject {
         return task.getNotes();
     }
 
+    public boolean hasNotes() {
+        final String notes = getNotes();
+        return notes != null && !notes.isEmpty();
+    }
+
     @Nullable
     public Date getDue() {
         return task.getDue();
@@ -103,5 +108,10 @@ public class TTask extends RealmObject {
 
     public void setStatus(String status) {
         task.setStatus(status);
+    }
+
+    @Nullable
+    public Date getReminder() {
+        return reminder;
     }
 }

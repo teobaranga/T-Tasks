@@ -63,7 +63,7 @@
                     android:background="@null"
                     android:hint="@string/title"
                     android:inputType="textCapSentences|textMultiLine"
-                    android:onTextChanged="@{view.onTitleChanged}"
+                    android:onTextChanged="@{view::onTitleChanged}"
                     android:text="@{task.title}"
                     tools:text="Do your laundry"/>
 
@@ -121,7 +121,7 @@
                     android:hint="@string/set_due_date"
                     android:longClickable="true"
                     android:onClick="onDueDateClicked"
-                    android:onLongClick="@{view.onDueDateLongClicked}"
+                    android:onLongClick="@{view::onDueDateLongClicked}"
                     android:textColor="?android:textColorPrimary"
                     android:textSize="18sp"
                     app:dueDate="@{task.due}"
@@ -135,7 +135,7 @@
                     android:layout_gravity="center_horizontal"
                     android:longClickable="true"
                     android:onClick="onDueTimeClicked"
-                    android:onLongClick="@{view.onDueTimeLongClicked}"
+                    android:onLongClick="@{view::onDueTimeLongClicked}"
                     android:textColor="?android:textColorPrimary"
                     android:textSize="18sp"
                     android:visibility="gone"
@@ -179,6 +179,7 @@
                     android:hint="@string/add_reminder"
                     android:textColor="?android:textColorPrimary"
                     android:textSize="18sp"
+                    app:reminder="@{task.reminder}"
                     tools:text="1 hour before"/>
 
                 <TextView

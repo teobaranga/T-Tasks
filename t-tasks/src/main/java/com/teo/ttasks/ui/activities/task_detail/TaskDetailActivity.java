@@ -7,10 +7,12 @@ import android.databinding.DataBindingUtil;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v4.view.ViewCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.PopupMenu;
+import android.support.v7.widget.ShareActionProvider;
 import android.transition.Transition;
 import android.view.Gravity;
 import android.view.View;
@@ -26,7 +28,8 @@ import com.teo.ttasks.data.model.TaskList;
 import com.teo.ttasks.databinding.ActivityTaskDetailBinding;
 import com.teo.ttasks.ui.activities.edit_task.EditTaskActivity;
 import com.teo.ttasks.util.AnimUtils;
-import com.teo.ttasks.widget.TasksWidgetProvider;
+import com.teo.ttasks.util.DateUtils;
+import com.teo.ttasks.util.NotificationUtils;
 
 import javax.inject.Inject;
 
@@ -43,6 +46,37 @@ public class TaskDetailActivity extends AppCompatActivity implements TaskDetailV
 
     private String taskId;
     private String taskListId;
+
+    private Intent shareIntent;
+
+    private View.OnClickListener overflowClickListener = v -> {
+        PopupMenu popup = new PopupMenu(this, taskDetailBinding.bar);
+        popup.setGravity(Gravity.END);
+        popup.inflate(R.menu.menu_task_detail);
+        ((ShareActionProvider) MenuItemCompat.getActionProvider(popup.getMenu().findItem(R.id.share))).setShareIntent(shareIntent);
+        popup.setOnMenuItemClickListener(item -> {
+            switch (item.getItemId()) {
+                case R.id.delete:
+                    DialogInterface.OnClickListener dialogClickListener = (dialog, choice) -> {
+                        switch (choice) {
+                            case DialogInterface.BUTTON_POSITIVE:
+                                taskDetailPresenter.deleteTask();
+                                break;
+                            case DialogInterface.BUTTON_NEGATIVE:
+                                break;
+                        }
+                    };
+                    new AlertDialog.Builder(this)
+                            .setMessage("Delete this task?")
+                            .setPositiveButton(android.R.string.yes, dialogClickListener)
+                            .setNegativeButton(android.R.string.no, dialogClickListener)
+                            .show();
+                    break;
+            }
+            return true;
+        });
+        popup.show();
+    };
 
     public static void start(Context context, String taskId, String taskListId, @Nullable Bundle bundle) {
         Intent starter = getStartIntent(context, taskId, taskListId, Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP);
@@ -81,6 +115,8 @@ public class TaskDetailActivity extends AppCompatActivity implements TaskDetailV
         taskDetailBinding = DataBindingUtil.setContentView(this, R.layout.activity_task_detail);
         taskDetailPresenter.bindView(this);
 
+        taskDetailBinding.more.setOnClickListener(overflowClickListener);
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             getWindow().getEnterTransition().addListener(new AnimUtils.TransitionListener() {
                 @Override public void onTransitionEnd(Transition transition) {
@@ -115,6 +151,18 @@ public class TaskDetailActivity extends AppCompatActivity implements TaskDetailV
     @Override
     public void onTaskLoaded(TTask task) {
         taskDetailBinding.setTask(task);
+
+        // Create the share Intent for this task
+        String extraText = task.getTitle();
+        if (task.getDue() != null)
+            extraText = extraText + String.format(getString(R.string.extra_due_date), DateUtils.formatDate(this, task.getDue()));
+        if (task.hasNotes())
+            extraText = extraText + String.format(getString(R.string.extra_notes), task.getNotes());
+
+        shareIntent = new Intent();
+        shareIntent.setAction(Intent.ACTION_SEND);
+        shareIntent.putExtra(Intent.EXTRA_TEXT, extraText);
+        shareIntent.setType("text/plain");
     }
 
     @Override
@@ -134,14 +182,14 @@ public class TaskDetailActivity extends AppCompatActivity implements TaskDetailV
     }
 
     @Override
-    public void onTaskUpdated() {
-        TasksWidgetProvider.updateWidgets(this, taskListId);
+    public void onTaskUpdated(TTask task) {
+        if (!task.isCompleted())
+            NotificationUtils.scheduleTaskNotification(this, task);
         onBackPressed();
     }
 
     @Override
     public void onTaskDeleted() {
-        TasksWidgetProvider.updateWidgets(this, taskListId);
         Toast.makeText(this, R.string.task_deleted, Toast.LENGTH_SHORT).show();
         onBackPressed();
     }
@@ -156,34 +204,6 @@ public class TaskDetailActivity extends AppCompatActivity implements TaskDetailV
 
     public void onEditClicked(View v) {
         EditTaskActivity.startEdit(this, taskId, taskListId, null);
-    }
-
-    public void onOverflowClicked(View v) {
-        PopupMenu popup = new PopupMenu(this, v);
-        popup.setGravity(Gravity.END);
-        popup.inflate(R.menu.menu_task_detail);
-        popup.setOnMenuItemClickListener(item -> {
-            switch (item.getItemId()) {
-                case R.id.delete:
-                    DialogInterface.OnClickListener dialogClickListener = (dialog, choice) -> {
-                        switch (choice) {
-                            case DialogInterface.BUTTON_POSITIVE:
-                                taskDetailPresenter.deleteTask();
-                                break;
-                            case DialogInterface.BUTTON_NEGATIVE:
-                                break;
-                        }
-                    };
-                    new AlertDialog.Builder(this)
-                            .setMessage("Delete this task?")
-                            .setPositiveButton(android.R.string.yes, dialogClickListener)
-                            .setNegativeButton(android.R.string.no, dialogClickListener)
-                            .show();
-                    break;
-            }
-            return true;
-        });
-        popup.show();
     }
 
     private void enterAnimation() {

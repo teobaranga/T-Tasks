@@ -27,6 +27,8 @@ public final class PrefHelper {
 
     private static final String PREF_LAST_TASK_ID = "lastTaskId";
 
+    private static final String PREF_HIDE_COMPLETED = "hideCompleted";
+
     private SharedPreferences sharedPreferences;
 
     public PrefHelper(Context context) {
@@ -185,5 +187,13 @@ public final class PrefHelper {
             edit.putString(PREF_LAST_TASK_ID, String.valueOf(id - 1));
         }
         edit.apply();
+    }
+
+    public void setHideCompleted(boolean hideCompleted) {
+        sharedPreferences.edit().putBoolean(PREF_HIDE_COMPLETED, hideCompleted).apply();
+    }
+
+    public boolean getHideCompleted() {
+        return sharedPreferences.getBoolean(PREF_HIDE_COMPLETED, false);
     }
 }
