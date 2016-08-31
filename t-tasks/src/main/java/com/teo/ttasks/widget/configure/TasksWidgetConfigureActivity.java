@@ -12,7 +12,7 @@ import com.teo.ttasks.R;
 import com.teo.ttasks.TTasksApp;
 import com.teo.ttasks.data.TaskListsAdapter;
 import com.teo.ttasks.data.model.TaskList;
-import com.teo.ttasks.databinding.TasksWidgetConfigureBinding;
+import com.teo.ttasks.databinding.ActivityWidgetConfigureBinding;
 import com.teo.ttasks.widget.TasksWidgetProvider;
 
 import java.util.List;
@@ -30,7 +30,7 @@ public class TasksWidgetConfigureActivity extends AppCompatActivity implements T
 
     private TaskListsAdapter taskListsAdapter;
 
-    private TasksWidgetConfigureBinding binding;
+    private ActivityWidgetConfigureBinding binding;
 
     public void onAddClicked(View v) {
         // Store the task list ID associated with this widget locally
@@ -60,7 +60,7 @@ public class TasksWidgetConfigureActivity extends AppCompatActivity implements T
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        binding = DataBindingUtil.setContentView(this, R.layout.tasks_widget_configure);
+        binding = DataBindingUtil.setContentView(this, R.layout.activity_widget_configure);
         getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         TTasksApp.get(this).userComponent().inject(this);
         presenter.bindView(this);

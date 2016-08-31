@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <android.support.design.widget.CoordinatorLayout
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
@@ -66,18 +65,6 @@
 
         </android.support.v4.widget.SwipeRefreshLayout>
 
-        <android.support.design.widget.FloatingActionButton
-            android:id="@id/fab"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom|end"
-            android:layout_margin="@dimen/dimen_fab_margin"
-            android:transitionName="@string/transition_fab"
-            app:elevation="6dp"
-            app:pressedTranslationZ="12dp"
-            app:rippleColor="@color/orange_A200"
-            app:srcCompat="@drawable/ic_add_white_24dp"/>
-
-    </android.support.design.widget.CoordinatorLayout>
+    </FrameLayout>
 
 </layout>

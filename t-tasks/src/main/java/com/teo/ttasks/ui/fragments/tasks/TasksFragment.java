@@ -10,12 +10,12 @@ import android.os.Handler;
 import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.util.Pair;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -33,6 +33,7 @@ import com.teo.ttasks.TTasksApp;
 import com.teo.ttasks.databinding.FragmentTasksBinding;
 import com.teo.ttasks.receivers.NetworkInfoReceiver;
 import com.teo.ttasks.ui.activities.edit_task.EditTaskActivity;
+import com.teo.ttasks.ui.activities.main.MainActivity;
 import com.teo.ttasks.ui.activities.task_detail.TaskDetailActivity;
 import com.teo.ttasks.ui.items.TaskItem;
 
@@ -54,6 +55,9 @@ public class TasksFragment extends Fragment implements TasksView, SwipeRefreshLa
 
     private static final int RC_USER_RECOVERABLE = 1;
 
+    @SuppressWarnings("unchecked")
+    final Pair<View, String>[] pairs = new Pair[3];
+
     @Inject TasksPresenter tasksPresenter;
 
     @Nullable String taskListId;
@@ -72,8 +76,7 @@ public class TasksFragment extends Fragment implements TasksView, SwipeRefreshLa
      */
     Pair<View, String> navBar;
 
-    @SuppressWarnings("unchecked")
-    Pair<View, String>[] pairs = new Pair[3];
+    FloatingActionButton fab;
 
     private final FastAdapter.OnClickListener<IItem> taskItemClickListener = new FastAdapter.OnClickListener<IItem>() {
         // Reject quick, successive clicks because they break the app
@@ -91,7 +94,7 @@ public class TasksFragment extends Fragment implements TasksView, SwipeRefreshLa
 
                     pairs[1] = Pair.create(((TaskItem) item).getViewHolder(v).binding.layoutTask, getString(R.string.transition_task_header));
 
-                    Pair<View, String>[] sharedElements = tasksBinding.fab.isShown() ? pairs : Arrays.copyOf(pairs, 2);
+                    Pair<View, String>[] sharedElements = fab.isShown() ? pairs : Arrays.copyOf(pairs, 2);
 
                     ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(getActivity(), sharedElements);
                     TaskDetailActivity.start(getContext(), ((TaskItem) item).getTaskId(), taskListId, options.toBundle());
@@ -142,6 +145,14 @@ public class TasksFragment extends Fragment implements TasksView, SwipeRefreshLa
     }
 
     @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        fab = ((MainActivity) getActivity()).fab();
+        fab.setOnClickListener(view1 -> EditTaskActivity.startCreate(this, taskListId, null));
+        pairs[2] = Pair.create(fab, getString(R.string.transition_fab));
+    }
+
+    @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
         inflater.inflate(R.menu.menu_tasks, menu);
@@ -172,8 +183,6 @@ public class TasksFragment extends Fragment implements TasksView, SwipeRefreshLa
         tasksBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_tasks, container, false);
         View view = tasksBinding.getRoot();
 
-        pairs[2] = Pair.create(tasksBinding.fab, getString(R.string.transition_fab));
-
         getContext().registerReceiver(networkInfoReceiver, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
 
         return view;
@@ -184,21 +193,8 @@ public class TasksFragment extends Fragment implements TasksView, SwipeRefreshLa
         super.onViewCreated(view, savedInstanceState);
         tasksPresenter.bindView(this);
 
-        tasksBinding.fab.setOnClickListener(view1 -> EditTaskActivity.startCreate(this, taskListId, null));
-
         tasksBinding.tasksList.setLayoutManager(new LinearLayoutManager(getContext()));
         tasksBinding.tasksList.setAdapter(itemAdapter.wrap(fastAdapter));
-        tasksBinding.tasksList.addOnScrollListener(new RecyclerView.OnScrollListener() {
-            private static final int THRESHOLD = 0;
-
-            @Override public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-                super.onScrolled(recyclerView, dx, dy);
-                if (dy > THRESHOLD)
-                    tasksBinding.fab.hide();
-                else if (dy < -THRESHOLD)
-                    tasksBinding.fab.show();
-            }
-        });
 
         tasksBinding.swipeRefreshLayout.setOnRefreshListener(this);
 

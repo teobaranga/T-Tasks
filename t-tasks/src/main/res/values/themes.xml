@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Base theme (with action bar) -->
+    <style name="Base.Theme" parent="Theme.AppCompat.Light.DarkActionBar">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+    </style>
+
+    <!-- Base theme (no action bar) -->
+    <style name="Base.Theme.NoActionBar" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+    </style>
+
+    <!-- Main -->
+    <style name="Base.Theme.Main" parent="MaterialDrawerTheme.Light.DarkToolbar.TranslucentStatus">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+
+        <!-- CAB -->
+        <item name="windowActionModeOverlay">true</item>
+    </style>
+    <style name="Theme.Main" parent="Base.Theme.Main"/>
+
+    <!-- Task Detail -->
+    <style name="Base.Theme.TaskDetail" parent="Base.Theme.NoActionBar">
+        <item name="popupMenuStyle">@style/PopupMenu</item>
+    </style>
+    <style name="Theme.TaskDetail" parent="Base.Theme.TaskDetail"/>
+
+    <!-- Edit Task -->
+    <style name="Base.Theme.EditTask" parent="Base.Theme">
+        <item name="android:spinnerItemStyle">@style/SpinnerItemStyle</item>
+    </style>
+    <style name="Theme.EditTask" parent="Base.Theme.EditTask"/>
+
+    <!-- Sign In -->
+    <style name="Theme.SignIn" parent="Theme.AppCompat.NoActionBar">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:windowBackground">?attr/colorPrimary</item>
+    </style>
+
+    <!-- Settings -->
+    <style name="Theme.Settings" parent="Base.Theme"/>
+
+    <!-- About -->
+    <style name="Theme.About" parent="Base.Theme"/>
+
+    <!-- Widget configure -->
+    <style name="Theme.TasksWidgetConfigure" parent="Theme.AppCompat.Light.Dialog"/>
+
+    <!-- Widget -->
+    <style name="Theme.Widget" parent="Theme.AppCompat"/>
+
+</resources>

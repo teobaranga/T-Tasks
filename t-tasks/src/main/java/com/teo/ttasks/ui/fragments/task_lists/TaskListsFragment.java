@@ -3,6 +3,7 @@ package com.teo.ttasks.ui.fragments.task_lists;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
@@ -16,6 +17,7 @@ import com.mikepenz.fastadapter.adapters.ItemAdapter;
 import com.teo.ttasks.R;
 import com.teo.ttasks.TTasksApp;
 import com.teo.ttasks.databinding.FragmentTaskListsBinding;
+import com.teo.ttasks.ui.activities.main.MainActivity;
 
 import java.util.List;
 
@@ -42,6 +44,13 @@ public class TaskListsFragment extends Fragment implements TaskListsView, SwipeR
         TTasksApp.get(getContext()).userComponent().inject(this);
         fastAdapter = new FastAdapter<>();
         itemAdapter = new ItemAdapter<>();
+    }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        FloatingActionButton fab = ((MainActivity) getActivity()).fab();
+        fab.setOnClickListener(v -> {});
     }
 
     @Override

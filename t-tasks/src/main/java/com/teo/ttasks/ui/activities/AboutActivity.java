@@ -1,5 +1,7 @@
 package com.teo.ttasks.ui.activities;
 
+import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 
 import com.mikepenz.aboutlibraries.Libs;
@@ -8,6 +10,10 @@ import com.mikepenz.aboutlibraries.ui.LibsActivity;
 import com.teo.ttasks.R;
 
 public class AboutActivity extends LibsActivity {
+
+    public static void start(Context context) {
+        context.startActivity(new Intent(context, AboutActivity.class));
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {

@@ -1,14 +1,20 @@
 package com.teo.ttasks.ui.activities;
 
-import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.EditTextPreference;
 import android.preference.PreferenceFragment;
+import android.support.v7.app.AppCompatActivity;
 
 import com.teo.ttasks.R;
 
-public class SettingsActivity extends Activity {
+public class SettingsActivity extends AppCompatActivity {
+
+    public static void start(Context context) {
+        context.startActivity(new Intent(context, SettingsActivity.class));
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

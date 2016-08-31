@@ -74,6 +74,7 @@ public class TasksRemoteViewsFactory implements RemoteViewsService.RemoteViewsFa
         RealmResults<TTask> tasks = tasksHelper.getValidTasks(taskListId, realm);
         if (tasks.isEmpty())
             return;
+        //noinspection unchecked
         Observable.just(tasks)
                 .compose(RxUtils.getTaskItems(true))
                 .cast((Class<List<TaskItem>>) (Class<?>) List.class)

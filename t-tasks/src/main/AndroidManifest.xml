@@ -14,7 +14,7 @@
         android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@style/Theme.AppCompat.Light.DarkActionBar">
+        android:theme="@style/Base.Theme">
         <activity
             android:name=".ui.activities.sign_in.SignInActivity"
             android:label="@string/app_name"
@@ -35,7 +35,7 @@
             android:name=".ui.activities.task_detail.TaskDetailActivity"
             android:label="@string/app_name"
             android:parentActivityName=".ui.activities.main.MainActivity"
-            android:theme="@style/Theme.TTasks.TaskDetail">
+            android:theme="@style/Theme.TaskDetail">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".ui.activities.main.MainActivity"/>
@@ -43,19 +43,19 @@
         <activity
             android:name=".ui.activities.edit_task.EditTaskActivity"
             android:label="@string/title_activity_edit_task"
-            android:theme="@style/Theme.TTasks.EditTask">
+            android:theme="@style/Theme.EditTask">
         </activity>
         <activity
             android:name=".ui.activities.SettingsActivity"
             android:label="@string/title_activity_settings"
-            android:theme="@style/Theme.Main">
+            android:theme="@style/Theme.Settings">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".ui.activities.main.MainActivity"/>
         </activity>
         <activity
             android:name=".ui.activities.AboutActivity"
-            android:theme="@style/Theme.Main">
+            android:theme="@style/Theme.About">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".ui.activities.main.MainActivity"/>
@@ -63,7 +63,7 @@
         <activity
             android:name=".widget.configure.TasksWidgetConfigureActivity"
             android:label="Configure widget"
-            android:theme="@style/Theme.TTasks.TasksWidgetConfigure">
+            android:theme="@style/Theme.TasksWidgetConfigure">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE"/>
             </intent-filter>

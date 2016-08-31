@@ -4,7 +4,8 @@
               android:layout_width="match_parent"
               android:layout_height="match_parent"
               android:background="@color/background_color"
-              android:orientation="vertical">
+              android:orientation="vertical"
+              android:theme="@style/Theme.Widget">
 
     <FrameLayout
         android:id="@+id/task_list_header"
@@ -14,13 +15,13 @@
 
         <TextView
             android:id="@+id/task_list_title"
-            style="@style/TextAppearance.AppCompat.Large"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
             android:maxLines="1"
             android:paddingLeft="8dp"
             android:paddingRight="8dp"
+            android:textAppearance="@style/TextAppearance.AppCompat.Large"
             tools:text="My Tasks"/>
 
         <ImageView

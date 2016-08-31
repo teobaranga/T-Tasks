@@ -1,63 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Base.Theme.TTasks" parent="Theme.AppCompat.Light.DarkActionBar">
-        <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
-        <item name="colorAccent">@color/colorAccent</item>
-
-        <!--<item name="colorControlHighlight">@color/ripple_material_dark</item>-->
-    </style>
-
-    <!-- Main Theme -->
-    <style name="Base.Theme.TTasks.Main" parent="MaterialDrawerTheme.Light.DarkToolbar.TranslucentStatus">
-        <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
-        <item name="colorAccent">@color/colorAccent</item>
-
-        <!-- CAB -->
-        <item name="windowActionModeOverlay">true</item>
-    </style>
-
-    <style name="Theme.Main" parent="Base.Theme.TTasks.Main"/>
-
-    <!-- Main Theme preview, used only for a better preview in Android Studio -->
-    <style name="Theme.MainPreview" parent="Theme.AppCompat.Light.DarkActionBar">
-        <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
-        <item name="colorAccent">@color/colorAccent</item>
-    </style>
-
-    <!-- Sign In -->
-    <style name="Theme.SignIn" parent="Theme.AppCompat.NoActionBar">
-        <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
-        <item name="colorAccent">@color/colorAccent</item>
-        <item name="android:windowBackground">?attr/colorPrimary</item>
-    </style>
-
-    <!-- Edit Task -->
-    <style name="Base.Theme.TTasks.EditTask" parent="Theme.AppCompat.Light.DarkActionBar">
-        <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
-        <item name="colorAccent">@color/colorAccent</item>
-        <item name="android:spinnerItemStyle">@style/SpinnerItemStyle</item>
-    </style>
-    <style name="Theme.TTasks.EditTask" parent="Base.Theme.TTasks.EditTask"/>
-
-    <!-- Task Detail -->
-    <style name="Base.Theme.TTasks.TaskDetail">
-        <!-- NoActionBar -->
-        <item name="windowActionBar">false</item>
-        <item name="windowNoTitle">true</item>
-        <item name="popupMenuStyle">@style/PopupMenu</item>
-    </style>
-
-    <style name="Theme.TTasks.TaskDetail" parent="Base.Theme.TTasks.TaskDetail"/>
-
-    <!-- Widget configure -->
-    <style name="Theme.TTasks.TasksWidgetConfigure" parent="Theme.AppCompat.Light.Dialog"/>
-
     <style name="AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar"/>
 
     <style name="PopupOverlay" parent="ThemeOverlay.AppCompat.Light"/>

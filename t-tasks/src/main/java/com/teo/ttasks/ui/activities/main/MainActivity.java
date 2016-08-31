@@ -10,7 +10,9 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.ActionBar;
 import android.view.View;
 import android.widget.AdapterView;
 
@@ -36,6 +38,7 @@ import com.teo.ttasks.databinding.ActivityMainBinding;
 import com.teo.ttasks.receivers.NetworkInfoReceiver;
 import com.teo.ttasks.ui.activities.AboutActivity;
 import com.teo.ttasks.ui.activities.BaseActivity;
+import com.teo.ttasks.ui.activities.SettingsActivity;
 import com.teo.ttasks.ui.activities.sign_in.SignInActivity;
 import com.teo.ttasks.ui.fragments.task_lists.TaskListsFragment;
 import com.teo.ttasks.ui.fragments.tasks.TasksFragment;
@@ -54,11 +57,13 @@ public final class MainActivity extends BaseActivity implements MainView {
 
     //private static final int RC_ADD = 4;
 
-    private static final int ID_TASKS = 0x10;
-    private static final int ID_TASK_LISTS = 0x20;
+    private static final int ID_TASKS = 0x01;
+    private static final int ID_TASK_LISTS = 0x02;
     //    private static final int ID_ADD_ACCOUNT = 0x01;
 //    private static final int ID_MANAGE_ACCOUNT = 0x02;
-    private static final int ID_ABOUT = 0xFF;
+    private static final int ID_SETTINGS = 0xF0;
+    private static final int ID_HELP_AND_FEEDBACK = 0xF1;
+    private static final int ID_ABOUT = 0xF2;
 
     @Inject MainActivityPresenter mainActivityPresenter;
     @Inject NetworkInfoReceiver networkInfoReceiver;
@@ -173,10 +178,12 @@ public final class MainActivity extends BaseActivity implements MainView {
                         new SecondaryDrawerItem()
                                 .withName(getResources().getString(R.string.drawer_settings))
                                 .withIcon(GoogleMaterial.Icon.gmd_settings)
+                                .withIdentifier(ID_SETTINGS)
                                 .withSelectable(false),
                         new SecondaryDrawerItem()
                                 .withName(R.string.drawer_help_and_feedback)
                                 .withIcon(GoogleMaterial.Icon.gmd_help)
+                                .withIdentifier(ID_HELP_AND_FEEDBACK)
                                 .withSelectable(false),
                         new SecondaryDrawerItem()
                                 .withName(R.string.drawer_about)
@@ -187,23 +194,33 @@ public final class MainActivity extends BaseActivity implements MainView {
                 .withOnDrawerItemClickListener((view, position, drawerItem) -> {
                     // The header and footer items don't contain a drawerItem
                     if (drawerItem != null) {
+                        Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.fragment_container);
                         Fragment fragment = null;
                         String tag = null;
+                        final ActionBar supportActionBar = getSupportActionBar();
                         switch ((int) drawerItem.getIdentifier()) {
                             case ID_TASKS:
-                                getSupportActionBar().setDisplayShowTitleEnabled(false);
+                                if (currentFragment instanceof TasksFragment)
+                                    return false;
+                                supportActionBar.setDisplayShowTitleEnabled(false);
                                 mainBinding.spinnerTaskLists.setVisibility(VISIBLE);
                                 fragment = tasksFragment;
                                 tag = "tasks";
                                 break;
                             case ID_TASK_LISTS:
-                                getSupportActionBar().setDisplayShowTitleEnabled(true);
+                                if (currentFragment instanceof TaskListsFragment)
+                                    return false;
+                                supportActionBar.setTitle("Task Lists");
+                                supportActionBar.setDisplayShowTitleEnabled(true);
                                 mainBinding.spinnerTaskLists.setVisibility(GONE);
                                 fragment = TaskListsFragment.newInstance();
                                 tag = "taskLists";
                                 break;
+                            case ID_SETTINGS:
+                                SettingsActivity.start(this);
+                                break;
                             case ID_ABOUT:
-                                startActivity(new Intent(this, AboutActivity.class));
+                                AboutActivity.start(this);
                                 break;
                             default:
                                 // If we're being restored from a previous state,
@@ -218,6 +235,7 @@ public final class MainActivity extends BaseActivity implements MainView {
                                     .beginTransaction()
                                     .replace(R.id.fragment_container, fragment, tag)
                                     .commitAllowingStateLoss();
+                            mainBinding.appbar.setExpanded(true);
                         }
                     }
                     return false;
@@ -342,6 +360,10 @@ public final class MainActivity extends BaseActivity implements MainView {
         }
 
         @Override public void onPrepareLoad(Drawable placeHolderDrawable) { }
+    }
+
+    public FloatingActionButton fab() {
+        return mainBinding.fab;
     }
 
     // TODO: implement chooseAccount

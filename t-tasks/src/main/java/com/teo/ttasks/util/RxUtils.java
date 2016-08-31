@@ -1,6 +1,7 @@
 package com.teo.ttasks.util;
 
 import com.mikepenz.fastadapter.IItem;
+import com.teo.ttasks.R;
 import com.teo.ttasks.data.model.TTask;
 import com.teo.ttasks.data.model.Task;
 import com.teo.ttasks.data.model.TaskList;
@@ -47,7 +48,7 @@ public class RxUtils {
                     if (!hideCompleted) {
                         Collections.sort(completedTasks, TaskItem.completionDateComparator);
                         if (completedTasks.size() > 0) {
-                            taskItems.add(new CategoryItem().withName("Completed"));
+                            taskItems.add(new CategoryItem().withName(R.string.completed));
                             taskItems.addAll(completedTasks);
                         }
                     }

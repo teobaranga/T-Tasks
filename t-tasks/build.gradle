@@ -107,12 +107,13 @@ dependencies {
         exclude group: 'junit'
         exclude group: 'xpp3'
     }
-    compile('com.mikepenz:aboutlibraries:5.7.1@aar') { transitive = true }
-    compile('com.mikepenz:fastadapter:1.6.1@aar') { transitive = true }
+    compile('com.mikepenz:aboutlibraries:5.8.1@aar') { transitive = true }
+    compile('com.mikepenz:fastadapter:1.8.0@aar') { transitive = true }
     compile('com.mikepenz:materialdrawer:5.6.0@aar') { transitive = true }
     compile 'com.mikepenz:google-material-typeface:2.2.0.1@aar'
     compile 'com.squareup.picasso:picasso:2.5.2'
     compile 'com.artemzin.rxjava:proguard-rules:1.1.9.0'
+    compile 'com.github.strooooke:appbarsyncedfab:v0.3'
 
     apt 'org.projectlombok:lombok:1.16.10'
 
