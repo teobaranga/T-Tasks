@@ -9,6 +9,7 @@ import com.teo.ttasks.ui.activities.main.MainActivityPresenter;
 import com.teo.ttasks.ui.activities.task_detail.TaskDetailPresenter;
 import com.teo.ttasks.ui.fragments.task_lists.TaskListsPresenter;
 import com.teo.ttasks.ui.fragments.tasks.TasksPresenter;
+import com.teo.ttasks.util.NotificationHelper;
 import com.teo.ttasks.widget.configure.TasksWidgetConfigurePresenter;
 
 import dagger.Module;
@@ -33,13 +34,15 @@ public class UserModule {
     }
 
     @Provides
-    EditTaskPresenter provideEditTaskPresenter(TasksHelper tasksHelper, PrefHelper prefHelper, WidgetHelper widgetHelper) {
-        return new EditTaskPresenter(tasksHelper, prefHelper, widgetHelper);
+    EditTaskPresenter provideEditTaskPresenter(TasksHelper tasksHelper, PrefHelper prefHelper, WidgetHelper widgetHelper,
+                                               NotificationHelper notificationHelper) {
+        return new EditTaskPresenter(tasksHelper, prefHelper, widgetHelper, notificationHelper);
     }
 
     @Provides
-    TaskDetailPresenter provideTaskDetailPresenter(TasksHelper tasksHelper, WidgetHelper widgetHelper) {
-        return new TaskDetailPresenter(tasksHelper, widgetHelper);
+    TaskDetailPresenter provideTaskDetailPresenter(TasksHelper tasksHelper, WidgetHelper widgetHelper,
+                                                   NotificationHelper notificationHelper) {
+        return new TaskDetailPresenter(tasksHelper, widgetHelper, notificationHelper);
     }
 
     // TODO: 2016-07-27 maybe this belongs to another component

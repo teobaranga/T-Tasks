@@ -11,7 +11,7 @@ import android.view.ViewGroup;
 import com.teo.ttasks.R;
 import com.teo.ttasks.TTasksApp;
 import com.teo.ttasks.data.TaskListsAdapter;
-import com.teo.ttasks.data.model.TaskList;
+import com.teo.ttasks.data.model.TTaskList;
 import com.teo.ttasks.databinding.ActivityWidgetConfigureBinding;
 import com.teo.ttasks.widget.TasksWidgetProvider;
 
@@ -90,7 +90,7 @@ public class TasksWidgetConfigureActivity extends AppCompatActivity implements T
     }
 
     @Override
-    public void onTaskListsLoaded(List<TaskList> taskLists) {
+    public void onTaskListsLoaded(List<TTaskList> taskLists) {
         taskListsAdapter.addAll(taskLists);
     }
 

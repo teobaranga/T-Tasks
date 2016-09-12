@@ -59,7 +59,7 @@ public class TaskNotificationReceiver extends BroadcastReceiver {
                                     },
                                     throwable -> {
                                         Timber.e(throwable.toString());
-                                        Toast.makeText(context, "Error: task not found", Toast.LENGTH_SHORT).show();
+                                        Toast.makeText(context, "Task not found. This is the case if the task was deleted.", Toast.LENGTH_SHORT).show();
                                         realm.close();
                                         notificationManager.cancel(id);
                                     }

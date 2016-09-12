@@ -10,6 +10,7 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBar;
@@ -33,7 +34,7 @@ import com.squareup.picasso.Target;
 import com.teo.ttasks.R;
 import com.teo.ttasks.TTasksApp;
 import com.teo.ttasks.data.TaskListsAdapter;
-import com.teo.ttasks.data.model.TaskList;
+import com.teo.ttasks.data.model.TTaskList;
 import com.teo.ttasks.databinding.ActivityMainBinding;
 import com.teo.ttasks.receivers.NetworkInfoReceiver;
 import com.teo.ttasks.ui.activities.AboutActivity;
@@ -118,7 +119,7 @@ public final class MainActivity extends BaseActivity implements MainView {
         mainBinding.spinnerTaskLists.setAdapter(taskListsAdapter);
         mainBinding.spinnerTaskLists.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
-                final TaskList taskList = ((TaskList) adapterView.getItemAtPosition(position));
+                final TTaskList taskList = ((TTaskList) adapterView.getItemAtPosition(position));
                 final String taskListId = taskList.getId();
                 mainActivityPresenter.setLastAccessedTaskList(taskListId);
                 tasksFragment.setTaskList(taskListId);
@@ -231,11 +232,11 @@ public final class MainActivity extends BaseActivity implements MainView {
                         }
                         Timber.d("fragment is %s", fragment);
                         if (fragment != null) {
+                            mainBinding.appbar.setExpanded(true);
                             getSupportFragmentManager()
                                     .beginTransaction()
                                     .replace(R.id.fragment_container, fragment, tag)
                                     .commitAllowingStateLoss();
-                            mainBinding.appbar.setExpanded(true);
                         }
                     }
                     return false;
@@ -288,7 +289,7 @@ public final class MainActivity extends BaseActivity implements MainView {
      * Select the last accessed task list
      */
     @Override
-    public void onTaskListsLoaded(List<TaskList> taskLists, int currentTaskListIndex) {
+    public void onTaskListsLoaded(List<TTaskList> taskLists, int currentTaskListIndex) {
         taskListsAdapter.clear();
         taskListsAdapter.addAll(taskLists);
         // Restore previously selected task list
@@ -335,6 +336,39 @@ public final class MainActivity extends BaseActivity implements MainView {
         mainActivityPresenter.unbindView(this);
     }
 
+    /**
+     * Enable the scrolling system, which moves the toolbar and the FAB
+     * out of the way when scrolling down and brings them back when scrolling up.
+     */
+    public void enableScrolling() {
+        final AppBarLayout.LayoutParams layoutParams = (AppBarLayout.LayoutParams) mainBinding.toolbar.getLayoutParams();
+        final int flags = AppBarLayout.LayoutParams.SCROLL_FLAG_SCROLL | AppBarLayout.LayoutParams.SCROLL_FLAG_ENTER_ALWAYS;
+        if (layoutParams.getScrollFlags() != flags) {
+            layoutParams.setScrollFlags(flags);
+            mainBinding.toolbar.setLayoutParams(layoutParams);
+        }
+    }
+
+    /**
+     * Disable the whole scrolling system, which pins the toolbar and the FAB in place.
+     * This is used when the content of the fragment is not big enough to require scrolling,
+     * such is the case when a short list or an empty view is displayed.
+     */
+    public void disableScrolling(boolean delay) {
+        // Delay the behavior change by 300 milliseconds to give time to the FAB to restore its default position
+        mainBinding.fab.postDelayed(() -> {
+            final AppBarLayout.LayoutParams layoutParams = (AppBarLayout.LayoutParams) mainBinding.toolbar.getLayoutParams();
+            if (layoutParams.getScrollFlags() != 0) {
+                layoutParams.setScrollFlags(0);
+                mainBinding.toolbar.setLayoutParams(layoutParams);
+            }
+        }, delay ? 300 : 0);
+    }
+
+    public FloatingActionButton fab() {
+        return mainBinding.fab;
+    }
+
     class ProfileIconTarget implements Target {
         @Override public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
             Bitmap imageWithBG = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), bitmap.getConfig());  // Create another image the same size
@@ -360,10 +394,6 @@ public final class MainActivity extends BaseActivity implements MainView {
         }
 
         @Override public void onPrepareLoad(Drawable placeHolderDrawable) { }
-    }
-
-    public FloatingActionButton fab() {
-        return mainBinding.fab;
     }
 
     // TODO: implement chooseAccount

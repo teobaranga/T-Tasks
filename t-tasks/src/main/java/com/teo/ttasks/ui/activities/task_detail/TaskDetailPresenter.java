@@ -6,6 +6,7 @@ import com.teo.ttasks.data.local.WidgetHelper;
 import com.teo.ttasks.data.model.TTask;
 import com.teo.ttasks.data.remote.TasksHelper;
 import com.teo.ttasks.ui.base.Presenter;
+import com.teo.ttasks.util.NotificationHelper;
 
 import io.realm.Realm;
 import timber.log.Timber;
@@ -14,14 +15,16 @@ public class TaskDetailPresenter extends Presenter<TaskDetailView> {
 
     private final TasksHelper tasksHelper;
     private final WidgetHelper widgetHelper;
+    private final NotificationHelper notificationHelper;
 
     private Realm realm;
 
     private TTask tTask;
 
-    public TaskDetailPresenter(TasksHelper tasksHelper, WidgetHelper widgetHelper) {
+    public TaskDetailPresenter(TasksHelper tasksHelper, WidgetHelper widgetHelper, NotificationHelper notificationHelper) {
         this.tasksHelper = tasksHelper;
         this.widgetHelper = widgetHelper;
+        this.notificationHelper = notificationHelper;
     }
 
     void getTask(String taskId) {
@@ -66,7 +69,6 @@ public class TaskDetailPresenter extends Presenter<TaskDetailView> {
                         throwable -> {
                             // Update unsuccessful, keep the task marked as "not synced"
                             // The app will retry later, as soon as the user is online
-                            // TODO: 2016-08-04 provide the user with the option of retrying
                             Timber.e(throwable.toString());
                         }
                 );
@@ -77,6 +79,8 @@ public class TaskDetailPresenter extends Presenter<TaskDetailView> {
 
         final TaskDetailView view = view();
         if (view != null) view.onTaskUpdated(tTask);
+        if (!tTask.isCompleted())
+            notificationHelper.scheduleTaskNotification(tTask);
     }
 
     /**

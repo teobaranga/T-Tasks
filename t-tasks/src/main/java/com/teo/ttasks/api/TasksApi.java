@@ -3,8 +3,9 @@ package com.teo.ttasks.api;
 import com.teo.ttasks.api.entities.TaskListsResponse;
 import com.teo.ttasks.api.entities.TasksResponse;
 import com.teo.ttasks.data.model.Task;
-
-import java.util.HashMap;
+import com.teo.ttasks.data.model.TaskFields;
+import com.teo.ttasks.data.model.TaskList;
+import com.teo.ttasks.data.model.TaskListFields;
 
 import retrofit2.http.Body;
 import retrofit2.http.DELETE;
@@ -27,6 +28,24 @@ public interface TasksApi {
     Observable<TaskListsResponse> getTaskLists(@Header("If-None-Match") String ETag);
 
     /**
+     * Create a new task list
+     */
+    @POST("users/@me/lists")
+    Observable<TaskList> insertTaskList(@Body TaskListFields taskListFields);
+
+    /**
+     * Update a task list
+     */
+    @PATCH("users/@me/lists/{taskList}")
+    Observable<TaskList> updateTaskList(@Path("taskList") String taskListId, @Body TaskListFields taskListFields);
+
+    /**
+     * Delete a task list
+     */
+    @DELETE("users/@me/lists/{taskList}")
+    Observable<Void> deleteTaskList(@Path("taskList") String taskListId);
+
+    /**
      * Get the tasks associated with a given task list
      *
      * @param taskListId the ID of the task list
@@ -42,7 +61,7 @@ public interface TasksApi {
      * @param taskId     task identifier
      */
     @PATCH("lists/{taskList}/tasks/{task}/")
-    Observable<Task> updateTask(@Path("taskList") String taskListId, @Path("task") String taskId, @Body HashMap taskFields);
+    Observable<Task> updateTask(@Path("taskList") String taskListId, @Path("task") String taskId, @Body TaskFields taskFields);
 
     @PUT("lists/{taskList}/tasks/{task}/")
     Observable<Task> updateTask(@Path("taskList") String taskListId, @Path("task") String taskId, @Body Task task);
@@ -51,11 +70,14 @@ public interface TasksApi {
      * Creates a new task on the specified task list
      *
      * @param taskListId task list identifier
-     * @param task       the new task
+     * @param taskFields       the new task
      */
     @POST("lists/{taskList}/tasks")
-    Observable<Task> insertTask(@Path("taskList") String taskListId, @Body HashMap task);
+    Observable<Task> insertTask(@Path("taskList") String taskListId, @Body TaskFields taskFields);
 
+    /**
+     * Delete a task
+     */
     @DELETE("lists/{taskList}/tasks/{task}/")
     Observable<Void> deleteTask(@Path("taskList") String taskListId, @Path("task") String taskId);
 }

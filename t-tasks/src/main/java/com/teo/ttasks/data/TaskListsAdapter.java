@@ -2,6 +2,7 @@ package com.teo.ttasks.data;
 
 import android.content.Context;
 import android.support.annotation.LayoutRes;
+import android.support.annotation.NonNull;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,9 +10,9 @@ import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
 import com.teo.ttasks.R;
-import com.teo.ttasks.data.model.TaskList;
+import com.teo.ttasks.data.model.TTaskList;
 
-public class TaskListsAdapter extends ArrayAdapter<TaskList> {
+public class TaskListsAdapter extends ArrayAdapter<TTaskList> {
 
     private static int layoutResId = R.layout.spinner_item_task_list;
     private static int layoutResDropDownId = R.layout.spinner_item_task_list_dropdown;
@@ -26,10 +27,10 @@ public class TaskListsAdapter extends ArrayAdapter<TaskList> {
         super.setDropDownViewResource(resource);
     }
 
-    @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
+    @Override @NonNull
+    public View getView(int position, View convertView, @NonNull ViewGroup parent) {
         // Get the data item for this position
-        TaskList taskList = getItem(position);
+        TTaskList taskList = getItem(position);
         // Check if an existing view is being reused, otherwise inflate the view
         ViewHolder viewHolder; // view lookup cache stored in tag
         if (convertView == null) {
@@ -48,8 +49,8 @@ public class TaskListsAdapter extends ArrayAdapter<TaskList> {
     }
 
     @Override
-    public View getDropDownView(int position, View convertView, ViewGroup parent) {
-        TaskList taskList = getItem(position);
+    public View getDropDownView(int position, View convertView, @NonNull ViewGroup parent) {
+        TTaskList taskList = getItem(position);
         ViewHolder viewHolder;
         if (convertView == null) {
             viewHolder = new ViewHolder();
@@ -65,7 +66,7 @@ public class TaskListsAdapter extends ArrayAdapter<TaskList> {
     }
 
     // View lookup cache
-    private static class ViewHolder {
+    static class ViewHolder {
         TextView name;
     }
 }

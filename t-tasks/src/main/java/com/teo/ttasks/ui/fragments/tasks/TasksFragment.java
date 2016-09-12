@@ -16,6 +16,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.util.Pair;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -108,6 +109,9 @@ public class TasksFragment extends Fragment implements TasksView, SwipeRefreshLa
     private FastAdapter<IItem> fastAdapter;
     private ItemAdapter<IItem> itemAdapter;
 
+    /**
+     * Flag indicating whether to hide completed tasks or not.
+     */
     private boolean hideCompleted;
 
     /**
@@ -212,7 +216,6 @@ public class TasksFragment extends Fragment implements TasksView, SwipeRefreshLa
     @Override
     public void onTasksLoading() {
         tasksBinding.tasksLoading.setVisibility(VISIBLE);
-        tasksBinding.tasksLoadingError.setVisibility(GONE);
         tasksBinding.tasksEmpty.setVisibility(GONE);
     }
 
@@ -221,10 +224,7 @@ public class TasksFragment extends Fragment implements TasksView, SwipeRefreshLa
         if (resolveIntent != null) {
             startActivityForResult(resolveIntent, RC_USER_RECOVERABLE);
         } else {
-            itemAdapter.clear();
-            tasksBinding.tasksLoading.setVisibility(GONE);
-            tasksBinding.tasksLoadingError.setVisibility(VISIBLE);
-            tasksBinding.tasksEmpty.setVisibility(GONE);
+            Toast.makeText(getContext(), R.string.error_tasks_loading, Toast.LENGTH_SHORT).show();
         }
         onRefreshDone();
     }
@@ -233,7 +233,6 @@ public class TasksFragment extends Fragment implements TasksView, SwipeRefreshLa
     public void showEmptyUi() {
         itemAdapter.clear();
         tasksBinding.tasksLoading.setVisibility(GONE);
-        tasksBinding.tasksLoadingError.setVisibility(GONE);
         tasksBinding.tasksEmpty.setVisibility(VISIBLE);
         onRefreshDone();
     }
@@ -242,9 +241,18 @@ public class TasksFragment extends Fragment implements TasksView, SwipeRefreshLa
     public void showContentUi(@NonNull List<IItem> taskItems) {
         itemAdapter.setNewList(taskItems);
         tasksBinding.tasksLoading.setVisibility(GONE);
-        tasksBinding.tasksLoadingError.setVisibility(GONE);
         tasksBinding.tasksEmpty.setVisibility(GONE);
         onRefreshDone();
+
+        tasksBinding.tasksList.post(() -> {
+            final LinearLayoutManager layoutManager = (LinearLayoutManager) tasksBinding.tasksList.getLayoutManager();
+            final int position = layoutManager.findLastVisibleItemPosition();
+            if ((itemAdapter.getItemCount() - 1) <= position || position == RecyclerView.NO_POSITION) {
+                ((MainActivity) getActivity()).disableScrolling(true);
+            } else {
+                ((MainActivity) getActivity()).enableScrolling();
+            }
+        });
     }
 
     @Override
@@ -313,6 +321,7 @@ public class TasksFragment extends Fragment implements TasksView, SwipeRefreshLa
      */
     public void setTaskList(String newTaskListId) {
         if (!newTaskListId.equals(taskListId)) {
+            ((MainActivity) getActivity()).disableScrolling(false);
             taskListId = newTaskListId;
             if (tasksPresenter != null) {
                 tasksPresenter.getTasks(taskListId);

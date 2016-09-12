@@ -4,6 +4,7 @@ import com.teo.ttasks.TTasksApp;
 import com.teo.ttasks.data.local.PrefHelper;
 import com.teo.ttasks.data.local.WidgetHelper;
 import com.teo.ttasks.receivers.NetworkInfoReceiver;
+import com.teo.ttasks.util.NotificationHelper;
 
 import javax.inject.Singleton;
 
@@ -35,6 +36,11 @@ public class ApplicationModule {
     @Provides @Singleton
     WidgetHelper provideWidgetHelper() {
         return new WidgetHelper(ttasksApp);
+    }
+
+    @Provides @Singleton
+    NotificationHelper provideNotificationHelper() {
+        return new NotificationHelper(ttasksApp);
     }
 
     @Provides @Singleton

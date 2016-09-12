@@ -24,11 +24,10 @@ import com.teo.ttasks.R;
 import com.teo.ttasks.TTasksApp;
 import com.teo.ttasks.data.TaskListsAdapter;
 import com.teo.ttasks.data.model.TTask;
-import com.teo.ttasks.data.model.TaskList;
+import com.teo.ttasks.data.model.TTaskList;
 import com.teo.ttasks.databinding.ActivityEditTaskBinding;
 import com.teo.ttasks.receivers.NetworkInfoReceiver;
 import com.teo.ttasks.util.DateUtils;
-import com.teo.ttasks.util.NotificationUtils;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -114,7 +113,7 @@ public class EditTaskActivity extends AppCompatActivity implements EditTaskView 
     }
 
     @Override
-    public void onTaskListsLoaded(List<TaskList> taskLists, int selectedPosition) {
+    public void onTaskListsLoaded(List<TTaskList> taskLists, int selectedPosition) {
         taskListsAdapter.addAll(taskLists);
         editTaskBinding.taskLists.setSelection(selectedPosition);
     }
@@ -127,10 +126,6 @@ public class EditTaskActivity extends AppCompatActivity implements EditTaskView 
 
     @Override
     public void onTaskSaved(TTask tTask) {
-        if (tTask != null) {
-            // Schedule the notification if it exists
-            NotificationUtils.scheduleTaskNotification(this, tTask);
-        }
         onBackPressed();
     }
 

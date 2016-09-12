@@ -24,12 +24,11 @@ import com.teo.ttasks.BuildConfig;
 import com.teo.ttasks.R;
 import com.teo.ttasks.TTasksApp;
 import com.teo.ttasks.data.model.TTask;
-import com.teo.ttasks.data.model.TaskList;
+import com.teo.ttasks.data.model.TTaskList;
 import com.teo.ttasks.databinding.ActivityTaskDetailBinding;
 import com.teo.ttasks.ui.activities.edit_task.EditTaskActivity;
 import com.teo.ttasks.util.AnimUtils;
 import com.teo.ttasks.util.DateUtils;
-import com.teo.ttasks.util.NotificationUtils;
 
 import javax.inject.Inject;
 
@@ -172,7 +171,7 @@ public class TaskDetailActivity extends AppCompatActivity implements TaskDetailV
     }
 
     @Override
-    public void onTaskListLoaded(TaskList taskList) {
+    public void onTaskListLoaded(TTaskList taskList) {
         taskDetailBinding.setTaskList(taskList);
     }
 
@@ -183,8 +182,6 @@ public class TaskDetailActivity extends AppCompatActivity implements TaskDetailV
 
     @Override
     public void onTaskUpdated(TTask task) {
-        if (!task.isCompleted())
-            NotificationUtils.scheduleTaskNotification(this, task);
         onBackPressed();
     }
 

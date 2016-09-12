@@ -26,12 +26,19 @@
     <!-- Tasks -->
     <string name="msg_task_list_empty">Empty task list</string>
     <string name="msg_task_list_empty_extra">Start by creating a new task!</string>
-    <string name="error_tasks_loading">Error loading tasks</string>
+    <string name="error_tasks_loading">There was an error refreshing your tasks, please try again later.</string>
 
     <!-- Task Lists -->
+    <string name="task_list">Task list</string>
     <string name="msg_task_lists_empty">No task lists</string>
     <string name="msg_task_lists_empty_extra">Start by creating a new task list!</string>
     <string name="error_task_lists_loading">Error loading task lists</string>
+    <string name="task_list_size">%d tasks</string>
+    <string name="empty_task_list">Empty</string>
+    <string name="new_task_list">New Task List</string>
+    <string name="edit_task_list">Edit Task List</string>
+    <string name="delete_task_list">Delete task list</string>
+    <string name="error_task_list_title_missing">Please enter a title</string>
 
     <!-- Task Detail -->
     <string name="share">Share</string>
@@ -83,6 +90,11 @@
     <string name="share_task">Share task</string>
     <string name="extra_due_date">\nDue date: %s</string>
     <string name="extra_notes">\nNotes: %s</string>
-    <string name="task_list">Task list</string>
+
+    <!-- Settings -->
+    <string name="default_reminder_sound">content://settings/system/notification_sound</string>
+    <string name="default_led_color">yellow</string>
+
+    <string name="none">None</string>
 
 </resources>

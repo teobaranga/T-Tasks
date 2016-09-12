@@ -27,6 +27,7 @@ public class TTask extends RealmObject {
 
     @Nullable
     private Date reminder;
+
     /**
      * Field indicating whether the task is synced and up-to-date with the server.
      * This is used to keep track of tasks updated locally but while offline.

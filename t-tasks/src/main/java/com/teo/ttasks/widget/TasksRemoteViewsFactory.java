@@ -7,7 +7,6 @@ import android.widget.RemoteViewsService;
 
 import com.teo.ttasks.R;
 import com.teo.ttasks.TTasksApp;
-import com.teo.ttasks.data.model.TTask;
 import com.teo.ttasks.data.remote.TasksHelper;
 import com.teo.ttasks.ui.activities.task_detail.TaskDetailActivity;
 import com.teo.ttasks.ui.items.TaskItem;
@@ -20,9 +19,6 @@ import java.util.Locale;
 
 import javax.inject.Inject;
 
-import io.realm.Realm;
-import io.realm.RealmResults;
-import rx.Observable;
 import timber.log.Timber;
 
 import static android.view.View.GONE;
@@ -70,21 +66,14 @@ public class TasksRemoteViewsFactory implements RemoteViewsService.RemoteViewsFa
 
     @Override
     public void onDataSetChanged() {
-        Realm realm = Realm.getDefaultInstance();
-        RealmResults<TTask> tasks = tasksHelper.getValidTasks(taskListId, realm);
-        if (tasks.isEmpty())
-            return;
         //noinspection unchecked
-        Observable.just(tasks)
+        tasksHelper.getTasks(taskListId)
                 .compose(RxUtils.getTaskItems(true))
                 .cast((Class<List<TaskItem>>) (Class<?>) List.class)
                 .subscribe(
-                        taskItems -> {
-                            this.taskItems = taskItems;
-                            Timber.d("Widget taskItems count %d", taskItems.size());
-                        },
+                        taskItems -> this.taskItems = taskItems,
                         throwable -> Timber.e(throwable.toString()));
-        realm.close();
+        Timber.d("Widget taskItems count %d", taskItems.size());
     }
 
     @Override
@@ -95,7 +84,6 @@ public class TasksRemoteViewsFactory implements RemoteViewsService.RemoteViewsFa
     @Override
     public RemoteViews getViewAt(int position) {
         TaskItem task = taskItems.get(position);
-        Timber.d("view at %d with id %s", position, task.getTaskId());
 
         RemoteViews rv = new RemoteViews(packageName, R.layout.item_task_widget);
 

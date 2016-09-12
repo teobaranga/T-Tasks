@@ -5,7 +5,7 @@ import android.support.v4.util.Pair;
 
 import com.teo.ttasks.api.PeopleApi;
 import com.teo.ttasks.data.local.PrefHelper;
-import com.teo.ttasks.data.model.TaskList;
+import com.teo.ttasks.data.model.TTaskList;
 import com.teo.ttasks.data.remote.TasksHelper;
 import com.teo.ttasks.ui.base.Presenter;
 
@@ -99,7 +99,7 @@ public class MainActivityPresenter extends Presenter<MainView> {
                     String currentTaskListId = prefHelper.getCurrentTaskListId();
                     // Find the index of the current task list
                     for (int i = 0; i < taskLists.size(); i++) {
-                        TaskList taskList = taskLists.get(i);
+                        TTaskList taskList = taskLists.get(i);
                         if (taskList.getId().equals(currentTaskListId))
                             return new Pair<>(taskLists, i);
                     }

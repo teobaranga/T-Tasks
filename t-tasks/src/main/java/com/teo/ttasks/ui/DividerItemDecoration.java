@@ -9,12 +9,12 @@ import android.graphics.drawable.Drawable;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
-import android.util.DisplayMetrics;
+import android.util.TypedValue;
 import android.view.View;
 
 public class DividerItemDecoration extends RecyclerView.ItemDecoration {
 
-    int mOrientation = -1;
+    private int mOrientation = -1;
     private Drawable mDivider;
     private boolean mShowFirstDivider = false;
     private boolean mShowLastDivider = false;
@@ -127,9 +127,8 @@ public class DividerItemDecoration extends RecyclerView.ItemDecoration {
      * @param context Context to get resources and device specific display metrics
      * @return A float value to represent px equivalent to dp depending on device density
      */
-    public static int convertDpToPixel(float dp, Context context){
-        Resources resources = context.getResources();
-        DisplayMetrics metrics = resources.getDisplayMetrics();
-        return Math.round(dp * (metrics.densityDpi / 160f));
+    private static int convertDpToPixel(float dp, Context context){
+        Resources r = context.getResources();
+        return Math.round(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, r.getDisplayMetrics()));
     }
 }

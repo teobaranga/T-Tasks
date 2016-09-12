@@ -108,7 +108,7 @@ public class TasksPresenter extends Presenter<TasksView> {
                             taskSyncCount.incrementAndGet();
                         },
                         throwable -> {
-                            // Sync failed for some or all tasks
+                            // Sync failed for at least one task, will retry on next refresh
                             Timber.e(throwable.toString());
                             final TasksView view = view();
                             if (view != null) view.onSyncDone(taskSyncCount.get());

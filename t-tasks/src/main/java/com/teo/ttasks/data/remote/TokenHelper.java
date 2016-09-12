@@ -54,7 +54,6 @@ public final class TokenHelper {
                         .doOnNext(mPrefHelper::setAccessToken)
                         .doOnNext(Timber::d);
             } catch (IOException | GoogleAuthException e) {
-                // TODO: 2016-07-15 handle user deauthorization
                 return Observable.error(e);
             }
         });

@@ -31,6 +31,8 @@ import com.lambdasoup.appbarsyncedfab.FabOffsetter;
 
 import java.util.List;
 
+import timber.log.Timber;
+
 /**
  * Behavior for FABs that does not support anchoring to AppBarLayout, but instead translates the FAB
  * out of the bottom in sync with the AppBarLayout collapsing towards the top.
@@ -48,27 +50,42 @@ public class AppBarBoundFabBehavior extends FloatingActionButton.Behavior {
     private boolean listenerRegistered = false;
 
     private ValueAnimator snackbarFabTranslationYAnimator;
+
     // respect that other code may also change y translation; keep track of the part coming from us
     private float snackbarFabTranslationYByThis;
+
+    private AppBarLayout.OnOffsetChangedListener offsetChangedListener;
 
     @SuppressWarnings("unused")
     public AppBarBoundFabBehavior(Context context, AttributeSet attrs) {
         super();
     }
 
-
     @Override
     public boolean layoutDependsOn(CoordinatorLayout parent, FloatingActionButton child, View dependency) {
-        if (dependency instanceof AppBarLayout && !listenerRegistered) {
-            ((AppBarLayout) dependency).addOnOffsetChangedListener(new FabOffsetter(parent, child));
-            listenerRegistered = true;
+        if (dependency instanceof AppBarLayout) {
+
+            final AppBarLayout appBarLayout = (AppBarLayout) dependency;
+            final AppBarLayout.LayoutParams layoutParams = ((AppBarLayout.LayoutParams) appBarLayout.getChildAt(0).getLayoutParams());
+            if (layoutParams.getScrollFlags() == 0) {
+                if (listenerRegistered) {
+                    Timber.d("removing offset listener");
+                    appBarLayout.removeOnOffsetChangedListener(offsetChangedListener);
+                    listenerRegistered = false;
+                }
+            } else if (!listenerRegistered) {
+                Timber.d("adding offset listener");
+                if (offsetChangedListener == null)
+                    offsetChangedListener = new FabOffsetter(parent, child);
+                appBarLayout.addOnOffsetChangedListener(offsetChangedListener);
+                listenerRegistered = true;
+            }
         }
         return dependency instanceof AppBarLayout || super.layoutDependsOn(parent, child, dependency);
     }
 
     @Override
     public boolean onDependentViewChanged(CoordinatorLayout parent, FloatingActionButton fab, View dependency) {
-        //noinspection SimplifiableIfStatement
         if (dependency instanceof AppBarLayout) {
             // if the dependency is an AppBarLayout, do not allow super to react on that
             // we don't want that behavior

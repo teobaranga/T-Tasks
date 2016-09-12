@@ -5,7 +5,7 @@ import android.app.TimePickerDialog.OnTimeSetListener;
 import android.view.View;
 
 import com.teo.ttasks.data.model.TTask;
-import com.teo.ttasks.data.model.TaskList;
+import com.teo.ttasks.data.model.TTaskList;
 import com.teo.ttasks.ui.base.MvpView;
 
 import java.util.List;
@@ -14,7 +14,7 @@ public interface EditTaskView extends MvpView, OnDateSetListener, OnTimeSetListe
 
     void onTaskLoaded(TTask task);
 
-    void onTaskListsLoaded(List<TaskList> taskLists, int selectedPosition);
+    void onTaskListsLoaded(List<TTaskList> taskLists, int selectedPosition);
 
     void onTaskLoadError();
 

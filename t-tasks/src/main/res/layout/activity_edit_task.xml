@@ -217,7 +217,7 @@
                     android:hint="@string/notes"
                     android:inputType="textCapSentences|textMultiLine|textAutoCorrect"
                     android:maxLines="3"
-                    android:onTextChanged="@{view.onNotesChanged}"
+                    android:onTextChanged="@{view::onNotesChanged}"
                     android:text="@{task.notes}"
                     tools:text="Don't forget to separate the colors!"/>
 

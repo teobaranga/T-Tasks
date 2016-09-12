@@ -5,15 +5,17 @@ import com.teo.ttasks.api.entities.TaskListsResponse;
 import com.teo.ttasks.api.entities.TasksResponse;
 import com.teo.ttasks.data.local.PrefHelper;
 import com.teo.ttasks.data.model.TTask;
+import com.teo.ttasks.data.model.TTaskList;
 import com.teo.ttasks.data.model.Task;
 import com.teo.ttasks.data.model.TaskFields;
 import com.teo.ttasks.data.model.TaskList;
+import com.teo.ttasks.data.model.TaskListFields;
 
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 
 import io.realm.Realm;
+import io.realm.RealmQuery;
 import io.realm.RealmResults;
 import retrofit2.adapter.rxjava.HttpException;
 import rx.Observable;
@@ -34,6 +36,25 @@ public final class TasksHelper {
         this.prefHelper = prefHelper;
     }
 
+    /**
+     * Create a task list locally and mark it as not synced.
+     * This task list needs to be copied to Realm in order to make it persistent.
+     *
+     * @param taskListFields task list properties
+     * @return a local, un-managed task list
+     */
+    public static TTaskList createTaskList(TaskListFields taskListFields) {
+        // Create the task list
+        final TaskList taskList = new TaskList();
+        taskList.setTitle(taskListFields.getTitle());
+
+        // Create the TTaskList
+        final TTaskList tTaskList = new TTaskList(taskList);
+        tTaskList.setSynced(false);
+
+        return tTaskList;
+    }
+
     private Observable handleResourceNotModified(Throwable throwable) {
         // End the stream if the status code is 304 - Not Modified
         if (throwable instanceof HttpException)
@@ -42,17 +63,85 @@ public final class TasksHelper {
         return Observable.error(throwable);
     }
 
-    public Observable<List<TaskList>> getTaskLists(Realm realm) {
-        return realm.where(TaskListsResponse.class)
-                .findFirst()
-                .<TaskListsResponse>asObservable()
-                .map(taskListsResponse -> taskListsResponse.items);
+    /**
+     * Retrieve all the valid task lists associated with the current account.
+     *
+     * @param realm a Realm instance
+     * @return an Observable containing the list of task lists
+     */
+    public Observable<RealmResults<TTaskList>> getTaskLists(Realm realm) {
+        return realm.where(TTaskList.class)
+                .equalTo("deleted", false)
+                .findAll()
+                .asObservable();
     }
 
-    public Observable<TaskList> getTaskList(String taskListId, Realm realm) {
-        return realm.where(TaskList.class).equalTo("id", taskListId)
+    /**
+     * Retrieve a specific task list from the local database. The requested task must be valid (not marked for deletion).
+     *
+     * @param taskListId task list identifier
+     * @param realm      a Realm instance
+     * @return an Observable containing the requested task list
+     */
+    public Observable<TTaskList> getTaskList(String taskListId, Realm realm) {
+        return realm.where(TTaskList.class)
+                .equalTo("id", taskListId)
+                .equalTo("deleted", false)
                 .findFirst()
                 .asObservable();
+    }
+
+    /**
+     * Create a new task list.
+     *
+     * @param taskListFields fields that make up the new task list
+     * @return an Observable containing the newly created task list
+     */
+    public Observable<TaskList> newTaskList(TaskListFields taskListFields) {
+        return tasksApi.insertTaskList(taskListFields);
+    }
+
+    /**
+     * Update a task list by modifying specific fields (online)
+     *
+     * @param taskListId     task list identifier
+     * @param taskListFields fields to be modified
+     */
+    public Observable<TaskList> updateTaskList(String taskListId, TaskListFields taskListFields) {
+        return tasksApi.updateTaskList(taskListId, taskListFields);
+    }
+
+    /**
+     * Delete a specific task list. The remote copy of task will be deleted first,
+     * and if the operation was successful, the local copy will be removed as well.
+     *
+     * @param taskListId task list identifier
+     */
+    public Observable<Void> deleteTaskList(String taskListId) {
+        return tasksApi.deleteTaskList(taskListId)
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnCompleted(() -> {
+                    Realm realm = Realm.getDefaultInstance();
+                    realm.executeTransaction(realm1 -> {
+                        final TTaskList tTaskList = realm1.where(TTaskList.class).equalTo("id", taskListId).findFirst();
+                        if (tTaskList != null) {
+                            // Should always be the case
+                            tTaskList.deleteFromRealm();
+                        }
+                    });
+                    realm.close();
+                });
+    }
+
+    /**
+     * Get the size of a specific task list.
+     *
+     * @param taskListId task list identifier
+     * @param realm      a Realm instance
+     * @return the number of tasks in the task list
+     */
+    public long getTaskListSize(String taskListId, Realm realm) {
+        return getValidTasks(taskListId, realm).count();
     }
 
     public Observable<TaskListsResponse> refreshTaskLists() {
@@ -68,7 +157,17 @@ public final class TasksHelper {
                         Timber.d("Task lists have changed");
                         prefHelper.setTaskListsResponseEtag(taskListsResponse.etag);
                         taskListsResponse.id = prefHelper.getUserEmail();
-                        realm.executeTransaction(realm1 -> realm1.insertOrUpdate(taskListsResponse));
+                        realm.executeTransaction(realm1 -> {
+                            realm1.insertOrUpdate(taskListsResponse);
+                            // Create a new TTaskList for each TaskList, if available
+                            if (taskListsResponse.items != null) {
+                                for (TaskList taskList : taskListsResponse.items) {
+                                    TTaskList tTaskList = realm1.where(TTaskList.class).equalTo("id", taskList.getId()).findFirst();
+                                    if (tTaskList == null)
+                                        realm1.insertOrUpdate(new TTaskList(taskList));
+                                }
+                            }
+                        });
                     } else Timber.d("Task lists are up-to-date");
                     realm.close();
                 });
@@ -81,11 +180,10 @@ public final class TasksHelper {
      * @param realm      Realm instance
      * @return a RealmResults containing objects. If no objects match the condition, a list with zero objects is returned.
      */
-    public RealmResults<TTask> getValidTasks(String taskListId, Realm realm) {
+    private RealmQuery<TTask> getValidTasks(String taskListId, Realm realm) {
         return realm.where(TTask.class)
                 .equalTo("taskListId", taskListId)
-                .equalTo("deleted", false)
-                .findAll();
+                .equalTo("deleted", false);
     }
 
     /**
@@ -97,7 +195,7 @@ public final class TasksHelper {
      * @param realm      an instance of Realm
      */
     public Observable<RealmResults<TTask>> getTasks(String taskListId, Realm realm) {
-        return getValidTasks(taskListId, realm).asObservable();
+        return getValidTasks(taskListId, realm).findAll().asObservable();
     }
 
     /**
@@ -106,10 +204,10 @@ public final class TasksHelper {
      * @param taskListId task list identifier
      * @return an Observable of a list of un-managed {@link Task}s
      */
-    private Observable<List<TTask>> getTasks(String taskListId) {
+    public Observable<List<TTask>> getTasks(String taskListId) {
         return Observable.defer(() -> {
             Realm realm = Realm.getDefaultInstance();
-            List<TTask> tasks = realm.where(TTask.class).equalTo("taskListId", taskListId).findAll();
+            List<TTask> tasks = getValidTasks(taskListId, realm).findAll();
             if (tasks.isEmpty()) {
                 realm.close();
                 return Observable.empty();
@@ -173,9 +271,40 @@ public final class TasksHelper {
                                 }
                             }
                         });
-                    } else Timber.d("Tasks are up-to-date");
+                    } else {
+                        Timber.d("Tasks are up-to-date");
+                    }
                     realm.close();
                 });
+    }
+
+    /**
+     * Creates a new task in the specified task list.
+     * Runs on {@link Schedulers#io()}
+     *
+     * @param taskListId task list identifier
+     * @param taskFields new task
+     * @return an Observable containing the full task
+     */
+    public Observable<Task> newTask(String taskListId, TaskFields taskFields) {
+        return tasksApi.insertTask(taskListId, taskFields);
+    }
+
+    private Observable<TTask> updateTask(String taskListId, TTask tTask) {
+        Timber.d("updating task %s, %s, %s", tTask.getId(), tTask.isSynced(), tTask.isDeleted());
+        return tasksApi.updateTask(taskListId, tTask.getId(), tTask.task)
+                .map(task -> tTask);
+    }
+
+    /**
+     * Update the task, changing only the specified fields
+     *
+     * @param taskListId task list identifier
+     * @param taskId     task identifier
+     * @param taskFields HashMap containing the fields to be modified and their values
+     */
+    public Observable<Task> updateTask(String taskListId, String taskId, TaskFields taskFields) {
+        return tasksApi.updateTask(taskListId, taskId, taskFields);
     }
 
     /**
@@ -211,40 +340,18 @@ public final class TasksHelper {
                 });
     }
 
+    /**
+     * Mark task as completed if it's not and vice-versa.
+     *
+     * @param taskId task identifier
+     * @param realm  a Realm instance
+     * @return an Observable containing the updated task
+     */
     public Observable<TTask> updateCompletionStatus(String taskId, Realm realm) {
         TTask tTask = realm.where(TTask.class).equalTo("id", taskId).findFirst();
         if (tTask != null)
             return updateCompletionStatus(tTask, realm);
         return Observable.error(new RuntimeException("Task not found"));
-    }
-
-    private Observable<TTask> updateTask(String taskListId, TTask tTask) {
-        Timber.d("updating task %s, %s, %s", tTask.getId(), tTask.isSynced(), tTask.isDeleted());
-        return tasksApi.updateTask(taskListId, tTask.getId(), tTask.task)
-                .map(task -> tTask);
-    }
-
-    /**
-     * Update the task, changing only the specified fields
-     *
-     * @param taskListId task list identifier
-     * @param taskId     task identifier
-     * @param taskFields HashMap containing the fields to be modified and their values
-     */
-    public Observable<Task> updateTask(String taskListId, String taskId, HashMap<String, Object> taskFields) {
-        return tasksApi.updateTask(taskListId, taskId, taskFields);
-    }
-
-    /**
-     * Creates a new task in the specified task list.
-     * Runs on {@link Schedulers#io()}
-     *
-     * @param taskListId task list identifier
-     * @param task       new task
-     * @return an Observable containing the full task
-     */
-    public Observable<Task> newTask(String taskListId, HashMap task) {
-        return tasksApi.insertTask(taskListId, task);
     }
 
     /**
@@ -258,7 +365,13 @@ public final class TasksHelper {
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnCompleted(() -> {
                     Realm realm = Realm.getDefaultInstance();
-                    realm.executeTransaction(realm1 -> realm1.where(TTask.class).equalTo("id", taskId).findFirst().deleteFromRealm());
+                    realm.executeTransaction(realm1 -> {
+                        final TTask tTask = realm1.where(TTask.class).equalTo("id", taskId).findFirst();
+                        if (tTask != null) {
+                            // Should always be the case
+                            tTask.deleteFromRealm();
+                        }
+                    });
                     realm.close();
                 });
     }

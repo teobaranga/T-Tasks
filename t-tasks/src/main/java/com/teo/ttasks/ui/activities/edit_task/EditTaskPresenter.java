@@ -7,11 +7,12 @@ import android.support.v4.util.Pair;
 import com.teo.ttasks.data.local.PrefHelper;
 import com.teo.ttasks.data.local.WidgetHelper;
 import com.teo.ttasks.data.model.TTask;
+import com.teo.ttasks.data.model.TTaskList;
 import com.teo.ttasks.data.model.Task;
 import com.teo.ttasks.data.model.TaskFields;
-import com.teo.ttasks.data.model.TaskList;
 import com.teo.ttasks.data.remote.TasksHelper;
 import com.teo.ttasks.ui.base.Presenter;
+import com.teo.ttasks.util.NotificationHelper;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -26,6 +27,7 @@ public class EditTaskPresenter extends Presenter<EditTaskView> {
     private final TasksHelper tasksHelper;
     private final PrefHelper prefHelper;
     private final WidgetHelper widgetHelper;
+    private final NotificationHelper notificationHelper;
 
     @Nullable private Date dueDate;
     @Nullable private Date reminder;
@@ -37,10 +39,12 @@ public class EditTaskPresenter extends Presenter<EditTaskView> {
 
     private Realm realm;
 
-    public EditTaskPresenter(TasksHelper tasksHelper, PrefHelper prefHelper, WidgetHelper widgetHelper) {
+    public EditTaskPresenter(TasksHelper tasksHelper, PrefHelper prefHelper, WidgetHelper widgetHelper,
+                             NotificationHelper notificationHelper) {
         this.tasksHelper = tasksHelper;
         this.prefHelper = prefHelper;
         this.widgetHelper = widgetHelper;
+        this.notificationHelper = notificationHelper;
         editTaskFields = new TaskFields();
     }
 
@@ -79,7 +83,7 @@ public class EditTaskPresenter extends Presenter<EditTaskView> {
                 .map(taskLists -> {
                     // Find the index of the current task list
                     for (int i = 0; i < taskLists.size(); i++) {
-                        TaskList taskList = taskLists.get(i);
+                        TTaskList taskList = taskLists.get(i);
                         if (taskList.getId().equals(currentTaskListId))
                             return new Pair<>(taskLists, i);
                     }
@@ -166,7 +170,7 @@ public class EditTaskPresenter extends Presenter<EditTaskView> {
      * @param taskTitle task title
      */
     void setTaskTitle(String taskTitle) {
-        editTaskFields.putTitle(taskTitle);
+        editTaskFields.putTitle(taskTitle.trim());
     }
 
     /**
@@ -175,7 +179,7 @@ public class EditTaskPresenter extends Presenter<EditTaskView> {
      * @param taskNotes task notes
      */
     void setTaskNotes(String taskNotes) {
-        editTaskFields.putNotes(taskNotes);
+        editTaskFields.putNotes(taskNotes.trim());
     }
 
     /**
@@ -199,6 +203,11 @@ public class EditTaskPresenter extends Presenter<EditTaskView> {
         tTask.setSynced(false);
         tTask.setReminder(reminder);
         realm.executeTransaction(realm -> realm.copyToRealm(tTask));
+
+        // Schedule the notification
+        final TTask managedTask = tasksHelper.getTask(tTask.getId(), realm).toBlocking().first();
+        notificationHelper.scheduleTaskNotification(managedTask);
+
         // Save the task on an active network connection
         if (isOnline) {
             tasksHelper.newTask(taskListId, editTaskFields)
@@ -206,7 +215,7 @@ public class EditTaskPresenter extends Presenter<EditTaskView> {
                     .subscribe(
                             savedTask -> {
                                 // Update the local task with the full information and delete the old task
-                                TTask managedTask = tasksHelper.getTask(tTask.getId(), realm).toBlocking().first();
+                                final int id = managedTask.hashCode();
                                 realm.executeTransaction(realm -> {
                                     managedTask.getTask().deleteFromRealm();
                                     managedTask.switchTask(realm.copyToRealm(savedTask));
@@ -215,6 +224,8 @@ public class EditTaskPresenter extends Presenter<EditTaskView> {
                                 Timber.d("new task with id %s", managedTask.getId());
                                 prefHelper.deleteLastTaskId();
                                 widgetHelper.updateWidgets(taskListId);
+                                // Update the previous notification with the correct task ID
+                                notificationHelper.scheduleTaskNotification(managedTask, id);
                             },
                             throwable -> {
                                 Timber.e(throwable.toString());
@@ -251,6 +262,10 @@ public class EditTaskPresenter extends Presenter<EditTaskView> {
             managedTask.setReminder(reminder);
             managedTask.setSynced(false);
         });
+
+        widgetHelper.updateWidgets(taskListId);
+        notificationHelper.scheduleTaskNotification(managedTask);
+
         // Update the task on an active network connection
         if (isOnline) {
             tasksHelper.updateTask(taskListId, taskId, editTaskFields)
@@ -270,7 +285,6 @@ public class EditTaskPresenter extends Presenter<EditTaskView> {
                             }
                     );
         }
-        widgetHelper.updateWidgets(taskListId);
         final EditTaskView view = view();
         if (view != null) view.onTaskSaved(managedTask);
     }
