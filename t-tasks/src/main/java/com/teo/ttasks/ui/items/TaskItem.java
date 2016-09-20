@@ -42,11 +42,11 @@ public class TaskItem extends AbstractItem<TaskItem, TaskItem.ViewHolder> implem
     private static final SimpleDateFormat fmt = new SimpleDateFormat("yyyyMMdd", Locale.getDefault());
 
     /**
-     * Comparator that sorts {@link TaskItem}s by their completion date in descending order
+     * Comparator that sorts {@link TaskItem}s by their completion date in descending order.
      */
     public static Comparator<TaskItem> completionDateComparator = (lhs, rhs) -> {
 
-        boolean sameDay = fmt.format(lhs.completed).equals(fmt.format(rhs.completed));
+        final boolean sameDay = fmt.format(lhs.completed).equals(fmt.format(rhs.completed));
 
         int returnCode;
 
@@ -70,20 +70,37 @@ public class TaskItem extends AbstractItem<TaskItem, TaskItem.ViewHolder> implem
         return returnCode;
     };
 
+    /**
+     * Comparator that sorts {@link TaskItem}s by their due dates in ascending order.
+     */
     private static Comparator<TaskItem> dueDateComparator = (lhs, rhs) -> {
-        // TODO: 2016-09-19 set the combined value
+
+        final boolean sameDay = lhs.dueDate != null && rhs.dueDate != null && fmt.format(lhs.dueDate).equals(fmt.format(rhs.dueDate));
+
+        int returnCode;
+
         if (lhs.dueDate != null) {
             // Compare non-null due dates, most recent ones at the top
             if (rhs.dueDate != null)
-                return lhs.dueDate.compareTo(rhs.dueDate);
-            // This task comes after the other task
-            return 1;
+                returnCode = lhs.dueDate.compareTo(rhs.dueDate);
+            else
+                // This task comes after the other task
+                returnCode = 1;
         } else if (rhs.dueDate != null) {
             // This task comes before the other task
-            return -1;
+            returnCode = -1;
+        } else {
+            // Both tasks have missing due dates, they are considered equal
+            returnCode = 0;
         }
-        // Both tasks have missing due dates, they are considered equal
-        return 0;
+
+        if (sameDay) {
+            if (returnCode == 0 || returnCode == -1)
+                lhs.combined = true;
+            else rhs.combined = true;
+        }
+
+        return returnCode;
     };
 
     static {
