@@ -8,7 +8,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.SystemClock;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityOptionsCompat;
@@ -17,6 +16,7 @@ import android.support.v4.util.Pair;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SimpleItemAnimator;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -28,7 +28,8 @@ import android.widget.Toast;
 import com.mikepenz.fastadapter.FastAdapter;
 import com.mikepenz.fastadapter.IAdapter;
 import com.mikepenz.fastadapter.IItem;
-import com.mikepenz.fastadapter.adapters.ItemAdapter;
+import com.mikepenz.fastadapter.adapters.FastItemAdapter;
+import com.mikepenz.fastadapter.adapters.FooterAdapter;
 import com.teo.ttasks.R;
 import com.teo.ttasks.TTasksApp;
 import com.teo.ttasks.databinding.FragmentTasksBinding;
@@ -36,6 +37,7 @@ import com.teo.ttasks.receivers.NetworkInfoReceiver;
 import com.teo.ttasks.ui.activities.edit_task.EditTaskActivity;
 import com.teo.ttasks.ui.activities.main.MainActivity;
 import com.teo.ttasks.ui.activities.task_detail.TaskDetailActivity;
+import com.teo.ttasks.ui.items.CategoryItem;
 import com.teo.ttasks.ui.items.TaskItem;
 
 import java.util.Arrays;
@@ -79,16 +81,23 @@ public class TasksFragment extends Fragment implements TasksView, SwipeRefreshLa
 
     FloatingActionButton fab;
 
-    private final FastAdapter.OnClickListener<IItem> taskItemClickListener = new FastAdapter.OnClickListener<IItem>() {
+    private NetworkInfoReceiver networkInfoReceiver;
+    private FastItemAdapter fastItemAdapter;
+    private FooterAdapter<CategoryItem> completedHeaderAdapter;
+
+    private final FastAdapter.OnClickListener taskItemClickListener = new FastAdapter.OnClickListener() {
         // Reject quick, successive clicks because they break the app
         private static final long MIN_CLICK_INTERVAL = 1000;
         private long lastClickTime = 0;
 
-        @Override public boolean onClick(View v, IAdapter<IItem> adapter, IItem item, int position) {
-            long currentTime = SystemClock.elapsedRealtime();
-            if (currentTime - lastClickTime > MIN_CLICK_INTERVAL) {
-                lastClickTime = currentTime;
-                if (item instanceof TaskItem) {
+        @Override
+        public boolean onClick(View v, IAdapter adapter, IItem item, int position) {
+            if (item instanceof TaskItem) {
+                // Handle click on a task item
+                long currentTime = SystemClock.elapsedRealtime();
+                if (currentTime - lastClickTime > MIN_CLICK_INTERVAL) {
+                    lastClickTime = currentTime;
+
                     // Make sure the navigation bar view isn't null
                     if (navBar.first == null)
                         createNavBarPair();
@@ -100,14 +109,22 @@ public class TasksFragment extends Fragment implements TasksView, SwipeRefreshLa
                     ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(getActivity(), sharedElements);
                     TaskDetailActivity.start(getContext(), ((TaskItem) item).getTaskId(), taskListId, options.toBundle());
                 }
+            } else if (item instanceof CategoryItem) {
+                // Handle click on the "Completed" section
+                final CategoryItem categoryItem = (CategoryItem) item;
+                final List<TaskItem> subItems = categoryItem.getSubItems();
+                if (subItems != null && !subItems.isEmpty()) {
+                    if (!categoryItem.isExpanded()) {
+                        categoryItem.withName(String.format(getString(R.string.completed_count), subItems.size()));
+                    } else {
+                        categoryItem.withName(R.string.completed);
+                    }
+                    completedHeaderAdapter.notifyItemChanged(completedHeaderAdapter.getGlobalPosition(0));
+                }
             }
             return true;
         }
     };
-
-    private NetworkInfoReceiver networkInfoReceiver;
-    private FastAdapter<IItem> fastAdapter;
-    private ItemAdapter<IItem> itemAdapter;
 
     /**
      * Flag indicating whether to hide completed tasks or not.
@@ -126,8 +143,8 @@ public class TasksFragment extends Fragment implements TasksView, SwipeRefreshLa
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
         TTasksApp.get(getContext()).userComponent().inject(this);
-        fastAdapter = new FastAdapter<>();
-        itemAdapter = new ItemAdapter<>();
+        fastItemAdapter = new FastItemAdapter<>();
+        completedHeaderAdapter = new FooterAdapter<>();
 
         if (savedInstanceState != null) {
             taskListId = savedInstanceState.getString(ARG_TASK_LIST_ID);
@@ -136,7 +153,8 @@ public class TasksFragment extends Fragment implements TasksView, SwipeRefreshLa
 
         createNavBarPair();
 
-        fastAdapter.withOnClickListener(taskItemClickListener);
+        //noinspection unchecked
+        fastItemAdapter.withOnClickListener(taskItemClickListener);
 
         networkInfoReceiver = new NetworkInfoReceiver();
         networkInfoReceiver.setOnConnectionChangedListener(isOnline -> {
@@ -198,7 +216,8 @@ public class TasksFragment extends Fragment implements TasksView, SwipeRefreshLa
         tasksPresenter.bindView(this);
 
         tasksBinding.tasksList.setLayoutManager(new LinearLayoutManager(getContext()));
-        tasksBinding.tasksList.setAdapter(itemAdapter.wrap(fastAdapter));
+        tasksBinding.tasksList.setAdapter(completedHeaderAdapter.wrap(fastItemAdapter));
+        ((SimpleItemAnimator) tasksBinding.tasksList.getItemAnimator()).setSupportsChangeAnimations(false);
 
         tasksBinding.swipeRefreshLayout.setOnRefreshListener(this);
 
@@ -231,15 +250,40 @@ public class TasksFragment extends Fragment implements TasksView, SwipeRefreshLa
 
     @Override
     public void showEmptyUi() {
-        itemAdapter.clear();
+        fastItemAdapter.clear();
+        completedHeaderAdapter.clear();
         tasksBinding.tasksLoading.setVisibility(GONE);
         tasksBinding.tasksEmpty.setVisibility(VISIBLE);
         onRefreshDone();
     }
 
     @Override
-    public void showContentUi(@NonNull List<IItem> taskItems) {
-        itemAdapter.setNewList(taskItems);
+    public void onActiveTasksLoaded(List<TaskItem> activeTasks) {
+        //noinspection unchecked
+        fastItemAdapter.setNewList(activeTasks);
+    }
+
+    @Override
+    public void onCompletedTasksLoaded(List<TaskItem> completedTasks) {
+        final boolean emptyAdapter = completedHeaderAdapter.getAdapterItemCount() == 0;
+        if (completedTasks.isEmpty()) {
+            completedHeaderAdapter.clear();
+        } else {
+            if (emptyAdapter) {
+                final CategoryItem completedHeader = new CategoryItem().withName(R.string.completed).withIsExpanded(true);
+                completedHeader.withSubItems(completedTasks);
+                completedHeaderAdapter.add(completedHeader);
+            } else {
+                final CategoryItem completedHeader = completedHeaderAdapter.getAdapterItem(0);
+                completedHeader.withSubItems(completedTasks);
+                completedHeaderAdapter.clear();
+                completedHeaderAdapter.add(completedHeader);
+            }
+        }
+    }
+
+    @Override
+    public void onTasksLoaded() {
         tasksBinding.tasksLoading.setVisibility(GONE);
         tasksBinding.tasksEmpty.setVisibility(GONE);
         onRefreshDone();
@@ -247,7 +291,7 @@ public class TasksFragment extends Fragment implements TasksView, SwipeRefreshLa
         tasksBinding.tasksList.post(() -> {
             final LinearLayoutManager layoutManager = (LinearLayoutManager) tasksBinding.tasksList.getLayoutManager();
             final int position = layoutManager.findLastVisibleItemPosition();
-            if ((itemAdapter.getItemCount() - 1) <= position || position == RecyclerView.NO_POSITION) {
+            if ((fastItemAdapter.getItemCount() - 1) <= position || position == RecyclerView.NO_POSITION) {
                 ((MainActivity) getActivity()).disableScrolling(true);
             } else {
                 ((MainActivity) getActivity()).enableScrolling();

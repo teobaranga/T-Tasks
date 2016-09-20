@@ -1,5 +1,7 @@
 package com.teo.ttasks.util;
 
+import android.support.annotation.IntDef;
+
 import com.mikepenz.fastadapter.IItem;
 import com.teo.ttasks.R;
 import com.teo.ttasks.data.model.TTask;
@@ -7,11 +9,16 @@ import com.teo.ttasks.data.model.Task;
 import com.teo.ttasks.ui.items.CategoryItem;
 import com.teo.ttasks.ui.items.TaskItem;
 
+import java.lang.annotation.Retention;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import rx.Observable;
 import rx.Observable.Transformer;
+import rx.observables.GroupedObservable;
+
+import static java.lang.annotation.RetentionPolicy.SOURCE;
 
 public class RxUtils {
 
@@ -39,6 +46,7 @@ public class RxUtils {
                         }
                     }
 
+                    // Sort active tasks by due date in descending order
                     Collections.sort(activeTasks);
                     taskItems.addAll(activeTasks);
 
@@ -53,4 +61,35 @@ public class RxUtils {
                     return taskItems;
                 });
     }
+
+    public static Transformer<List<TTask>, GroupedObservable<Boolean, List<TaskItem>>> getTaskItems() {
+        return observable -> observable
+                .flatMap(tTasks -> {
+                    List<TaskItem> activeTasks = new ArrayList<>();
+                    List<TaskItem> completedTasks = new ArrayList<>();
+
+                    for (TTask task : tTasks) {
+                        if (task.getCompleted() == null) {
+                            // Active task
+                            activeTasks.add(new TaskItem(task));
+                        } else {
+                            // Completed task
+                            completedTasks.add(new TaskItem(task));
+                        }
+                    }
+
+                    // Sort active tasks by due date in descending order
+                    Collections.sort(activeTasks);
+
+                    Collections.sort(completedTasks, TaskItem.completionDateComparator);
+
+                    return Observable.just(
+                            GroupedObservable.from(true, Observable.just(activeTasks)),
+                            GroupedObservable.from(false, Observable.just(completedTasks)));
+                });
+    }
+
+    @Retention(SOURCE)
+    @IntDef({1, 2, 3})
+    public @interface SortingMode {}
 }

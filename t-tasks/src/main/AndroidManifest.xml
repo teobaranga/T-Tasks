@@ -78,15 +78,12 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/tasks_widget_info"/>
         </receiver>
-        <receiver android:name=".receivers.TaskNotificationReceiver" />
+        <receiver android:name=".receivers.TaskNotificationReceiver"/>
 
         <service
             android:name=".widget.TasksWidgetService"
             android:permission="android.permission.BIND_REMOTEVIEWS"/>
 
-        <meta-data
-            android:name="com.google.android.gms.version"
-            android:value="@integer/google_play_services_version"/>
         <meta-data
             android:name="io.fabric.ApiKey"
             android:value="49881be4a0f3b48a47ff8a046e4e3c45d0de363d"/>

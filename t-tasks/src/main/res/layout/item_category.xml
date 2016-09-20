@@ -2,7 +2,7 @@
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools">
 
-    <LinearLayout
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical|start"
@@ -15,15 +15,22 @@
 
         <TextView
             android:id="@+id/text"
-            style="@style/TextAppearance.AppCompat.Title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:lines="1"
             android:maxLines="1"
+            android:textAppearance="@style/TextAppearance.AppCompat.Title"
             android:textColor="?attr/colorAccent"
             android:textDirection="anyRtl"
+            tools:targetApi="jelly_bean_mr1"
             tools:text="Some drawer text"/>
 
-    </LinearLayout>
+        <ImageView
+            android:id="@+id/arrow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"/>
+
+    </FrameLayout>
 
 </layout>

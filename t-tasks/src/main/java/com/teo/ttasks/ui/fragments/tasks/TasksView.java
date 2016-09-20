@@ -1,11 +1,10 @@
 package com.teo.ttasks.ui.fragments.tasks;
 
 import android.content.Intent;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-import com.mikepenz.fastadapter.IItem;
 import com.teo.ttasks.ui.base.MvpView;
+import com.teo.ttasks.ui.items.TaskItem;
 
 import java.util.List;
 
@@ -17,11 +16,15 @@ interface TasksView extends MvpView {
 
     void onTasksLoading();
 
+    void onActiveTasksLoaded(List<TaskItem> activeTasks);
+
+    void onCompletedTasksLoaded(List<TaskItem> completedTasks);
+
     void onTasksLoadError(@Nullable Intent resolveIntent);
 
     void showEmptyUi();
 
-    void showContentUi(@NonNull List<IItem> taskItems);
+    void onTasksLoaded();
 
     void onRefreshDone();
 

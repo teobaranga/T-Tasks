@@ -10,6 +10,7 @@ import android.util.TypedValue;
 import android.view.View;
 
 import com.mikepenz.fastadapter.items.AbstractItem;
+import com.mikepenz.fastadapter.utils.ViewHolderFactory;
 import com.teo.ttasks.R;
 import com.teo.ttasks.data.model.TTask;
 import com.teo.ttasks.databinding.ItemTaskBinding;
@@ -19,6 +20,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.TimeZone;
 
 import lombok.Getter;
 import lombok.experimental.Accessors;
@@ -30,7 +32,13 @@ import static android.view.View.VISIBLE;
 @Accessors()
 public class TaskItem extends AbstractItem<TaskItem, TaskItem.ViewHolder> implements Comparable<TaskItem> {
 
-    private static final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE", Locale.getDefault());
+    private static final ViewHolderFactory<? extends ViewHolder> FACTORY = new ItemFactory();
+
+    private static final String DAY_PATTERN = "EEE";
+    private static final String DAY_NUMBER_PATTERN = "d";
+    private static final String HOUR_PATTERN = "hh:mma";
+
+    private static final SimpleDateFormat simpleDateFormat = new SimpleDateFormat(DAY_PATTERN, Locale.getDefault());
     private static final SimpleDateFormat fmt = new SimpleDateFormat("yyyyMMdd", Locale.getDefault());
 
     /**
@@ -62,6 +70,26 @@ public class TaskItem extends AbstractItem<TaskItem, TaskItem.ViewHolder> implem
         return returnCode;
     };
 
+    private static Comparator<TaskItem> dueDateComparator = (lhs, rhs) -> {
+        // TODO: 2016-09-19 set the combined value
+        if (lhs.dueDate != null) {
+            // Compare non-null due dates, most recent ones at the top
+            if (rhs.dueDate != null)
+                return lhs.dueDate.compareTo(rhs.dueDate);
+            // This task comes after the other task
+            return 1;
+        } else if (rhs.dueDate != null) {
+            // This task comes before the other task
+            return -1;
+        }
+        // Both tasks have missing due dates, they are considered equal
+        return 0;
+    };
+
+    static {
+        simpleDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+    }
+
     @Getter private final String taskId;
     @Getter private final String title;
     @Getter private final String notes;
@@ -79,6 +107,11 @@ public class TaskItem extends AbstractItem<TaskItem, TaskItem.ViewHolder> implem
         completed = tTask.getCompleted();
         reminder = tTask.getReminder();
         taskId = tTask.getId();
+    }
+
+    @Override
+    public ViewHolderFactory<? extends ViewHolder> getFactory() {
+        return FACTORY;
     }
 
     @Override
@@ -100,7 +133,7 @@ public class TaskItem extends AbstractItem<TaskItem, TaskItem.ViewHolder> implem
         int px = 0;
         RecyclerView.LayoutParams layoutParams = ((RecyclerView.LayoutParams) viewHolder.itemView.getLayoutParams());
         if (combined)
-            px = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 10, ViewHolder.displayMetrics);
+            px = viewHolder.topMargin;
         layoutParams.setMargins(0, -px, 0, 0);
         viewHolder.itemView.setLayoutParams(layoutParams);
 
@@ -118,33 +151,32 @@ public class TaskItem extends AbstractItem<TaskItem, TaskItem.ViewHolder> implem
         // Due date / Completed date
         if (completed != null && !combined) {
             // Mon
-            simpleDateFormat.applyLocalizedPattern("EEE");
+            simpleDateFormat.applyLocalizedPattern(DAY_PATTERN);
             binding.dateDayName.setText(simpleDateFormat.format(completed));
             // 1
-            simpleDateFormat.applyLocalizedPattern("d");
+            simpleDateFormat.applyLocalizedPattern(DAY_NUMBER_PATTERN);
             binding.dateDayNumber.setText(simpleDateFormat.format(completed));
             // 12:00PM
             binding.dateLayout.setVisibility(VISIBLE);
         } else if (dueDate != null && !combined) {
             // Mon
-            simpleDateFormat.applyLocalizedPattern("EEE");
+            simpleDateFormat.applyLocalizedPattern(DAY_PATTERN);
             binding.dateDayName.setText(simpleDateFormat.format(dueDate));
             // 1
-            simpleDateFormat.applyLocalizedPattern("d");
+            simpleDateFormat.applyLocalizedPattern(DAY_NUMBER_PATTERN);
             binding.dateDayNumber.setText(simpleDateFormat.format(dueDate));
             // 12:00PM
             binding.dateLayout.setVisibility(VISIBLE);
         } else {
             binding.dateDayNumber.setText(null);
             binding.dateDayName.setText(null);
-            if (!combined)
-                binding.dateLayout.setVisibility(GONE);
+            binding.dateLayout.setVisibility(!combined ? GONE : VISIBLE);
         }
 
         // Reminder
         if (reminder != null) {
             Timber.d("reminder is not null");
-            simpleDateFormat.applyLocalizedPattern("hh:mma");
+            simpleDateFormat.applyLocalizedPattern(HOUR_PATTERN);
             binding.reminder.setText(simpleDateFormat.format(reminder));
             binding.reminder.setVisibility(VISIBLE);
         } else {
@@ -158,33 +190,28 @@ public class TaskItem extends AbstractItem<TaskItem, TaskItem.ViewHolder> implem
      */
     @Override
     public int compareTo(@NonNull TaskItem another) {
-        if (dueDate != null) {
-            // Compare non-null due dates, most recent ones at the top
-            if (another.dueDate != null)
-                return another.dueDate.compareTo(dueDate);
-            // This task comes after the other task
-            return 1;
-        } else if (another.dueDate != null) {
-            // This task comes before the other task
-            return -1;
-        }
-        // Both tasks have missing due dates, they are considered equal
-        return 0;
+        return dueDateComparator.compare(this, another);
     }
 
-    //The viewHolder used for this item. This viewHolder is always reused by the RecyclerView so scrolling is blazing fast
+    private static class ItemFactory implements ViewHolderFactory<ViewHolder> {
+        public ViewHolder create(View v) {
+            return new ViewHolder(v);
+        }
+    }
+
     public static class ViewHolder extends RecyclerView.ViewHolder {
 
-        static DisplayMetrics displayMetrics;
+        final int topMargin;
 
         public ItemTaskBinding binding;
 
-        public ViewHolder(View view) {
+        ViewHolder(View view) {
             super(view);
             binding = DataBindingUtil.bind(view);
             Drawable reminderIcon = VectorDrawableCompat.create(view.getResources(), R.drawable.ic_alarm_18dp, view.getContext().getTheme());
             binding.reminder.setCompoundDrawablesWithIntrinsicBounds(reminderIcon, null, null, null);
-            displayMetrics = view.getContext().getResources().getDisplayMetrics();
+            DisplayMetrics displayMetrics = view.getContext().getResources().getDisplayMetrics();
+            topMargin = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 10, displayMetrics);
         }
     }
 }

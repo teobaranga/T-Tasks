@@ -86,6 +86,7 @@ public class TaskListsFragment extends Fragment implements TaskListsView, SwipeR
                 } else {
                     taskListsPresenter.createTaskList();
                 }
+                editDialog.dismiss();
             } else {
                 Toast.makeText(context, R.string.error_task_list_title_missing, Toast.LENGTH_SHORT).show();
             }

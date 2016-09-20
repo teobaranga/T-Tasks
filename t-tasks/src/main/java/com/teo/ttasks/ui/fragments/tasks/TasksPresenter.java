@@ -38,6 +38,7 @@ public class TasksPresenter extends Presenter<TasksView> {
     void getTasks(@Nullable String taskListId) {
         if (taskListId == null)
             return;
+        final AtomicInteger taskCount = new AtomicInteger();
         // Since Realm observables do not complete, this subscription must be recreated every time
         if (tasksSubscription != null && !tasksSubscription.isUnsubscribed())
             tasksSubscription.unsubscribe();
@@ -46,15 +47,47 @@ public class TasksPresenter extends Presenter<TasksView> {
             if (view != null) view.onTasksLoading();
         }
         tasksSubscription = tasksHelper.getTasks(taskListId, realm)
-                .compose(RxUtils.getTaskItems(prefHelper.getHideCompleted()))
+                .compose(RxUtils.getTaskItems())
                 .subscribe(
                         // The Realm observable will not throw errors
-                        tasks -> {
-                            Timber.d("loaded %d tasks", tasks.size());
-                            final TasksView view = view();
-                            if (view != null) {
-                                if (tasks.isEmpty()) view.showEmptyUi();
-                                else view.showContentUi(tasks);
+                        taskListObservable -> {
+                            if (taskListObservable.getKey()) {
+                                // Active tasks
+                                taskListObservable
+                                        .subscribe(
+                                                taskItems -> {
+                                                    Timber.d("loaded %d active tasks", taskItems.size());
+                                                    final TasksView view = view();
+                                                    if (view != null) {
+                                                        view.onActiveTasksLoaded(taskItems);
+                                                        if (!taskItems.isEmpty()) taskCount.addAndGet(taskItems.size());
+                                                    }
+                                                },
+                                                throwable -> Timber.e(throwable.toString())
+                                        );
+                            } else {
+                                // Completed tasks
+                                taskListObservable
+                                        .subscribe(
+                                                taskItems -> {
+                                                    Timber.d("loaded %d completed tasks", taskItems.size());
+                                                    final TasksView view = view();
+                                                    if (view != null) {
+                                                        // Show completed tasks
+                                                        view.onCompletedTasksLoaded(taskItems);
+                                                        if (!taskItems.isEmpty()) taskCount.addAndGet(taskItems.size());
+
+                                                        if (taskCount.get() == 0){
+                                                            Timber.d("hello");
+                                                            view.showEmptyUi();
+                                                        } else {
+                                                            view.onTasksLoaded();
+                                                            taskCount.set(0);
+                                                        }
+                                                    }
+                                                },
+                                                throwable -> Timber.e(throwable.toString())
+                                        );
                             }
                         });
         unsubscribeOnUnbindView(tasksSubscription);
@@ -122,12 +155,12 @@ public class TasksPresenter extends Presenter<TasksView> {
         unsubscribeOnUnbindView(subscription);
     }
 
-    void setHideCompleted(boolean hideCompleted) {
-        prefHelper.setHideCompleted(hideCompleted);
-    }
-
     boolean getHideCompleted() {
         return prefHelper.getHideCompleted();
+    }
+
+    void setHideCompleted(boolean hideCompleted) {
+        prefHelper.setHideCompleted(hideCompleted);
     }
 
     @Override

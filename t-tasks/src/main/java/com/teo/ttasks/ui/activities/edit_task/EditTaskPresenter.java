@@ -119,7 +119,7 @@ public class EditTaskPresenter extends Presenter<EditTaskView> {
             Calendar newCal = Calendar.getInstance();
             newCal.setTime(date);
 
-            oldCal.set(newCal.get(Calendar.YEAR), newCal.get(Calendar.MONTH), newCal.get(Calendar.DAY_OF_MONTH));
+            oldCal.set(newCal.get(Calendar.YEAR), newCal.get(Calendar.MONTH), newCal.get(Calendar.DAY_OF_MONTH), 0, 0, 0);
             dueDate = oldCal.getTime();
         }
         editTaskFields.putDueDate(dueDate);
