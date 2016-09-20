@@ -114,22 +114,20 @@ public class TasksFragment extends Fragment implements TasksView, SwipeRefreshLa
                 final CategoryItem categoryItem = (CategoryItem) item;
                 final List<TaskItem> subItems = categoryItem.getSubItems();
                 if (subItems != null && !subItems.isEmpty()) {
-                    if (!categoryItem.isExpanded()) {
-                        categoryItem.withName(String.format(getString(R.string.completed_count), subItems.size()));
+                    final boolean showCompleted = !categoryItem.isExpanded();
+                    if (showCompleted) {
+                        categoryItem.withTitle(String.format(getString(R.string.completed_count), subItems.size()));
                     } else {
-                        categoryItem.withName(R.string.completed);
+                        categoryItem.withTitle(R.string.completed);
                     }
+                    categoryItem.toggleArrow(true);
+                    tasksPresenter.setShowCompleted(!showCompleted);
                     completedHeaderAdapter.notifyItemChanged(completedHeaderAdapter.getGlobalPosition(0));
                 }
             }
             return true;
         }
     };
-
-    /**
-     * Flag indicating whether to hide completed tasks or not.
-     */
-    private boolean hideCompleted;
 
     /**
      * Create a new instance of this fragment
@@ -149,7 +147,6 @@ public class TasksFragment extends Fragment implements TasksView, SwipeRefreshLa
         if (savedInstanceState != null) {
             taskListId = savedInstanceState.getString(ARG_TASK_LIST_ID);
         }
-        hideCompleted = tasksPresenter.getHideCompleted();
 
         createNavBarPair();
 
@@ -178,25 +175,11 @@ public class TasksFragment extends Fragment implements TasksView, SwipeRefreshLa
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
         inflater.inflate(R.menu.menu_tasks, menu);
-        final MenuItem item = menu.findItem(R.id.menu_show_hide_completed);
-        item.setTitle(hideCompleted ? R.string.menu_show_completed : R.string.menu_hide_completed);
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.menu_show_hide_completed:
-                // toggle the visibility of completed tasks
-                hideCompleted = !hideCompleted;
-                // update the presenter and reload the tasks
-                if (tasksPresenter != null) {
-                    tasksPresenter.setHideCompleted(hideCompleted);
-                    tasksPresenter.getTasks(taskListId);
-                }
-                // Update the menu item title after a small delay
-                new Handler().postDelayed(() -> item.setTitle(hideCompleted ? R.string.menu_show_completed : R.string.menu_hide_completed), 200);
-                return false;
-        }
+        // TODO: 2016-09-20 implement sorting
         return super.onOptionsItemSelected(item);
     }
 
@@ -270,9 +253,12 @@ public class TasksFragment extends Fragment implements TasksView, SwipeRefreshLa
             completedHeaderAdapter.clear();
         } else {
             if (emptyAdapter) {
-                final CategoryItem completedHeader = new CategoryItem().withName(R.string.completed).withIsExpanded(true);
+                final CategoryItem completedHeader = new CategoryItem()
+                        .withTitle(R.string.completed)
+                        .withIsExpanded(tasksPresenter.getShowCompleted());
                 completedHeader.withSubItems(completedTasks);
                 completedHeaderAdapter.add(completedHeader);
+                new Handler().post(() -> completedHeader.toggleArrow(false));
             } else {
                 final CategoryItem completedHeader = completedHeaderAdapter.getAdapterItem(0);
                 completedHeader.withSubItems(completedTasks);

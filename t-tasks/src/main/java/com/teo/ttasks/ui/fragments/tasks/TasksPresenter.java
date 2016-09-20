@@ -155,12 +155,12 @@ public class TasksPresenter extends Presenter<TasksView> {
         unsubscribeOnUnbindView(subscription);
     }
 
-    boolean getHideCompleted() {
-        return prefHelper.getHideCompleted();
+    boolean getShowCompleted() {
+        return prefHelper.getShowCompleted();
     }
 
-    void setHideCompleted(boolean hideCompleted) {
-        prefHelper.setHideCompleted(hideCompleted);
+    void setShowCompleted(boolean showCompleted) {
+        prefHelper.setShowCompleted(showCompleted);
     }
 
     @Override

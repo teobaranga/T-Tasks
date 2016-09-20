@@ -20,14 +20,12 @@
     <string name="menu_sort_my_order">My order</string>
     <string name="menu_sort_due_date">Due date</string>
     <string name="menu_sort_alphabetical">Alphabetical</string>
-    <string name="menu_hide_completed">Hide completed</string>
-    <string name="menu_show_completed">Show completed</string>
 
     <!-- Tasks -->
     <string name="msg_task_list_empty">Empty task list</string>
     <string name="msg_task_list_empty_extra">Start by creating a new task!</string>
     <string name="error_tasks_loading">There was an error refreshing your tasks, please try again later.</string>
-    <string name="completed_count">Completed (+%d)</string>
+    <string name="completed_count">Completed (%d)</string>
 
     <!-- Task Lists -->
     <string name="task_list">Task list</string>

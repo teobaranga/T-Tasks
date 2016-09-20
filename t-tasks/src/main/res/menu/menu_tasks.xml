@@ -20,7 +20,4 @@
                 android:title="@string/menu_sort_alphabetical"/>
         </menu>
     </item>
-    <item
-        android:id="@+id/menu_show_hide_completed"
-        android:title="@string/menu_hide_completed"/>
 </menu>

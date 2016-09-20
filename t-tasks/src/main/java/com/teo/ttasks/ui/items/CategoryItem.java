@@ -1,9 +1,11 @@
 package com.teo.ttasks.ui.items;
 
 import android.databinding.DataBindingUtil;
+import android.graphics.drawable.Animatable;
 import android.support.annotation.StringRes;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
+import android.widget.ImageView;
 
 import com.mikepenz.fastadapter.IExpandable;
 import com.mikepenz.fastadapter.items.AbstractItem;
@@ -21,19 +23,21 @@ public class CategoryItem extends AbstractItem<CategoryItem, CategoryItem.ViewHo
 
     private static final ViewHolderFactory<? extends ViewHolder> FACTORY = new ItemFactory();
 
-    public StringHolder name;
+    public StringHolder title;
 
-    private List<TaskItem> mSubItems;
+    private List<TaskItem> subItems;
 
-    private boolean mExpanded = false;
+    private boolean expanded;
 
-    public CategoryItem withName(String name) {
-        this.name = new StringHolder(name);
+    private ImageView arrowView;
+
+    public CategoryItem withTitle(String title) {
+        this.title = new StringHolder(title);
         return this;
     }
 
-    public CategoryItem withName(@StringRes int NameRes) {
-        this.name = new StringHolder(NameRes);
+    public CategoryItem withTitle(@StringRes int titleRes) {
+        this.title = new StringHolder(titleRes);
         return this;
     }
 
@@ -44,22 +48,22 @@ public class CategoryItem extends AbstractItem<CategoryItem, CategoryItem.ViewHo
 
     @Override
     public boolean isExpanded() {
-        return mExpanded;
+        return expanded;
     }
 
     @Override
     public CategoryItem withIsExpanded(boolean expanded) {
-        mExpanded = expanded;
+        this.expanded = expanded;
         return this;
     }
 
     @Override
     public List<TaskItem> getSubItems() {
-        return mSubItems;
+        return subItems;
     }
 
     public CategoryItem withSubItems(List<TaskItem> subItems) {
-        this.mSubItems = subItems;
+        this.subItems = subItems;
         return this;
     }
 
@@ -83,9 +87,22 @@ public class CategoryItem extends AbstractItem<CategoryItem, CategoryItem.ViewHo
         super.bindView(viewHolder, payloads);
 
         final ItemCategoryBinding binding = viewHolder.itemCategoryBinding;
+        arrowView = binding.arrow;
 
-        //set the text for the name
-        StringHolder.applyTo(name, binding.text);
+        // set the text for the title
+        StringHolder.applyTo(title, binding.text);
+    }
+
+    /**
+     * Switch the arrow drawable to point up or down, depending on the expanded state of this item.
+     *
+     * @param animate animate the arrow (rotate it)
+     */
+    public void toggleArrow(boolean animate) {
+        int res = !expanded ? R.drawable.ic_more_to_less_24dp : R.drawable.ic_less_to_more_24dp;
+        arrowView.setImageResource(res);
+        if (animate)
+            ((Animatable) arrowView.getDrawable()).start();
     }
 
     private static class ItemFactory implements ViewHolderFactory<ViewHolder> {
