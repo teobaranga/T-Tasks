@@ -37,6 +37,7 @@
     <string name="new_task_list">New Task List</string>
     <string name="edit_task_list">Edit Task List</string>
     <string name="delete_task_list">Delete task list</string>
+    <string name="delete_task_list_message">Are you sure you want to delete this task list? All of the tasks associated with it will be deleted as well. You will not be able to recover this task list.</string>
     <string name="error_task_list_title_missing">Please enter a title</string>
 
     <!-- Task Detail -->

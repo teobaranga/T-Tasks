@@ -51,9 +51,8 @@
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="@dimen/margin_edit_task"
                     android:layout_marginRight="@dimen/margin_edit_task"
-                    android:alpha="0.54"
                     android:baselineAlignBottom="true"
-                    app:srcCompat="@drawable/ic_label_black_24dp"
+                    app:srcCompat="@drawable/ic_label_24dp"
                     tools:ignore="ContentDescription"/>
 
                 <EditText
@@ -82,7 +81,6 @@
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="16dp"
                     android:layout_marginRight="16dp"
-                    android:alpha="0.54"
                     android:baselineAlignBottom="true"
                     app:srcCompat="@drawable/ic_task_list_24dp"
                     tools:ignore="ContentDescription"/>
@@ -110,8 +108,7 @@
                     android:layout_marginEnd="@dimen/margin_edit_task"
                     android:layout_marginRight="@dimen/margin_edit_task"
                     android:layout_rowSpan="2"
-                    android:alpha="0.54"
-                    app:srcCompat="@drawable/ic_event_black_24dp"
+                    app:srcCompat="@drawable/ic_event_24dp"
                     tools:ignore="ContentDescription"/>
 
                 <TextView
@@ -168,8 +165,7 @@
                     android:layout_marginEnd="@dimen/margin_edit_task"
                     android:layout_marginRight="@dimen/margin_edit_task"
                     android:layout_rowSpan="2"
-                    android:alpha="0.54"
-                    app:srcCompat="@drawable/ic_notifications_black_24dp"
+                    app:srcCompat="@drawable/ic_notifications_24dp"
                     tools:ignore="ContentDescription"/>
 
                 <TextView
@@ -203,9 +199,8 @@
                     android:layout_marginEnd="@dimen/margin_edit_task"
                     android:layout_marginRight="@dimen/margin_edit_task"
                     android:layout_marginTop="8dp"
-                    android:alpha="0.54"
                     android:baselineAlignBottom="true"
-                    app:srcCompat="@drawable/ic_bookmark_black_24dp"
+                    app:srcCompat="@drawable/ic_bookmark_24dp"
                     tools:ignore="ContentDescription"/>
 
                 <android.support.design.widget.TextInputEditText

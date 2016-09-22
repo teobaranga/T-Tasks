@@ -62,7 +62,7 @@ public class RxUtils {
                 });
     }
 
-    public static Transformer<List<TTask>, GroupedObservable<Boolean, List<TaskItem>>> getTaskItems() {
+    public static Transformer<List<TTask>, GroupedObservable<Boolean, List<TaskItem>>> getTaskItems(@SortingMode int sortingMode) {
         return observable -> observable
                 .flatMap(tTasks -> {
                     List<TaskItem> activeTasks = new ArrayList<>();
@@ -78,10 +78,21 @@ public class RxUtils {
                         }
                     }
 
-                    // Sort active tasks by due date in descending order
-                    Collections.sort(activeTasks);
-
-                    Collections.sort(completedTasks, TaskItem.completionDateComparator);
+                    switch (sortingMode) {
+                        case SORT_DATE:
+                            // Sort active tasks by due date in ascending order
+                            Collections.sort(activeTasks);
+                            // Sort completed tasks by completion date in descending order
+                            Collections.sort(completedTasks, TaskItem.completionDateComparator);
+                            break;
+                        case SORT_ALPHA:
+                            Collections.sort(activeTasks, TaskItem.alphabeticalComparator);
+                            Collections.sort(completedTasks, TaskItem.alphabeticalComparator);
+                            break;
+                        case SORT_MY_ORDER:
+                            // Do nothing
+                            break;
+                    }
 
                     return Observable.just(
                             GroupedObservable.from(true, Observable.just(activeTasks)),
@@ -90,6 +101,10 @@ public class RxUtils {
     }
 
     @Retention(SOURCE)
-    @IntDef({1, 2, 3})
+    @IntDef({SORT_DATE, SORT_ALPHA, SORT_MY_ORDER})
     public @interface SortingMode {}
+
+    public static final int SORT_DATE = 0;
+    public static final int SORT_ALPHA = 1;
+    public static final int SORT_MY_ORDER = 2;
 }

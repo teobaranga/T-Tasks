@@ -42,7 +42,7 @@
             android:layout_alignParentRight="true"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/delete_task_list"
-            app:srcCompat="@drawable/ic_clear_dark_24dp"/>
+            app:srcCompat="@drawable/ic_clear_24dp"/>
 
     </RelativeLayout>
 

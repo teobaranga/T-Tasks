@@ -41,6 +41,7 @@
         </LinearLayout>
 
         <LinearLayout
+            android:theme="@style/AppBarOverlay"
             android:id="@id/layout_task"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -59,7 +60,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="2dp"
                 android:maxLines="1"
-                android:textAppearance="@style/TextAppearance.AppCompat.Inverse"
+                android:textAppearance="@style/TextAppearance.AppCompat"
                 android:textStyle="bold"
                 android:transitionName="@string/transition_task_title"
                 tools:text="Buy groceries"/>
@@ -70,7 +71,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="2dp"
                 android:maxLines="1"
-                android:textAppearance="@style/TextAppearance.AppCompat.Small.Inverse"
+                android:textAppearance="@style/TextAppearance.AppCompat.Small"
                 android:textStyle="italic"
                 tools:text="Go to the supermarket and pick them up"/>
 
@@ -81,7 +82,7 @@
                 android:drawablePadding="4dp"
                 android:gravity="center"
                 android:maxLines="1"
-                android:textAppearance="@style/TextAppearance.AppCompat.Small.Inverse"
+                android:textAppearance="@style/TextAppearance.AppCompat.Small"
                 tools:drawableLeft="@drawable/ic_alarm_18dp"
                 tools:text="5:00PM"/>
 

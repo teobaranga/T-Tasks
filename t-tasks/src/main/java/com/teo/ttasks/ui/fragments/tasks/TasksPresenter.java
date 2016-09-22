@@ -23,11 +23,15 @@ public class TasksPresenter extends Presenter<TasksView> {
 
     private Subscription tasksSubscription;
 
+    @RxUtils.SortingMode
+    private int sortingMode;
+
     private Realm realm;
 
     public TasksPresenter(TasksHelper tasksHelper, PrefHelper prefHelper) {
         this.tasksHelper = tasksHelper;
         this.prefHelper = prefHelper;
+        sortingMode = prefHelper.getSortMode();
     }
 
     /**
@@ -47,7 +51,7 @@ public class TasksPresenter extends Presenter<TasksView> {
             if (view != null) view.onTasksLoading();
         }
         tasksSubscription = tasksHelper.getTasks(taskListId, realm)
-                .compose(RxUtils.getTaskItems())
+                .compose(RxUtils.getTaskItems(sortingMode))
                 .subscribe(
                         // The Realm observable will not throw errors
                         taskListObservable -> {
@@ -77,7 +81,7 @@ public class TasksPresenter extends Presenter<TasksView> {
                                                         view.onCompletedTasksLoaded(taskItems);
                                                         if (!taskItems.isEmpty()) taskCount.addAndGet(taskItems.size());
 
-                                                        if (taskCount.get() == 0){
+                                                        if (taskCount.get() == 0) {
                                                             Timber.d("hello");
                                                             view.showEmptyUi();
                                                         } else {
@@ -161,6 +165,21 @@ public class TasksPresenter extends Presenter<TasksView> {
 
     void setShowCompleted(boolean showCompleted) {
         prefHelper.setShowCompleted(showCompleted);
+    }
+
+    /**
+     * Switch the sorting mode.
+     *
+     * @param sortingMode the new sorting mode
+     * @return true if the new sorting mode is different, false otherwise
+     */
+    boolean switchSortMode(@RxUtils.SortingMode int sortingMode) {
+        if (sortingMode != this.sortingMode) {
+            this.sortingMode = sortingMode;
+            prefHelper.setSortMode(sortingMode);
+            return true;
+        }
+        return false;
     }
 
     @Override

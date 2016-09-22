@@ -5,8 +5,12 @@ import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 
+import com.teo.ttasks.util.RxUtils;
+
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.teo.ttasks.util.RxUtils.SORT_DATE;
 
 public final class PrefHelper {
 
@@ -28,6 +32,8 @@ public final class PrefHelper {
     private static final String PREF_LAST_TASK_ID = "lastTaskId";
 
     private static final String PREF_SHOW_COMPLETED = "showCompleted";
+
+    private static final String PREF_SORT_MODE = "sortMode";
 
     private SharedPreferences sharedPreferences;
 
@@ -195,5 +201,15 @@ public final class PrefHelper {
 
     public boolean getShowCompleted() {
         return sharedPreferences.getBoolean(PREF_SHOW_COMPLETED, true);
+    }
+
+    public void setSortMode(@RxUtils.SortingMode int sortMode) {
+        sharedPreferences.edit().putInt(PREF_SORT_MODE, sortMode).apply();
+    }
+
+    @RxUtils.SortingMode
+    public int getSortMode() {
+        //noinspection WrongConstant
+        return sharedPreferences.getInt(PREF_SORT_MODE, SORT_DATE);
     }
 }

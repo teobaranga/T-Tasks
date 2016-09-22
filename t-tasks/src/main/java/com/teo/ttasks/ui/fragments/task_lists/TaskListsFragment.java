@@ -28,6 +28,7 @@ import com.teo.ttasks.receivers.NetworkInfoReceiver;
 import com.teo.ttasks.ui.DividerItemDecoration;
 import com.teo.ttasks.ui.activities.main.MainActivity;
 import com.teo.ttasks.ui.items.TaskListItem;
+import com.teo.ttasks.util.NightHelper;
 
 import java.util.List;
 
@@ -35,7 +36,6 @@ import javax.inject.Inject;
 
 import static android.view.View.GONE;
 
-// TODO: 2016-09-03 make sure the task list title isn't empty
 public class TaskListsFragment extends Fragment implements TaskListsView, SwipeRefreshLayout.OnRefreshListener {
 
     @Inject NetworkInfoReceiver networkInfoReceiver;
@@ -53,9 +53,9 @@ public class TaskListsFragment extends Fragment implements TaskListsView, SwipeR
     }
 
     void showDeleteTaskListDialog(String taskListId) {
-        new AlertDialog.Builder(getActivity(), R.style.MaterialBaseTheme_Light_AlertDialog)
-                .setTitle("Delete task list")
-                .setMessage("Are you sure you want to delete this task list? All of the tasks associated with it will be deleted as well. You will not be able to recover this task list.")
+        new AlertDialog.Builder(getActivity())
+                .setTitle(R.string.delete_task_list)
+                .setMessage(R.string.delete_task_list_message)
                 .setPositiveButton(android.R.string.ok, (dialog, which) -> taskListsPresenter.deleteTaskList(taskListId))
                 .setNegativeButton(android.R.string.cancel, (dialog, which) -> { })
                 .show();
@@ -64,7 +64,9 @@ public class TaskListsFragment extends Fragment implements TaskListsView, SwipeR
     private void showEditTaskListDialog(@Nullable TaskListItem taskListItem) {
         boolean newTaskList = taskListItem == null;
 
-        final AlertDialog editDialog = new AlertDialog.Builder(getActivity(), R.style.MaterialBaseTheme_Light_AlertDialog)
+        int themeResId = NightHelper.isNight(getContext()) ? R.style.MaterialBaseTheme_AlertDialog : R.style.MaterialBaseTheme_Light_AlertDialog;
+
+        final AlertDialog editDialog = new AlertDialog.Builder(getActivity(), themeResId)
                 .setView(R.layout.dialog_task_list_edit)
                 .setTitle(newTaskList ? R.string.new_task_list : R.string.edit_task_list)
                 .setPositiveButton(android.R.string.ok, (dialog, which) -> { })

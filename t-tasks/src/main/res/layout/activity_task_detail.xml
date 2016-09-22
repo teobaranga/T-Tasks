@@ -52,7 +52,7 @@
                         android:layout_gravity="center"
                         android:contentDescription="@string/description_return_to_task_list"
                         android:onClick="onBackClicked"
-                        app:srcCompat="@drawable/ic_clear_white_24dp"/>
+                        app:srcCompat="@drawable/ic_clear_24dp"/>
 
                 </FrameLayout>
 
@@ -64,7 +64,8 @@
                     android:layout_marginRight="@dimen/activity_horizontal_margin"
                     android:layout_marginStart="@dimen/margin_icon_horizontal"
                     android:layout_marginTop="56dp"
-                    android:orientation="vertical">
+                    android:orientation="vertical"
+                    android:theme="@style/AppBarOverlay">
 
                     <TextView
                         android:id="@id/task_title"
@@ -75,7 +76,7 @@
                         android:maxLines="2"
                         android:minLines="2"
                         android:text="@{task.title}"
-                        android:textAppearance="@style/TextAppearance.AppCompat.Title.Inverse"
+                        android:textAppearance="@style/TextAppearance.AppCompat.Title"
                         android:transitionName="@string/transition_task_title"
                         tools:text="Do your laundry"/>
 
@@ -86,7 +87,7 @@
                         android:ellipsize="end"
                         android:maxLines="1"
                         android:text="@{taskList.title}"
-                        android:textAppearance="@style/TextAppearance.AppCompat.Subhead.Inverse"
+                        android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
                         tools:text="House work"/>
 
                 </LinearLayout>
@@ -163,8 +164,7 @@
                             android:layout_marginEnd="@dimen/margin_edit_task"
                             android:layout_marginRight="@dimen/margin_edit_task"
                             android:layout_rowSpan="2"
-                            android:alpha="0.54"
-                            app:srcCompat="@drawable/ic_event_black_24dp"
+                            app:srcCompat="@drawable/ic_event_24dp"
                             tools:ignore="ContentDescription"/>
 
                         <TextView
@@ -212,8 +212,7 @@
                             android:layout_marginEnd="@dimen/margin_edit_task"
                             android:layout_marginRight="@dimen/margin_edit_task"
                             android:layout_rowSpan="2"
-                            android:alpha="0.54"
-                            app:srcCompat="@drawable/ic_notifications_black_24dp"
+                            app:srcCompat="@drawable/ic_notifications_24dp"
                             tools:ignore="ContentDescription"/>
 
                         <TextView
@@ -246,8 +245,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginEnd="@dimen/margin_edit_task"
                             android:layout_marginRight="@dimen/margin_edit_task"
-                            android:alpha="0.54"
-                            app:srcCompat="@drawable/ic_bookmark_black_24dp"
+                            app:srcCompat="@drawable/ic_bookmark_24dp"
                             tools:ignore="ContentDescription"/>
 
                         <TextView
@@ -256,8 +254,8 @@
                             android:layout_height="wrap_content"
                             android:hint="@string/notes_missing"
                             android:text="@{task.notes}"
-                            android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-                            android:textColor="@android:color/black"
+                            android:textAppearance="?android:textAppearanceMedium"
+                            android:textColor="?android:textColorPrimary"
                             tools:text="Don't forget to separate the colors!"/>
 
                     </LinearLayout>

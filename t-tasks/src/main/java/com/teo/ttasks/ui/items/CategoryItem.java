@@ -99,7 +99,7 @@ public class CategoryItem extends AbstractItem<CategoryItem, CategoryItem.ViewHo
      * @param animate animate the arrow (rotate it)
      */
     public void toggleArrow(boolean animate) {
-        int res = !expanded ? R.drawable.ic_more_to_less_24dp : R.drawable.ic_less_to_more_24dp;
+        int res = !expanded ? R.drawable.anim_ic_more_to_less_24dp : R.drawable.anim_ic_less_to_more_24dp;
         arrowView.setImageResource(res);
         if (animate)
             ((Animatable) arrowView.getDrawable()).start();

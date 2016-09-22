@@ -2,14 +2,14 @@
 <resources>
 
     <!-- Base theme (with action bar) -->
-    <style name="Base.Theme" parent="Theme.AppCompat.Light.DarkActionBar">
+    <style name="Base.Theme" parent="Theme.AppCompat.DayNight.DarkActionBar">
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
     <!-- Base theme (no action bar) -->
-    <style name="Base.Theme.NoActionBar" parent="Theme.AppCompat.Light.NoActionBar">
+    <style name="Base.Theme.NoActionBar" parent="Theme.AppCompat.DayNight.NoActionBar">
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
@@ -30,12 +30,14 @@
     <style name="Base.Theme.TaskDetail" parent="Base.Theme.NoActionBar">
         <item name="popupMenuStyle">@style/PopupMenu</item>
     </style>
+
     <style name="Theme.TaskDetail" parent="Base.Theme.TaskDetail"/>
 
     <!-- Edit Task -->
     <style name="Base.Theme.EditTask" parent="Base.Theme">
         <item name="android:spinnerItemStyle">@style/SpinnerItemStyle</item>
     </style>
+
     <style name="Theme.EditTask" parent="Base.Theme.EditTask"/>
 
     <!-- Sign In -->
@@ -53,7 +55,7 @@
     <style name="Theme.About" parent="Base.Theme"/>
 
     <!-- Widget configure -->
-    <style name="Theme.TasksWidgetConfigure" parent="Theme.AppCompat.Light.Dialog"/>
+    <style name="Theme.TasksWidgetConfigure" parent="Theme.AppCompat.DayNight.Dialog"/>
 
     <!-- Widget -->
     <style name="Theme.Widget" parent="Theme.AppCompat"/>

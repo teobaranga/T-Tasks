@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="Base.Theme.Main" parent="MaterialDrawerTheme.TranslucentStatus">
+
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+
+        <!-- CAB -->
+        <item name="windowActionModeOverlay">true</item>
+    </style>
+
+</resources>

@@ -8,6 +8,7 @@ import com.mikepenz.aboutlibraries.Libs;
 import com.mikepenz.aboutlibraries.LibsBuilder;
 import com.mikepenz.aboutlibraries.ui.LibsActivity;
 import com.teo.ttasks.R;
+import com.teo.ttasks.util.NightHelper;
 
 public class AboutActivity extends LibsActivity {
 
@@ -25,7 +26,7 @@ public class AboutActivity extends LibsActivity {
                 .withAboutVersionShownName(true)
                 .withAboutDescription(getString(R.string.about_description))
                 .withAboutIconShown(true)
-                .withActivityStyle(Libs.ActivityStyle.LIGHT_DARK_TOOLBAR)
+                .withActivityStyle(NightHelper.isNight(this) ? Libs.ActivityStyle.DARK : Libs.ActivityStyle.LIGHT_DARK_TOOLBAR)
                 .withLicenseShown(true)
                 .withActivityTitle(getString(R.string.about))
                 .intent(this));

@@ -10,14 +10,14 @@
         app:showAsAction="always">
         <menu>
             <item
-                android:id="@id/menu_sort_my_order"
-                android:title="@string/menu_sort_my_order"/>
-            <item
                 android:id="@id/menu_sort_due_date"
                 android:title="@string/menu_sort_due_date"/>
             <item
                 android:id="@id/menu_sort_alphabetical"
                 android:title="@string/menu_sort_alphabetical"/>
+            <item
+                android:id="@id/menu_sort_my_order"
+                android:title="@string/menu_sort_my_order"/>
         </menu>
     </item>
 </menu>

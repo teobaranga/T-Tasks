@@ -39,6 +39,7 @@ import com.teo.ttasks.ui.activities.main.MainActivity;
 import com.teo.ttasks.ui.activities.task_detail.TaskDetailActivity;
 import com.teo.ttasks.ui.items.CategoryItem;
 import com.teo.ttasks.ui.items.TaskItem;
+import com.teo.ttasks.util.RxUtils;
 
 import java.util.Arrays;
 import java.util.List;
@@ -179,7 +180,20 @@ public class TasksFragment extends Fragment implements TasksView, SwipeRefreshLa
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // TODO: 2016-09-20 implement sorting
+        switch (item.getItemId()) {
+            case R.id.menu_sort_due_date:
+                if (tasksPresenter.switchSortMode(RxUtils.SORT_DATE))
+                    tasksPresenter.getTasks(taskListId);
+                break;
+            case R.id.menu_sort_alphabetical:
+                if (tasksPresenter.switchSortMode(RxUtils.SORT_ALPHA))
+                    tasksPresenter.getTasks(taskListId);
+                break;
+            case R.id.menu_sort_my_order:
+                if (tasksPresenter.switchSortMode(RxUtils.SORT_MY_ORDER))
+                    tasksPresenter.getTasks(taskListId);
+                break;
+        }
         return super.onOptionsItemSelected(item);
     }
 

@@ -70,8 +70,21 @@ public class TaskItem extends AbstractItem<TaskItem, TaskItem.ViewHolder> implem
         return returnCode;
     };
 
+    public static Comparator<TaskItem> alphabeticalComparator = (lhs, rhs) -> {
+        // Titles should never be null or empty but just in case
+        final boolean noTitleLeft = lhs.title == null || lhs.title.isEmpty();
+        final boolean noTitleRight = rhs.title == null || rhs.title.isEmpty();
+        if (noTitleLeft && noTitleRight)
+            return 0;
+        if (noTitleLeft)
+            return -1;
+        if (noTitleRight)
+            return 1;
+        return lhs.title.compareToIgnoreCase(rhs.title);
+    };
+
     /**
-     * Comparator that sorts {@link TaskItem}s by their due dates in ascending order.
+     * Comparator that sorts {@link TaskItem}s by their due dates in ascending order. Default comparator.
      */
     private static Comparator<TaskItem> dueDateComparator = (lhs, rhs) -> {
 
