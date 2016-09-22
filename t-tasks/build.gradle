@@ -1,4 +1,5 @@
 apply plugin: 'com.android.application'
+apply plugin: 'io.fabric'
 apply plugin: 'com.neenbedankt.android-apt'
 apply plugin: 'realm-android'
 apply plugin: 'me.tatarka.retrolambda'
@@ -114,6 +115,7 @@ dependencies {
     compile 'com.squareup.picasso:picasso:2.5.2'
     compile 'com.artemzin.rxjava:proguard-rules:1.2.0.0'
     compile 'com.github.strooooke:appbarsyncedfab:v0.3'
+    compile('com.crashlytics.sdk.android:crashlytics:2.6.3@aar') { transitive = true }
 
     apt 'org.projectlombok:lombok:1.16.10'
 

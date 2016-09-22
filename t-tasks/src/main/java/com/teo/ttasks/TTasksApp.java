@@ -3,6 +3,7 @@ package com.teo.ttasks;
 import android.app.Application;
 import android.content.Context;
 
+import com.crashlytics.android.Crashlytics;
 import com.teo.ttasks.data.local.PrefHelper;
 import com.teo.ttasks.injection.component.ApplicationComponent;
 import com.teo.ttasks.injection.component.DaggerApplicationComponent;
@@ -14,6 +15,7 @@ import com.teo.ttasks.injection.module.UserModule;
 
 import javax.inject.Inject;
 
+import io.fabric.sdk.android.Fabric;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import timber.log.Timber;
@@ -40,8 +42,11 @@ public class TTasksApp extends Application {
         super.onCreate();
 
         // Enable Timber
-        if (BuildConfig.DEBUG)
+        if (BuildConfig.DEBUG) {
             Timber.plant(new Timber.DebugTree());
+        } else {
+            Fabric.with(this, new Crashlytics());
+        }
 
         applicationComponent = DaggerApplicationComponent.builder()
                 .applicationModule(new ApplicationModule(this))

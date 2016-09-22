@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Task item -->
+    <color name="task_background">@color/md_grey_800</color>
+
+</resources>

@@ -27,7 +27,8 @@
                 <Spinner
                     android:id="@+id/spinner_task_lists"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"/>
+                    android:layout_height="wrap_content"
+                    android:popupBackground="?attr/colorPrimaryDark"/>
 
             </android.support.v7.widget.Toolbar>
 

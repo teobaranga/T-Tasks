@@ -9,6 +9,7 @@ import com.google.gson.JsonParseException;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
+import com.teo.ttasks.BuildConfig;
 import com.teo.ttasks.TTasksApp;
 import com.teo.ttasks.api.PeopleApi;
 import com.teo.ttasks.api.TasksApi;
@@ -37,6 +38,9 @@ import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
 import rx.schedulers.Schedulers;
 import timber.log.Timber;
+
+import static okhttp3.logging.HttpLoggingInterceptor.Level.BASIC;
+import static okhttp3.logging.HttpLoggingInterceptor.Level.NONE;
 
 /**
  * This is the module that holds everything related to the Tasks API
@@ -78,7 +82,7 @@ public class TasksApiModule {
                 .client(new OkHttpClient.Builder()
                         .connectTimeout(5, TimeUnit.MINUTES)
                         .readTimeout(5, TimeUnit.MINUTES)
-                        .addInterceptor(new HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BASIC))
+                        .addInterceptor(new HttpLoggingInterceptor().setLevel(BuildConfig.DEBUG ? BASIC : NONE))
                         .addInterceptor(chain -> {
                             // Use the access token to access the Tasks API
                             Request request = chain.request();

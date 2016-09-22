@@ -1,6 +1,25 @@
 # Keep API entities
 -keep class com.teo.ttasks.api.entities.** { *; }
 
+# Keep Realm models
+-keep class com.teo.ttasks.data.model.** { *; }
+
+# Keep the ShareActionProvider
+-keep class android.support.v7.widget.ShareActionProvider { *; }
+
+# Gson
+# Gson uses generic type information stored in a class file when working with fields. Proguard
+# removes such information by default, so configure it to keep all of it.
+-keepattributes Signature
+# For using GSON @Expose annotation
+-keepattributes *Annotation*
+-dontnote sun.misc.Unsafe
+# Prevent proguard from stripping interface information from TypeAdapterFactory,
+# JsonSerializer, JsonDeserializer instances (so they can be used in @JsonAdapter)
+-keep class * implements com.google.gson.TypeAdapterFactory
+-keep class * implements com.google.gson.JsonSerializer
+-keep class * implements com.google.gson.JsonDeserializer
+
 # Google API
 -dontwarn com.google.api.client.**
 # Needed to keep generic types and @Key annotations accessed via reflection
@@ -30,21 +49,28 @@
 -dontwarn com.google.common.primitives.UnsignedBytes$**
 
 # Retrofit 2.X
-## https://square.github.io/retrofit/ ##
-
 -dontwarn retrofit2.**
+-dontwarn org.codehaus.mojo.**
 -keep class retrofit2.** { *; }
 -keepattributes Signature
 -keepattributes Exceptions
+-keepattributes RuntimeVisibleAnnotations
+-keepattributes RuntimeInvisibleAnnotations
+-keepattributes RuntimeVisibleParameterAnnotations
+-keepattributes RuntimeInvisibleParameterAnnotations
+-keepattributes EnclosingMethod
 -keepclasseswithmembers class * {
     @retrofit2.http.* <methods>;
+}
+-keepclasseswithmembers interface * {
+    @retrofit2.* <methods>;
 }
 
 # Picasso
 -dontwarn com.squareup.okhttp.**
 
 -keep class * extends java.util.ListResourceBundle {
-    protected Object[][] getContents();
+    protected java.lang.Object[][] getContents();
 }
 
 -keep public class com.google.android.gms.common.internal.safeparcel.SafeParcelable {

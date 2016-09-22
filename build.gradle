@@ -5,6 +5,7 @@ buildscript {
 
     repositories {
         jcenter()
+        maven { url 'https://maven.fabric.io/public'}
         maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
     }
     dependencies {
@@ -16,6 +17,7 @@ buildscript {
         classpath 'io.realm:realm-gradle-plugin:1.2.0'
         classpath 'me.tatarka:gradle-retrolambda:3.3.0'
         classpath 'me.tatarka.retrolambda.projectlombok:lombok.ast:0.2.3.a2'
+        classpath 'io.fabric.tools:gradle:1.21.5'
     }
     // Exclude the version that the android plugin depends on.
     configurations.classpath.exclude group: 'com.android.tools.external.lombok'
@@ -28,8 +30,9 @@ plugins {
 allprojects {
     repositories {
         jcenter()
+        maven { url 'https://maven.fabric.io/public'}
         maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
-        maven { url "https://jitpack.io" }
+        maven { url 'https://jitpack.io' }
     }
     gradle.projectsEvaluated {
         tasks.withType(JavaCompile) {
