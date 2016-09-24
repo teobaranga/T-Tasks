@@ -92,6 +92,7 @@
     <string name="extra_notes">\nNotes: %s</string>
 
     <!-- Settings -->
+    <string name="default_night_mode">auto</string>
     <string name="default_reminder_sound">content://settings/system/notification_sound</string>
     <string name="default_led_color">yellow</string>
 

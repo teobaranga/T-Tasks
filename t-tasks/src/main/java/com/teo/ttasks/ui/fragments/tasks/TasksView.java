@@ -22,7 +22,7 @@ interface TasksView extends MvpView {
 
     void onTasksLoadError(@Nullable Intent resolveIntent);
 
-    void showEmptyUi();
+    void onTasksEmpty();
 
     void onTasksLoaded();
 

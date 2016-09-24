@@ -9,6 +9,7 @@ import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.FloatingActionButton;
@@ -57,6 +58,7 @@ import static android.view.View.VISIBLE;
 public final class MainActivity extends BaseActivity implements MainView {
 
     //private static final int RC_ADD = 4;
+    private static final int RC_NIGHT_MODE = 415;
 
     private static final int ID_TASKS = 0x01;
     private static final int ID_TASK_LISTS = 0x02;
@@ -80,6 +82,8 @@ public final class MainActivity extends BaseActivity implements MainView {
 
     /** The profile of the currently logged in user */
     private Drawer drawer = null;
+
+    private boolean recreate;
 
     public static void start(Context context) {
         Intent starter = new Intent(context, MainActivity.class);
@@ -106,6 +110,7 @@ public final class MainActivity extends BaseActivity implements MainView {
             tasksFragment = TasksFragment.newInstance();
             taskListsFragment = TaskListsFragment.newInstance();
         } else {
+            // Get the tasks fragment
             Fragment fragment = getSupportFragmentManager().findFragmentByTag("tasks");
             if (fragment instanceof TasksFragment)
                 tasksFragment = (TasksFragment) fragment;
@@ -114,11 +119,11 @@ public final class MainActivity extends BaseActivity implements MainView {
         }
 
         //noinspection ConstantConditions
-        getSupportActionBar().setDisplayShowTitleEnabled(false);
         taskListsAdapter = new TaskListsAdapter(getSupportActionBar().getThemedContext());
         mainBinding.spinnerTaskLists.setAdapter(taskListsAdapter);
         mainBinding.spinnerTaskLists.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
                 final TTaskList taskList = ((TTaskList) adapterView.getItemAtPosition(position));
                 final String taskListId = taskList.getId();
                 mainActivityPresenter.setLastAccessedTaskList(taskListId);
@@ -170,10 +175,12 @@ public final class MainActivity extends BaseActivity implements MainView {
                         new PrimaryDrawerItem()
                                 .withName(R.string.tasks)
                                 .withIcon(R.drawable.ic_tasks_24dp)
+                                .withIconTintingEnabled(true)
                                 .withIdentifier(ID_TASKS),
                         new PrimaryDrawerItem()
                                 .withName(R.string.task_lists)
                                 .withIcon(R.drawable.ic_task_lists_24dp)
+                                .withIconTintingEnabled(true)
                                 .withIdentifier(ID_TASK_LISTS),
                         new DividerDrawerItem(),
                         new SecondaryDrawerItem()
@@ -211,14 +218,14 @@ public final class MainActivity extends BaseActivity implements MainView {
                             case ID_TASK_LISTS:
                                 if (currentFragment instanceof TaskListsFragment)
                                     return false;
-                                supportActionBar.setTitle("Task Lists");
+                                supportActionBar.setTitle(R.string.task_lists);
                                 supportActionBar.setDisplayShowTitleEnabled(true);
                                 mainBinding.spinnerTaskLists.setVisibility(GONE);
                                 fragment = TaskListsFragment.newInstance();
                                 tag = "taskLists";
                                 break;
                             case ID_SETTINGS:
-                                SettingsActivity.start(this);
+                                SettingsActivity.startForResult(this, RC_NIGHT_MODE);
                                 break;
                             case ID_ABOUT:
                                 AboutActivity.start(this);
@@ -250,10 +257,70 @@ public final class MainActivity extends BaseActivity implements MainView {
             drawer.setSelectionAtPosition(1);
             //set the active profile
             accountHeader.setActiveProfile(profile);
+        } else {
+            // Restore state
+            switch ((int) drawer.getCurrentSelection()) {
+                case ID_TASKS:
+                    //noinspection ConstantConditions
+                    getSupportActionBar().setDisplayShowTitleEnabled(false);
+                    mainBinding.spinnerTaskLists.setVisibility(VISIBLE);
+                    break;
+                case ID_TASK_LISTS:
+                    // Restore visibility of the task lists spinner & toolbar title
+                    mainBinding.spinnerTaskLists.setVisibility(GONE);
+                    //noinspection ConstantConditions
+                    getSupportActionBar().setTitle(R.string.task_lists);
+                    getSupportActionBar().setDisplayShowTitleEnabled(true);
+                    break;
+            }
         }
 
         mainActivityPresenter.getTaskLists();
         mainActivityPresenter.loadUserPictures();
+    }
+
+    @Override
+    protected void onPostResume() {
+        super.onPostResume();
+        if (recreate) {
+            // Recreate the activity after a delay that is equal to the drawer close delay
+            // otherwise, the drawer will open unexpectedly after a night mode change
+            new Handler().postDelayed(this::recreate, 50);
+            recreate = false;
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mainActivityPresenter.unbindView(this);
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        // add the values which need to be saved from the drawer to the bundle
+        outState = drawer.saveInstanceState(outState);
+        // add the values which need to be saved from the accountHeader to the bundle
+        outState = accountHeader.saveInstanceState(outState);
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        switch (requestCode) {
+            case RC_NIGHT_MODE:
+                if (resultCode == RESULT_OK)
+                    recreate = true;
+                break;
+//            case RC_ADD:
+//                if(resultCode == RESULT_OK) {
+//                    MaterialAccount acc = new MaterialAccount(this.getResources(), data.getStringExtra(AccountManager.KEY_ACCOUNT_NAME),"", R.drawable.ic_photo, R.drawable.ic_cover);
+//                    this.addAccount(acc);
+//                    Toast.makeText(MainActivity.this, data.getStringExtra(AccountManager.KEY_ACCOUNT_NAME), Toast.LENGTH_SHORT).show();
+//                }
+//                break;
+        }
     }
 
     @Override
@@ -302,38 +369,9 @@ public final class MainActivity extends BaseActivity implements MainView {
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-//        switch (requestCode) {
-//            case RC_ADD:
-//                if(resultCode == RESULT_OK) {
-//                    MaterialAccount acc = new MaterialAccount(this.getResources(), data.getStringExtra(AccountManager.KEY_ACCOUNT_NAME),"", R.drawable.ic_photo, R.drawable.ic_cover);
-//                    this.addAccount(acc);
-//                    Toast.makeText(MainActivity.this, data.getStringExtra(AccountManager.KEY_ACCOUNT_NAME), Toast.LENGTH_SHORT).show();
-//                }
-//                break;
-//        }
-    }
-
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        // add the values which need to be saved from the drawer to the bundle
-        outState = drawer.saveInstanceState(outState);
-        // add the values which need to be saved from the accountHeader to the bundle
-        outState = accountHeader.saveInstanceState(outState);
-        super.onSaveInstanceState(outState);
-    }
-
-    @Override
     public void onBackPressed() {
         if (drawer != null && drawer.isDrawerOpen()) drawer.closeDrawer();
         else super.onBackPressed();
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        mainActivityPresenter.unbindView(this);
     }
 
     /**

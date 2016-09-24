@@ -12,6 +12,7 @@ import com.teo.ttasks.injection.component.UserComponent;
 import com.teo.ttasks.injection.module.ApplicationModule;
 import com.teo.ttasks.injection.module.SignInModule;
 import com.teo.ttasks.injection.module.UserModule;
+import com.teo.ttasks.util.NightHelper;
 
 import javax.inject.Inject;
 
@@ -39,6 +40,16 @@ public class TTasksApp extends Application {
 
     @Override
     public void onCreate() {
+        applicationComponent = DaggerApplicationComponent.builder()
+                .applicationModule(new ApplicationModule(this))
+                .build();
+
+        applicationComponent.inject(this);
+
+        // Apply night mode
+        final String nightMode = prefHelper.getNightMode();
+        NightHelper.applyNightMode(nightMode);
+
         super.onCreate();
 
         // Enable Timber
@@ -47,12 +58,6 @@ public class TTasksApp extends Application {
         } else {
             Fabric.with(this, new Crashlytics());
         }
-
-        applicationComponent = DaggerApplicationComponent.builder()
-                .applicationModule(new ApplicationModule(this))
-                .build();
-
-        applicationComponent.inject(this);
 
         initRealmConfiguration();
     }

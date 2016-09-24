@@ -1,6 +1,5 @@
 package com.teo.ttasks.ui.activities;
 
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.media.Ringtone;
@@ -13,11 +12,18 @@ import android.preference.RingtonePreference;
 import android.support.v7.app.AppCompatActivity;
 
 import com.teo.ttasks.R;
+import com.teo.ttasks.util.NightHelper;
+
+import timber.log.Timber;
 
 public class SettingsActivity extends AppCompatActivity {
 
-    public static void start(Context context) {
-        context.startActivity(new Intent(context, SettingsActivity.class));
+    private static final String ARG_NIGHT_MODE_CHANGED = "nightMode";
+
+    private boolean nightModeChanged;
+
+    public static void startForResult(AppCompatActivity activity, int requestCode) {
+        activity.startActivityForResult(new Intent(activity, SettingsActivity.class), requestCode);
     }
 
     @Override
@@ -29,10 +35,29 @@ public class SettingsActivity extends AppCompatActivity {
         getFragmentManager().beginTransaction()
                 .replace(android.R.id.content, new SettingsFragment())
                 .commit();
+
+        if (savedInstanceState != null) {
+            nightModeChanged = savedInstanceState.getBoolean(ARG_NIGHT_MODE_CHANGED, false);
+            Timber.d("night mode changed %s", nightModeChanged);
+            if (nightModeChanged)
+                setResult(RESULT_OK);
+        }
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        Timber.d("saving");
+        outState.putBoolean(ARG_NIGHT_MODE_CHANGED, nightModeChanged);
+        super.onSaveInstanceState(outState);
+    }
+
+    public void setNightModeChanged(boolean nightModeChanged) {
+        this.nightModeChanged = nightModeChanged;
     }
 
     public static class SettingsFragment extends PreferenceFragment implements SharedPreferences.OnSharedPreferenceChangeListener {
 
+        private static final String NIGHT_MODE = "night_mode";
         private static final String REMINDER_SOUND = "reminder_sound";
         private static final String REMINDER_COLOR = "reminder_color";
 
@@ -50,9 +75,31 @@ public class SettingsActivity extends AppCompatActivity {
 
             final SharedPreferences sharedPreferences = getPreferenceManager().getSharedPreferences();
 
+            final ListPreference nightMode = ((ListPreference) findPreference(NIGHT_MODE));
+            final String initialNightMode = sharedPreferences.getString(NIGHT_MODE, getString(R.string.default_night_mode));
+            setNightMode(nightMode, initialNightMode);
+
+            nightMode.setOnPreferenceChangeListener((preference, newValue) -> {
+                setNightMode(((ListPreference) preference), ((String) newValue));
+                final String oldValue = ((ListPreference) preference).getValue();
+                NightHelper.applyNightMode(((String) newValue));
+                final SettingsActivity activity = ((SettingsActivity) getActivity());
+                if (!initialNightMode.equals(newValue)) {
+                    Timber.d("changed");
+                    activity.setNightModeChanged(true);
+                } else {
+                    Timber.d("not changed");
+                    activity.setNightModeChanged(false);
+                }
+                if (!oldValue.equals(newValue))
+                    activity.recreate();
+                return true;
+            });
+
+
             final RingtonePreference reminderSound = ((RingtonePreference) findPreference(REMINDER_SOUND));
-            final String defaultSound = sharedPreferences.getString(REMINDER_SOUND, getString(R.string.default_reminder_sound));
-            setReminderSound(reminderSound, defaultSound);
+            final String initialSound = sharedPreferences.getString(REMINDER_SOUND, getString(R.string.default_reminder_sound));
+            setReminderSound(reminderSound, initialSound);
 
             reminderSound.setOnPreferenceChangeListener((preference, newValue) -> {
                 setReminderSound(((RingtonePreference) preference), ((String) newValue));
@@ -60,8 +107,8 @@ public class SettingsActivity extends AppCompatActivity {
             });
 
             final ListPreference reminderColor = (ListPreference) findPreference(REMINDER_COLOR);
-            final String defaultColor = sharedPreferences.getString(REMINDER_COLOR, getString(R.string.default_led_color));
-            setColor(reminderColor, defaultColor);
+            final String initialColor = sharedPreferences.getString(REMINDER_COLOR, getString(R.string.default_led_color));
+            setColor(reminderColor, initialColor);
 
             reminderColor.setOnPreferenceChangeListener((preference, newValue) -> {
                 setColor(((ListPreference) preference), ((String) newValue));
@@ -82,6 +129,12 @@ public class SettingsActivity extends AppCompatActivity {
         public void onStop() {
             getPreferenceManager().getSharedPreferences().unregisterOnSharedPreferenceChangeListener(this);
             super.onStop();
+        }
+
+        private void setNightMode(ListPreference preference, String nightMode) {
+            if (nightMode != null && !nightMode.isEmpty()) {
+                preference.setSummary(Character.toTitleCase(nightMode.charAt(0)) + nightMode.substring(1));
+            }
         }
 
         private void setReminderSound(RingtonePreference preference, String sound) {

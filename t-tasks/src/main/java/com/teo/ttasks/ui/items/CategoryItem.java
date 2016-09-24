@@ -1,9 +1,12 @@
 package com.teo.ttasks.ui.items;
 
+import android.content.Context;
 import android.databinding.DataBindingUtil;
-import android.graphics.drawable.Animatable;
 import android.support.annotation.StringRes;
+import android.support.graphics.drawable.AnimatedVectorDrawableCompat;
+import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.widget.RecyclerView;
+import android.util.TypedValue;
 import android.view.View;
 import android.widget.ImageView;
 
@@ -22,6 +25,8 @@ import java.util.List;
 public class CategoryItem extends AbstractItem<CategoryItem, CategoryItem.ViewHolder> implements IExpandable<CategoryItem, TaskItem> {
 
     private static final ViewHolderFactory<? extends ViewHolder> FACTORY = new ItemFactory();
+
+    private static final TypedValue typedValue = new TypedValue();
 
     public StringHolder title;
 
@@ -42,11 +47,6 @@ public class CategoryItem extends AbstractItem<CategoryItem, CategoryItem.ViewHo
     }
 
     @Override
-    public ViewHolderFactory<? extends ViewHolder> getFactory() {
-        return FACTORY;
-    }
-
-    @Override
     public boolean isExpanded() {
         return expanded;
     }
@@ -57,14 +57,14 @@ public class CategoryItem extends AbstractItem<CategoryItem, CategoryItem.ViewHo
         return this;
     }
 
-    @Override
-    public List<TaskItem> getSubItems() {
-        return subItems;
-    }
-
     public CategoryItem withSubItems(List<TaskItem> subItems) {
         this.subItems = subItems;
         return this;
+    }
+
+    @Override
+    public List<TaskItem> getSubItems() {
+        return subItems;
     }
 
     @Override
@@ -93,16 +93,45 @@ public class CategoryItem extends AbstractItem<CategoryItem, CategoryItem.ViewHo
         StringHolder.applyTo(title, binding.text);
     }
 
+    @Override
+    public ViewHolderFactory<? extends ViewHolder> getFactory() {
+        return FACTORY;
+    }
+
     /**
      * Switch the arrow drawable to point up or down, depending on the expanded state of this item.
      *
      * @param animate animate the arrow (rotate it)
      */
     public void toggleArrow(boolean animate) {
-        int res = !expanded ? R.drawable.anim_ic_more_to_less_24dp : R.drawable.anim_ic_less_to_more_24dp;
-        arrowView.setImageResource(res);
+        final int res = !expanded ? R.drawable.anim_ic_more_to_less_24dp : R.drawable.anim_ic_less_to_more_24dp;
+
+        // A little hack is necessary since the animated vectors don't seem to be updated immediately
+        // after night mode has changed and there seems to be no way to force a refresh of the drawable.
+        // Therefore, the only way to have the arrow display the right color all the time is to explicitly
+        // set the tint on the drawable
+        final AnimatedVectorDrawableCompat drawable = AnimatedVectorDrawableCompat.create(arrowView.getContext(), res);
+        final int color = getThemeAttrColor(arrowView.getContext(), typedValue, R.attr.colorControlNormal);
+        //noinspection ConstantConditions
+        drawable.setTint(color);
+
+        arrowView.setImageDrawable(drawable);
+
+        // Start the animation if requested
         if (animate)
-            ((Animatable) arrowView.getDrawable()).start();
+            drawable.start();
+    }
+
+    private int getThemeAttrColor(Context context, TypedValue typedValue, int attr) {
+        if (context.getTheme().resolveAttribute(attr, typedValue, true)) {
+            if (typedValue.type >= TypedValue.TYPE_FIRST_INT
+                    && typedValue.type <= TypedValue.TYPE_LAST_INT) {
+                return typedValue.data;
+            } else if (typedValue.type == TypedValue.TYPE_STRING) {
+                return ResourcesCompat.getColor(context.getResources(), typedValue.resourceId, context.getTheme());
+            }
+        }
+        return 0;
     }
 
     private static class ItemFactory implements ViewHolderFactory<ViewHolder> {

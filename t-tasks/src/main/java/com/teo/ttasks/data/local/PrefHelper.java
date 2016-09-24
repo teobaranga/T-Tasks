@@ -35,6 +35,8 @@ public final class PrefHelper {
 
     private static final String PREF_SORT_MODE = "sortMode";
 
+    private static final String PREF_NIGHT_MODE = "night_mode";
+
     private SharedPreferences sharedPreferences;
 
     public PrefHelper(Context context) {
@@ -205,6 +207,10 @@ public final class PrefHelper {
 
     public void setSortMode(@RxUtils.SortingMode int sortMode) {
         sharedPreferences.edit().putInt(PREF_SORT_MODE, sortMode).apply();
+    }
+
+    public String getNightMode() {
+        return sharedPreferences.getString(PREF_NIGHT_MODE, "auto");
     }
 
     @RxUtils.SortingMode

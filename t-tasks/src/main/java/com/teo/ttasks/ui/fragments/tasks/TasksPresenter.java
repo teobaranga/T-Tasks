@@ -82,8 +82,7 @@ public class TasksPresenter extends Presenter<TasksView> {
                                                         if (!taskItems.isEmpty()) taskCount.addAndGet(taskItems.size());
 
                                                         if (taskCount.get() == 0) {
-                                                            Timber.d("hello");
-                                                            view.showEmptyUi();
+                                                            view.onTasksEmpty();
                                                         } else {
                                                             view.onTasksLoaded();
                                                             taskCount.set(0);
