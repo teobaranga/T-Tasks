@@ -41,7 +41,6 @@ import com.teo.ttasks.ui.items.CategoryItem;
 import com.teo.ttasks.ui.items.TaskItem;
 import com.teo.ttasks.util.RxUtils;
 
-import java.util.Arrays;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -60,6 +59,13 @@ public class TasksFragment extends Fragment implements TasksView,
 
     private static final int RC_USER_RECOVERABLE = 1;
 
+    /**
+     * Array holding the 3 shared elements used during the transition to the {@link TaskDetailActivity}.<br>
+     * Indexes:<br>
+     * 0 - task header layout, always present<br>
+     * 1 - Navigation bar, can be missing<br>
+     * 2 - FAB, could be hidden<br>
+     */
     @SuppressWarnings("unchecked")
     final Pair<View, String>[] pairs = new Pair[3];
 
@@ -104,12 +110,37 @@ public class TasksFragment extends Fragment implements TasksView,
                     if (navBar.first == null)
                         createNavBarPair();
 
-                    pairs[1] = Pair.create(((TaskItem) item).getViewHolder(v).binding.layoutTask, getString(R.string.transition_task_header));
+                    // Add the task header layout to the shared elements
+                    final TaskItem taskItem = (TaskItem) item;
+                    pairs[0] = Pair.create(taskItem.getViewHolder(v).binding.layoutTask, getString(R.string.transition_task_header));
 
-                    Pair<View, String>[] sharedElements = fab.isShown() ? pairs : Arrays.copyOf(pairs, 2);
+                    // Find the shared elements to be used in the transition
+                    Pair<View, String>[] sharedElements;
+
+                    if (!fab.isShown()) {
+                        // Check the navigation bar view
+                        if (pairs[1].first == null) {
+                            // Get only the task header layout element
+                            //noinspection unchecked
+                            sharedElements = new Pair[]{pairs[0]};
+                        } else {
+                            // Get the task header layout and the navigation bar
+                            //noinspection unchecked
+                            sharedElements = new Pair[]{pairs[0], pairs[1]};
+                        }
+                    } else {
+                        if (pairs[1].first == null) {
+                            // Get only the task header and the FAB
+                            //noinspection unchecked
+                            sharedElements = new Pair[]{pairs[0], pairs[2]};
+                        } else {
+                            // Get all the 3 elements
+                            sharedElements = pairs;
+                        }
+                    }
 
                     ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(getActivity(), sharedElements);
-                    TaskDetailActivity.start(getContext(), ((TaskItem) item).getTaskId(), taskListId, options.toBundle());
+                    TaskDetailActivity.start(getContext(), taskItem.getTaskId(), taskListId, options.toBundle());
                 }
             } else if (item instanceof CategoryItem) {
                 // Handle click on the "Completed" section
@@ -344,7 +375,7 @@ public class TasksFragment extends Fragment implements TasksView,
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             final View navBarView = getActivity().getWindow().getDecorView().findViewById(android.R.id.navigationBarBackground);
             navBar = Pair.create(navBarView, NAVIGATION_BAR_BACKGROUND_TRANSITION_NAME);
-            pairs[0] = navBar;
+            pairs[1] = navBar;
         }
     }
 
