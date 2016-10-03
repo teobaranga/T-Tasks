@@ -3,6 +3,7 @@ package com.teo.ttasks.ui.activities.task_detail;
 import android.support.annotation.NonNull;
 
 import com.google.firebase.database.DatabaseReference;
+import com.teo.ttasks.data.local.PrefHelper;
 import com.teo.ttasks.data.local.WidgetHelper;
 import com.teo.ttasks.data.model.TTask;
 import com.teo.ttasks.data.remote.TasksHelper;
@@ -16,6 +17,7 @@ import timber.log.Timber;
 public class TaskDetailPresenter extends Presenter<TaskDetailView> {
 
     private final TasksHelper tasksHelper;
+    private final PrefHelper prefHelper;
     private final WidgetHelper widgetHelper;
     private final NotificationHelper notificationHelper;
 
@@ -23,8 +25,9 @@ public class TaskDetailPresenter extends Presenter<TaskDetailView> {
 
     private TTask tTask;
 
-    public TaskDetailPresenter(TasksHelper tasksHelper, WidgetHelper widgetHelper, NotificationHelper notificationHelper) {
+    public TaskDetailPresenter(TasksHelper tasksHelper, PrefHelper prefHelper, WidgetHelper widgetHelper, NotificationHelper notificationHelper) {
         this.tasksHelper = tasksHelper;
+        this.prefHelper = prefHelper;
         this.widgetHelper = widgetHelper;
         this.notificationHelper = notificationHelper;
     }
@@ -89,30 +92,56 @@ public class TaskDetailPresenter extends Presenter<TaskDetailView> {
      * Delete the task
      */
     void deleteTask() {
-        // Mark it as deleted so it doesn't show up in the list
-        realm.executeTransaction(realm -> tTask.setDeleted(true));
+        final boolean isCompleted = tTask.isCompleted();
+        final int notificationId = tTask.hashCode();
+        final String taskListId = tTask.getTaskListId();
 
-        // Delete the reminder
-        final DatabaseReference tasksDatabase = FirebaseUtil.getTasksDatabase();
-        FirebaseUtil.saveReminder(tasksDatabase, tTask.getId(), null);
+        if (tTask.isNew()) {
+            // Delete the task from the local database
+            realm.executeTransaction(realm1 -> {
+                tTask.getTask().deleteFromRealm();
+                tTask.deleteFromRealm();
+            });
 
-        // Trigger a widget update only if the task is marked as active
-        if (!tTask.isCompleted())
-            widgetHelper.updateWidgets(tTask.getTaskListId());
+            // Make the last local task ID reusable
+            prefHelper.deleteLastTaskId();
 
-        // Cancel the notification, if present
-        notificationHelper.cancelTaskNotification(tTask.hashCode());
+            // Trigger a widget update only if the task is marked as active
+            if (!isCompleted)
+                widgetHelper.updateWidgets(taskListId);
 
-        final TaskDetailView view = view();
-        if (view != null) view.onTaskDeleted();
+            // Cancel the notification, if present
+            notificationHelper.cancelTaskNotification(notificationId);
 
-        tasksHelper.deleteTask(tTask.getTaskListId(), tTask.getId())
-                .subscribe(
-                        aVoid -> { /* Do nothing */ },
-                        throwable -> {
-                            Timber.e(throwable.toString());
-                        }
-                );
+            final TaskDetailView view = view();
+            if (view != null) view.onTaskDeleted();
+
+        } else {
+            // Mark it as deleted so it doesn't show up in the list
+            realm.executeTransaction(realm -> tTask.setDeleted(true));
+
+            // Delete the reminder
+            final DatabaseReference tasksDatabase = FirebaseUtil.getTasksDatabase();
+            FirebaseUtil.saveReminder(tasksDatabase, tTask.getId(), null);
+
+            // Trigger a widget update only if the task is marked as active
+            if (!isCompleted)
+                widgetHelper.updateWidgets(taskListId);
+
+            // Cancel the notification, if present
+            notificationHelper.cancelTaskNotification(notificationId);
+
+            final TaskDetailView view = view();
+            if (view != null) view.onTaskDeleted();
+
+            tasksHelper.deleteTask(taskListId, tTask.getId())
+                    .subscribe(
+                            aVoid -> { /* Do nothing */ },
+                            throwable -> {
+                                Timber.e(throwable.toString());
+                            }
+                    );
+        }
     }
 
     @Override

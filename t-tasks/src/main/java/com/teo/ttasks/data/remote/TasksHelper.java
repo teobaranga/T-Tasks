@@ -257,12 +257,13 @@ public final class TasksHelper {
                                         final TTask savedTask = new TTask(tTask, task);
                                         savedTask.setSynced(true);
                                         try (Realm realm = Realm.getDefaultInstance()) {
+                                            final TTask realmTask = realm.where(TTask.class).equalTo("id", tTask.getId()).findFirst();
                                             realm.executeTransaction(realm1 -> {
                                                 // Save the new TTask with the correct ID
                                                 realm1.insertOrUpdate(savedTask);
                                                 // Delete the old task
-                                                tTask.getTask().deleteFromRealm();
-                                                tTask.deleteFromRealm();
+                                                realmTask.getTask().deleteFromRealm();
+                                                realmTask.deleteFromRealm();
                                             });
                                         }
 

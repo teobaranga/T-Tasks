@@ -28,7 +28,7 @@ class EditTaskPresenterTest {
             val date = Date(it)
             editTaskPresenter?.dueDate = date
             // Check if the due date is 02 Oct 2016 in UTC
-            assert(editTaskPresenter?.dueDate?.time== 1475366400000)
+            assert(editTaskPresenter?.dueDate?.time == 1475366400000)
         }
     }
 

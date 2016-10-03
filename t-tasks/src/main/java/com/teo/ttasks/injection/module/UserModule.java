@@ -40,9 +40,9 @@ public class UserModule {
     }
 
     @Provides
-    TaskDetailPresenter provideTaskDetailPresenter(TasksHelper tasksHelper, WidgetHelper widgetHelper,
+    TaskDetailPresenter provideTaskDetailPresenter(TasksHelper tasksHelper, PrefHelper prefHelper, WidgetHelper widgetHelper,
                                                    NotificationHelper notificationHelper) {
-        return new TaskDetailPresenter(tasksHelper, widgetHelper, notificationHelper);
+        return new TaskDetailPresenter(tasksHelper, prefHelper, widgetHelper, notificationHelper);
     }
 
     // TODO: 2016-07-27 maybe this belongs to another component

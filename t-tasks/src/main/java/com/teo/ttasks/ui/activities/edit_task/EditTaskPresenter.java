@@ -127,20 +127,8 @@ public class EditTaskPresenter extends Presenter<EditTaskView> {
             final int month = localCal.get(Calendar.MONTH);
             final int day = localCal.get(Calendar.DAY_OF_MONTH);
 
-            Calendar cal = Calendar.getInstance();
-            // Update the reminder
-            if (reminder == null) {
-                // Create a new reminder
-                reminder = date;
-            } else {
-                // Update the year, month, and day of the reminder
-                cal.setTime(reminder);
-                cal.set(year, month, day);
-                reminder = cal.getTime();
-            }
-
             // Create a new date with the info above, in UTC
-            cal.setTimeZone(TimeZone.getTimeZone("UTC"));
+            Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
             cal.set(year, month, day, 0, 0, 0);
             cal.set(Calendar.MILLISECOND, 0);
 
