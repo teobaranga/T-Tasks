@@ -1,9 +1,5 @@
 package com.teo.ttasks.data.model;
 
-import android.support.annotation.Nullable;
-
-import java.util.Date;
-
 import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
 import lombok.Data;
@@ -20,9 +16,6 @@ public class TTaskList extends RealmObject {
     public String id;
 
     public TaskList taskList;
-
-    @Nullable
-    private Date reminder;
 
     /**
      * Field indicating whether the task list is synced and up-to-date with the server.

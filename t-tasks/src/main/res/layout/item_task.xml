@@ -41,7 +41,6 @@
         </LinearLayout>
 
         <LinearLayout
-            android:theme="@style/AppBarOverlay"
             android:id="@id/layout_task"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -52,6 +51,7 @@
             android:background="@drawable/background_task"
             android:orientation="vertical"
             android:padding="8dp"
+            android:theme="@style/AppBarOverlay"
             android:transitionName="@string/transition_task_header">
 
             <TextView
@@ -59,6 +59,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="2dp"
+                android:ellipsize="end"
                 android:maxLines="1"
                 android:textAppearance="@style/TextAppearance.AppCompat"
                 android:textStyle="bold"
@@ -70,7 +71,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="2dp"
-                android:maxLines="1"
+                android:ellipsize="end"
+                android:maxLines="2"
                 android:textAppearance="@style/TextAppearance.AppCompat.Small"
                 android:textStyle="italic"
                 tools:text="Go to the supermarket and pick them up"/>

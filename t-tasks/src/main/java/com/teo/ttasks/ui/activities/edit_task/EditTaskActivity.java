@@ -139,8 +139,9 @@ public class EditTaskActivity extends AppCompatActivity implements EditTaskView 
         Calendar c = Calendar.getInstance();
         c.set(year, monthOfYear, dayOfMonth);
         Date time = c.getTime();
-        editTaskBinding.dueDate.setText(DateUtils.formatDate(this, time));
         editTaskPresenter.setDueDate(time);
+        // Display the date after being processed by the presenter
+        editTaskBinding.dueDate.setText(DateUtils.formatDate(this, editTaskPresenter.getDueDate()));
     }
 
     @Override

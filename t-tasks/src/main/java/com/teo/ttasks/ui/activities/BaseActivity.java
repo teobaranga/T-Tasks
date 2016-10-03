@@ -98,7 +98,7 @@ public abstract class BaseActivity extends AppCompatActivity {
                 onApiReady();
             else {
                 // User denied permission to his tasks, redirect to the sign in screen :(
-                SignInActivity.start(this);
+                SignInActivity.start(this, false);
                 finish();
             }
         }

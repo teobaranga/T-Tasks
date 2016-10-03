@@ -13,6 +13,7 @@ import com.teo.ttasks.data.remote.TasksHelper;
 import javax.inject.Inject;
 
 import io.realm.Realm;
+import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
 import timber.log.Timber;
 
@@ -25,17 +26,18 @@ public class TaskNotificationReceiver extends BroadcastReceiver {
 
     public static final String ACTION_PUBLISH = "publish";
     public static final String ACTION_COMPLETE = "complete";
+    public static final String ACTION_DELETE = "delete";
 
     @Inject TasksHelper tasksHelper;
 
     @Override
     public void onReceive(Context context, Intent intent) {
-
-        NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-        int id = intent.getIntExtra(NOTIFICATION_ID, 0);
-
         final String action = intent.getAction();
-        if (action != null)
+        if (action != null) {
+            NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+            String taskId = intent.getStringExtra(TASK_ID);
+            int id = intent.getIntExtra(NOTIFICATION_ID, 0);
+            Realm realm;
             switch (action) {
                 case ACTION_PUBLISH:
                     // Display the notification
@@ -44,8 +46,7 @@ public class TaskNotificationReceiver extends BroadcastReceiver {
                     break;
                 case ACTION_COMPLETE:
                     TTasksApp.get(context).userComponent().inject(this);
-                    String taskId = intent.getStringExtra(TASK_ID);
-                    Realm realm = Realm.getDefaultInstance();
+                    realm = Realm.getDefaultInstance();
                     // Mark the task as completed
                     tasksHelper.updateCompletionStatus(taskId, realm)
                             .observeOn(AndroidSchedulers.mainThread())
@@ -65,6 +66,30 @@ public class TaskNotificationReceiver extends BroadcastReceiver {
                                     }
                             );
                     break;
+                case ACTION_DELETE:
+                    // Mark this task's reminder as dismissed
+                    TTasksApp.get(context).userComponent().inject(this);
+                    realm = Realm.getDefaultInstance();
+                    tasksHelper.getTask(taskId, realm)
+                            .first()
+                            .flatMap(tTask -> {
+                                if (tTask == null)
+                                    return Observable.error(new Throwable("Task not found"));
+                                return Observable.just(tTask);
+                            })
+                            .subscribe(
+                                    tTask -> {
+                                        realm.executeTransaction(realm1 -> tTask.setNotificationDismissed(true));
+                                        realm.close();
+                                        Timber.d("task marked as dismissed");
+                                    },
+                                    throwable -> {
+                                        Timber.e(throwable.toString());
+                                        realm.close();
+                                    }
+                            );
+                    break;
             }
+        }
     }
 }

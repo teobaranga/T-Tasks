@@ -2,10 +2,12 @@ package com.teo.ttasks.ui.activities.task_detail;
 
 import android.support.annotation.NonNull;
 
+import com.google.firebase.database.DatabaseReference;
 import com.teo.ttasks.data.local.WidgetHelper;
 import com.teo.ttasks.data.model.TTask;
 import com.teo.ttasks.data.remote.TasksHelper;
 import com.teo.ttasks.ui.base.Presenter;
+import com.teo.ttasks.util.FirebaseUtil;
 import com.teo.ttasks.util.NotificationHelper;
 
 import io.realm.Realm;
@@ -90,9 +92,16 @@ public class TaskDetailPresenter extends Presenter<TaskDetailView> {
         // Mark it as deleted so it doesn't show up in the list
         realm.executeTransaction(realm -> tTask.setDeleted(true));
 
+        // Delete the reminder
+        final DatabaseReference tasksDatabase = FirebaseUtil.getTasksDatabase();
+        FirebaseUtil.saveReminder(tasksDatabase, tTask.getId(), null);
+
         // Trigger a widget update only if the task is marked as active
         if (!tTask.isCompleted())
             widgetHelper.updateWidgets(tTask.getTaskListId());
+
+        // Cancel the notification, if present
+        notificationHelper.cancelTaskNotification(tTask.hashCode());
 
         final TaskDetailView view = view();
         if (view != null) view.onTaskDeleted();

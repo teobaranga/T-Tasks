@@ -2,6 +2,7 @@ package com.teo.ttasks.util;
 
 import android.app.AlarmManager;
 import android.app.Notification;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
@@ -33,6 +34,7 @@ public class NotificationHelper {
      * Does nothing if the reminder date doesn't exist or if the task is already completed.
      *
      * @param task task
+     * @param id   notification ID
      */
     public void scheduleTaskNotification(TTask task, int id) {
         if (!task.isCompleted() && task.getReminder() != null) {
@@ -61,6 +63,12 @@ public class NotificationHelper {
             PendingIntent completedPendingIntent = PendingIntent.getBroadcast(context, 0, completedIntent, PendingIntent.FLAG_UPDATE_CURRENT);
             NotificationCompat.Action completedAction = new NotificationCompat.Action(R.drawable.ic_done_white_24dp, "Mark as completed", completedPendingIntent);
 
+            // Create the delete intent
+            final Intent deleteIntent = new Intent(context, TaskNotificationReceiver.class);
+            deleteIntent.putExtra(TaskNotificationReceiver.TASK_ID, task.getId());
+            deleteIntent.setAction(TaskNotificationReceiver.ACTION_DELETE);
+            final PendingIntent deletePendingIntent = PendingIntent.getBroadcast(context, 0, deleteIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
             // Check if user enabled reminder vibration
             final SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
             final boolean vibrate = preferences.getBoolean("reminder_vibrate", true);
@@ -75,9 +83,11 @@ public class NotificationHelper {
                     .setSmallIcon(R.drawable.ic_assignment_turned_in_24dp)
                     .setDefaults((vibrate ? Notification.DEFAULT_VIBRATE : 0)) // enable vibration only if requested
                     .setSound(sound)
+                    .setOnlyAlertOnce(true)
                     .setLights(color, 500, 2000)
                     .setColor(ResourcesCompat.getColor(context.getResources(), R.color.colorPrimary, null))
                     .setContentIntent(resultPendingIntent)
+                    .setDeleteIntent(deletePendingIntent)
                     .addAction(completedAction)
                     .setAutoCancel(true)
                     .build();
@@ -95,5 +105,15 @@ public class NotificationHelper {
 
     public void scheduleTaskNotification(TTask task) {
         scheduleTaskNotification(task, task.hashCode());
+    }
+
+    /**
+     * Cancel a notification. Used when deleting a task.
+     *
+     * @param id notification ID
+     */
+    public void cancelTaskNotification(int id) {
+        NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+        notificationManager.cancel(id);
     }
 }

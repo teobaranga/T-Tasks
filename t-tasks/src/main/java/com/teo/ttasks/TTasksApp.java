@@ -63,7 +63,8 @@ public class TTasksApp extends Application {
     }
 
     private void initRealmConfiguration() {
-        RealmConfiguration realmConfiguration = new RealmConfiguration.Builder(this)
+        Realm.init(this);
+        RealmConfiguration realmConfiguration = new RealmConfiguration.Builder()
                 .deleteRealmIfMigrationNeeded()
                 .initialData(realm -> {
                     // Reset the ETags saved, even though this has nothing to do with Realm

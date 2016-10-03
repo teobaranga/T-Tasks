@@ -7,6 +7,8 @@ import com.teo.ttasks.ui.base.MvpView;
 
 interface SignInView extends MvpView {
 
+    void onLoadingTaskLists();
+
     void onSignInSuccess();
 
     void onSignInError(@Nullable Intent resolveIntent);

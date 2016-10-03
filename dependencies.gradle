@@ -1,3 +1,4 @@
+project.ext.kotlin_ver = '1.0.4'
 ext.versions = [
 
         androidGradlePlugin          : '2.1.2',
@@ -11,7 +12,7 @@ ext.versions = [
 
         dagger                       : '2.7',
 
-        playServices                 : '9.4.0',
+        playServices                 : '9.6.1',
         rxJava                       : '1.2.0',
         rxLint                       : '1.0',
         rxAndroid                    : '1.2.1',

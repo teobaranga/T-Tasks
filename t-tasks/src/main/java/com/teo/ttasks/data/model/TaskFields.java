@@ -16,6 +16,15 @@ public class TaskFields extends HashMap<String, Object> {
     private static final String KEY_COMPLETED = "completed";
     private static final String KEY_STATUS = "status";
 
+    public static TaskFields fromTask(TTask task) {
+        final TaskFields taskFields = new TaskFields();
+        taskFields.putTitle(task.getTitle());
+        taskFields.putCompleted(task.isCompleted(), task.getCompleted());
+        taskFields.putDueDate(task.getDue());
+        taskFields.putNotes(task.getNotes());
+        return taskFields;
+    }
+
     public void putTitle(@Nullable String title) {
         if (title == null || title.isEmpty()) {
             remove(KEY_TITLE);

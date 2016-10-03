@@ -6,6 +6,10 @@ import android.support.v7.app.AppCompatDelegate;
 
 public class NightHelper {
 
+    public static final String NIGHT_AUTO = "auto";
+    public static final String NIGHT_NEVER = "never";
+    public static final String NIGHT_ALWAYS = "always";
+
     private NightHelper() { }
 
     public static boolean isNight(Context context) {
@@ -14,13 +18,13 @@ public class NightHelper {
 
     public static void applyNightMode(String nightMode) {
         switch (nightMode) {
-            case "never":
+            case NIGHT_NEVER:
                 AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
                 break;
-            case "auto":
+            case NIGHT_AUTO:
                 AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_AUTO);
                 break;
-            case "always":
+            case NIGHT_ALWAYS:
                 AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
                 break;
         }

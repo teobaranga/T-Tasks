@@ -1,6 +1,7 @@
 package com.teo.ttasks.ui.activities.sign_in;
 
 import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
@@ -19,8 +20,8 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.Scopes;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
 import com.google.android.gms.common.api.Scope;
+import com.google.firebase.auth.FirebaseAuth;
 import com.teo.ttasks.R;
 import com.teo.ttasks.TTasksApp;
 import com.teo.ttasks.databinding.ActivitySignInBinding;
@@ -31,26 +32,33 @@ import javax.inject.Inject;
 
 import timber.log.Timber;
 
+import static com.google.android.gms.auth.api.signin.GoogleSignInStatusCodes.SIGN_IN_CANCELLED;
 import static com.teo.ttasks.injection.module.ApplicationModule.SCOPE_TASKS;
 
-public class SignInActivity extends AppCompatActivity implements SignInView, OnConnectionFailedListener {
+public class SignInActivity extends AppCompatActivity implements SignInView,
+                                                                 GoogleApiClient.ConnectionCallbacks,
+                                                                 GoogleApiClient.OnConnectionFailedListener {
 
+    /** Request code to use when launching the resolution activity */
+    private static final int RC_RESOLVE_ERROR = 1001;
     private static final int RC_SIGN_IN = 0;
     private static final int RC_USER_RECOVERABLE = 1;
+
+    private static final String ARG_SIGN_OUT = "signOut";
+
+    /** Bool to track whether the app is already resolving an error */
+    protected boolean resolvingError = false;
 
     @Inject SignInPresenter signInPresenter;
     @Inject NetworkInfoReceiver networkInfoReceiver;
 
     private GoogleApiClient googleApiClient;
+    private FirebaseAuth firebaseAuth;
+    private ProgressDialog progressDialog;
 
-    /** Request code to use when launching the resolution activity */
-    protected static final int RC_RESOLVE_ERROR = 1001;
-
-    /** Bool to track whether the app is already resolving an error */
-    protected boolean resolvingError = false;
-
-    public static void start(Context context) {
+    public static void start(Context context, boolean signOut) {
         Intent starter = new Intent(context, SignInActivity.class);
+        starter.putExtra(ARG_SIGN_OUT, signOut);
         context.startActivity(starter);
     }
 
@@ -61,13 +69,17 @@ public class SignInActivity extends AppCompatActivity implements SignInView, OnC
         TTasksApp.get(this).signInComponent().inject(this);
         signInPresenter.bindView(this);
 
+        firebaseAuth = FirebaseAuth.getInstance();
+
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestEmail()
+                .requestIdToken(getString(R.string.default_web_client_id))
                 .requestScopes(new Scope(SCOPE_TASKS), new Scope(Scopes.PLUS_ME))
                 .build();
 
         googleApiClient = new GoogleApiClient.Builder(this)
                 .enableAutoManage(this, this)
+                .addConnectionCallbacks(this)
                 .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
                 .build();
 
@@ -79,10 +91,13 @@ public class SignInActivity extends AppCompatActivity implements SignInView, OnC
                 startActivityForResult(signInIntent, RC_SIGN_IN);
             }
         });
+    }
 
-//        Auth.GoogleSignInApi.revokeAccess(googleApiClient).setResultCallback(status -> {
-//            Timber.d("done revoking access");
-//        });
+    @Override
+    protected void onDestroy() {
+        signInPresenter.unbindView(this);
+        super.onDestroy();
+        TTasksApp.get(this).releaseSignInComponent();
     }
 
     @Override
@@ -100,19 +115,19 @@ public class SignInActivity extends AppCompatActivity implements SignInView, OnC
                 return;
             case RC_SIGN_IN:
                 final GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
-                Timber.d("handleSignInResult: %s", result.isSuccess());
                 if (result.isSuccess()) {
+                    progressDialog = ProgressDialog.show(this, null, getString(R.string.signing_in), true, false);
                     GoogleSignInAccount account = result.getSignInAccount();
                     signInPresenter.saveUser(account);
-                    signInPresenter.signIn();
-                } else {
+                    signInPresenter.signIn(firebaseAuth);
+                } else if (result.getStatus().getStatusCode() != SIGN_IN_CANCELLED) {
                     Timber.e(result.getStatus().toString());
                     Toast.makeText(this, R.string.error_sign_in, Toast.LENGTH_SHORT).show();
                 }
                 return;
             case RC_USER_RECOVERABLE:
                 if (resultCode == RESULT_OK) {
-                    signInPresenter.signIn();
+                    signInPresenter.signIn(firebaseAuth);
                     return;
                 }
                 Toast.makeText(this, R.string.error_google_permissions_denied, Toast.LENGTH_SHORT).show();
@@ -120,18 +135,45 @@ public class SignInActivity extends AppCompatActivity implements SignInView, OnC
     }
 
     @Override
+    public void onLoadingTaskLists() {
+        runOnUiThread(() -> {
+            if (progressDialog != null)
+                progressDialog.setMessage(getString(R.string.loading_task_lists));
+        });
+    }
+
+    @Override
     public void onSignInSuccess() {
+        if (progressDialog != null && progressDialog.isShowing())
+            progressDialog.cancel();
         MainActivity.start(this);
         finish();
     }
 
     @Override
     public void onSignInError(@Nullable Intent resolveIntent) {
+        if (progressDialog != null && progressDialog.isShowing())
+            progressDialog.cancel();
         if (resolveIntent != null) {
             startActivityForResult(resolveIntent, RC_USER_RECOVERABLE);
         } else {
             Toast.makeText(this, R.string.error_sign_in, Toast.LENGTH_SHORT).show();
         }
+    }
+
+    @Override
+    public void onConnected(@Nullable Bundle bundle) {
+        if (getIntent() != null) {
+            if (getIntent().getBooleanExtra(ARG_SIGN_OUT, false)) {
+                TTasksApp.get(this).releaseUserComponent();
+                Auth.GoogleSignInApi.signOut(googleApiClient).setResultCallback(status -> Timber.d(status.toString()));
+            }
+        }
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+        // Do nothing
     }
 
     @Override
@@ -151,13 +193,6 @@ public class SignInActivity extends AppCompatActivity implements SignInView, OnC
                 resolvingError = true;
             }
         }
-    }
-
-    @Override
-    protected void onDestroy() {
-        signInPresenter.unbindView(this);
-        super.onDestroy();
-        TTasksApp.get(this).releaseSignInComponent();
     }
 
     /**

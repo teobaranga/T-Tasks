@@ -34,19 +34,45 @@ public class TTask extends RealmObject {
      */
     private boolean synced = true;
 
+    /**
+     * Flag indicating whether the task was marked as deleted or not.
+     * If true, the task doesn't appear in any list and it will be deleted from the server
+     * at the next sync.
+     */
     private boolean deleted = false;
 
+    /**
+     * Flag indicating whether a reminder notification was posted and dismissed for this task. This is used to avoid
+     * posting more than one notification for a task or showing the notification again after the user
+     * has dismissed it.
+     * <p>
+     * <b>Note:</b> This flag should be reset whenever the reminder date changes.
+     */
+    private boolean notificationDismissed = false;
+
     public TTask() { }
+
+    /**
+     * Copy constructor. Used when updating a local task with a valid ID returned by the Google API.
+     * Realm does not allow changing the primary key after an object was created so a new task must
+     * be created with the current data and a new ID.
+     *
+     * @param tTask
+     * @param task
+     */
+    public TTask(TTask tTask, Task task) {
+        this.task = task;
+        id = task.getId();
+        taskListId = tTask.getTaskListId();
+        reminder = tTask.getReminder();
+        synced = tTask.isSynced();
+        deleted = tTask.isDeleted();
+    }
 
     public TTask(Task task, String taskListId) {
         this.task = task;
         this.id = task.getId();
         this.taskListId = taskListId;
-    }
-
-    public void switchTask(Task task) {
-        this.task = task;
-        this.id = task.getId();
     }
 
     /**
@@ -114,5 +140,15 @@ public class TTask extends RealmObject {
     @Nullable
     public Date getReminder() {
         return reminder;
+    }
+
+    public boolean isNew() {
+        try {
+            //noinspection ResultOfMethodCallIgnored
+            Integer.parseInt(id);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
     }
 }

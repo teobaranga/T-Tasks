@@ -8,11 +8,14 @@ import com.teo.ttasks.data.local.PrefHelper;
 import com.teo.ttasks.data.model.TTaskList;
 import com.teo.ttasks.data.remote.TasksHelper;
 import com.teo.ttasks.ui.base.Presenter;
+import com.teo.ttasks.util.NightHelper;
 
 import io.realm.Realm;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import timber.log.Timber;
+
+import static com.teo.ttasks.util.NightHelper.NIGHT_AUTO;
 
 public class MainActivityPresenter extends Presenter<MainView> {
 
@@ -20,16 +23,12 @@ public class MainActivityPresenter extends Presenter<MainView> {
     private final PrefHelper prefHelper;
     private final PeopleApi peopleApi;
 
-    private Realm mRealm;
+    private Realm realm;
 
     public MainActivityPresenter(TasksHelper tasksHelper, PrefHelper prefHelper, PeopleApi peopleApi) {
         this.tasksHelper = tasksHelper;
         this.prefHelper = prefHelper;
         this.peopleApi = peopleApi;
-    }
-
-    boolean isUserPresent() {
-        return prefHelper.isUserPresent();
     }
 
     String getUserName() {
@@ -94,7 +93,7 @@ public class MainActivityPresenter extends Presenter<MainView> {
     }
 
     void getTaskLists() {
-        final Subscription subscription = tasksHelper.getTaskLists(mRealm)
+        final Subscription subscription = tasksHelper.getTaskLists(realm)
                 .map(taskLists -> {
                     String currentTaskListId = prefHelper.getCurrentTaskListId();
                     // Find the index of the current task list
@@ -131,15 +130,24 @@ public class MainActivityPresenter extends Presenter<MainView> {
         unsubscribeOnUnbindView(subscription);
     }
 
+    void clearUser() {
+        // Clear the user's preferences
+        prefHelper.clearUser();
+        // Clear the database
+        realm.executeTransaction(realm1 -> realm1.deleteAll());
+        // Reset the night mode
+        NightHelper.applyNightMode(NIGHT_AUTO);
+    }
+
     @Override
     public void bindView(@NonNull MainView view) {
         super.bindView(view);
-        mRealm = Realm.getDefaultInstance();
+        realm = Realm.getDefaultInstance();
     }
 
     @Override
     public void unbindView(@NonNull MainView view) {
         super.unbindView(view);
-        mRealm.close();
+        realm.close();
     }
 }

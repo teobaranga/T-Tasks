@@ -1,5 +1,8 @@
 package com.teo.ttasks.data.remote;
 
+import android.annotation.SuppressLint;
+
+import com.google.firebase.database.DatabaseReference;
 import com.teo.ttasks.api.TasksApi;
 import com.teo.ttasks.api.entities.TaskListsResponse;
 import com.teo.ttasks.api.entities.TasksResponse;
@@ -10,6 +13,7 @@ import com.teo.ttasks.data.model.Task;
 import com.teo.ttasks.data.model.TaskFields;
 import com.teo.ttasks.data.model.TaskList;
 import com.teo.ttasks.data.model.TaskListFields;
+import com.teo.ttasks.util.FirebaseUtil;
 
 import java.util.Date;
 import java.util.List;
@@ -220,9 +224,10 @@ public final class TasksHelper {
     }
 
     public Observable<TTask> getTask(String taskId, Realm realm) {
-        return realm.where(TTask.class).equalTo("id", taskId)
-                .findFirst()
-                .asObservable();
+        final TTask tTask = realm.where(TTask.class).equalTo("id", taskId).findFirst();
+        if (tTask == null)
+            return Observable.empty();
+        return tTask.asObservable();
     }
 
     /**
@@ -232,16 +237,49 @@ public final class TasksHelper {
      * @param taskListId task list identifier
      * @return an Observable returning every task after it was successfully synced
      */
+    @SuppressLint("NewApi")
     public Observable<TTask> syncTasks(String taskListId) {
         return getTasks(taskListId)
                 .flatMapIterable(tasks -> tasks)
                 .filter(task -> !task.isSynced() || task.isDeleted())
-                .flatMap(task -> {
-                    if (task.isDeleted())
-                        return deleteTask(taskListId, task.getId())
+                .flatMap(tTask -> {
+                    // These tasks are not managed by Realm
+                    // Handle deleted tasks first
+                    if (tTask.isDeleted())
+                        return deleteTask(taskListId, tTask.getId())
                                 .flatMap(aVoid -> Observable.empty());
-                    if (!task.isSynced())
-                        return updateTask(taskListId, task);
+                    // Handle unsynced tasks
+                    if (!tTask.isSynced()) {
+                        if (tTask.isNew()) {
+                            return newTask(taskListId, TaskFields.fromTask(tTask))
+                                    .map(task -> {
+                                        // Create a copy of the old TTask
+                                        final TTask savedTask = new TTask(tTask, task);
+                                        savedTask.setSynced(true);
+                                        try (Realm realm = Realm.getDefaultInstance()) {
+                                            realm.executeTransaction(realm1 -> {
+                                                // Save the new TTask with the correct ID
+                                                realm1.insertOrUpdate(savedTask);
+                                                // Delete the old task
+                                                tTask.getTask().deleteFromRealm();
+                                                tTask.deleteFromRealm();
+                                            });
+                                        }
+
+                                        prefHelper.deleteLastTaskId();
+
+                                        // Save the reminder online
+                                        if (savedTask.getReminder() != null) {
+                                            final DatabaseReference tasksDatabase = FirebaseUtil.getTasksDatabase();
+                                            tasksDatabase.child(savedTask.getId()).child("reminder").setValue(savedTask.getReminder().getTime());
+                                        }
+
+                                        return savedTask;
+                                    });
+                        } else {
+                            return updateTask(taskListId, tTask);
+                        }
+                    }
                     return Observable.empty();
                 });
     }
@@ -260,14 +298,19 @@ public final class TasksHelper {
                         prefHelper.setTasksResponseEtag(taskListId, tasksResponse.etag);
                         tasksResponse.id = taskListId;
 
+                        final DatabaseReference reference = FirebaseUtil.getTasksDatabase();
                         realm.executeTransaction(realm1 -> {
                             realm1.insertOrUpdate(tasksResponse);
                             // Create a new TTask for each Task, if the task list isn't empty
                             if (tasksResponse.items != null) {
                                 for (Task task : tasksResponse.items) {
                                     TTask tTask = realm1.where(TTask.class).equalTo("id", task.getId()).findFirst();
-                                    if (tTask == null)
+                                    if (tTask == null) {
                                         realm1.insertOrUpdate(new TTask(task, taskListId));
+                                    } else if (tTask.getReminder() != null) {
+                                        Timber.d("saving reminder");
+                                        reference.child(tTask.getId()).child("reminder").setValue(tTask.getReminder().getTime());
+                                    }
                                 }
                             }
                         });

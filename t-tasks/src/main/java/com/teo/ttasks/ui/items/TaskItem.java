@@ -14,6 +14,7 @@ import com.mikepenz.fastadapter.utils.ViewHolderFactory;
 import com.teo.ttasks.R;
 import com.teo.ttasks.data.model.TTask;
 import com.teo.ttasks.databinding.ItemTaskBinding;
+import com.teo.ttasks.util.DateUtils;
 
 import java.text.SimpleDateFormat;
 import java.util.Comparator;
@@ -36,7 +37,6 @@ public class TaskItem extends AbstractItem<TaskItem, TaskItem.ViewHolder> implem
 
     private static final String DAY_PATTERN = "EEE";
     private static final String DAY_NUMBER_PATTERN = "d";
-    private static final String HOUR_PATTERN = "hh:mma";
 
     private static final SimpleDateFormat simpleDateFormat = new SimpleDateFormat(DAY_PATTERN, Locale.getDefault());
     private static final SimpleDateFormat fmt = new SimpleDateFormat("yyyyMMdd", Locale.getDefault());
@@ -206,8 +206,7 @@ public class TaskItem extends AbstractItem<TaskItem, TaskItem.ViewHolder> implem
         // Reminder
         if (reminder != null) {
             Timber.d("reminder is not null");
-            simpleDateFormat.applyLocalizedPattern(HOUR_PATTERN);
-            binding.reminder.setText(simpleDateFormat.format(reminder));
+            binding.reminder.setText(DateUtils.formatTime(binding.getRoot().getContext(), reminder));
             binding.reminder.setVisibility(VISIBLE);
         } else {
             binding.reminder.setVisibility(GONE);

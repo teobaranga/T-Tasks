@@ -2,11 +2,20 @@ package com.teo.ttasks.ui.activities.sign_in;
 
 import com.google.android.gms.auth.UserRecoverableAuthException;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
+import com.google.firebase.auth.AuthCredential;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.GoogleAuthProvider;
 import com.teo.ttasks.data.local.PrefHelper;
 import com.teo.ttasks.data.remote.TasksHelper;
 import com.teo.ttasks.data.remote.TokenHelper;
 import com.teo.ttasks.ui.base.Presenter;
 
+import java.util.concurrent.ExecutionException;
+
+import rx.Observable;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
@@ -33,8 +42,24 @@ public class SignInPresenter extends Presenter<SignInView> {
         mPrefHelper.setUser(account.getEmail(), account.getDisplayName());
     }
 
-    void signIn() {
+    void signIn(FirebaseAuth firebaseAuth) {
         final Subscription subscription = mTokenHelper.refreshAccessToken()
+                .flatMap(accessToken -> {
+                    final AuthCredential credential = GoogleAuthProvider.getCredential(null, accessToken);
+                    final Task<AuthResult> authResultTask = firebaseAuth.signInWithCredential(credential);
+                    try {
+                        final AuthResult await = Tasks.await(authResultTask);
+                        Timber.d("%s %s", await.getUser().getDisplayName(), await.getUser().getEmail());
+                        return Observable.just(accessToken);
+                    } catch (ExecutionException|InterruptedException e) {
+                        return Observable.error(e);
+                    }
+                })
+                .doOnNext(ignored -> {
+                    // Indicate that we're loading the task lists next
+                    final SignInView view = view();
+                    if (view != null) view.onLoadingTaskLists();
+                })
                 .flatMap(accessToken -> mTasksHelper.refreshTaskLists())
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())

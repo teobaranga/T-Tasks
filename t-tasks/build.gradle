@@ -1,8 +1,10 @@
 apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
 apply plugin: 'io.fabric'
 apply plugin: 'com.neenbedankt.android-apt'
 apply plugin: 'realm-android'
 apply plugin: 'me.tatarka.retrolambda'
+apply from: "../dependencies.gradle"
 //apply plugin: 'com.getkeepsafe.dexcount'
 //apply from: '../config/quality/quality.gradle'
 
@@ -78,6 +80,18 @@ android {
             exceptionFormat 'full'
         }
     }
+    sourceSets {
+        test.java.srcDirs += 'src/test/kotlin'
+    }
+}
+
+afterEvaluate {
+    android.sourceSets.all { sourceSet ->
+        if (!sourceSet.name.startsWith("test"))
+        {
+            sourceSet.kotlin.setSrcDirs([])
+        }
+    }
 }
 
 dependencies {
@@ -99,6 +113,9 @@ dependencies {
     compile libraries.retrofitRxJavaAdapter
 
     compile libraries.okHttpLoggingInterceptor
+
+    compile 'com.google.firebase:firebase-auth:9.6.1'
+    compile 'com.google.firebase:firebase-database:9.6.1'
 
     compile('com.google.api-client:google-api-client-android:1.22.0') {
         exclude group: 'org.apache.httpcomponents'
@@ -130,6 +147,8 @@ dependencies {
     testCompile "org.hamcrest:hamcrest-all:${hamcrestVersion}"
     testCompile "org.powermock:powermock-module-junit4:${powerMockito}"
     testCompile "org.powermock:powermock-api-mockito:${powerMockito}"
+    testCompile "org.jetbrains.kotlin:kotlin-stdlib:$project.ext.kotlin_ver"
+    testCompile "org.jetbrains.kotlin:kotlin-test-junit:$project.ext.kotlin_ver"
 
     // Android Testing Support Library's runner and rules
     androidTestCompile libraries.supportTestRunner

@@ -4,6 +4,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.util.Pair;
 
+import com.google.firebase.database.DatabaseReference;
 import com.teo.ttasks.data.local.PrefHelper;
 import com.teo.ttasks.data.local.WidgetHelper;
 import com.teo.ttasks.data.model.TTask;
@@ -12,10 +13,12 @@ import com.teo.ttasks.data.model.Task;
 import com.teo.ttasks.data.model.TaskFields;
 import com.teo.ttasks.data.remote.TasksHelper;
 import com.teo.ttasks.ui.base.Presenter;
+import com.teo.ttasks.util.FirebaseUtil;
 import com.teo.ttasks.util.NotificationHelper;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.TimeZone;
 
 import io.realm.Realm;
 import rx.android.schedulers.AndroidSchedulers;
@@ -29,7 +32,9 @@ public class EditTaskPresenter extends Presenter<EditTaskView> {
     private final WidgetHelper widgetHelper;
     private final NotificationHelper notificationHelper;
 
+    /** The due date in UTC **/
     @Nullable private Date dueDate;
+
     @Nullable private Date reminder;
 
     /**
@@ -93,7 +98,8 @@ public class EditTaskPresenter extends Presenter<EditTaskView> {
                 .subscribe(
                         taskListsIndexPair -> {
                             final EditTaskView view = view();
-                            if (view != null) view.onTaskListsLoaded(taskListsIndexPair.first, taskListsIndexPair.second);
+                            if (view != null)
+                                view.onTaskListsLoaded(taskListsIndexPair.first, taskListsIndexPair.second);
                         },
                         throwable -> {
                             Timber.e(throwable.toString());
@@ -105,24 +111,47 @@ public class EditTaskPresenter extends Presenter<EditTaskView> {
 
     /**
      * Set the due date. If one isn't present, assign the new one. Otherwise, modify the old one.
+     * The due date needs to be in UTC because that's how Google Tasks expects it.
      *
      * @param date the due date
      */
     void setDueDate(@Nullable Date date) {
-        if (dueDate == null) {
-            dueDate = date;
+        if (date == null) {
+            dueDate = null;
+            reminder = null;
         } else {
-            // Change only the date and not the time
-            Calendar oldCal = Calendar.getInstance();
-            oldCal.setTime(dueDate);
+            // Extract the year, month and day
+            Calendar localCal = Calendar.getInstance();
+            localCal.setTime(date);
+            final int year = localCal.get(Calendar.YEAR);
+            final int month = localCal.get(Calendar.MONTH);
+            final int day = localCal.get(Calendar.DAY_OF_MONTH);
 
-            Calendar newCal = Calendar.getInstance();
-            newCal.setTime(date);
+            Calendar cal = Calendar.getInstance();
+            // Update the reminder
+            if (reminder == null) {
+                // Create a new reminder
+                reminder = date;
+            } else {
+                // Update the year, month, and day of the reminder
+                cal.setTime(reminder);
+                cal.set(year, month, day);
+                reminder = cal.getTime();
+            }
 
-            oldCal.set(newCal.get(Calendar.YEAR), newCal.get(Calendar.MONTH), newCal.get(Calendar.DAY_OF_MONTH), 0, 0, 0);
-            dueDate = oldCal.getTime();
+            // Create a new date with the info above, in UTC
+            cal.setTimeZone(TimeZone.getTimeZone("UTC"));
+            cal.set(year, month, day, 0, 0, 0);
+            cal.set(Calendar.MILLISECOND, 0);
+
+            dueDate = cal.getTime();
         }
         editTaskFields.putDueDate(dueDate);
+    }
+
+    @Nullable
+    Date getDueDate() {
+        return dueDate;
     }
 
     // TODO: 2016-08-19 implement this using Firebase
@@ -153,15 +182,20 @@ public class EditTaskPresenter extends Presenter<EditTaskView> {
         if (dueDate == null)
             return;
 
-        Calendar oldCal = Calendar.getInstance();
-        oldCal.setTime(dueDate);
+        // Get the year, month, and day in the user's timezone
+        Calendar utcCal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+        utcCal.setTime(dueDate);
+        final int year = utcCal.get(Calendar.YEAR);
+        final int month = utcCal.get(Calendar.MONTH);
+        final int day = utcCal.get(Calendar.DAY_OF_MONTH);
 
-        Calendar newCal = Calendar.getInstance();
-        newCal.setTime(date);
+        Calendar cal = Calendar.getInstance();
+        // Set the reminder time
+        cal.setTime(date);
+        // Correct the date
+        cal.set(year, month, day);
 
-        oldCal.set(Calendar.HOUR_OF_DAY, newCal.get(Calendar.HOUR_OF_DAY));
-        oldCal.set(Calendar.MINUTE, newCal.get(Calendar.MINUTE));
-        reminder = oldCal.getTime();
+        reminder = cal.getTime();
     }
 
     /**
@@ -205,8 +239,8 @@ public class EditTaskPresenter extends Presenter<EditTaskView> {
         realm.executeTransaction(realm -> realm.copyToRealm(tTask));
 
         // Schedule the notification
-        final TTask managedTask = tasksHelper.getTask(tTask.getId(), realm).toBlocking().first();
-        notificationHelper.scheduleTaskNotification(managedTask);
+        final TTask localTask = tasksHelper.getTask(tTask.getId(), realm).toBlocking().first();
+        notificationHelper.scheduleTaskNotification(localTask);
 
         // Save the task on an active network connection
         if (isOnline) {
@@ -214,18 +248,26 @@ public class EditTaskPresenter extends Presenter<EditTaskView> {
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(
                             savedTask -> {
+                                final TTask onlineTask = new TTask(localTask, savedTask);
+                                onlineTask.setSynced(true);
                                 // Update the local task with the full information and delete the old task
-                                final int id = managedTask.hashCode();
+                                final int id = localTask.hashCode();
                                 realm.executeTransaction(realm -> {
-                                    managedTask.getTask().deleteFromRealm();
-                                    managedTask.switchTask(realm.copyToRealm(savedTask));
-                                    managedTask.setSynced(true);
+                                    realm.insertOrUpdate(onlineTask);
+                                    localTask.getTask().deleteFromRealm();
+                                    localTask.deleteFromRealm();
                                 });
-                                Timber.d("new task with id %s", managedTask.getId());
+                                Timber.d("new task with id %s", onlineTask.getId());
                                 prefHelper.deleteLastTaskId();
                                 widgetHelper.updateWidgets(taskListId);
                                 // Update the previous notification with the correct task ID
-                                notificationHelper.scheduleTaskNotification(managedTask, id);
+                                notificationHelper.scheduleTaskNotification(onlineTask, id);
+
+                                // Save the reminder online
+                                if (onlineTask.getReminder() != null) {
+                                    final DatabaseReference tasksDatabase = FirebaseUtil.getTasksDatabase();
+                                    tasksDatabase.child(onlineTask.getId()).child("reminder").setValue(onlineTask.getReminder().getTime());
+                                }
                             },
                             throwable -> {
                                 Timber.e(throwable.toString());
@@ -257,6 +299,7 @@ public class EditTaskPresenter extends Presenter<EditTaskView> {
         }
         // Update the task locally
         TTask managedTask = tasksHelper.getTask(taskId, realm).toBlocking().first();
+        final int reminderId = managedTask.getReminder() != null ? managedTask.getReminder().hashCode() : 0;
         realm.executeTransaction(realm -> {
             managedTask.update(editTaskFields);
             managedTask.setReminder(reminder);
@@ -264,7 +307,14 @@ public class EditTaskPresenter extends Presenter<EditTaskView> {
         });
 
         widgetHelper.updateWidgets(taskListId);
-        notificationHelper.scheduleTaskNotification(managedTask);
+
+        // Schedule a reminder only if there is one or it has changed
+        if (managedTask.getReminder() != null && managedTask.getReminder().hashCode() != reminderId)
+            notificationHelper.scheduleTaskNotification(managedTask);
+
+        // Update or clear the reminder
+        final DatabaseReference tasks = FirebaseUtil.getTasksDatabase();
+        FirebaseUtil.saveReminder(tasks, managedTask.getId(), reminder != null ? reminder.getTime() : null);
 
         // Update the task on an active network connection
         if (isOnline) {

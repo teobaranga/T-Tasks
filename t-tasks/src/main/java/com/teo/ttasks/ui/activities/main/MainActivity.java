@@ -18,6 +18,7 @@ import android.support.v7.app.ActionBar;
 import android.view.View;
 import android.widget.AdapterView;
 
+import com.google.firebase.auth.FirebaseAuth;
 import com.mikepenz.google_material_typeface_library.GoogleMaterial;
 import com.mikepenz.iconics.IconicsDrawable;
 import com.mikepenz.materialdrawer.AccountHeader;
@@ -67,6 +68,7 @@ public final class MainActivity extends BaseActivity implements MainView {
     private static final int ID_SETTINGS = 0xF0;
     private static final int ID_HELP_AND_FEEDBACK = 0xF1;
     private static final int ID_ABOUT = 0xF2;
+    private static final int ID_SIGN_OUT = 0xF3;
 
     @Inject MainActivityPresenter mainActivityPresenter;
     @Inject NetworkInfoReceiver networkInfoReceiver;
@@ -79,6 +81,9 @@ public final class MainActivity extends BaseActivity implements MainView {
     private ActivityMainBinding mainBinding;
 
     private TaskListsAdapter taskListsAdapter;
+
+    private FirebaseAuth firebaseAuth;
+    private FirebaseAuth.AuthStateListener authStateListener;
 
     /** The profile of the currently logged in user */
     private Drawer drawer = null;
@@ -97,11 +102,22 @@ public final class MainActivity extends BaseActivity implements MainView {
         mainActivityPresenter.bindView(this);
 
         // Show the SignIn activity if there's no user connected
-        if (!mainActivityPresenter.isUserPresent()) {
-            SignInActivity.start(this);
+        firebaseAuth = FirebaseAuth.getInstance();
+
+        if (firebaseAuth.getCurrentUser() == null) {
+            SignInActivity.start(this, false);
             finish();
             return;
         }
+
+        authStateListener = firebaseAuth1 -> {
+            if (firebaseAuth.getCurrentUser() == null) {
+                mainActivityPresenter.clearUser();
+                SignInActivity.start(this, true);
+                finish();
+            }
+        };
+        firebaseAuth.addAuthStateListener(authStateListener);
 
         mainBinding = DataBindingUtil.setContentView(this, R.layout.activity_main);
 
@@ -197,6 +213,12 @@ public final class MainActivity extends BaseActivity implements MainView {
                                 .withName(R.string.drawer_about)
                                 .withIcon(GoogleMaterial.Icon.gmd_info_outline)
                                 .withIdentifier(ID_ABOUT)
+                                .withSelectable(false),
+                        new SecondaryDrawerItem()
+                                .withName(R.string.sign_out)
+                                .withIcon(R.drawable.ic_sign_out_24dp)
+                                .withIconTintingEnabled(true)
+                                .withIdentifier(ID_SIGN_OUT)
                                 .withSelectable(false)
                 )
                 .withOnDrawerItemClickListener((view, position, drawerItem) -> {
@@ -229,6 +251,9 @@ public final class MainActivity extends BaseActivity implements MainView {
                                 break;
                             case ID_ABOUT:
                                 AboutActivity.start(this);
+                                break;
+                            case ID_SIGN_OUT:
+                                firebaseAuth.signOut();
                                 break;
                             default:
                                 // If we're being restored from a previous state,
@@ -294,6 +319,8 @@ public final class MainActivity extends BaseActivity implements MainView {
     protected void onDestroy() {
         super.onDestroy();
         mainActivityPresenter.unbindView(this);
+        if (authStateListener != null)
+            firebaseAuth.removeAuthStateListener(authStateListener);
     }
 
     @Override

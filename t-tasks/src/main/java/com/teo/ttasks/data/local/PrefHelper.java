@@ -14,7 +14,7 @@ import static com.teo.ttasks.util.RxUtils.SORT_DATE;
 
 public final class PrefHelper {
 
-    // NOTE: the shared preference item holding the etag saved for a given task list does not get deleted once the task list gets deleted
+    // FIXME: the shared preference item holding the etag saved for a given task list does not get deleted once the task list gets deleted
 
     private static final String PREF_USER_EMAIL = "email";
     private static final String PREF_USER_NAME = "name";
@@ -41,16 +41,6 @@ public final class PrefHelper {
 
     public PrefHelper(Context context) {
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
-    }
-
-    /**
-     * Check if a valid user is logged in
-     *
-     * @return {@code true} if an email and an access token are present, {@code false} otherwise
-     */
-    public boolean isUserPresent() {
-        return sharedPreferences.getString(PREF_USER_EMAIL, null) != null &&
-                getAccessToken() != null;
     }
 
     public void setUser(String email, String displayName) {
@@ -87,7 +77,7 @@ public final class PrefHelper {
     }
 
     public void clearUser() {
-        sharedPreferences.edit().remove(PREF_USER_EMAIL).apply();
+        sharedPreferences.edit().clear().apply();
     }
 
     @Nullable
