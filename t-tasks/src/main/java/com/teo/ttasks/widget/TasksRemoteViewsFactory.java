@@ -16,6 +16,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.TimeZone;
 
 import javax.inject.Inject;
 
@@ -29,9 +30,13 @@ public class TasksRemoteViewsFactory implements RemoteViewsService.RemoteViewsFa
 
     private static final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE", Locale.getDefault());
 
-    @Inject TasksHelper tasksHelper;
+    static {
+        simpleDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+    }
 
     private final String taskListId;
+
+    @Inject TasksHelper tasksHelper;
 
     private String packageName;
     private List<TaskItem> taskItems;
@@ -50,21 +55,6 @@ public class TasksRemoteViewsFactory implements RemoteViewsService.RemoteViewsFa
     }
 
     @Override
-    public void onDestroy() {
-        taskItems = null;
-    }
-
-    @Override
-    public RemoteViews getLoadingView() {
-        return null;
-    }
-
-    @Override
-    public int getCount() {
-        return taskItems != null ? taskItems.size() : 0;
-    }
-
-    @Override
     public void onDataSetChanged() {
         //noinspection unchecked
         tasksHelper.getTasks(taskListId)
@@ -77,8 +67,13 @@ public class TasksRemoteViewsFactory implements RemoteViewsService.RemoteViewsFa
     }
 
     @Override
-    public int getViewTypeCount() {
-        return 1;
+    public void onDestroy() {
+        taskItems = null;
+    }
+
+    @Override
+    public int getCount() {
+        return taskItems != null ? taskItems.size() : 0;
     }
 
     @Override
@@ -128,6 +123,16 @@ public class TasksRemoteViewsFactory implements RemoteViewsService.RemoteViewsFa
 
         // Return the remote views object.
         return rv;
+    }
+
+    @Override
+    public RemoteViews getLoadingView() {
+        return null;
+    }
+
+    @Override
+    public int getViewTypeCount() {
+        return 1;
     }
 
     @Override
