@@ -74,7 +74,7 @@
     <style name="Theme.About" parent="Base.Theme"/>
 
     <!-- Widget configure -->
-    <style name="Theme.TasksWidgetConfigure" parent="Theme.AppCompat.DayNight.Dialog"/>
+    <style name="Theme.TasksWidgetConfigure" parent="Theme.AppCompat.Light.Dialog"/>
 
     <!-- Widget -->
     <style name="Theme.Widget" parent="Theme.AppCompat"/>

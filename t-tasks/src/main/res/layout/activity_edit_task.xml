@@ -119,7 +119,6 @@
                     android:hint="@string/set_due_date"
                     android:longClickable="true"
                     android:onClick="onDueDateClicked"
-                    android:onLongClick="@{view::onDueDateLongClicked}"
                     android:textColor="?android:textColorPrimary"
                     android:textSize="18sp"
                     app:dueDate="@{task.due}"

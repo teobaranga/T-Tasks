@@ -22,8 +22,6 @@ public interface EditTaskView extends MvpView, OnDateSetListener, OnTimeSetListe
 
     void onTaskSaveError();
 
-    boolean onDueDateLongClicked(View v);
-
     boolean onDueTimeLongClicked(View v);
 
     void onTitleChanged(CharSequence title, int start, int before, int count);

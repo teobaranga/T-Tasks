@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.text.format.DateFormat;
 import android.view.Menu;
@@ -53,7 +54,10 @@ public class EditTaskActivity extends AppCompatActivity implements EditTaskView 
     private String taskId;
     private String taskListId;
 
-    /** Flag indicating that the reminder time has been clicked */
+    /**
+     * Flag indicating that the reminder time has been clicked.
+     * Used to differentiate between the reminder time and the due time.
+     */
     private boolean reminderTimeClicked;
 
     public static void startEdit(Context context, String taskId, String taskListId, Bundle bundle) {
@@ -190,23 +194,30 @@ public class EditTaskActivity extends AppCompatActivity implements EditTaskView 
 
     public void onDueDateClicked(View v) {
         KeyboardUtil.hideKeyboard(this);
-        if (datePickerFragment == null)
-            datePickerFragment = new DatePickerFragment();
-        datePickerFragment.show(getSupportFragmentManager(), "datePicker");
-    }
+        if (editTaskPresenter.hasDueDate()) {
+            final AlertDialog dialog = new AlertDialog.Builder(this)
+                    .setView(R.layout.dialog_remove_change)
+                    .show();
 
-    /**
-     * Reset the due date. This also resets the reminder date/time.
-     *
-     * @return true if the due date was reset, false otherwise
-     */
-    public boolean onDueDateLongClicked(View v) {
-        if (!editTaskPresenter.hasDueDate())
-            return false;
-        editTaskBinding.dueDate.setText(null);
-        editTaskBinding.reminder.setText(null);
-        editTaskPresenter.removeDueDate();
-        return true;
+            dialog.findViewById(R.id.remove).setOnClickListener(v1 -> {
+                // Reset the due date & reminder
+                editTaskPresenter.removeDueDate();
+                editTaskPresenter.removeReminder();
+                editTaskBinding.dueDate.setText(null);
+                editTaskBinding.reminder.setText(null);
+                dialog.dismiss();
+            });
+            dialog.findViewById(R.id.change).setOnClickListener(v1 -> {
+                if (datePickerFragment == null)
+                    datePickerFragment = new DatePickerFragment();
+                datePickerFragment.show(getSupportFragmentManager(), "datePicker");
+                dialog.dismiss();
+            });
+        } else {
+            if (datePickerFragment == null)
+                datePickerFragment = new DatePickerFragment();
+            datePickerFragment.show(getSupportFragmentManager(), "datePicker");
+        }
     }
 
     public void onDueTimeClicked(View v) {
@@ -232,10 +243,29 @@ public class EditTaskActivity extends AppCompatActivity implements EditTaskView 
             Toast.makeText(this, "You need to set a due date before adding a reminder", Toast.LENGTH_SHORT).show();
             return;
         }
-        reminderTimeClicked = true;
-        if (timePickerFragment == null)
-            timePickerFragment = new TimePickerFragment();
-        timePickerFragment.show(getSupportFragmentManager(), "timePicker");
+        if (editTaskPresenter.hasReminder()) {
+            final AlertDialog dialog = new AlertDialog.Builder(this)
+                    .setView(R.layout.dialog_remove_change)
+                    .show();
+
+            dialog.findViewById(R.id.remove).setOnClickListener(v1 -> {
+                editTaskPresenter.removeReminder();
+                editTaskBinding.reminder.setText(null);
+                dialog.dismiss();
+            });
+            dialog.findViewById(R.id.change).setOnClickListener(v1 -> {
+                reminderTimeClicked = true;
+                if (timePickerFragment == null)
+                    timePickerFragment = new TimePickerFragment();
+                timePickerFragment.show(getSupportFragmentManager(), "timePicker");
+                dialog.dismiss();
+            });
+        } else {
+            reminderTimeClicked = true;
+            if (timePickerFragment == null)
+                timePickerFragment = new TimePickerFragment();
+            timePickerFragment.show(getSupportFragmentManager(), "timePicker");
+        }
     }
 
     public void onNotesChanged(CharSequence notes, int start, int before, int count) {

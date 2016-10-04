@@ -24,7 +24,6 @@ import io.realm.Realm;
 import rx.android.schedulers.AndroidSchedulers;
 import timber.log.Timber;
 
-// TODO: 2016-08-09 save the reminder on new task and task update
 public class EditTaskPresenter extends Presenter<EditTaskView> {
 
     private final TasksHelper tasksHelper;
@@ -133,6 +132,13 @@ public class EditTaskPresenter extends Presenter<EditTaskView> {
             cal.set(Calendar.MILLISECOND, 0);
 
             dueDate = cal.getTime();
+
+            // Update the reminder
+            if (reminder != null) {
+                localCal.setTime(reminder);
+                localCal.set(year, month, day);
+                reminder = localCal.getTime();
+            }
         }
         editTaskFields.putDueDate(dueDate);
     }
@@ -184,6 +190,14 @@ public class EditTaskPresenter extends Presenter<EditTaskView> {
         cal.set(year, month, day);
 
         reminder = cal.getTime();
+    }
+
+    void removeReminder() {
+        reminder = null;
+    }
+
+    boolean hasReminder() {
+        return reminder != null;
     }
 
     /**
@@ -288,6 +302,7 @@ public class EditTaskPresenter extends Presenter<EditTaskView> {
         // Update the task locally
         TTask managedTask = tasksHelper.getTask(taskId, realm).toBlocking().first();
         final int reminderId = managedTask.getReminder() != null ? managedTask.getReminder().hashCode() : 0;
+        final int notificationId = managedTask.hashCode();
         realm.executeTransaction(realm -> {
             managedTask.update(editTaskFields);
             managedTask.setReminder(reminder);
@@ -299,6 +314,10 @@ public class EditTaskPresenter extends Presenter<EditTaskView> {
         // Schedule a reminder only if there is one or it has changed
         if (managedTask.getReminder() != null && managedTask.getReminder().hashCode() != reminderId)
             notificationHelper.scheduleTaskNotification(managedTask);
+
+        // Cancel the notification if the user has removed the reminder
+        if (reminderId != 0 && managedTask.getReminder() == null)
+            notificationHelper.cancelTaskNotification(notificationId);
 
         // Update or clear the reminder
         final DatabaseReference tasks = FirebaseUtil.getTasksDatabase();

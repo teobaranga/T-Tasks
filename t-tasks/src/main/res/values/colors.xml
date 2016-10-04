@@ -7,6 +7,7 @@
 
     <!-- Task item -->
     <color name="task_background">@color/brown_400</color>
+    <color name="task_background_widget">@color/brown_400</color>
 
     <!-- Material Colors -->
     <!-- https://gist.github.com/kalehv/bae765c756e94455ed88 -->
