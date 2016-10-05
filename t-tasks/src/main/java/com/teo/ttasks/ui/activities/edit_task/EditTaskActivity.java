@@ -16,6 +16,7 @@ import android.text.format.DateFormat;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.DatePicker;
 import android.widget.TimePicker;
 import android.widget.Toast;
@@ -102,13 +103,25 @@ public class EditTaskActivity extends AppCompatActivity implements EditTaskView 
 
         // Handle a new task or an existing task
         if (taskId == null) {
+            // Update the toolbar title
             getSupportActionBar().setTitle("New Task");
+
+            // Show the keyboard
+            editTaskBinding.taskTitle.requestFocus();
+            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.showSoftInput(editTaskBinding.taskTitle, InputMethodManager.SHOW_IMPLICIT);
         } else {
             editTaskPresenter.loadTaskInfo(taskId);
         }
 
         // Load the available task lists
         editTaskPresenter.loadTaskLists(taskListId);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        editTaskPresenter.unbindView(this);
     }
 
     @Override
@@ -136,6 +149,28 @@ public class EditTaskActivity extends AppCompatActivity implements EditTaskView 
     @Override
     public void onTaskSaveError() {
         // TODO: 2016-07-24 implement
+    }
+
+    /**
+     * Reset the due time
+     *
+     * @return true if the due time was reset, false otherwise
+     */
+    public boolean onDueTimeLongClicked(View v) {
+        // TODO: 2016-05-18 return false if the due time is already reset
+        editTaskBinding.dueTime.setText(R.string.due_time_all_day);
+        return true;
+    }
+
+    public void onTitleChanged(CharSequence title, int start, int before, int count) {
+        editTaskPresenter.setTaskTitle(title.toString());
+        // Clear the error
+        if (editTaskBinding.taskTitle.getError() != null)
+            editTaskBinding.taskTitle.setError(null);
+    }
+
+    public void onNotesChanged(CharSequence notes, int start, int before, int count) {
+        editTaskPresenter.setTaskNotes(notes.toString());
     }
 
     @Override
@@ -178,18 +213,20 @@ public class EditTaskActivity extends AppCompatActivity implements EditTaskView 
                 finish();
                 return true;
             case R.id.done:
+                if (!editTaskPresenter.hasTitle()) {
+                    editTaskBinding.taskTitle.setError(getString(R.string.error_no_title));
+                    editTaskBinding.taskTitle.requestFocus();
+                    InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                    imm.showSoftInput(editTaskBinding.taskTitle, InputMethodManager.SHOW_IMPLICIT);
+                    return true;
+                }
                 if (taskId == null)
-                    editTaskPresenter.newTask(taskListId, networkInfoReceiver.isOnline(this));
+                    editTaskPresenter.newTask(taskListId);
                 else
                     editTaskPresenter.updateTask(taskListId, taskId, networkInfoReceiver.isOnline(this));
                 return true;
         }
         return super.onOptionsItemSelected(item);
-
-    }
-
-    public void onTitleChanged(CharSequence title, int start, int before, int count) {
-        editTaskPresenter.setTaskTitle(title.toString());
     }
 
     public void onDueDateClicked(View v) {
@@ -227,17 +264,6 @@ public class EditTaskActivity extends AppCompatActivity implements EditTaskView 
         timePickerFragment.show(getSupportFragmentManager(), "timePicker");
     }
 
-    /**
-     * Reset the due time
-     *
-     * @return true if the due time was reset, false otherwise
-     */
-    public boolean onDueTimeLongClicked(View v) {
-        // TODO: 2016-05-18 return false if the due time is already reset
-        editTaskBinding.dueTime.setText(R.string.due_time_all_day);
-        return true;
-    }
-
     public void onReminderClicked(View v) {
         if (!editTaskPresenter.hasDueDate()) {
             Toast.makeText(this, "You need to set a due date before adding a reminder", Toast.LENGTH_SHORT).show();
@@ -266,16 +292,6 @@ public class EditTaskActivity extends AppCompatActivity implements EditTaskView 
                 timePickerFragment = new TimePickerFragment();
             timePickerFragment.show(getSupportFragmentManager(), "timePicker");
         }
-    }
-
-    public void onNotesChanged(CharSequence notes, int start, int before, int count) {
-        editTaskPresenter.setTaskNotes(notes.toString());
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        editTaskPresenter.unbindView(this);
     }
 
     @SuppressWarnings("WeakerAccess")

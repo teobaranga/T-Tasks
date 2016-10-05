@@ -1,7 +1,10 @@
 package com.teo.ttasks.injection.component;
 
 import com.teo.ttasks.injection.module.UserModule;
+import com.teo.ttasks.jobs.CreateTaskJob;
 import com.teo.ttasks.receivers.TaskNotificationReceiver;
+import com.teo.ttasks.services.MyGcmJobService;
+import com.teo.ttasks.services.MyJobService;
 import com.teo.ttasks.ui.activities.edit_task.EditTaskActivity;
 import com.teo.ttasks.ui.activities.main.MainActivity;
 import com.teo.ttasks.ui.activities.task_detail.TaskDetailActivity;
@@ -36,4 +39,10 @@ public interface UserComponent {
     void inject(TasksRemoteViewsFactory tasksRemoteViewsFactory);
 
     void inject(TaskNotificationReceiver taskNotificationReceiver);
+
+    void inject(MyJobService myJobService);
+
+    void inject(MyGcmJobService myGcmJobService);
+
+    void inject(CreateTaskJob createTaskJob);
 }

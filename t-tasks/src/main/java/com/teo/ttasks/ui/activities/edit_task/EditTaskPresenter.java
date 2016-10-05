@@ -4,6 +4,10 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.util.Pair;
 
+import com.birbit.android.jobqueue.Job;
+import com.birbit.android.jobqueue.JobManager;
+import com.birbit.android.jobqueue.callback.JobManagerCallback;
+import com.birbit.android.jobqueue.callback.JobManagerCallbackAdapter;
 import com.google.firebase.database.DatabaseReference;
 import com.teo.ttasks.data.local.PrefHelper;
 import com.teo.ttasks.data.local.WidgetHelper;
@@ -12,6 +16,7 @@ import com.teo.ttasks.data.model.TTaskList;
 import com.teo.ttasks.data.model.Task;
 import com.teo.ttasks.data.model.TaskFields;
 import com.teo.ttasks.data.remote.TasksHelper;
+import com.teo.ttasks.jobs.CreateTaskJob;
 import com.teo.ttasks.ui.base.Presenter;
 import com.teo.ttasks.util.FirebaseUtil;
 import com.teo.ttasks.util.NotificationHelper;
@@ -21,6 +26,8 @@ import java.util.Date;
 import java.util.TimeZone;
 
 import io.realm.Realm;
+import rx.Observable;
+import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import timber.log.Timber;
 
@@ -30,6 +37,9 @@ public class EditTaskPresenter extends Presenter<EditTaskView> {
     private final PrefHelper prefHelper;
     private final WidgetHelper widgetHelper;
     private final NotificationHelper notificationHelper;
+    private final JobManager jobManager;
+
+    private JobManagerCallback jobManagerCallback;
 
     /** The due date in UTC **/
     @Nullable private Date dueDate;
@@ -43,12 +53,15 @@ public class EditTaskPresenter extends Presenter<EditTaskView> {
 
     private Realm realm;
 
+    private Subscription taskSubscription;
+
     public EditTaskPresenter(TasksHelper tasksHelper, PrefHelper prefHelper, WidgetHelper widgetHelper,
-                             NotificationHelper notificationHelper) {
+                             NotificationHelper notificationHelper, JobManager jobManager) {
         this.tasksHelper = tasksHelper;
         this.prefHelper = prefHelper;
         this.widgetHelper = widgetHelper;
         this.notificationHelper = notificationHelper;
+        this.jobManager = jobManager;
         editTaskFields = new TaskFields();
     }
 
@@ -58,7 +71,9 @@ public class EditTaskPresenter extends Presenter<EditTaskView> {
      * @param taskId task list identifier
      */
     void loadTaskInfo(String taskId) {
-        tasksHelper.getTask(taskId, realm)
+        if (taskSubscription != null && !taskSubscription.isUnsubscribed())
+            taskSubscription.unsubscribe();
+        taskSubscription = tasksHelper.getTask(taskId, realm)
                 .subscribe(
                         tTask -> {
                             if (tTask == null) {
@@ -73,7 +88,6 @@ public class EditTaskPresenter extends Presenter<EditTaskView> {
                             if (view != null) view.onTaskLoaded(tTask);
                         }
                 );
-
     }
 
     /**
@@ -106,6 +120,11 @@ public class EditTaskPresenter extends Presenter<EditTaskView> {
                             if (view != null) view.onTaskLoadError();
                         }
                 );
+    }
+
+    @Nullable
+    Date getDueDate() {
+        return dueDate;
     }
 
     /**
@@ -141,11 +160,6 @@ public class EditTaskPresenter extends Presenter<EditTaskView> {
             }
         }
         editTaskFields.putDueDate(dueDate);
-    }
-
-    @Nullable
-    Date getDueDate() {
-        return dueDate;
     }
 
     // TODO: 2016-08-19 implement this using Firebase
@@ -224,9 +238,8 @@ public class EditTaskPresenter extends Presenter<EditTaskView> {
      * If that's not the case, the task will be synced on the next refresh.
      *
      * @param taskListId task list identifier
-     * @param isOnline   {@code true} if there is an active network connection
      */
-    void newTask(String taskListId, boolean isOnline) {
+    void newTask(String taskListId) {
         // Nothing entered
         if (editTaskFields.isEmpty()) {
             final EditTaskView view = view();
@@ -242,45 +255,16 @@ public class EditTaskPresenter extends Presenter<EditTaskView> {
 
         // Schedule the notification
         final TTask localTask = tasksHelper.getTask(tTask.getId(), realm).toBlocking().first();
+
+        widgetHelper.updateWidgets(taskListId);
+
         notificationHelper.scheduleTaskNotification(localTask);
 
-        // Save the task on an active network connection
-        if (isOnline) {
-            tasksHelper.newTask(taskListId, editTaskFields)
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(
-                            savedTask -> {
-                                final TTask onlineTask = new TTask(localTask, savedTask);
-                                onlineTask.setSynced(true);
-                                // Update the local task with the full information and delete the old task
-                                final int id = localTask.hashCode();
-                                realm.executeTransaction(realm -> {
-                                    realm.insertOrUpdate(onlineTask);
-                                    localTask.getTask().deleteFromRealm();
-                                    localTask.deleteFromRealm();
-                                });
-                                Timber.d("new task with id %s", onlineTask.getId());
-                                prefHelper.deleteLastTaskId();
-                                widgetHelper.updateWidgets(taskListId);
-                                // Update the previous notification with the correct task ID
-                                notificationHelper.scheduleTaskNotification(onlineTask, id);
-
-                                // Save the reminder online
-                                if (onlineTask.getReminder() != null) {
-                                    final DatabaseReference tasksDatabase = FirebaseUtil.getTasksDatabase();
-                                    tasksDatabase.child(onlineTask.getId()).child("reminder").setValue(onlineTask.getReminder().getTime());
-                                }
-                            },
-                            throwable -> {
-                                Timber.e(throwable.toString());
-                                final EditTaskView view = view();
-                                if (view != null) view.onTaskSaveError();
-                            }
-                    );
-        }
-        widgetHelper.updateWidgets(taskListId);
         final EditTaskView view = view();
         if (view != null) view.onTaskSaved(tTask);
+
+        // Save the task on an active network connection
+        jobManager.addJobInBackground(new CreateTaskJob(localTask.getId(), taskListId, editTaskFields));
     }
 
     /**
@@ -364,15 +348,37 @@ public class EditTaskPresenter extends Presenter<EditTaskView> {
         reminder = null;
     }
 
+    boolean hasTitle() {
+        final String title = editTaskFields.getTitle();
+        return title != null && !title.isEmpty();
+    }
+
     @Override
     public void bindView(@NonNull EditTaskView view) {
         super.bindView(view);
         realm = Realm.getDefaultInstance();
+        jobManagerCallback = new JobManagerCallbackAdapter() {
+            @Override public void onJobRun(@NonNull Job job, int resultCode) {
+                // Execute on the main thread because this callback doesn't do it
+                Observable.defer(() -> {
+                    if (job instanceof CreateTaskJob) {
+                        if (resultCode != RESULT_SUCCEED) {
+                            final EditTaskView view = view();
+                            if (view != null) view.onTaskSaveError();
+                        }
+                    }
+                    return Observable.empty();
+                }).subscribeOn(AndroidSchedulers.mainThread()).subscribe();
+            }
+        };
+        jobManager.addCallback(jobManagerCallback);
     }
 
     @Override
     public void unbindView(@NonNull EditTaskView view) {
         super.unbindView(view);
         realm.close();
+        jobManager.removeCallback(jobManagerCallback);
+        jobManagerCallback = null;
     }
 }

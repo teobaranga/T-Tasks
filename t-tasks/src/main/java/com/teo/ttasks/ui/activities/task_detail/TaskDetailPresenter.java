@@ -2,16 +2,24 @@ package com.teo.ttasks.ui.activities.task_detail;
 
 import android.support.annotation.NonNull;
 
+import com.birbit.android.jobqueue.Job;
+import com.birbit.android.jobqueue.JobManager;
+import com.birbit.android.jobqueue.callback.JobManagerCallback;
+import com.birbit.android.jobqueue.callback.JobManagerCallbackAdapter;
 import com.google.firebase.database.DatabaseReference;
 import com.teo.ttasks.data.local.PrefHelper;
 import com.teo.ttasks.data.local.WidgetHelper;
 import com.teo.ttasks.data.model.TTask;
 import com.teo.ttasks.data.remote.TasksHelper;
+import com.teo.ttasks.jobs.CreateTaskJob;
 import com.teo.ttasks.ui.base.Presenter;
 import com.teo.ttasks.util.FirebaseUtil;
 import com.teo.ttasks.util.NotificationHelper;
 
 import io.realm.Realm;
+import rx.Observable;
+import rx.Subscription;
+import rx.android.schedulers.AndroidSchedulers;
 import timber.log.Timber;
 
 public class TaskDetailPresenter extends Presenter<TaskDetailView> {
@@ -20,20 +28,32 @@ public class TaskDetailPresenter extends Presenter<TaskDetailView> {
     private final PrefHelper prefHelper;
     private final WidgetHelper widgetHelper;
     private final NotificationHelper notificationHelper;
+    private final JobManager jobManager;
+
+    private JobManagerCallback jobManagerCallback;
+
+    private Subscription taskSubscription;
 
     private Realm realm;
 
     private TTask tTask;
 
-    public TaskDetailPresenter(TasksHelper tasksHelper, PrefHelper prefHelper, WidgetHelper widgetHelper, NotificationHelper notificationHelper) {
+    private String taskId;
+
+    public TaskDetailPresenter(TasksHelper tasksHelper, PrefHelper prefHelper, WidgetHelper widgetHelper,
+                               NotificationHelper notificationHelper, JobManager jobManager) {
         this.tasksHelper = tasksHelper;
         this.prefHelper = prefHelper;
         this.widgetHelper = widgetHelper;
         this.notificationHelper = notificationHelper;
+        this.jobManager = jobManager;
     }
 
     void getTask(String taskId) {
-        tasksHelper.getTask(taskId, realm)
+        this.taskId = taskId;
+        if (taskSubscription != null && !taskSubscription.isUnsubscribed())
+            taskSubscription.unsubscribe();
+        taskSubscription = tasksHelper.getTask(taskId, realm)
                 .subscribe(
                         // Realm observables do not throw errors
                         tTask -> {
@@ -148,11 +168,28 @@ public class TaskDetailPresenter extends Presenter<TaskDetailView> {
     public void bindView(@NonNull TaskDetailView view) {
         super.bindView(view);
         realm = Realm.getDefaultInstance();
+        jobManagerCallback = new JobManagerCallbackAdapter() {
+            @Override public void onJobRun(@NonNull Job job, int resultCode) {
+                Observable.defer(() -> {
+                    if (job instanceof CreateTaskJob) {
+                        final CreateTaskJob createTaskJob = (CreateTaskJob) job;
+                        if (createTaskJob.getLocalTaskId().equals(taskId) && resultCode == RESULT_SUCCEED) {
+                            // Update the task
+                            getTask(createTaskJob.getOnlineTaskId());
+                        }
+                    }
+                    return Observable.empty();
+                }).subscribeOn(AndroidSchedulers.mainThread()).subscribe();
+            }
+        };
+        jobManager.addCallback(jobManagerCallback);
     }
 
     @Override
     public void unbindView(@NonNull TaskDetailView view) {
         super.unbindView(view);
         realm.close();
+        jobManager.removeCallback(jobManagerCallback);
+        jobManagerCallback = null;
     }
 }

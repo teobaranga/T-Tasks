@@ -107,6 +107,7 @@ dependencies {
     compile libraries.timber
 
     compile libraries.playServicesAuth
+    compile "com.google.android.gms:play-services-gcm:9.6.1"
 
     compile libraries.retrofit
     compile libraries.retrofitGson
@@ -117,14 +118,8 @@ dependencies {
     compile 'com.google.firebase:firebase-auth:9.6.1'
     compile 'com.google.firebase:firebase-database:9.6.1'
 
-    compile('com.google.api-client:google-api-client-android:1.22.0') {
-        exclude group: 'org.apache.httpcomponents'
-        exclude group: 'com.fasterxml.jackson.core', module: 'jackson-core'
-        exclude group: 'com.google.guava', module: 'guava-jdk5'
-        exclude group: 'com.google.android', module: 'android'
-        exclude group: 'junit'
-        exclude group: 'xpp3'
-    }
+    compile 'com.birbit:android-priority-jobqueue:2.0.0'
+
     compile('com.mikepenz:aboutlibraries:5.8.1@aar') { transitive = true }
     compile('com.mikepenz:fastadapter:1.8.2@aar') { transitive = true }
     compile('com.mikepenz:materialdrawer:5.6.0@aar') { transitive = true }

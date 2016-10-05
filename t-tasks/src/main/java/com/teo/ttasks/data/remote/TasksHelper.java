@@ -250,34 +250,7 @@ public final class TasksHelper {
                                 .flatMap(aVoid -> Observable.empty());
                     // Handle unsynced tasks
                     if (!tTask.isSynced()) {
-                        if (tTask.isNew()) {
-                            return newTask(taskListId, TaskFields.fromTask(tTask))
-                                    .map(task -> {
-                                        // Create a copy of the old TTask
-                                        final TTask savedTask = new TTask(tTask, task);
-                                        savedTask.setSynced(true);
-                                        try (Realm realm = Realm.getDefaultInstance()) {
-                                            final TTask realmTask = realm.where(TTask.class).equalTo("id", tTask.getId()).findFirst();
-                                            realm.executeTransaction(realm1 -> {
-                                                // Save the new TTask with the correct ID
-                                                realm1.insertOrUpdate(savedTask);
-                                                // Delete the old task
-                                                realmTask.getTask().deleteFromRealm();
-                                                realmTask.deleteFromRealm();
-                                            });
-                                        }
-
-                                        prefHelper.deleteLastTaskId();
-
-                                        // Save the reminder online
-                                        if (savedTask.getReminder() != null) {
-                                            final DatabaseReference tasksDatabase = FirebaseUtil.getTasksDatabase();
-                                            tasksDatabase.child(savedTask.getId()).child("reminder").setValue(savedTask.getReminder().getTime());
-                                        }
-
-                                        return savedTask;
-                                    });
-                        } else {
+                        if (!tTask.isNew()) {
                             return updateTask(taskListId, tTask);
                         }
                     }

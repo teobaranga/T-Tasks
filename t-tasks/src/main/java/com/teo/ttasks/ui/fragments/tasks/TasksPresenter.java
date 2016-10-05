@@ -168,9 +168,6 @@ public class TasksPresenter extends Presenter<TasksView> {
                         syncedTask -> {
                             // Sync successful for this task
                             realm.executeTransaction(realm -> {
-                                if (syncedTask.isNew()) {
-                                    prefHelper.deleteLastTaskId();
-                                }
                                 syncedTask.setSynced(true);
                                 // This task is not managed by Realm so it needs to be updated manually
                                 realm.insertOrUpdate(syncedTask);

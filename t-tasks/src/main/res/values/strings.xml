@@ -64,6 +64,7 @@
     <string name="no_reminder_set">No reminder set</string>
     <string name="notes">Notes</string>
     <string name="notes_missing">No notes</string>
+    <string name="error_no_title">Please enter a title</string>
     <string name="error_task_loading">There was an error loading this task, please try again</string>
     <string name="task_deleted">Task deleted</string>
 
