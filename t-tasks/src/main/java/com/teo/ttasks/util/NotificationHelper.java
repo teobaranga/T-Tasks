@@ -96,7 +96,7 @@ public class NotificationHelper {
             notificationIntent.putExtra(TaskNotificationReceiver.NOTIFICATION_ID, notificationId);
             notificationIntent.putExtra(TaskNotificationReceiver.NOTIFICATION, notification);
             notificationIntent.setAction(TaskNotificationReceiver.ACTION_PUBLISH);
-            PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+            PendingIntent pendingIntent = PendingIntent.getBroadcast(context, notificationId, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
             AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
             alarmManager.set(AlarmManager.RTC_WAKEUP, task.getReminder().getTime(), pendingIntent);
@@ -113,6 +113,14 @@ public class NotificationHelper {
      * @param id notification ID
      */
     public void cancelTaskNotification(int id) {
+        // Cancel scheduled notification
+        Intent notificationIntent = new Intent(context, TaskNotificationReceiver.class);
+        notificationIntent.setAction(TaskNotificationReceiver.ACTION_PUBLISH);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(context, id, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        alarmManager.cancel(pendingIntent);
+
+        // Cancel active notification
         NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         notificationManager.cancel(id);
     }

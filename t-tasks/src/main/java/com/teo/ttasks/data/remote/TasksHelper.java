@@ -244,10 +244,6 @@ public final class TasksHelper {
                 .filter(task -> !task.isSynced() || task.isDeleted())
                 .flatMap(tTask -> {
                     // These tasks are not managed by Realm
-                    // Handle deleted tasks first
-                    if (tTask.isDeleted())
-                        return deleteTask(taskListId, tTask.getId())
-                                .flatMap(aVoid -> Observable.empty());
                     // Handle unsynced tasks
                     if (!tTask.isSynced()) {
                         if (!tTask.isNew()) {
@@ -378,18 +374,6 @@ public final class TasksHelper {
      * @param taskId     task identifier
      */
     public Observable<Void> deleteTask(String taskListId, String taskId) {
-        return tasksApi.deleteTask(taskListId, taskId)
-                .observeOn(AndroidSchedulers.mainThread())
-                .doOnCompleted(() -> {
-                    Realm realm = Realm.getDefaultInstance();
-                    realm.executeTransaction(realm1 -> {
-                        final TTask tTask = realm1.where(TTask.class).equalTo("id", taskId).findFirst();
-                        if (tTask != null) {
-                            // Should always be the case
-                            tTask.deleteFromRealm();
-                        }
-                    });
-                    realm.close();
-                });
+        return tasksApi.deleteTask(taskListId, taskId);
     }
 }

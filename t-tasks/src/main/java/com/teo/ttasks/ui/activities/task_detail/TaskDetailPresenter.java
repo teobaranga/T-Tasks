@@ -6,14 +6,13 @@ import com.birbit.android.jobqueue.Job;
 import com.birbit.android.jobqueue.JobManager;
 import com.birbit.android.jobqueue.callback.JobManagerCallback;
 import com.birbit.android.jobqueue.callback.JobManagerCallbackAdapter;
-import com.google.firebase.database.DatabaseReference;
 import com.teo.ttasks.data.local.PrefHelper;
 import com.teo.ttasks.data.local.WidgetHelper;
 import com.teo.ttasks.data.model.TTask;
 import com.teo.ttasks.data.remote.TasksHelper;
 import com.teo.ttasks.jobs.CreateTaskJob;
+import com.teo.ttasks.jobs.DeleteTaskJob;
 import com.teo.ttasks.ui.base.Presenter;
-import com.teo.ttasks.util.FirebaseUtil;
 import com.teo.ttasks.util.NotificationHelper;
 
 import io.realm.Realm;
@@ -114,6 +113,7 @@ public class TaskDetailPresenter extends Presenter<TaskDetailView> {
     void deleteTask() {
         final boolean isCompleted = tTask.isCompleted();
         final int notificationId = tTask.hashCode();
+        final String taskId = tTask.getId();
         final String taskListId = tTask.getTaskListId();
 
         if (tTask.isNew()) {
@@ -126,42 +126,22 @@ public class TaskDetailPresenter extends Presenter<TaskDetailView> {
             // Make the last local task ID reusable
             prefHelper.deleteLastTaskId();
 
-            // Trigger a widget update only if the task is marked as active
-            if (!isCompleted)
-                widgetHelper.updateWidgets(taskListId);
-
-            // Cancel the notification, if present
-            notificationHelper.cancelTaskNotification(notificationId);
-
-            final TaskDetailView view = view();
-            if (view != null) view.onTaskDeleted();
-
         } else {
             // Mark it as deleted so it doesn't show up in the list
             realm.executeTransaction(realm -> tTask.setDeleted(true));
 
-            // Delete the reminder
-            final DatabaseReference tasksDatabase = FirebaseUtil.getTasksDatabase();
-            FirebaseUtil.saveReminder(tasksDatabase, tTask.getId(), null);
-
-            // Trigger a widget update only if the task is marked as active
-            if (!isCompleted)
-                widgetHelper.updateWidgets(taskListId);
-
-            // Cancel the notification, if present
-            notificationHelper.cancelTaskNotification(notificationId);
-
-            final TaskDetailView view = view();
-            if (view != null) view.onTaskDeleted();
-
-            tasksHelper.deleteTask(taskListId, tTask.getId())
-                    .subscribe(
-                            aVoid -> { /* Do nothing */ },
-                            throwable -> {
-                                Timber.e(throwable.toString());
-                            }
-                    );
+            jobManager.addJobInBackground(new DeleteTaskJob(taskId, taskListId));
         }
+
+        // Trigger a widget update only if the task is marked as active
+        if (!isCompleted)
+            widgetHelper.updateWidgets(taskListId);
+
+        // Cancel the notification, if present
+        notificationHelper.cancelTaskNotification(notificationId);
+
+        final TaskDetailView view = view();
+        if (view != null) view.onTaskDeleted();
     }
 
     @Override

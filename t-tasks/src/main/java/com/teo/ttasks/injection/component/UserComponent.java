@@ -2,6 +2,7 @@ package com.teo.ttasks.injection.component;
 
 import com.teo.ttasks.injection.module.UserModule;
 import com.teo.ttasks.jobs.CreateTaskJob;
+import com.teo.ttasks.jobs.DeleteTaskJob;
 import com.teo.ttasks.receivers.TaskNotificationReceiver;
 import com.teo.ttasks.services.MyGcmJobService;
 import com.teo.ttasks.services.MyJobService;
@@ -45,4 +46,6 @@ public interface UserComponent {
     void inject(MyGcmJobService myGcmJobService);
 
     void inject(CreateTaskJob createTaskJob);
+
+    void inject(DeleteTaskJob deleteTaskJob);
 }
