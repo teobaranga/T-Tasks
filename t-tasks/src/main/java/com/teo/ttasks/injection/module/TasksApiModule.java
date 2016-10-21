@@ -51,6 +51,9 @@ public class TasksApiModule {
     private static final String TASKS_BASE_URL = "https://www.googleapis.com/tasks/v1/";
     private static final String PEOPLE_BASE_URL = "https://www.googleapis.com/plus/v1/";
 
+    private static final String HEADER_AUTHORIZATION = "Authorization";
+    private static final String VALUE_BEARER = "Bearer %s";
+
     @Provides @Singleton
     TokenHelper provideTokenHelper(PrefHelper prefHelper, TTasksApp tTasksApp) {
         return new TokenHelper(prefHelper, tTasksApp);
@@ -72,44 +75,52 @@ public class TasksApiModule {
     }
 
     @Provides @Singleton
-    Retrofit.Builder provideRetrofitBuilder(TokenHelper tokenHelper, PrefHelper prefHelper) {
+    OkHttpClient provideOkHttpClient(TokenHelper tokenHelper, PrefHelper prefHelper) {
+        return new OkHttpClient.Builder()
+                .connectTimeout(1, TimeUnit.MINUTES)
+                .readTimeout(1, TimeUnit.MINUTES)
+                .writeTimeout(1, TimeUnit.MINUTES)
+                .addInterceptor(new HttpLoggingInterceptor().setLevel(BuildConfig.DEBUG ? BASIC : NONE))
+                .addInterceptor(chain -> {
+                    // Use the access token to access the Tasks API
+                    Request request = chain.request();
+                    String accessToken = prefHelper.getAccessToken();
+                    if (accessToken != null) {
+                        Timber.d("authorizing with %s", accessToken);
+                        // Add the authorization header
+                        return chain.proceed(request.newBuilder()
+                                .header(HEADER_AUTHORIZATION, String.format(VALUE_BEARER, accessToken))
+                                .build());
+                    }
+                    Timber.d("access token not available, will try to request a new token");
+                    return chain.proceed(request);
+                })
+                .authenticator((route, response) -> {
+                    // Refresh the access token when it expires
+                    Timber.d("requesting new access token");
+                    String accessToken = tokenHelper.refreshAccessToken().toBlocking().firstOrDefault(null);
+                    if (accessToken != null) {
+                        prefHelper.setAccessToken(accessToken);
+                        Timber.d("saved new access token %s", accessToken);
+                        return response.request().newBuilder()
+                                .header(HEADER_AUTHORIZATION, String.format(VALUE_BEARER, accessToken))
+                                .build();
+                    }
+                    Timber.e("could not get new access token");
+                    return null;
+                })
+                .build();
+    }
+
+    @Provides @Singleton
+    Retrofit.Builder provideRetrofitBuilder(OkHttpClient okHttpClient) {
         Gson gson = new GsonBuilder()
                 .registerTypeAdapter(Date.class, new GsonUTCDateAdapter())
                 .excludeFieldsWithoutExposeAnnotation()
                 .serializeNulls()
                 .create();
         return new Retrofit.Builder()
-                .client(new OkHttpClient.Builder()
-                        .connectTimeout(5, TimeUnit.MINUTES)
-                        .readTimeout(5, TimeUnit.MINUTES)
-                        .addInterceptor(new HttpLoggingInterceptor().setLevel(BuildConfig.DEBUG ? BASIC : NONE))
-                        .addInterceptor(chain -> {
-                            // Use the access token to access the Tasks API
-                            Request request = chain.request();
-                            String accessToken = prefHelper.getAccessToken();
-                            if (accessToken != null) {
-                                Timber.d("authorizing with %s", accessToken);
-                                // Add the authorization header
-                                Request authorizedRequest = request;
-                                authorizedRequest = request.newBuilder().header("Authorization", "Bearer " + accessToken).build();
-                                return chain.proceed(authorizedRequest);
-                            }
-                            Timber.e("Access token is not available");
-                            return chain.proceed(request);
-                        })
-                        .authenticator((route, response) -> {
-                            // Refresh the access token when it expires
-                            Timber.d("requesting new access token");
-                            String access_token = tokenHelper.refreshAccessToken().toBlocking().firstOrDefault(null);
-                            if (access_token != null) {
-                                prefHelper.setAccessToken(access_token);
-                                Timber.d("saved new access token %s", access_token);
-                                return response.request().newBuilder().header("Authorization", "Bearer " + access_token).build();
-                            }
-                            Timber.e("could not get new access token");
-                            return null;
-                        })
-                        .build())
+                .client(okHttpClient)
                 .addConverterFactory(GsonConverterFactory.create(gson))
                 .addCallAdapterFactory(RxJavaCallAdapterFactory.createWithScheduler(Schedulers.io()));
     }

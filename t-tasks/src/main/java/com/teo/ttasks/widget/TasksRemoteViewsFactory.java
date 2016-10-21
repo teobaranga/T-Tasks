@@ -63,7 +63,7 @@ public class TasksRemoteViewsFactory implements RemoteViewsService.RemoteViewsFa
                 .subscribe(
                         taskItems -> this.taskItems = taskItems,
                         throwable -> Timber.e(throwable.toString()));
-        Timber.d("Widget taskItems count %d", taskItems.size());
+        Timber.d("Widget taskItems count %d", taskItems != null ? taskItems.size() : 0);
     }
 
     @Override

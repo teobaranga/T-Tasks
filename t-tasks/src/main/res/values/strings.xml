@@ -49,6 +49,7 @@
 
     <!-- Edit Task -->
     <string name="title_activity_edit_task">Edit Task</string>
+    <string name="title_activity_new_task">New Task</string>
     <string name="completed_on">"Completed on %s"</string>
     <string name="in_progress">In Progress</string>
     <string name="done">Done</string>
@@ -59,6 +60,8 @@
     <string name="due_date_and_time">Due date and time</string>
     <string name="due_date_missing">No due date</string>
     <string name="due_time_all_day">All day</string>
+    <string name="remove">Remove</string>
+    <string name="change">Change</string>
     <string name="add_reminder">Add a reminder</string>
     <string name="reminder">Reminder</string>
     <string name="no_reminder_set">No reminder set</string>

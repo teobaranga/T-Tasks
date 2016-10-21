@@ -13,7 +13,7 @@ class EditTaskPresenterTest {
 
     @Before
     fun setup() {
-        editTaskPresenter = EditTaskPresenter(null, null, null, null)
+        editTaskPresenter = EditTaskPresenter(null, null, null, null, null)
     }
 
     /**

@@ -13,6 +13,8 @@ import com.teo.ttasks.api.PeopleApi;
 import com.teo.ttasks.data.local.PrefHelper;
 import com.teo.ttasks.data.local.WidgetHelper;
 import com.teo.ttasks.data.remote.TasksHelper;
+import com.teo.ttasks.jobs.CreateTaskJob;
+import com.teo.ttasks.jobs.DeleteTaskJob;
 import com.teo.ttasks.services.MyGcmJobService;
 import com.teo.ttasks.services.MyJobService;
 import com.teo.ttasks.ui.activities.edit_task.EditTaskPresenter;
@@ -67,6 +69,12 @@ public class UserModule {
     @Provides @Singleton
     JobManager provideJobManager(TTasksApp app) {
         Configuration.Builder builder = new Configuration.Builder(app)
+                .injector(job -> {
+                    if (job instanceof CreateTaskJob)
+                        app.userComponent().inject(((CreateTaskJob) job));
+                    else if (job instanceof DeleteTaskJob)
+                        app.userComponent().inject(((DeleteTaskJob) job));
+                })
                 .minConsumerCount(1)//always keep at least one consumer alive
                 .maxConsumerCount(3)//up to 3 consumers at a time
                 .loadFactor(3)//3 jobs per consumer

@@ -436,10 +436,14 @@ public final class MainActivity extends BaseActivity implements MainView {
 
     class ProfileIconTarget implements Target {
         @Override public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
-            Bitmap imageWithBG = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), bitmap.getConfig());  // Create another image the same size
-            imageWithBG.eraseColor(Color.WHITE);  // set its background to white, or whatever color you want
-            Canvas canvas = new Canvas(imageWithBG);  // create a canvas to draw on the new image
-            canvas.drawBitmap(bitmap, 0f, 0f, null); // draw old image on the background
+            // Create another image the same size
+            Bitmap imageWithBG = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), bitmap.getConfig());
+            // Set its background to white
+            imageWithBG.eraseColor(Color.WHITE);
+            // Create a canvas to draw on the new image
+            Canvas canvas = new Canvas(imageWithBG);
+            // Draw old image on the background
+            canvas.drawBitmap(bitmap, 0f, 0f, null);
             profile.withIcon(imageWithBG);
             accountHeader.updateProfile(profile);
         }

@@ -8,9 +8,13 @@ apply from: "../dependencies.gradle"
 //apply plugin: 'com.getkeepsafe.dexcount'
 //apply from: '../config/quality/quality.gradle'
 
+repositories {
+    maven { url 'https://github.com/uPhyca/stetho-realm/raw/master/maven-repo' }
+}
+
 android {
     compileSdkVersion 24
-    buildToolsVersion '24.0.3'
+    buildToolsVersion '25.0.0'
     defaultConfig {
         applicationId "com.teo.ttasks"
         minSdkVersion 16
@@ -107,7 +111,7 @@ dependencies {
     compile libraries.timber
 
     compile libraries.playServicesAuth
-    compile "com.google.android.gms:play-services-gcm:9.6.1"
+    compile libraries.playServicesGcm
 
     compile libraries.retrofit
     compile libraries.retrofitGson
@@ -118,16 +122,16 @@ dependencies {
     compile 'com.google.firebase:firebase-auth:9.6.1'
     compile 'com.google.firebase:firebase-database:9.6.1'
 
-    compile 'com.birbit:android-priority-jobqueue:2.0.0'
+    compile 'com.birbit:android-priority-jobqueue:2.0.1'
 
     compile('com.mikepenz:aboutlibraries:5.8.1@aar') { transitive = true }
     compile('com.mikepenz:fastadapter:1.8.2@aar') { transitive = true }
     compile('com.mikepenz:materialdrawer:5.6.0@aar') { transitive = true }
     compile 'com.mikepenz:google-material-typeface:2.2.0.1@aar'
     compile 'com.squareup.picasso:picasso:2.5.2'
-    compile 'com.artemzin.rxjava:proguard-rules:1.2.0.0'
+    compile 'com.artemzin.rxjava:proguard-rules:1.2.1.0'
     compile 'com.github.strooooke:appbarsyncedfab:v0.3'
-    compile('com.crashlytics.sdk.android:crashlytics:2.6.4@aar') { transitive = true }
+    compile('com.crashlytics.sdk.android:crashlytics:2.6.5@aar') { transitive = true }
 
     apt 'org.projectlombok:lombok:1.16.10'
 
@@ -135,6 +139,9 @@ dependencies {
     provided 'javax.annotation:jsr250-api:1.0'
 
     retrolambdaConfig 'net.orfjackal.retrolambda:retrolambda:2.3.0'
+
+    debugCompile 'com.facebook.stetho:stetho:1.4.1'
+    debugCompile 'com.uphyca:stetho_realm:2.0.0'
 
     // Dependencies for local unit tests
     testCompile libraries.junit

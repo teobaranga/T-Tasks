@@ -13,7 +13,7 @@ ext.versions = [
         dagger                       : '2.7',
 
         playServices                 : '9.6.1',
-        rxJava                       : '1.2.0',
+        rxJava                       : '1.2.1',
         rxLint                       : '1.0',
         rxAndroid                    : '1.2.1',
         supportLibs                  : '24.2.1',
@@ -58,6 +58,7 @@ ext.libraries = [
 
         playServicesPlus        : "com.google.android.gms:play-services-plus:$versions.playServices",
         playServicesAuth        : "com.google.android.gms:play-services-auth:$versions.playServices",
+        playServicesGcm         : "com.google.android.gms:play-services-gcm:$versions.playServices",
 
         rxJava                  : "io.reactivex:rxjava:$versions.rxJava",
         rxLint                  : "nl.littlerobots.rxlint:rxlint:$versions.rxLint",
@@ -83,9 +84,6 @@ ext.libraries = [
         picasso                 : "com.squareup.picasso:picasso:$versions.picasso",
         picassoOkHttpDownloader : "com.jakewharton.picasso:picasso2-okhttp3-downloader:$versions.picassoOkHttpDownloader",
         timber                  : "com.jakewharton.timber:timber:$versions.timber",
-
-        // Analytics https://tech.yandex.com/metrica-mobile-sdk/
-        yandexAppMetrica        : "com.yandex.android:mobmetricalib:$versions.yandexAppMetrica",
 
         // Developer Tools
         stetho                  : "com.facebook.stetho:stetho:$versions.stetho",

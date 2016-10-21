@@ -38,7 +38,7 @@ public class NotificationHelper {
      */
     public void scheduleTaskNotification(TTask task, int id) {
         if (!task.isCompleted() && task.getReminder() != null) {
-            int notificationId = id != 0 ? id : task.hashCode();
+            int notificationId = id != 0 ? id : task.getNotificationId();
 
             Timber.d("scheduling notification for %s with id %d", task.getId(), notificationId);
 
@@ -104,7 +104,7 @@ public class NotificationHelper {
     }
 
     public void scheduleTaskNotification(TTask task) {
-        scheduleTaskNotification(task, task.hashCode());
+        scheduleTaskNotification(task, task.getNotificationId());
     }
 
     /**

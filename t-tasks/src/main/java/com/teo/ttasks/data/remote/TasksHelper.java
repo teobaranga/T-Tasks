@@ -21,10 +21,10 @@ import java.util.List;
 import io.realm.Realm;
 import io.realm.RealmQuery;
 import io.realm.RealmResults;
+import okhttp3.ResponseBody;
 import retrofit2.adapter.rxjava.HttpException;
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
-import rx.schedulers.Schedulers;
 import timber.log.Timber;
 
 import static com.teo.ttasks.data.model.Task.STATUS_COMPLETED;
@@ -61,9 +61,16 @@ public final class TasksHelper {
 
     private Observable handleResourceNotModified(Throwable throwable) {
         // End the stream if the status code is 304 - Not Modified
-        if (throwable instanceof HttpException)
-            if (((HttpException) throwable).code() == 304)
+        if (throwable instanceof HttpException) {
+            final HttpException httpException = (HttpException) throwable;
+            final ResponseBody errorBody = httpException.response().errorBody();
+            if (errorBody != null) {
+                Timber.d("closing error body");
+                errorBody.close();
+            }
+            if (httpException.code() == 304)
                 return Observable.empty();
+        }
         return Observable.error(throwable);
     }
 
@@ -241,12 +248,12 @@ public final class TasksHelper {
     public Observable<TTask> syncTasks(String taskListId) {
         return getTasks(taskListId)
                 .flatMapIterable(tasks -> tasks)
-                .filter(task -> !task.isSynced() || task.isDeleted())
+                .filter(task -> !task.isSynced())
                 .flatMap(tTask -> {
                     // These tasks are not managed by Realm
                     // Handle unsynced tasks
                     if (!tTask.isSynced()) {
-                        if (!tTask.isNew()) {
+                        if (!tTask.isLocalOnly()) {
                             return updateTask(taskListId, tTask);
                         }
                     }
@@ -289,18 +296,6 @@ public final class TasksHelper {
                     }
                     realm.close();
                 });
-    }
-
-    /**
-     * Creates a new task in the specified task list.
-     * Runs on {@link Schedulers#io()}
-     *
-     * @param taskListId task list identifier
-     * @param taskFields new task
-     * @return an Observable containing the full task
-     */
-    public Observable<Task> newTask(String taskListId, TaskFields taskFields) {
-        return tasksApi.insertTask(taskListId, taskFields);
     }
 
     private Observable<TTask> updateTask(String taskListId, TTask tTask) {
@@ -365,15 +360,5 @@ public final class TasksHelper {
         if (tTask != null)
             return updateCompletionStatus(tTask, realm);
         return Observable.error(new RuntimeException("Task not found"));
-    }
-
-    /**
-     * Delete a task from the Google servers and then remove the local copy as well.
-     *
-     * @param taskListId task list identifier
-     * @param taskId     task identifier
-     */
-    public Observable<Void> deleteTask(String taskListId, String taskId) {
-        return tasksApi.deleteTask(taskListId, taskId);
     }
 }

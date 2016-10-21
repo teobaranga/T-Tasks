@@ -33,9 +33,9 @@ public class TasksPresenter extends Presenter<TasksView> {
     @RxUtils.SortingMode
     private int sortingMode;
 
-    private Realm realm;
-
     private boolean listeners;
+
+    Realm realm;
 
     public TasksPresenter(TasksHelper tasksHelper, PrefHelper prefHelper) {
         this.tasksHelper = tasksHelper;

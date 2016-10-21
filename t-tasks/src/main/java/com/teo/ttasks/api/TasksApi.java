@@ -7,6 +7,7 @@ import com.teo.ttasks.data.model.TaskFields;
 import com.teo.ttasks.data.model.TaskList;
 import com.teo.ttasks.data.model.TaskListFields;
 
+import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.DELETE;
 import retrofit2.http.GET;
@@ -73,11 +74,14 @@ public interface TasksApi {
      * @param taskFields       the new task
      */
     @POST("lists/{taskList}/tasks")
-    Observable<Task> insertTask(@Path("taskList") String taskListId, @Body TaskFields taskFields);
+    Call<Task> insertTask(@Path("taskList") String taskListId, @Body TaskFields taskFields);
 
     /**
-     * Delete a task
+     * Delete a task from the Google servers and then remove the local copy as well.
+     *
+     * @param taskListId task list identifier
+     * @param taskId     task identifier
      */
-    @DELETE("lists/{taskList}/tasks/{task}/")
-    Observable<Void> deleteTask(@Path("taskList") String taskListId, @Path("task") String taskId);
+    @DELETE("lists/{taskList}/tasks/{task}")
+    Call<Void> deleteTask(@Path("taskList") String taskListId, @Path("task") String taskId);
 }

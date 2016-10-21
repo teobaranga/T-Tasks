@@ -7,8 +7,10 @@ import java.util.Date;
 import io.realm.RealmObject;
 import io.realm.annotations.Index;
 import io.realm.annotations.PrimaryKey;
+import lombok.AccessLevel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Setter;
 
 /**
  * Must be created only with the overloaded constructor
@@ -50,15 +52,15 @@ public class TTask extends RealmObject {
      */
     private boolean notificationDismissed = false;
 
+    @Setter(AccessLevel.NONE)
+    private int notificationId = 0;
+
     public TTask() { }
 
     /**
      * Copy constructor. Used when updating a local task with a valid ID returned by the Google API.
      * Realm does not allow changing the primary key after an object was created so a new task must
      * be created with the current data and a new ID.
-     *
-     * @param tTask
-     * @param task
      */
     public TTask(TTask tTask, Task task) {
         this.task = task;
@@ -67,12 +69,25 @@ public class TTask extends RealmObject {
         reminder = tTask.getReminder();
         synced = tTask.isSynced();
         deleted = tTask.isDeleted();
+        notificationDismissed = tTask.isNotificationDismissed();
+        notificationId = tTask.getNotificationId();
     }
 
     public TTask(Task task, String taskListId) {
         this.task = task;
         this.id = task.getId();
         this.taskListId = taskListId;
+    }
+
+    /**
+     * Delete a task and all the Realm data associated with it.
+     *
+     * @param tTask task to be deleted
+     */
+    public static void deleteFromRealm(TTask tTask) {
+        if (tTask.getTask() != null)
+            tTask.getTask().deleteFromRealm();
+        tTask.deleteFromRealm();
     }
 
     /**
@@ -142,7 +157,12 @@ public class TTask extends RealmObject {
         return reminder;
     }
 
-    public boolean isNew() {
+    /**
+     * Check if this task is only available locally.
+     *
+     * @return {@code true} if it is local, {@code false} if it is also available on Google's servers
+     */
+    public boolean isLocalOnly() {
         try {
             //noinspection ResultOfMethodCallIgnored
             Integer.parseInt(id);
@@ -150,5 +170,9 @@ public class TTask extends RealmObject {
         } catch (NumberFormatException e) {
             return false;
         }
+    }
+
+    public void assignNotificationId() {
+        notificationId = Long.valueOf(System.currentTimeMillis()).hashCode();
     }
 }

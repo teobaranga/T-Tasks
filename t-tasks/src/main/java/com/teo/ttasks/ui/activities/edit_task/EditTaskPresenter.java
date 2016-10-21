@@ -247,24 +247,29 @@ public class EditTaskPresenter extends Presenter<EditTaskView> {
             return;
         }
         // Create the TTask offline
-        Task task = new Task(prefHelper.getNextTaskId(), editTaskFields);
-        TTask tTask = new TTask(task, taskListId);
+        final String taskId = prefHelper.getNextTaskId();
+        final Task task = new Task(taskId, editTaskFields);
+        final TTask tTask = new TTask(task, taskListId);
         tTask.setSynced(false);
         tTask.setReminder(reminder);
-        realm.executeTransaction(realm -> realm.copyToRealm(tTask));
 
         // Schedule the notification
-        final TTask localTask = tasksHelper.getTask(tTask.getId(), realm).toBlocking().first();
+        if (reminder != null) {
+            tTask.assignNotificationId();
+            notificationHelper.scheduleTaskNotification(tTask);
+        }
 
+        // Save the task locally
+        realm.executeTransaction(realm -> realm.copyToRealm(tTask));
+
+        // Update the widget
         widgetHelper.updateWidgets(taskListId);
 
-        notificationHelper.scheduleTaskNotification(localTask);
+        // Schedule a job that saves this task on the server
+        jobManager.addJobInBackground(new CreateTaskJob(taskId, taskListId, editTaskFields));
 
         final EditTaskView view = view();
         if (view != null) view.onTaskSaved(tTask);
-
-        // Save the task on an active network connection
-        jobManager.addJobInBackground(new CreateTaskJob(localTask.getId(), taskListId, editTaskFields));
     }
 
     /**
@@ -286,7 +291,7 @@ public class EditTaskPresenter extends Presenter<EditTaskView> {
         // Update the task locally
         TTask managedTask = tasksHelper.getTask(taskId, realm).toBlocking().first();
         final int reminderId = managedTask.getReminder() != null ? managedTask.getReminder().hashCode() : 0;
-        final int notificationId = managedTask.hashCode();
+        final int notificationId = managedTask.getNotificationId();
         realm.executeTransaction(realm -> {
             managedTask.update(editTaskFields);
             managedTask.setReminder(reminder);
@@ -346,11 +351,6 @@ public class EditTaskPresenter extends Presenter<EditTaskView> {
     void removeDueDate() {
         dueDate = null;
         reminder = null;
-    }
-
-    boolean hasTitle() {
-        final String title = editTaskFields.getTitle();
-        return title != null && !title.isEmpty();
     }
 
     @Override

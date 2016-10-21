@@ -37,7 +37,7 @@ public class TaskDetailPresenter extends Presenter<TaskDetailView> {
 
     private TTask tTask;
 
-    private String taskId;
+    String taskId;
 
     public TaskDetailPresenter(TasksHelper tasksHelper, PrefHelper prefHelper, WidgetHelper widgetHelper,
                                NotificationHelper notificationHelper, JobManager jobManager) {
@@ -112,16 +112,13 @@ public class TaskDetailPresenter extends Presenter<TaskDetailView> {
      */
     void deleteTask() {
         final boolean isCompleted = tTask.isCompleted();
-        final int notificationId = tTask.hashCode();
+        final int notificationId = tTask.getNotificationId();
         final String taskId = tTask.getId();
         final String taskListId = tTask.getTaskListId();
 
-        if (tTask.isNew()) {
+        if (tTask.isLocalOnly()) {
             // Delete the task from the local database
-            realm.executeTransaction(realm1 -> {
-                tTask.getTask().deleteFromRealm();
-                tTask.deleteFromRealm();
-            });
+            realm.executeTransaction(realm1 -> TTask.deleteFromRealm(tTask));
 
             // Make the last local task ID reusable
             prefHelper.deleteLastTaskId();

@@ -104,7 +104,7 @@ public class EditTaskActivity extends AppCompatActivity implements EditTaskView 
         // Handle a new task or an existing task
         if (taskId == null) {
             // Update the toolbar title
-            getSupportActionBar().setTitle("New Task");
+            getSupportActionBar().setTitle(R.string.title_activity_new_task);
 
             // Show the keyboard
             editTaskBinding.taskTitle.requestFocus();
@@ -213,7 +213,7 @@ public class EditTaskActivity extends AppCompatActivity implements EditTaskView 
                 finish();
                 return true;
             case R.id.done:
-                if (!editTaskPresenter.hasTitle()) {
+                if (editTaskBinding.taskTitle.length() == 0) {
                     editTaskBinding.taskTitle.setError(getString(R.string.error_no_title));
                     editTaskBinding.taskTitle.requestFocus();
                     InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -236,6 +236,7 @@ public class EditTaskActivity extends AppCompatActivity implements EditTaskView 
                     .setView(R.layout.dialog_remove_change)
                     .show();
 
+            //noinspection ConstantConditions
             dialog.findViewById(R.id.remove).setOnClickListener(v1 -> {
                 // Reset the due date & reminder
                 editTaskPresenter.removeDueDate();
@@ -244,6 +245,7 @@ public class EditTaskActivity extends AppCompatActivity implements EditTaskView 
                 editTaskBinding.reminder.setText(null);
                 dialog.dismiss();
             });
+            //noinspection ConstantConditions
             dialog.findViewById(R.id.change).setOnClickListener(v1 -> {
                 if (datePickerFragment == null)
                     datePickerFragment = new DatePickerFragment();
@@ -274,11 +276,13 @@ public class EditTaskActivity extends AppCompatActivity implements EditTaskView 
                     .setView(R.layout.dialog_remove_change)
                     .show();
 
+            //noinspection ConstantConditions
             dialog.findViewById(R.id.remove).setOnClickListener(v1 -> {
                 editTaskPresenter.removeReminder();
                 editTaskBinding.reminder.setText(null);
                 dialog.dismiss();
             });
+            //noinspection ConstantConditions
             dialog.findViewById(R.id.change).setOnClickListener(v1 -> {
                 reminderTimeClicked = true;
                 if (timePickerFragment == null)
@@ -294,7 +298,6 @@ public class EditTaskActivity extends AppCompatActivity implements EditTaskView 
         }
     }
 
-    @SuppressWarnings("WeakerAccess")
     public static class DatePickerFragment extends DialogFragment {
         @Override @NonNull
         public Dialog onCreateDialog(Bundle savedInstanceState) {
@@ -309,7 +312,6 @@ public class EditTaskActivity extends AppCompatActivity implements EditTaskView 
         }
     }
 
-    @SuppressWarnings("WeakerAccess")
     public static class TimePickerFragment extends DialogFragment {
         @Override @NonNull
         public Dialog onCreateDialog(Bundle savedInstanceState) {

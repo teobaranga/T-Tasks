@@ -91,7 +91,7 @@ public class TasksFragment extends Fragment implements TasksView,
 
     private NetworkInfoReceiver networkInfoReceiver;
     private FastItemAdapter fastItemAdapter;
-    private FooterAdapter<CategoryItem> completedHeaderAdapter;
+    FooterAdapter<CategoryItem> completedHeaderAdapter;
 
     private final FastAdapter.OnClickListener taskItemClickListener = new FastAdapter.OnClickListener() {
         // Reject quick, successive clicks because they break the app
