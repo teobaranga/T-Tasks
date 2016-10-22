@@ -10,6 +10,7 @@ import com.birbit.android.jobqueue.RetryConstraint;
 import com.google.firebase.database.DatabaseReference;
 import com.teo.ttasks.api.TasksApi;
 import com.teo.ttasks.data.model.TTask;
+import com.teo.ttasks.data.remote.TasksHelper;
 import com.teo.ttasks.util.FirebaseUtil;
 
 import javax.inject.Inject;
@@ -20,6 +21,7 @@ import timber.log.Timber;
 
 public class DeleteTaskJob extends Job {
 
+    @Inject transient TasksHelper tasksHelper;
     @Inject transient TasksApi tasksApi;
 
     private String taskId;
@@ -42,7 +44,7 @@ public class DeleteTaskJob extends Job {
         FirebaseUtil.saveReminder(tasksDatabase, taskId, null);
 
         final Realm realm = Realm.getDefaultInstance();
-        final TTask tTask = realm.where(TTask.class).equalTo("id", taskId).findFirst();
+        final TTask tTask = tasksHelper.getTask(taskId, realm);
 
         // Task not found, nothing to do here
         if (tTask == null) {

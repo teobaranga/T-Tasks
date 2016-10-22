@@ -52,7 +52,7 @@ public class TaskDetailPresenter extends Presenter<TaskDetailView> {
         this.taskId = taskId;
         if (taskSubscription != null && !taskSubscription.isUnsubscribed())
             taskSubscription.unsubscribe();
-        taskSubscription = tasksHelper.getTask(taskId, realm)
+        taskSubscription = tasksHelper.getTaskAsObservable(taskId, realm)
                 .subscribe(
                         // Realm observables do not throw errors
                         tTask -> {
@@ -69,7 +69,7 @@ public class TaskDetailPresenter extends Presenter<TaskDetailView> {
     }
 
     void getTaskList(String taskListId) {
-        tasksHelper.getTaskList(taskListId, realm)
+        tasksHelper.getTaskListAsObservable(taskListId, realm)
                 .subscribe(
                         // Realm observables do not throw errors
                         taskList -> {

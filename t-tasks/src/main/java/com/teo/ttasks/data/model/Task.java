@@ -3,6 +3,7 @@ package com.teo.ttasks.data.model;
 import android.support.annotation.Nullable;
 
 import com.google.gson.annotations.Expose;
+import com.teo.ttasks.data.local.TaskFields;
 
 import java.util.Date;
 

@@ -13,7 +13,8 @@ import com.teo.ttasks.data.local.PrefHelper;
 import com.teo.ttasks.data.local.WidgetHelper;
 import com.teo.ttasks.data.model.TTask;
 import com.teo.ttasks.data.model.Task;
-import com.teo.ttasks.data.model.TaskFields;
+import com.teo.ttasks.data.local.TaskFields;
+import com.teo.ttasks.data.remote.TasksHelper;
 import com.teo.ttasks.util.FirebaseUtil;
 import com.teo.ttasks.util.NotificationHelper;
 
@@ -25,6 +26,7 @@ import timber.log.Timber;
 
 public class CreateTaskJob extends Job {
 
+    @Inject transient TasksHelper tasksHelper;
     @Inject transient PrefHelper prefHelper;
     @Inject transient WidgetHelper widgetHelper;
     @Inject transient NotificationHelper notificationHelper;
@@ -50,7 +52,7 @@ public class CreateTaskJob extends Job {
     @Override
     public void onRun() throws Throwable {
         final Realm realm = Realm.getDefaultInstance();
-        final TTask localTask = realm.where(TTask.class).equalTo("id", localTaskId).findFirst();
+        final TTask localTask = tasksHelper.getTask(localTaskId, realm);
 
         // Local task was not found, it was probably deleted, no point in continuing
         if (localTask == null) {

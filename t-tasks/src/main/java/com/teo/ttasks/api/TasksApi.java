@@ -3,9 +3,9 @@ package com.teo.ttasks.api;
 import com.teo.ttasks.api.entities.TaskListsResponse;
 import com.teo.ttasks.api.entities.TasksResponse;
 import com.teo.ttasks.data.model.Task;
-import com.teo.ttasks.data.model.TaskFields;
+import com.teo.ttasks.data.local.TaskFields;
 import com.teo.ttasks.data.model.TaskList;
-import com.teo.ttasks.data.model.TaskListFields;
+import com.teo.ttasks.data.local.TaskListFields;
 
 import retrofit2.Call;
 import retrofit2.http.Body;

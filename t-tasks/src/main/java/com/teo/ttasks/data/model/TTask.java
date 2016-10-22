@@ -2,6 +2,8 @@ package com.teo.ttasks.data.model;
 
 import android.support.annotation.Nullable;
 
+import com.teo.ttasks.data.local.TaskFields;
+
 import java.util.Date;
 
 import io.realm.RealmObject;

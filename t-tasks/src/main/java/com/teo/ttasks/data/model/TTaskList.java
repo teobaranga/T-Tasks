@@ -1,5 +1,7 @@
 package com.teo.ttasks.data.model;
 
+import com.teo.ttasks.data.local.TaskListFields;
+
 import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
 import lombok.Data;

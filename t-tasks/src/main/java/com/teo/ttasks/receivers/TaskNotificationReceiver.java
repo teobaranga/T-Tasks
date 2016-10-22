@@ -70,7 +70,7 @@ public class TaskNotificationReceiver extends BroadcastReceiver {
                     // Mark this task's reminder as dismissed
                     TTasksApp.get(context).userComponent().inject(this);
                     realm = Realm.getDefaultInstance();
-                    tasksHelper.getTask(taskId, realm)
+                    tasksHelper.getTaskAsObservable(taskId, realm)
                             .first()
                             .flatMap(tTask -> {
                                 if (tTask == null)

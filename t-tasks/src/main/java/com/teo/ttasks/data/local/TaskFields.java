@@ -1,6 +1,8 @@
-package com.teo.ttasks.data.model;
+package com.teo.ttasks.data.local;
 
 import android.support.annotation.Nullable;
+
+import com.teo.ttasks.data.model.TTask;
 
 import java.util.Date;
 import java.util.HashMap;

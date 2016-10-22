@@ -1,3 +1,8 @@
+# Crashlytics
+-keepattributes SourceFile,LineNumberTable
+-keep class com.crashlytics.** { *; }
+-dontwarn com.crashlytics.**
+
 # Keep API entities
 -keep class com.teo.ttasks.api.entities.** { *; }
 

@@ -3,7 +3,7 @@ package com.teo.ttasks.ui.fragments.task_lists;
 import android.support.annotation.NonNull;
 
 import com.teo.ttasks.data.model.TTaskList;
-import com.teo.ttasks.data.model.TaskListFields;
+import com.teo.ttasks.data.local.TaskListFields;
 import com.teo.ttasks.data.remote.TasksHelper;
 import com.teo.ttasks.ui.base.Presenter;
 import com.teo.ttasks.ui.items.TaskListItem;
@@ -84,7 +84,7 @@ public class TaskListsPresenter extends Presenter<TaskListsView> {
                 .subscribe(
                         taskList -> {
                             // Update the local task with the full information and delete the old task
-                            TTaskList managedTaskList = tasksHelper.getTaskList(tTaskList.getId(), realm).toBlocking().first();
+                            TTaskList managedTaskList = tasksHelper.getTaskList(tTaskList.getId(), realm);
                             realm.executeTransaction(realm -> {
                                 managedTaskList.getTaskList().deleteFromRealm();
                                 managedTaskList.switchTaskList(realm.copyToRealm(taskList));
@@ -110,7 +110,7 @@ public class TaskListsPresenter extends Presenter<TaskListsView> {
             return;
 
         // Update locally
-        final TTaskList managedTaskList = realm.where(TTaskList.class).equalTo("id", taskListId).findFirst();
+        final TTaskList managedTaskList = tasksHelper.getTaskList(taskListId, realm);
         realm.executeTransaction(realm -> {
             managedTaskList.update(taskListFields);
             managedTaskList.setSynced(false);
@@ -143,7 +143,7 @@ public class TaskListsPresenter extends Presenter<TaskListsView> {
      */
     void deleteTaskList(String taskListId) {
         // Get the task list
-        final TTaskList managedTaskList = realm.where(TTaskList.class).equalTo("id", taskListId).findFirst();
+        final TTaskList managedTaskList = tasksHelper.getTaskList(taskListId, realm);
 
         // Mark it as deleted so it doesn't show up in the list
         realm.executeTransaction(realm -> managedTaskList.setDeleted(true));

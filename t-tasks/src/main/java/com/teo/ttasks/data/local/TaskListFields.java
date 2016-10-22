@@ -1,4 +1,4 @@
-package com.teo.ttasks.data.model;
+package com.teo.ttasks.data.local;
 
 import android.support.annotation.Nullable;
 

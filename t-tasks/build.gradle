@@ -133,6 +133,7 @@ dependencies {
     compile 'com.github.strooooke:appbarsyncedfab:v0.3'
     compile('com.crashlytics.sdk.android:crashlytics:2.6.5@aar') { transitive = true }
 
+    apt 'dk.ilios:realmfieldnameshelper:1.1.0'
     apt 'org.projectlombok:lombok:1.16.10'
 
     provided 'org.projectlombok:lombok:1.16.10'

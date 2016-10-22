@@ -14,7 +14,7 @@ import com.teo.ttasks.data.local.WidgetHelper;
 import com.teo.ttasks.data.model.TTask;
 import com.teo.ttasks.data.model.TTaskList;
 import com.teo.ttasks.data.model.Task;
-import com.teo.ttasks.data.model.TaskFields;
+import com.teo.ttasks.data.local.TaskFields;
 import com.teo.ttasks.data.remote.TasksHelper;
 import com.teo.ttasks.jobs.CreateTaskJob;
 import com.teo.ttasks.ui.base.Presenter;
@@ -73,7 +73,7 @@ public class EditTaskPresenter extends Presenter<EditTaskView> {
     void loadTaskInfo(String taskId) {
         if (taskSubscription != null && !taskSubscription.isUnsubscribed())
             taskSubscription.unsubscribe();
-        taskSubscription = tasksHelper.getTask(taskId, realm)
+        taskSubscription = tasksHelper.getTaskAsObservable(taskId, realm)
                 .subscribe(
                         tTask -> {
                             if (tTask == null) {
@@ -289,7 +289,11 @@ public class EditTaskPresenter extends Presenter<EditTaskView> {
             return;
         }
         // Update the task locally
-        TTask managedTask = tasksHelper.getTask(taskId, realm).toBlocking().first();
+        TTask managedTask = tasksHelper.getTask(taskId, realm);
+        if (managedTask == null) {
+            // TODO: 2016-10-22 check this
+            return;
+        }
         final int reminderId = managedTask.getReminder() != null ? managedTask.getReminder().hashCode() : 0;
         final int notificationId = managedTask.getNotificationId();
         realm.executeTransaction(realm -> {

@@ -1,18 +1,22 @@
 package com.teo.ttasks.data.remote;
 
 import android.annotation.SuppressLint;
+import android.support.annotation.Nullable;
 
 import com.google.firebase.database.DatabaseReference;
 import com.teo.ttasks.api.TasksApi;
 import com.teo.ttasks.api.entities.TaskListsResponse;
 import com.teo.ttasks.api.entities.TasksResponse;
+import com.teo.ttasks.api.entities.TasksResponseFields;
 import com.teo.ttasks.data.local.PrefHelper;
+import com.teo.ttasks.data.local.TaskFields;
+import com.teo.ttasks.data.local.TaskListFields;
 import com.teo.ttasks.data.model.TTask;
+import com.teo.ttasks.data.model.TTaskFields;
 import com.teo.ttasks.data.model.TTaskList;
+import com.teo.ttasks.data.model.TTaskListFields;
 import com.teo.ttasks.data.model.Task;
-import com.teo.ttasks.data.model.TaskFields;
 import com.teo.ttasks.data.model.TaskList;
-import com.teo.ttasks.data.model.TaskListFields;
 import com.teo.ttasks.util.FirebaseUtil;
 
 import java.util.Date;
@@ -59,6 +63,14 @@ public final class TasksHelper {
         return tTaskList;
     }
 
+    private TaskListsResponse getTaskListsResponse(Realm realm) {
+        return realm.where(TaskListsResponse.class).findFirst();
+    }
+
+    private TasksResponse getTasksResponse(String taskListId, Realm realm) {
+        return realm.where(TasksResponse.class).equalTo(TasksResponseFields.ID, taskListId).findFirst();
+    }
+
     private Observable handleResourceNotModified(Throwable throwable) {
         // End the stream if the status code is 304 - Not Modified
         if (throwable instanceof HttpException) {
@@ -82,7 +94,7 @@ public final class TasksHelper {
      */
     public Observable<RealmResults<TTaskList>> getTaskLists(Realm realm) {
         return realm.where(TTaskList.class)
-                .equalTo("deleted", false)
+                .equalTo(TTaskListFields.DELETED, false)
                 .findAll()
                 .asObservable();
     }
@@ -94,12 +106,18 @@ public final class TasksHelper {
      * @param realm      a Realm instance
      * @return an Observable containing the requested task list
      */
-    public Observable<TTaskList> getTaskList(String taskListId, Realm realm) {
+    public Observable<TTaskList> getTaskListAsObservable(String taskListId, Realm realm) {
+        final TTaskList taskList = getTaskList(taskListId, realm);
+        if (taskList == null)
+            return Observable.empty();
+        return taskList.asObservable();
+    }
+
+    public TTaskList getTaskList(String taskListId, Realm realm) {
         return realm.where(TTaskList.class)
-                .equalTo("id", taskListId)
-                .equalTo("deleted", false)
-                .findFirst()
-                .asObservable();
+                .equalTo(TTaskListFields.ID, taskListId)
+                .equalTo(TTaskListFields.DELETED, false)
+                .findFirst();
     }
 
     /**
@@ -134,7 +152,7 @@ public final class TasksHelper {
                 .doOnCompleted(() -> {
                     Realm realm = Realm.getDefaultInstance();
                     realm.executeTransaction(realm1 -> {
-                        final TTaskList tTaskList = realm1.where(TTaskList.class).equalTo("id", taskListId).findFirst();
+                        final TTaskList tTaskList = getTaskList(taskListId, realm1);
                         if (tTaskList != null) {
                             // Should always be the case
                             tTaskList.deleteFromRealm();
@@ -162,7 +180,7 @@ public final class TasksHelper {
                     Timber.d("handling new task list response");
                     // Save the task lists
                     Realm realm = Realm.getDefaultInstance();
-                    TaskListsResponse oldTaskListResponse = realm.where(TaskListsResponse.class).findFirst();
+                    TaskListsResponse oldTaskListResponse = getTaskListsResponse(realm);
                     if (oldTaskListResponse == null || !taskListsResponse.etag.equals(oldTaskListResponse.etag)) {
                         // Task lists have changed
                         Timber.d("Task lists have changed");
@@ -173,7 +191,7 @@ public final class TasksHelper {
                             // Create a new TTaskList for each TaskList, if available
                             if (taskListsResponse.items != null) {
                                 for (TaskList taskList : taskListsResponse.items) {
-                                    TTaskList tTaskList = realm1.where(TTaskList.class).equalTo("id", taskList.getId()).findFirst();
+                                    TTaskList tTaskList = getTaskList(taskList.getId(), realm1);
                                     if (tTaskList == null)
                                         realm1.insertOrUpdate(new TTaskList(taskList));
                                 }
@@ -193,8 +211,8 @@ public final class TasksHelper {
      */
     private RealmQuery<TTask> getValidTasks(String taskListId, Realm realm) {
         return realm.where(TTask.class)
-                .equalTo("taskListId", taskListId)
-                .equalTo("deleted", false);
+                .equalTo(TTaskFields.TASK_LIST_ID, taskListId)
+                .equalTo(TTaskFields.DELETED, false);
     }
 
     /**
@@ -230,11 +248,16 @@ public final class TasksHelper {
         });
     }
 
-    public Observable<TTask> getTask(String taskId, Realm realm) {
-        final TTask tTask = realm.where(TTask.class).equalTo("id", taskId).findFirst();
+    public Observable<TTask> getTaskAsObservable(String taskId, Realm realm) {
+        final TTask tTask = getTask(taskId, realm);
         if (tTask == null)
             return Observable.empty();
         return tTask.asObservable();
+    }
+
+    @Nullable
+    public TTask getTask(String taskId, Realm realm) {
+        return realm.where(TTask.class).equalTo(TTaskFields.ID, taskId).findFirst();
     }
 
     /**
@@ -268,7 +291,7 @@ public final class TasksHelper {
                     // Save the tasks if required
                     Realm realm = Realm.getDefaultInstance();
                     // Check if the task list was changed
-                    TasksResponse oldTaskResponse = realm.where(TasksResponse.class).equalTo("id", taskListId).findFirst();
+                    TasksResponse oldTaskResponse = getTasksResponse(taskListId, realm);
                     if (oldTaskResponse == null || !tasksResponse.etag.equals(oldTaskResponse.etag)) {
                         // The old task list doesn't exist or it has outdated data
                         Timber.d("Tasks have changed");
@@ -281,7 +304,7 @@ public final class TasksHelper {
                             // Create a new TTask for each Task, if the task list isn't empty
                             if (tasksResponse.items != null) {
                                 for (Task task : tasksResponse.items) {
-                                    TTask tTask = realm1.where(TTask.class).equalTo("id", task.getId()).findFirst();
+                                    TTask tTask = getTask(task.getId(), realm1);
                                     if (tTask == null) {
                                         realm1.insertOrUpdate(new TTask(task, taskListId));
                                     } else if (tTask.getReminder() != null) {
@@ -300,8 +323,7 @@ public final class TasksHelper {
 
     private Observable<TTask> updateTask(String taskListId, TTask tTask) {
         Timber.d("updating task %s, %s, %s", tTask.getId(), tTask.isSynced(), tTask.isDeleted());
-        return tasksApi.updateTask(taskListId, tTask.getId(), tTask.task)
-                .map(task -> tTask);
+        return tasksApi.updateTask(taskListId, tTask.getId(), tTask.task).map(task -> tTask);
     }
 
     /**
@@ -356,7 +378,7 @@ public final class TasksHelper {
      * @return an Observable containing the updated task
      */
     public Observable<TTask> updateCompletionStatus(String taskId, Realm realm) {
-        TTask tTask = realm.where(TTask.class).equalTo("id", taskId).findFirst();
+        TTask tTask = getTask(taskId, realm);
         if (tTask != null)
             return updateCompletionStatus(tTask, realm);
         return Observable.error(new RuntimeException("Task not found"));
