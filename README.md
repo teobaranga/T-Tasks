@@ -10,13 +10,16 @@ This project is a work in progress, therefore some features might be incomplete.
 More features are planned and will be added in the future.
 
 - Connect with your Google Account
-- View your Google Tasks
+- Create and manage your Google tasks and task lists
+- Set reminders for your tasks
+- Day/Night mode
 
 
 ### Screenshots
 
-<img src="http://i.imgur.com/f7C59gm.png" width="25%" height="25%" />
-<img src="http://i.imgur.com/2vtZNeo.png" width="25%" height="25%" />
+<img src="http://i.imgur.com/k06QhyE.png" width="33%" height="33%"/>
+<img src="http://i.imgur.com/oPMrMDt.png" width="33%" height="33%"/>
+<img src="http://i.imgur.com/OTUHvFo.png" width="33%" height="33%"/>
 
 
 ### Libraries
@@ -24,7 +27,10 @@ More features are planned and will be added in the future.
 
 - **Android Support Library**
 - **Google Tasks API**: https://developers.google.com/google-apps/tasks/
-- **Google APIs Client Library for Java**: https://github.com/google/google-api-java-client
+- **Google Sign In**: https://developers.google.com/identity/sign-in/android/
+- **Firebase**: https://firebase.google.com
+- **Retrofit**: https://github.com/square/retrofit
+- **Android Priority Job Queue**: https://github.com/yigit/android-priority-jobqueue
 - **MaterialDrawer**: https://github.com/mikepenz/MaterialDrawer
 - **AboutLibraries**: https://github.com/mikepenz/AboutLibraries
 - **Android-Iconics**: https://github.com/mikepenz/Android-Iconics
