@@ -309,7 +309,7 @@ public final class TasksHelper {
                                         realm1.insertOrUpdate(new TTask(task, taskListId));
                                     } else if (tTask.getReminder() != null) {
                                         Timber.d("saving reminder");
-                                        reference.child(tTask.getId()).child("reminder").setValue(tTask.getReminder().getTime());
+                                        FirebaseUtil.saveReminder(reference, tTask.getId(), tTask.getReminder().getTime());
                                     }
                                 }
                             }

@@ -10,6 +10,7 @@ import com.teo.ttasks.util.RxUtils;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.teo.ttasks.util.NightHelper.NIGHT_AUTO;
 import static com.teo.ttasks.util.RxUtils.SORT_DATE;
 
 public final class PrefHelper {
@@ -200,7 +201,7 @@ public final class PrefHelper {
     }
 
     public String getNightMode() {
-        return sharedPreferences.getString(PREF_NIGHT_MODE, "auto");
+        return sharedPreferences.getString(PREF_NIGHT_MODE, NIGHT_AUTO);
     }
 
     @RxUtils.SortingMode

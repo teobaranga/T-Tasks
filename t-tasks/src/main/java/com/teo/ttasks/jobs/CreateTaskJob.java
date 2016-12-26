@@ -96,7 +96,7 @@ public class CreateTaskJob extends Job {
         onlineTaskId = onlineTask.getId();
         if (onlineTask.getReminder() != null) {
             final DatabaseReference tasksDatabase = FirebaseUtil.getTasksDatabase();
-            tasksDatabase.child(onlineTaskId).child("reminder").setValue(onlineTask.getReminder().getTime());
+            FirebaseUtil.saveReminder(tasksDatabase, onlineTaskId, onlineTask.getReminder().getTime());
         }
 
         Timber.d("saved new task with id %s", onlineTaskId);

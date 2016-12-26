@@ -10,8 +10,7 @@ import android.util.TypedValue;
 import android.view.View;
 import android.widget.ImageView;
 
-import com.mikepenz.fastadapter.IExpandable;
-import com.mikepenz.fastadapter.items.AbstractItem;
+import com.mikepenz.fastadapter.commons.items.AbstractExpandableItem;
 import com.mikepenz.fastadapter.utils.ViewHolderFactory;
 import com.mikepenz.materialdrawer.holder.StringHolder;
 import com.teo.ttasks.R;
@@ -22,7 +21,7 @@ import java.util.List;
 /**
  * RecyclerView Item which represents a Date in an Order list
  */
-public class CategoryItem extends AbstractItem<CategoryItem, CategoryItem.ViewHolder> implements IExpandable<CategoryItem, TaskItem> {
+public class CategoryItem extends AbstractExpandableItem<CategoryItem, CategoryItem.ViewHolder, TaskItem> {
 
     private static final ViewHolderFactory<? extends ViewHolder> FACTORY = new ItemFactory();
 
@@ -57,11 +56,6 @@ public class CategoryItem extends AbstractItem<CategoryItem, CategoryItem.ViewHo
         return this;
     }
 
-    public CategoryItem withSubItems(List<TaskItem> subItems) {
-        this.subItems = subItems;
-        return this;
-    }
-
     @Override
     public List<TaskItem> getSubItems() {
         return subItems;
@@ -70,6 +64,11 @@ public class CategoryItem extends AbstractItem<CategoryItem, CategoryItem.ViewHo
     @Override
     public boolean isAutoExpanding() {
         return true;
+    }
+
+    public CategoryItem withSubItems(List<TaskItem> subItems) {
+        this.subItems = subItems;
+        return this;
     }
 
     @Override
@@ -83,7 +82,7 @@ public class CategoryItem extends AbstractItem<CategoryItem, CategoryItem.ViewHo
     }
 
     @Override
-    public void bindView(ViewHolder viewHolder, List payloads) {
+    public void bindView(ViewHolder viewHolder, List<Object> payloads) {
         super.bindView(viewHolder, payloads);
 
         final ItemCategoryBinding binding = viewHolder.itemCategoryBinding;

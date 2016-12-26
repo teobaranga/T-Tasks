@@ -13,12 +13,12 @@ repositories {
 }
 
 android {
-    compileSdkVersion 24
-    buildToolsVersion '25.0.0'
+    compileSdkVersion 25
+    buildToolsVersion '25.0.2'
     defaultConfig {
         applicationId "com.teo.ttasks"
         minSdkVersion 16
-        targetSdkVersion 24
+        targetSdkVersion 25
         versionCode 1
         versionName '0.1'
         vectorDrawables.useSupportLibrary = true
@@ -119,29 +119,30 @@ dependencies {
 
     compile libraries.okHttpLoggingInterceptor
 
-    compile 'com.google.firebase:firebase-auth:9.6.1'
-    compile 'com.google.firebase:firebase-database:9.6.1'
+    compile libraries.firebaseAuth
+    compile libraries.firebaseDatabase
 
     compile 'com.birbit:android-priority-jobqueue:2.0.1'
 
     compile('com.mikepenz:aboutlibraries:5.8.1@aar') { transitive = true }
-    compile('com.mikepenz:fastadapter:1.8.2@aar') { transitive = true }
-    compile('com.mikepenz:materialdrawer:5.6.0@aar') { transitive = true }
-    compile 'com.mikepenz:google-material-typeface:2.2.0.1@aar'
+    compile('com.mikepenz:fastadapter:2.1.5@aar') { transitive = true }
+    compile 'com.mikepenz:fastadapter-commons:2.1.0@aar'
+    compile('com.mikepenz:materialdrawer:5.8.1@aar') { transitive = true }
+    compile 'com.mikepenz:google-material-typeface:2.2.0.3.original@aar'
     compile 'com.squareup.picasso:picasso:2.5.2'
-    compile 'com.artemzin.rxjava:proguard-rules:1.2.1.0'
+    compile 'com.artemzin.rxjava:proguard-rules:1.2.4.0'
     compile 'com.github.strooooke:appbarsyncedfab:v0.3'
     compile('com.crashlytics.sdk.android:crashlytics:2.6.5@aar') { transitive = true }
 
     apt 'dk.ilios:realmfieldnameshelper:1.1.0'
-    apt 'org.projectlombok:lombok:1.16.10'
+    apt 'org.projectlombok:lombok:1.16.12'
 
-    provided 'org.projectlombok:lombok:1.16.10'
+    provided 'org.projectlombok:lombok:1.16.12'
     provided 'javax.annotation:jsr250-api:1.0'
 
     retrolambdaConfig 'net.orfjackal.retrolambda:retrolambda:2.3.0'
 
-    debugCompile 'com.facebook.stetho:stetho:1.4.1'
+    debugCompile 'com.facebook.stetho:stetho:1.4.2'
     debugCompile 'com.uphyca:stetho_realm:2.0.0'
 
     // Dependencies for local unit tests
@@ -150,8 +151,8 @@ dependencies {
     testCompile "org.hamcrest:hamcrest-all:${hamcrestVersion}"
     testCompile "org.powermock:powermock-module-junit4:${powerMockito}"
     testCompile "org.powermock:powermock-api-mockito:${powerMockito}"
-    testCompile "org.jetbrains.kotlin:kotlin-stdlib:$project.ext.kotlin_ver"
-    testCompile "org.jetbrains.kotlin:kotlin-test-junit:$project.ext.kotlin_ver"
+    testCompile "org.jetbrains.kotlin:kotlin-stdlib:$versions.kotlin"
+    testCompile "org.jetbrains.kotlin:kotlin-test-junit:$versions.kotlin"
 
     // Android Testing Support Library's runner and rules
     androidTestCompile libraries.supportTestRunner

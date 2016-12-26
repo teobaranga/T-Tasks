@@ -21,6 +21,7 @@ import android.widget.Toast;
 import com.mikepenz.fastadapter.FastAdapter;
 import com.mikepenz.fastadapter.adapters.ItemAdapter;
 import com.mikepenz.fastadapter.helpers.ClickListenerHelper;
+import com.mikepenz.fastadapter.listeners.ClickEventHook;
 import com.teo.ttasks.R;
 import com.teo.ttasks.TTasksApp;
 import com.teo.ttasks.databinding.FragmentTaskListsBinding;
@@ -119,13 +120,6 @@ public class TaskListsFragment extends Fragment implements TaskListsView, SwipeR
     }
 
     @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-        FloatingActionButton fab = ((MainActivity) getActivity()).fab();
-        fab.setOnClickListener(v -> showEditTaskListDialog(null));
-    }
-
-    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         taskListsBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_task_lists, container, false);
 
@@ -138,8 +132,12 @@ public class TaskListsFragment extends Fragment implements TaskListsView, SwipeR
 
             @Override
             public RecyclerView.ViewHolder onPostCreateViewHolder(final RecyclerView.ViewHolder viewHolder) {
-                clickListenerHelper.listen(viewHolder, ((TaskListItem.ViewHolder) viewHolder).itemTaskListBinding.deleteTaskList,
-                        (v, position, item) -> showDeleteTaskListDialog(item.getId()));
+                clickListenerHelper.attachToView(new ClickEventHook<TaskListItem>() {
+                    @Override
+                    public void onClick(View v, int position, FastAdapter<TaskListItem> fastAdapter, TaskListItem item) {
+                        showDeleteTaskListDialog(item.getId());
+                    }
+                }, viewHolder, ((TaskListItem.ViewHolder) viewHolder).itemTaskListBinding.deleteTaskList);
                 return viewHolder;
             }
         });
@@ -154,6 +152,19 @@ public class TaskListsFragment extends Fragment implements TaskListsView, SwipeR
         taskListsPresenter.getTaskLists();
 
         return taskListsBinding.getRoot();
+    }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        FloatingActionButton fab = ((MainActivity) getActivity()).fab();
+        fab.setOnClickListener(v -> showEditTaskListDialog(null));
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        taskListsPresenter.unbindView(this);
     }
 
     @Override
@@ -200,11 +211,5 @@ public class TaskListsFragment extends Fragment implements TaskListsView, SwipeR
     @Override
     public void onTaskListUpdateError() {
 
-    }
-
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        taskListsPresenter.unbindView(this);
     }
 }

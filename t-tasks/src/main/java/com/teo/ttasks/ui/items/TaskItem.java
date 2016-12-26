@@ -9,6 +9,7 @@ import android.util.DisplayMetrics;
 import android.util.TypedValue;
 import android.view.View;
 
+import com.mikepenz.fastadapter.ISubItem;
 import com.mikepenz.fastadapter.items.AbstractItem;
 import com.mikepenz.fastadapter.utils.ViewHolderFactory;
 import com.teo.ttasks.R;
@@ -16,12 +17,9 @@ import com.teo.ttasks.data.model.TTask;
 import com.teo.ttasks.databinding.ItemTaskBinding;
 import com.teo.ttasks.util.DateUtils;
 
-import java.text.SimpleDateFormat;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
-import java.util.Locale;
-import java.util.TimeZone;
 
 import lombok.Getter;
 import lombok.experimental.Accessors;
@@ -29,24 +27,21 @@ import timber.log.Timber;
 
 import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
+import static com.teo.ttasks.util.DateUtils.sdfDay;
+import static com.teo.ttasks.util.DateUtils.sdfMonth;
 
 @Accessors()
-public class TaskItem extends AbstractItem<TaskItem, TaskItem.ViewHolder> implements Comparable<TaskItem> {
+public class TaskItem extends AbstractItem<TaskItem, TaskItem.ViewHolder> implements Comparable<TaskItem>, ISubItem<TaskItem, CategoryItem> {
 
     private static final ViewHolderFactory<? extends ViewHolder> FACTORY = new ItemFactory();
-
-    private static final String DAY_PATTERN = "EEE";
-    private static final String DAY_NUMBER_PATTERN = "d";
-
-    private static final SimpleDateFormat simpleDateFormat = new SimpleDateFormat(DAY_PATTERN, Locale.getDefault());
-    private static final SimpleDateFormat fmt = new SimpleDateFormat("yyyyMMdd", Locale.getDefault());
 
     /**
      * Comparator that sorts {@link TaskItem}s by their completion date in descending order.
      */
     public static Comparator<TaskItem> completionDateComparator = (lhs, rhs) -> {
 
-        final boolean sameDay = fmt.format(lhs.completed).equals(fmt.format(rhs.completed));
+        final boolean sameDay = sdfDay.format(lhs.completed).equals(sdfDay.format(rhs.completed));
+        final boolean sameMonth = sdfMonth.format(lhs.completed).equals(sdfMonth.format(rhs.completed));
 
         int returnCode;
 
@@ -61,10 +56,26 @@ public class TaskItem extends AbstractItem<TaskItem, TaskItem.ViewHolder> implem
             returnCode = rhs.completed.compareTo(lhs.completed);
         }
 
+        // Decide whether the day number and name will be shown i.e. whether the task item will be combined or not
         if (sameDay) {
-            if (returnCode == 0 || returnCode == -1)
-                rhs.combined = true;
-            else lhs.combined = true;
+            if (returnCode > 0) {
+                // rhs comes after lhs
+                lhs.combineDay = true;
+            } else {
+                // lhs comes after rhs
+                rhs.combineDay = true;
+            }
+        }
+
+        // Decide whether the month should be shown
+        if (sameMonth) {
+            if (returnCode > 0) {
+                // rhs comes after lhs
+                lhs.combineMonth = true;
+            } else {
+                // lhs comes after rhs
+                rhs.combineMonth = true;
+            }
         }
 
         return returnCode;
@@ -88,17 +99,21 @@ public class TaskItem extends AbstractItem<TaskItem, TaskItem.ViewHolder> implem
      */
     private static Comparator<TaskItem> dueDateComparator = (lhs, rhs) -> {
 
-        final boolean sameDay = lhs.dueDate != null && rhs.dueDate != null && fmt.format(lhs.dueDate).equals(fmt.format(rhs.dueDate));
+        final boolean sameDay = lhs.dueDate != null && rhs.dueDate != null &&
+                sdfDay.format(lhs.dueDate).equals(sdfDay.format(rhs.dueDate));
+        final boolean sameMonth = lhs.dueDate != null && rhs.dueDate != null &&
+                sdfDay.format(lhs.dueDate).substring(4, 6).equals(sdfDay.format(rhs.dueDate).substring(4, 6));
 
         int returnCode;
 
         if (lhs.dueDate != null) {
             // Compare non-null due dates, most recent ones at the top
-            if (rhs.dueDate != null)
+            if (rhs.dueDate != null) {
                 returnCode = lhs.dueDate.compareTo(rhs.dueDate);
-            else
+            } else {
                 // This task comes after the other task
                 returnCode = 1;
+            }
         } else if (rhs.dueDate != null) {
             // This task comes before the other task
             returnCode = -1;
@@ -109,16 +124,19 @@ public class TaskItem extends AbstractItem<TaskItem, TaskItem.ViewHolder> implem
 
         if (sameDay) {
             if (returnCode == 0 || returnCode == -1)
-                lhs.combined = true;
-            else rhs.combined = true;
+                lhs.combineDay = true;
+            else rhs.combineDay = true;
+        }
+        if (sameMonth) {
+            lhs.combineMonth = true;
+            rhs.combineMonth = false;
+        } else {
+            lhs.combineMonth = true;
+            rhs.combineMonth = false;
         }
 
         return returnCode;
     };
-
-    static {
-        simpleDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-    }
 
     @Getter private final String taskId;
     @Getter private final String title;
@@ -127,8 +145,17 @@ public class TaskItem extends AbstractItem<TaskItem, TaskItem.ViewHolder> implem
     @Getter private final Date completed;
     @Getter private final Date reminder;
 
-    /** Flag indicating that this task item should combine with the previous task item in the list */
-    private boolean combined;
+    /**
+     * Flag indicating that this task item should combine its
+     * day (number & name) with the previous task item in the list
+     */
+    private boolean combineDay;
+
+    /**
+     * Flag indicating that this task item should combine its
+     * month with the previous task item in the list
+     */
+    private boolean combineMonth;
 
     public TaskItem(TTask tTask) {
         title = tTask.getTitle();
@@ -137,11 +164,6 @@ public class TaskItem extends AbstractItem<TaskItem, TaskItem.ViewHolder> implem
         completed = tTask.getCompleted();
         reminder = tTask.getReminder();
         taskId = tTask.getId();
-    }
-
-    @Override
-    public ViewHolderFactory<? extends ViewHolder> getFactory() {
-        return FACTORY;
     }
 
     @Override
@@ -155,62 +177,77 @@ public class TaskItem extends AbstractItem<TaskItem, TaskItem.ViewHolder> implem
     }
 
     @Override
-    public void bindView(ViewHolder viewHolder, List payloads) {
+    public CategoryItem getParent() {
+        return null;
+    }
+
+    @Override
+    public TaskItem withParent(CategoryItem parent) {
+        return null;
+    }
+
+    @Override
+    public void bindView(ViewHolder viewHolder, List<Object> payloads) {
         super.bindView(viewHolder, payloads);
 
         final ItemTaskBinding binding = viewHolder.binding;
 
-        int px = 0;
-        RecyclerView.LayoutParams layoutParams = ((RecyclerView.LayoutParams) viewHolder.itemView.getLayoutParams());
-        if (combined)
-            px = viewHolder.topMargin;
-        layoutParams.setMargins(0, -px, 0, 0);
-        viewHolder.itemView.setLayoutParams(layoutParams);
+        // Add the top padding for items that aren't combined
+        binding.layoutTaskBody.setPadding(viewHolder.left,
+                viewHolder.top + (!combineDay ? viewHolder.topMargin : 0),
+                viewHolder.right,
+                viewHolder.bottom);
 
         // Title
         binding.taskTitle.setText(title);
 
         // Task description
-        if (notes != null) {
+        if (notes == null) {
+            binding.taskDescription.setVisibility(GONE);
+        } else {
             binding.taskDescription.setText(notes);
             binding.taskDescription.setVisibility(VISIBLE);
-        } else {
-            binding.taskDescription.setVisibility(GONE);
-        }
-
-        // Due date / Completed date
-        if (completed != null && !combined) {
-            // Mon
-            simpleDateFormat.applyLocalizedPattern(DAY_PATTERN);
-            binding.dateDayName.setText(simpleDateFormat.format(completed));
-            // 1
-            simpleDateFormat.applyLocalizedPattern(DAY_NUMBER_PATTERN);
-            binding.dateDayNumber.setText(simpleDateFormat.format(completed));
-            // 12:00PM
-            binding.dateLayout.setVisibility(VISIBLE);
-        } else if (dueDate != null && !combined) {
-            // Mon
-            simpleDateFormat.applyLocalizedPattern(DAY_PATTERN);
-            binding.dateDayName.setText(simpleDateFormat.format(dueDate));
-            // 1
-            simpleDateFormat.applyLocalizedPattern(DAY_NUMBER_PATTERN);
-            binding.dateDayNumber.setText(simpleDateFormat.format(dueDate));
-            // 12:00PM
-            binding.dateLayout.setVisibility(VISIBLE);
-        } else {
-            binding.dateDayNumber.setText(null);
-            binding.dateDayName.setText(null);
-            binding.dateLayout.setVisibility(!combined ? GONE : VISIBLE);
         }
 
         // Reminder
-        if (reminder != null) {
+        if (reminder == null) {
+            binding.reminder.setVisibility(GONE);
+        } else {
             Timber.d("reminder is not null");
             binding.reminder.setText(DateUtils.formatTime(binding.getRoot().getContext(), reminder));
             binding.reminder.setVisibility(VISIBLE);
-        } else {
-            binding.reminder.setVisibility(GONE);
         }
+
+        // Due date / Completed date
+        if (combineDay) {
+            binding.taskDate.setDate(null);
+        } else {
+            if (completed != null)
+                binding.taskDate.setDate(completed);
+            else if (dueDate != null)
+                binding.taskDate.setDate(dueDate);
+            else
+                binding.taskDate.setDate(null);
+        }
+
+        // Month
+        if (combineMonth) {
+            binding.month.setVisibility(GONE);
+        } else {
+            if (completed != null) {
+                binding.month.setText(DateUtils.getMonthAndYear(completed));
+            } else if (dueDate != null) {
+                binding.month.setText(DateUtils.getMonthAndYear(dueDate));
+            } else {
+                binding.month.setText("No due date");
+            }
+            binding.month.setVisibility(VISIBLE);
+        }
+    }
+
+    @Override
+    public ViewHolderFactory<? extends ViewHolder> getFactory() {
+        return FACTORY;
     }
 
     /**
@@ -230,17 +267,31 @@ public class TaskItem extends AbstractItem<TaskItem, TaskItem.ViewHolder> implem
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
 
+        private static final int TOP_MARGIN_DP = 12;
+
+        public final ItemTaskBinding binding;
+
         final int topMargin;
 
-        public ItemTaskBinding binding;
+        final int left, right, top, bottom;
 
         ViewHolder(View view) {
             super(view);
             binding = DataBindingUtil.bind(view);
+
+            // Set the reminder icon
             Drawable reminderIcon = VectorDrawableCompat.create(view.getResources(), R.drawable.ic_alarm_18dp, view.getContext().getTheme());
             binding.reminder.setCompoundDrawablesWithIntrinsicBounds(reminderIcon, null, null, null);
+
+            // Calculate the top margin in px
             DisplayMetrics displayMetrics = view.getContext().getResources().getDisplayMetrics();
-            topMargin = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 10, displayMetrics);
+            topMargin = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, TOP_MARGIN_DP, displayMetrics);
+
+            // Cache the padding
+            left = binding.layoutTaskBody.getPaddingLeft();
+            right = binding.layoutTaskBody.getPaddingRight();
+            top = binding.layoutTaskBody.getPaddingTop();
+            bottom = binding.layoutTaskBody.getPaddingBottom();
         }
     }
 }

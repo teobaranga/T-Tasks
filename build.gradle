@@ -7,14 +7,13 @@ buildscript {
         maven { url 'https://maven.fabric.io/public'}
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.2.2'
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$project.ext.kotlin_ver"
-        classpath 'com.getkeepsafe.dexcount:dexcount-gradle-plugin:0.6.1'
+        classpath 'com.android.tools.build:gradle:2.2.3'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$versions.kotlin"
+        classpath 'com.getkeepsafe.dexcount:dexcount-gradle-plugin:0.6.2'
         classpath 'com.google.gms:google-services:3.0.0'
         // APT compile-time annotation processing
         classpath 'com.neenbedankt.gradle.plugins:android-apt:1.8'
-        classpath 'io.realm:realm-gradle-plugin:2.0.2'
-        classpath 'me.tatarka:gradle-retrolambda:3.3.0'
+        classpath 'io.realm:realm-gradle-plugin:2.2.1'
         classpath 'me.tatarka.retrolambda.projectlombok:lombok.ast:0.2.3.a2'
         classpath 'io.fabric.tools:gradle:1.22.0'
     }
@@ -24,6 +23,7 @@ buildscript {
 
 plugins {
     id 'com.github.ben-manes.versions' version '0.13.0'
+    id "me.tatarka.retrolambda" version "3.4.0"
 }
 
 allprojects {

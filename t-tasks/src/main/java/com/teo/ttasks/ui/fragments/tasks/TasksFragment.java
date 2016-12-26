@@ -28,8 +28,8 @@ import android.widget.Toast;
 import com.mikepenz.fastadapter.FastAdapter;
 import com.mikepenz.fastadapter.IAdapter;
 import com.mikepenz.fastadapter.IItem;
-import com.mikepenz.fastadapter.adapters.FastItemAdapter;
 import com.mikepenz.fastadapter.adapters.FooterAdapter;
+import com.mikepenz.fastadapter.commons.adapters.FastItemAdapter;
 import com.teo.ttasks.R;
 import com.teo.ttasks.TTasksApp;
 import com.teo.ttasks.databinding.FragmentTasksBinding;
@@ -88,11 +88,7 @@ public class TasksFragment extends Fragment implements TasksView,
     Pair<View, String> navBar;
 
     FloatingActionButton fab;
-
-    private NetworkInfoReceiver networkInfoReceiver;
-    private FastItemAdapter fastItemAdapter;
     FooterAdapter<CategoryItem> completedHeaderAdapter;
-
     private final FastAdapter.OnClickListener taskItemClickListener = new FastAdapter.OnClickListener() {
         // Reject quick, successive clicks because they break the app
         private static final long MIN_CLICK_INTERVAL = 1000;
@@ -161,6 +157,8 @@ public class TasksFragment extends Fragment implements TasksView,
             return true;
         }
     };
+    private NetworkInfoReceiver networkInfoReceiver;
+    private FastItemAdapter fastItemAdapter;
 
     /**
      * Create a new instance of this fragment
