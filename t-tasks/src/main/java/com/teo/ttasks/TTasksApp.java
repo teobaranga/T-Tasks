@@ -1,21 +1,17 @@
 package com.teo.ttasks;
 
-import android.app.Application;
 import android.content.Context;
 
 import com.crashlytics.android.Crashlytics;
 import com.teo.ttasks.data.local.PrefHelper;
 import com.teo.ttasks.injection.component.ApplicationComponent;
 import com.teo.ttasks.injection.component.DaggerApplicationComponent;
-import com.teo.ttasks.injection.component.SignInComponent;
-import com.teo.ttasks.injection.component.UserComponent;
-import com.teo.ttasks.injection.module.ApplicationModule;
-import com.teo.ttasks.injection.module.SignInModule;
-import com.teo.ttasks.injection.module.UserModule;
 import com.teo.ttasks.util.NightHelper;
 
 import javax.inject.Inject;
 
+import dagger.android.AndroidInjector;
+import dagger.android.support.DaggerApplication;
 import io.fabric.sdk.android.Fabric;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
@@ -24,14 +20,11 @@ import timber.log.Timber;
 /**
  * @author Teo
  */
-public class TTasksApp extends Application {
+public class TTasksApp extends DaggerApplication {
 
     @Inject PrefHelper prefHelper;
 
-    // Initialized in onCreate. But be careful if you have ContentProviders in different processes -> their onCreate will be called before app.onCreate().
     private ApplicationComponent applicationComponent;
-    private SignInComponent signInComponent;
-    private UserComponent userComponent;
 
     // Prevent need in a singleton (global) reference to the application object.
     public static TTasksApp get(Context context) {
@@ -40,17 +33,11 @@ public class TTasksApp extends Application {
 
     @Override
     public void onCreate() {
-        applicationComponent = DaggerApplicationComponent.builder()
-                .applicationModule(new ApplicationModule(this))
-                .build();
-
-        applicationComponent.inject(this);
+        super.onCreate();
 
         // Apply night mode
         final String nightMode = prefHelper.getNightMode();
         NightHelper.applyNightMode(nightMode);
-
-        super.onCreate();
 
         // Enable Timber
         if (BuildConfig.DEBUG) {
@@ -68,6 +55,15 @@ public class TTasksApp extends Application {
         initRealmConfiguration();
     }
 
+    @Override
+    protected AndroidInjector<? extends DaggerApplication> applicationInjector() {
+        final AndroidInjector<TTasksApp> injector = DaggerApplicationComponent
+                .builder()
+                .create(this);
+        applicationComponent = (ApplicationComponent) injector;
+        return injector;
+    }
+
     private void initRealmConfiguration() {
         Realm.init(this);
         RealmConfiguration realmConfiguration = new RealmConfiguration.Builder()
@@ -83,25 +79,5 @@ public class TTasksApp extends Application {
 
     public ApplicationComponent applicationComponent() {
         return applicationComponent;
-    }
-
-    public SignInComponent signInComponent() {
-        if (signInComponent == null)
-            signInComponent = applicationComponent.plus(new SignInModule());
-        return signInComponent;
-    }
-
-    public void releaseSignInComponent() {
-        signInComponent = null;
-    }
-
-    public UserComponent userComponent() {
-        if (userComponent == null)
-            userComponent = applicationComponent.plus(new UserModule());
-        return userComponent;
-    }
-
-    public void releaseUserComponent() {
-        userComponent = null;
     }
 }

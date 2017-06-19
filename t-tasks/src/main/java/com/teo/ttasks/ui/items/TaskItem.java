@@ -11,7 +11,6 @@ import android.view.View;
 
 import com.mikepenz.fastadapter.ISubItem;
 import com.mikepenz.fastadapter.items.AbstractItem;
-import com.mikepenz.fastadapter.utils.ViewHolderFactory;
 import com.teo.ttasks.R;
 import com.teo.ttasks.data.model.TTask;
 import com.teo.ttasks.databinding.ItemTaskBinding;
@@ -32,8 +31,6 @@ import static com.teo.ttasks.util.DateUtils.sdfMonth;
 
 @Accessors()
 public class TaskItem extends AbstractItem<TaskItem, TaskItem.ViewHolder> implements Comparable<TaskItem>, ISubItem<TaskItem, CategoryItem> {
-
-    private static final ViewHolderFactory<? extends ViewHolder> FACTORY = new ItemFactory();
 
     /**
      * Comparator that sorts {@link TaskItem}s by their completion date in descending order.
@@ -246,8 +243,8 @@ public class TaskItem extends AbstractItem<TaskItem, TaskItem.ViewHolder> implem
     }
 
     @Override
-    public ViewHolderFactory<? extends ViewHolder> getFactory() {
-        return FACTORY;
+    public ViewHolder getViewHolder(View view) {
+        return new ViewHolder(view);
     }
 
     /**
@@ -257,12 +254,6 @@ public class TaskItem extends AbstractItem<TaskItem, TaskItem.ViewHolder> implem
     @Override
     public int compareTo(@NonNull TaskItem another) {
         return dueDateComparator.compare(this, another);
-    }
-
-    private static class ItemFactory implements ViewHolderFactory<ViewHolder> {
-        public ViewHolder create(View v) {
-            return new ViewHolder(v);
-        }
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {

@@ -4,9 +4,10 @@ import android.support.annotation.NonNull;
 
 import com.birbit.android.jobqueue.JobManager;
 import com.birbit.android.jobqueue.scheduling.GcmJobSchedulerService;
-import com.teo.ttasks.TTasksApp;
 
 import javax.inject.Inject;
+
+import dagger.android.AndroidInjection;
 
 public class MyGcmJobService extends GcmJobSchedulerService {
 
@@ -15,7 +16,7 @@ public class MyGcmJobService extends GcmJobSchedulerService {
     @Override @NonNull
     protected JobManager getJobManager() {
         if (jobManager == null)
-            TTasksApp.get(getApplicationContext()).userComponent().inject(this);
+            AndroidInjection.inject(this);
         return jobManager;
     }
 }

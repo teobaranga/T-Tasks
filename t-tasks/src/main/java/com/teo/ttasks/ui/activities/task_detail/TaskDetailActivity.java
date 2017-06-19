@@ -10,7 +10,6 @@ import android.support.annotation.Nullable;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v4.view.ViewCompat;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.ShareActionProvider;
 import android.transition.Transition;
@@ -22,7 +21,6 @@ import android.widget.Toast;
 
 import com.teo.ttasks.BuildConfig;
 import com.teo.ttasks.R;
-import com.teo.ttasks.TTasksApp;
 import com.teo.ttasks.data.model.TTask;
 import com.teo.ttasks.data.model.TTaskList;
 import com.teo.ttasks.databinding.ActivityTaskDetailBinding;
@@ -32,7 +30,9 @@ import com.teo.ttasks.util.DateUtils;
 
 import javax.inject.Inject;
 
-public class TaskDetailActivity extends AppCompatActivity implements TaskDetailView {
+import dagger.android.support.DaggerAppCompatActivity;
+
+public class TaskDetailActivity extends DaggerAppCompatActivity implements TaskDetailView {
 
     public static final String EXTRA_TASK_ID = "taskId";
     public static final String EXTRA_TASK_LIST_ID = "taskListId";
@@ -110,7 +110,6 @@ public class TaskDetailActivity extends AppCompatActivity implements TaskDetailV
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        TTasksApp.get(this).userComponent().inject(this);
         taskDetailBinding = DataBindingUtil.setContentView(this, R.layout.activity_task_detail);
         taskDetailPresenter.bindView(this);
 

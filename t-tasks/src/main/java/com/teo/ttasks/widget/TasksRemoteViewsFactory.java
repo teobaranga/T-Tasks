@@ -6,7 +6,6 @@ import android.widget.RemoteViews;
 import android.widget.RemoteViewsService;
 
 import com.teo.ttasks.R;
-import com.teo.ttasks.TTasksApp;
 import com.teo.ttasks.data.remote.TasksHelper;
 import com.teo.ttasks.ui.activities.task_detail.TaskDetailActivity;
 import com.teo.ttasks.ui.items.TaskItem;
@@ -17,8 +16,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
-
-import javax.inject.Inject;
 
 import timber.log.Timber;
 
@@ -36,15 +33,15 @@ public class TasksRemoteViewsFactory implements RemoteViewsService.RemoteViewsFa
 
     private final String taskListId;
 
-    @Inject TasksHelper tasksHelper;
+    private final TasksHelper tasksHelper;
 
     private String packageName;
     private List<TaskItem> taskItems;
 
-    TasksRemoteViewsFactory(Context context, Intent intent) {
+    TasksRemoteViewsFactory(Context context, Intent intent, TasksHelper tasksHelper) {
         this.packageName = context.getPackageName();
         this.taskListId = intent.getStringExtra(TaskDetailActivity.EXTRA_TASK_LIST_ID);
-        TTasksApp.get(context).userComponent().inject(this);
+        this.tasksHelper = tasksHelper;
     }
 
     @Override

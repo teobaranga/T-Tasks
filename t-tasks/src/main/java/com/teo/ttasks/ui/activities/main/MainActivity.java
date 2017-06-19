@@ -34,7 +34,6 @@ import com.mikepenz.materialdrawer.util.DrawerUIUtils;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Target;
 import com.teo.ttasks.R;
-import com.teo.ttasks.TTasksApp;
 import com.teo.ttasks.data.TaskListsAdapter;
 import com.teo.ttasks.data.model.TTaskList;
 import com.teo.ttasks.databinding.ActivityMainBinding;
@@ -98,7 +97,6 @@ public final class MainActivity extends BaseActivity implements MainView {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        TTasksApp.get(this).userComponent().inject(this);
         mainActivityPresenter.bindView(this);
 
         // Show the SignIn activity if there's no user connected

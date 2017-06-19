@@ -11,7 +11,6 @@ import android.os.SystemClock;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityOptionsCompat;
-import android.support.v4.app.Fragment;
 import android.support.v4.util.Pair;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
@@ -31,7 +30,6 @@ import com.mikepenz.fastadapter.IItem;
 import com.mikepenz.fastadapter.adapters.FooterAdapter;
 import com.mikepenz.fastadapter.commons.adapters.FastItemAdapter;
 import com.teo.ttasks.R;
-import com.teo.ttasks.TTasksApp;
 import com.teo.ttasks.databinding.FragmentTasksBinding;
 import com.teo.ttasks.receivers.NetworkInfoReceiver;
 import com.teo.ttasks.ui.activities.edit_task.EditTaskActivity;
@@ -45,6 +43,7 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import dagger.android.support.DaggerFragment;
 import timber.log.Timber;
 
 import static android.app.Activity.RESULT_OK;
@@ -52,8 +51,8 @@ import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
 import static android.view.Window.NAVIGATION_BAR_BACKGROUND_TRANSITION_NAME;
 
-public class TasksFragment extends Fragment implements TasksView,
-                                                       SwipeRefreshLayout.OnRefreshListener {
+public class TasksFragment extends DaggerFragment implements TasksView,
+                                                             SwipeRefreshLayout.OnRefreshListener {
 
     private static final String ARG_TASK_LIST_ID = "taskListId";
 
@@ -89,7 +88,7 @@ public class TasksFragment extends Fragment implements TasksView,
 
     FloatingActionButton fab;
     FooterAdapter<CategoryItem> completedHeaderAdapter;
-    private final FastAdapter.OnClickListener taskItemClickListener = new FastAdapter.OnClickListener() {
+    private final FastAdapter.OnClickListener<IItem> taskItemClickListener = new FastAdapter.OnClickListener<IItem>() {
         // Reject quick, successive clicks because they break the app
         private static final long MIN_CLICK_INTERVAL = 1000;
         private long lastClickTime = 0;
@@ -158,7 +157,7 @@ public class TasksFragment extends Fragment implements TasksView,
         }
     };
     private NetworkInfoReceiver networkInfoReceiver;
-    private FastItemAdapter fastItemAdapter;
+    private FastItemAdapter<IItem> fastItemAdapter;
 
     /**
      * Create a new instance of this fragment
@@ -185,7 +184,6 @@ public class TasksFragment extends Fragment implements TasksView,
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
-        TTasksApp.get(getContext()).userComponent().inject(this);
         fastItemAdapter = new FastItemAdapter<>();
         completedHeaderAdapter = new FooterAdapter<>();
 
@@ -195,7 +193,6 @@ public class TasksFragment extends Fragment implements TasksView,
 
         createNavBarPair();
 
-        //noinspection unchecked
         fastItemAdapter.withOnClickListener(taskItemClickListener);
 
         networkInfoReceiver = new NetworkInfoReceiver();
@@ -290,7 +287,7 @@ public class TasksFragment extends Fragment implements TasksView,
     @Override
     public void onActiveTasksLoaded(List<TaskItem> activeTasks) {
         //noinspection unchecked
-        fastItemAdapter.setNewList(activeTasks);
+        fastItemAdapter.setNewList((List<IItem>) (List<?>) activeTasks);
     }
 
     @Override

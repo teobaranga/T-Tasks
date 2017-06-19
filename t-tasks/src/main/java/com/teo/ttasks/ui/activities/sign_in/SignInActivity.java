@@ -9,7 +9,6 @@ import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v7.app.AppCompatActivity;
 import android.widget.Toast;
 
 import com.google.android.gms.auth.api.Auth;
@@ -23,21 +22,22 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.Scope;
 import com.google.firebase.auth.FirebaseAuth;
 import com.teo.ttasks.R;
-import com.teo.ttasks.TTasksApp;
 import com.teo.ttasks.databinding.ActivitySignInBinding;
 import com.teo.ttasks.receivers.NetworkInfoReceiver;
 import com.teo.ttasks.ui.activities.main.MainActivity;
 
 import javax.inject.Inject;
 
+import dagger.android.AndroidInjection;
+import dagger.android.support.DaggerAppCompatActivity;
 import timber.log.Timber;
 
 import static com.google.android.gms.auth.api.signin.GoogleSignInStatusCodes.SIGN_IN_CANCELLED;
 import static com.teo.ttasks.injection.module.ApplicationModule.SCOPE_TASKS;
 
-public class SignInActivity extends AppCompatActivity implements SignInView,
-                                                                 GoogleApiClient.ConnectionCallbacks,
-                                                                 GoogleApiClient.OnConnectionFailedListener {
+public class SignInActivity extends DaggerAppCompatActivity implements SignInView,
+                                                                       GoogleApiClient.ConnectionCallbacks,
+                                                                       GoogleApiClient.OnConnectionFailedListener {
 
     /** Request code to use when launching the resolution activity */
     private static final int RC_RESOLVE_ERROR = 1001;
@@ -66,7 +66,6 @@ public class SignInActivity extends AppCompatActivity implements SignInView,
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         ActivitySignInBinding signInBinding = DataBindingUtil.setContentView(this, R.layout.activity_sign_in);
-        TTasksApp.get(this).signInComponent().inject(this);
         signInPresenter.bindView(this);
 
         firebaseAuth = FirebaseAuth.getInstance();
@@ -97,7 +96,6 @@ public class SignInActivity extends AppCompatActivity implements SignInView,
     protected void onDestroy() {
         signInPresenter.unbindView(this);
         super.onDestroy();
-        TTasksApp.get(this).releaseSignInComponent();
     }
 
     @Override
@@ -165,7 +163,6 @@ public class SignInActivity extends AppCompatActivity implements SignInView,
     public void onConnected(@Nullable Bundle bundle) {
         if (getIntent() != null) {
             if (getIntent().getBooleanExtra(ARG_SIGN_OUT, false)) {
-                TTasksApp.get(this).releaseUserComponent();
                 Auth.GoogleSignInApi.signOut(googleApiClient).setResultCallback(status -> Timber.d(status.toString()));
             }
         }

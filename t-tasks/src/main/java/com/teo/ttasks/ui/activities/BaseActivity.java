@@ -3,7 +3,6 @@ package com.teo.ttasks.ui.activities;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,6 +13,7 @@ import com.teo.ttasks.ui.activities.sign_in.SignInActivity;
 
 import javax.inject.Inject;
 
+import dagger.android.support.DaggerAppCompatActivity;
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
@@ -21,7 +21,7 @@ import rx.schedulers.Schedulers;
 import static com.teo.ttasks.data.remote.TokenHelper.EXC_GOOGLE_AUTH;
 import static com.teo.ttasks.data.remote.TokenHelper.EXC_IO;
 
-public abstract class BaseActivity extends AppCompatActivity {
+public abstract class BaseActivity extends DaggerAppCompatActivity {
 
     private static final int RC_USER_RECOVERABLE = 1002;
 

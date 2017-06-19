@@ -11,7 +11,6 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
 import android.text.format.DateFormat;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -23,7 +22,6 @@ import android.widget.Toast;
 
 import com.mikepenz.materialdrawer.util.KeyboardUtil;
 import com.teo.ttasks.R;
-import com.teo.ttasks.TTasksApp;
 import com.teo.ttasks.data.TaskListsAdapter;
 import com.teo.ttasks.data.model.TTask;
 import com.teo.ttasks.data.model.TTaskList;
@@ -37,7 +35,9 @@ import java.util.List;
 
 import javax.inject.Inject;
 
-public class EditTaskActivity extends AppCompatActivity implements EditTaskView {
+import dagger.android.support.DaggerAppCompatActivity;
+
+public class EditTaskActivity extends DaggerAppCompatActivity implements EditTaskView {
 
     private static final String EXTRA_TASK_ID = "taskId";
     private static final String EXTRA_TASK_LIST_ID = "taskListId";
@@ -86,7 +86,6 @@ public class EditTaskActivity extends AppCompatActivity implements EditTaskView 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        TTasksApp.get(this).userComponent().inject(this);
         editTaskBinding = DataBindingUtil.setContentView(this, R.layout.activity_edit_task);
         editTaskBinding.setView(this);
         editTaskPresenter.bindView(this);

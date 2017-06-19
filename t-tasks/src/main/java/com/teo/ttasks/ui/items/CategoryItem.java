@@ -11,7 +11,6 @@ import android.view.View;
 import android.widget.ImageView;
 
 import com.mikepenz.fastadapter.commons.items.AbstractExpandableItem;
-import com.mikepenz.fastadapter.utils.ViewHolderFactory;
 import com.mikepenz.materialdrawer.holder.StringHolder;
 import com.teo.ttasks.R;
 import com.teo.ttasks.databinding.ItemCategoryBinding;
@@ -22,8 +21,6 @@ import java.util.List;
  * RecyclerView Item which represents a Date in an Order list
  */
 public class CategoryItem extends AbstractExpandableItem<CategoryItem, CategoryItem.ViewHolder, TaskItem> {
-
-    private static final ViewHolderFactory<? extends ViewHolder> FACTORY = new ItemFactory();
 
     private static final TypedValue typedValue = new TypedValue();
 
@@ -93,8 +90,8 @@ public class CategoryItem extends AbstractExpandableItem<CategoryItem, CategoryI
     }
 
     @Override
-    public ViewHolderFactory<? extends ViewHolder> getFactory() {
-        return FACTORY;
+    public ViewHolder getViewHolder(View view) {
+        return new ViewHolder(view);
     }
 
     /**
@@ -131,12 +128,6 @@ public class CategoryItem extends AbstractExpandableItem<CategoryItem, CategoryI
             }
         }
         return 0;
-    }
-
-    private static class ItemFactory implements ViewHolderFactory<ViewHolder> {
-        public ViewHolder create(View v) {
-            return new ViewHolder(v);
-        }
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {

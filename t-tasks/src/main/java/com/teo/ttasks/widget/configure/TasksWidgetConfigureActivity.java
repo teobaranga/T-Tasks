@@ -4,12 +4,10 @@ import android.appwidget.AppWidgetManager;
 import android.content.Intent;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.teo.ttasks.R;
-import com.teo.ttasks.TTasksApp;
 import com.teo.ttasks.data.TaskListsAdapter;
 import com.teo.ttasks.data.model.TTaskList;
 import com.teo.ttasks.databinding.ActivityWidgetConfigureBinding;
@@ -19,10 +17,12 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import dagger.android.support.DaggerAppCompatActivity;
+
 /**
  * The configuration screen for the {@link TasksWidgetProvider TasksWidgetProvider} AppWidget.
  */
-public class TasksWidgetConfigureActivity extends AppCompatActivity implements TasksWidgetConfigureView {
+public class TasksWidgetConfigureActivity extends DaggerAppCompatActivity implements TasksWidgetConfigureView {
 
     @Inject TasksWidgetConfigurePresenter presenter;
 
@@ -62,7 +62,6 @@ public class TasksWidgetConfigureActivity extends AppCompatActivity implements T
         super.onCreate(savedInstanceState);
         binding = DataBindingUtil.setContentView(this, R.layout.activity_widget_configure);
         getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        TTasksApp.get(this).userComponent().inject(this);
         presenter.bindView(this);
 
         // Set the result to CANCELED.  This will cause the widget host to cancel

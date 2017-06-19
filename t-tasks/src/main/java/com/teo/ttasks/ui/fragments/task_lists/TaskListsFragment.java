@@ -4,9 +4,9 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
-import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
@@ -20,10 +20,8 @@ import android.widget.Toast;
 
 import com.mikepenz.fastadapter.FastAdapter;
 import com.mikepenz.fastadapter.adapters.ItemAdapter;
-import com.mikepenz.fastadapter.helpers.ClickListenerHelper;
 import com.mikepenz.fastadapter.listeners.ClickEventHook;
 import com.teo.ttasks.R;
-import com.teo.ttasks.TTasksApp;
 import com.teo.ttasks.databinding.FragmentTaskListsBinding;
 import com.teo.ttasks.receivers.NetworkInfoReceiver;
 import com.teo.ttasks.ui.DividerItemDecoration;
@@ -35,14 +33,15 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import dagger.android.support.DaggerFragment;
+
 import static android.view.View.GONE;
 
-public class TaskListsFragment extends Fragment implements TaskListsView, SwipeRefreshLayout.OnRefreshListener {
+public class TaskListsFragment extends DaggerFragment implements TaskListsView, SwipeRefreshLayout.OnRefreshListener {
 
     @Inject NetworkInfoReceiver networkInfoReceiver;
     @Inject TaskListsPresenter taskListsPresenter;
 
-    ClickListenerHelper<TaskListItem> clickListenerHelper;
     FastAdapter<TaskListItem> fastAdapter;
 
     private ItemAdapter<TaskListItem> itemAdapter;
@@ -109,38 +108,34 @@ public class TaskListsFragment extends Fragment implements TaskListsView, SwipeR
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        TTasksApp.get(getContext()).userComponent().inject(this);
         fastAdapter = new FastAdapter<>();
         itemAdapter = new ItemAdapter<>();
-        clickListenerHelper = new ClickListenerHelper<>(fastAdapter);
         fastAdapter.withOnClickListener((v, adapter, item, position) -> {
             showEditTaskListDialog(item);
             return true;
+        });
+
+        // Handle delete button click
+        fastAdapter.withEventHook(new ClickEventHook<TaskListItem>() {
+            @Nullable @Override
+            public View onBind(@NonNull RecyclerView.ViewHolder viewHolder) {
+                //return the views on which you want to bind this event
+                if (viewHolder instanceof TaskListItem.ViewHolder) {
+                    return ((TaskListItem.ViewHolder) viewHolder).itemTaskListBinding.deleteTaskList;
+                }
+                return null;
+            }
+
+            @Override
+            public void onClick(View v, int position, FastAdapter<TaskListItem> fastAdapter, TaskListItem item) {
+                showDeleteTaskListDialog(item.getId());
+            }
         });
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         taskListsBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_task_lists, container, false);
-
-        // Handle delete button click
-        fastAdapter.withOnCreateViewHolderListener(new FastAdapter.OnCreateViewHolderListener() {
-            @Override
-            public RecyclerView.ViewHolder onPreCreateViewHolder(ViewGroup parent, int viewType) {
-                return fastAdapter.getTypeInstance(viewType).getViewHolder(parent);
-            }
-
-            @Override
-            public RecyclerView.ViewHolder onPostCreateViewHolder(final RecyclerView.ViewHolder viewHolder) {
-                clickListenerHelper.attachToView(new ClickEventHook<TaskListItem>() {
-                    @Override
-                    public void onClick(View v, int position, FastAdapter<TaskListItem> fastAdapter, TaskListItem item) {
-                        showDeleteTaskListDialog(item.getId());
-                    }
-                }, viewHolder, ((TaskListItem.ViewHolder) viewHolder).itemTaskListBinding.deleteTaskList);
-                return viewHolder;
-            }
-        });
 
         taskListsBinding.taskLists.setLayoutManager(new LinearLayoutManager(getContext()));
         taskListsBinding.taskLists.addItemDecoration(new DividerItemDecoration(getContext(), null));

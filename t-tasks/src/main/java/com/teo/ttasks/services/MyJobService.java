@@ -4,9 +4,10 @@ import android.support.annotation.NonNull;
 
 import com.birbit.android.jobqueue.JobManager;
 import com.birbit.android.jobqueue.scheduling.FrameworkJobSchedulerService;
-import com.teo.ttasks.TTasksApp;
 
 import javax.inject.Inject;
+
+import dagger.android.AndroidInjection;
 
 public class MyJobService extends FrameworkJobSchedulerService {
 
@@ -15,7 +16,7 @@ public class MyJobService extends FrameworkJobSchedulerService {
     @Override @NonNull
     protected JobManager getJobManager() {
         if (jobManager == null)
-            TTasksApp.get(getApplicationContext()).userComponent().inject(this);
+            AndroidInjection.inject(this);
         return jobManager;
     }
 }

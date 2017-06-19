@@ -21,7 +21,9 @@ import java.lang.reflect.Type;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
@@ -30,7 +32,9 @@ import javax.inject.Singleton;
 
 import dagger.Module;
 import dagger.Provides;
+import okhttp3.ConnectionPool;
 import okhttp3.OkHttpClient;
+import okhttp3.Protocol;
 import okhttp3.Request;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
@@ -76,7 +80,11 @@ public class TasksApiModule {
 
     @Provides @Singleton
     OkHttpClient provideOkHttpClient(TokenHelper tokenHelper, PrefHelper prefHelper) {
+        final List<Protocol> protocols = new ArrayList<>();
+        protocols.add(Protocol.HTTP_1_1);
         return new OkHttpClient.Builder()
+                .protocols(protocols)
+                .connectionPool(new ConnectionPool(0, 5L, TimeUnit.MINUTES))
                 .connectTimeout(1, TimeUnit.MINUTES)
                 .readTimeout(1, TimeUnit.MINUTES)
                 .writeTimeout(1, TimeUnit.MINUTES)

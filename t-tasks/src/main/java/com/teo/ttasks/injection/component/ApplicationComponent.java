@@ -2,24 +2,33 @@ package com.teo.ttasks.injection.component;
 
 import com.teo.ttasks.TTasksApp;
 import com.teo.ttasks.injection.module.ApplicationModule;
-import com.teo.ttasks.injection.module.SignInModule;
+import com.teo.ttasks.injection.module.InjectorsModule;
 import com.teo.ttasks.injection.module.TasksApiModule;
-import com.teo.ttasks.injection.module.UserModule;
+import com.teo.ttasks.jobs.CreateTaskJob;
+import com.teo.ttasks.jobs.DeleteTaskJob;
 
 import javax.inject.Singleton;
 
 import dagger.Component;
+import dagger.android.AndroidInjector;
+import dagger.android.support.AndroidSupportInjectionModule;
 
 @Singleton
 @Component(modules = {
+        AndroidSupportInjectionModule.class,
         ApplicationModule.class,
-        TasksApiModule.class
+        TasksApiModule.class,
+
+        InjectorsModule.class
 })
-public interface ApplicationComponent {
+public interface ApplicationComponent extends AndroidInjector<TTasksApp> {
 
-    void inject(TTasksApp tTasksApp);
+    @Component.Builder
+    abstract class Builder extends AndroidInjector.Builder<TTasksApp> {
+        public abstract ApplicationComponent build();
+    }
 
-    SignInComponent plus(SignInModule signInModule);
+    void inject(CreateTaskJob createTaskJob);
 
-    UserComponent plus(UserModule userModule);
+    void inject(DeleteTaskJob deleteTaskJob);
 }

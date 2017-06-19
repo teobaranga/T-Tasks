@@ -60,6 +60,7 @@ public class TaskDetailPresenter extends Presenter<TaskDetailView> {
                             if (tTask == null) {
                                 if (view != null) view.onTaskLoadError();
                             } else {
+                                if (!tTask.isValid()) return;
                                 this.tTask = tTask;
                                 if (view != null) view.onTaskLoaded(tTask);
                             }

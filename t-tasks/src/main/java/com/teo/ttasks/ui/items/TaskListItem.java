@@ -6,7 +6,6 @@ import android.support.v7.widget.RecyclerView;
 import android.view.View;
 
 import com.mikepenz.fastadapter.items.AbstractItem;
-import com.mikepenz.fastadapter.utils.ViewHolderFactory;
 import com.teo.ttasks.R;
 import com.teo.ttasks.data.model.TTaskList;
 import com.teo.ttasks.databinding.ItemTaskListBinding;
@@ -16,8 +15,6 @@ import java.util.List;
 import timber.log.Timber;
 
 public class TaskListItem extends AbstractItem<TaskListItem, TaskListItem.ViewHolder> {
-
-    private static final ViewHolderFactory<? extends ViewHolder> FACTORY = new ItemFactory();
 
     private final TTaskList taskList;
     private final long taskCount;
@@ -37,11 +34,6 @@ public class TaskListItem extends AbstractItem<TaskListItem, TaskListItem.ViewHo
     }
 
     @Override
-    public ViewHolderFactory<? extends ViewHolder> getFactory() {
-        return FACTORY;
-    }
-
-    @Override
     public int getType() {
         return R.id.task_list_item;
     }
@@ -52,7 +44,7 @@ public class TaskListItem extends AbstractItem<TaskListItem, TaskListItem.ViewHo
     }
 
     @Override
-    public void bindView(ViewHolder viewHolder, List payloads) {
+    public void bindView(ViewHolder viewHolder, List<Object> payloads) {
         super.bindView(viewHolder, payloads);
 
         ItemTaskListBinding itemTaskBinding = viewHolder.itemTaskListBinding;
@@ -62,10 +54,8 @@ public class TaskListItem extends AbstractItem<TaskListItem, TaskListItem.ViewHo
         itemTaskBinding.taskListSize.setText(taskCount > 0 ? context.getString(R.string.task_list_size, taskCount) : context.getString(R.string.empty_task_list));
     }
 
-    private static class ItemFactory implements ViewHolderFactory<ViewHolder> {
-        public ViewHolder create(View v) {
-            return new ViewHolder(v);
-        }
+    @Override public ViewHolder getViewHolder(View view) {
+        return new ViewHolder(view);
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
