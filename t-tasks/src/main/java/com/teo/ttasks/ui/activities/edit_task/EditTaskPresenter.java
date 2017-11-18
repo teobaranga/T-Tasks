@@ -25,10 +25,10 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
 
+import io.reactivex.Flowable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
 import io.realm.Realm;
-import rx.Observable;
-import rx.Subscription;
-import rx.android.schedulers.AndroidSchedulers;
 import timber.log.Timber;
 
 public class EditTaskPresenter extends Presenter<EditTaskView> {
@@ -53,7 +53,7 @@ public class EditTaskPresenter extends Presenter<EditTaskView> {
 
     private Realm realm;
 
-    private Subscription taskSubscription;
+    private Disposable taskSubscription;
 
     public EditTaskPresenter(TasksHelper tasksHelper, PrefHelper prefHelper, WidgetHelper widgetHelper,
                              NotificationHelper notificationHelper, JobManager jobManager) {
@@ -71,9 +71,9 @@ public class EditTaskPresenter extends Presenter<EditTaskView> {
      * @param taskId task list identifier
      */
     void loadTaskInfo(String taskId) {
-        if (taskSubscription != null && !taskSubscription.isUnsubscribed())
-            taskSubscription.unsubscribe();
-        taskSubscription = tasksHelper.getTaskAsObservable(taskId, realm)
+        if (taskSubscription != null && !taskSubscription.isDisposed())
+            taskSubscription.dispose();
+        taskSubscription = tasksHelper.getTaskAsFlowable(taskId, realm)
                 .subscribe(
                         tTask -> {
                             if (tTask == null) {
@@ -364,14 +364,14 @@ public class EditTaskPresenter extends Presenter<EditTaskView> {
         jobManagerCallback = new JobManagerCallbackAdapter() {
             @Override public void onJobRun(@NonNull Job job, int resultCode) {
                 // Execute on the main thread because this callback doesn't do it
-                Observable.defer(() -> {
+                Flowable.defer(() -> {
                     if (job instanceof CreateTaskJob) {
                         if (resultCode != RESULT_SUCCEED) {
                             final EditTaskView view = view();
                             if (view != null) view.onTaskSaveError();
                         }
                     }
-                    return Observable.empty();
+                    return Flowable.empty();
                 }).subscribeOn(AndroidSchedulers.mainThread()).subscribe();
             }
         };

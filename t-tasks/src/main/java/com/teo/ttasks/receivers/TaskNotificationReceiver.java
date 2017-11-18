@@ -11,9 +11,8 @@ import com.teo.ttasks.data.remote.TasksHelper;
 import javax.inject.Inject;
 
 import dagger.android.DaggerBroadcastReceiver;
+import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.realm.Realm;
-import rx.Observable;
-import rx.android.schedulers.AndroidSchedulers;
 import timber.log.Timber;
 
 public class TaskNotificationReceiver extends DaggerBroadcastReceiver {
@@ -69,13 +68,8 @@ public class TaskNotificationReceiver extends DaggerBroadcastReceiver {
                 case ACTION_DELETE:
                     // Mark this task's reminder as dismissed
                     realm = Realm.getDefaultInstance();
-                    tasksHelper.getTaskAsObservable(taskId, realm)
-                            .first()
-                            .flatMap(tTask -> {
-                                if (tTask == null)
-                                    return Observable.error(new Throwable("Task not found"));
-                                return Observable.just(tTask);
-                            })
+                    tasksHelper.getTaskAsFlowable(taskId, realm)
+                            .firstOrError()
                             .subscribe(
                                     tTask -> {
                                         realm.executeTransaction(realm1 -> tTask.setNotificationDismissed(true));

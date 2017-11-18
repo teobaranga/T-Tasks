@@ -108,8 +108,8 @@ public class TaskListsFragment extends DaggerFragment implements TaskListsView, 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        fastAdapter = new FastAdapter<>();
         itemAdapter = new ItemAdapter<>();
+        fastAdapter = FastAdapter.with(itemAdapter);
         fastAdapter.withOnClickListener((v, adapter, item, position) -> {
             showEditTaskListDialog(item);
             return true;
@@ -139,7 +139,7 @@ public class TaskListsFragment extends DaggerFragment implements TaskListsView, 
 
         taskListsBinding.taskLists.setLayoutManager(new LinearLayoutManager(getContext()));
         taskListsBinding.taskLists.addItemDecoration(new DividerItemDecoration(getContext(), null));
-        taskListsBinding.taskLists.setAdapter(itemAdapter.wrap(fastAdapter));
+        taskListsBinding.taskLists.setAdapter(fastAdapter);
 
         taskListsBinding.swipeRefreshLayout.setOnRefreshListener(this);
 
@@ -194,7 +194,7 @@ public class TaskListsFragment extends DaggerFragment implements TaskListsView, 
         taskListsBinding.taskLists.post(() -> {
             final LinearLayoutManager layoutManager = (LinearLayoutManager) taskListsBinding.taskLists.getLayoutManager();
             final int position = layoutManager.findLastVisibleItemPosition();
-            if ((itemAdapter.getItemCount() - 1) <= position || position == RecyclerView.NO_POSITION) {
+            if ((itemAdapter.getAdapterItemCount() - 1) <= position || position == RecyclerView.NO_POSITION) {
                 // All task lists fit on the screen, no need for scrolling
                 ((MainActivity) getActivity()).disableScrolling(true);
             } else {

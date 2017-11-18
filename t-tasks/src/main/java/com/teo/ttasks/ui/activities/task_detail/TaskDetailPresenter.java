@@ -15,10 +15,10 @@ import com.teo.ttasks.jobs.DeleteTaskJob;
 import com.teo.ttasks.ui.base.Presenter;
 import com.teo.ttasks.util.NotificationHelper;
 
+import io.reactivex.Flowable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
 import io.realm.Realm;
-import rx.Observable;
-import rx.Subscription;
-import rx.android.schedulers.AndroidSchedulers;
 import timber.log.Timber;
 
 public class TaskDetailPresenter extends Presenter<TaskDetailView> {
@@ -31,7 +31,7 @@ public class TaskDetailPresenter extends Presenter<TaskDetailView> {
 
     private JobManagerCallback jobManagerCallback;
 
-    private Subscription taskSubscription;
+    private Disposable taskSubscription;
 
     private Realm realm;
 
@@ -50,9 +50,9 @@ public class TaskDetailPresenter extends Presenter<TaskDetailView> {
 
     void getTask(String taskId) {
         this.taskId = taskId;
-        if (taskSubscription != null && !taskSubscription.isUnsubscribed())
-            taskSubscription.unsubscribe();
-        taskSubscription = tasksHelper.getTaskAsObservable(taskId, realm)
+        if (taskSubscription != null && !taskSubscription.isDisposed())
+            taskSubscription.dispose();
+        taskSubscription = tasksHelper.getTaskAsFlowable(taskId, realm)
                 .subscribe(
                         // Realm observables do not throw errors
                         tTask -> {
@@ -70,7 +70,7 @@ public class TaskDetailPresenter extends Presenter<TaskDetailView> {
     }
 
     void getTaskList(String taskListId) {
-        tasksHelper.getTaskListAsObservable(taskListId, realm)
+        tasksHelper.getTaskListAsFlowable(taskListId, realm)
                 .subscribe(
                         // Realm observables do not throw errors
                         taskList -> {
@@ -148,7 +148,7 @@ public class TaskDetailPresenter extends Presenter<TaskDetailView> {
         realm = Realm.getDefaultInstance();
         jobManagerCallback = new JobManagerCallbackAdapter() {
             @Override public void onJobRun(@NonNull Job job, int resultCode) {
-                Observable.defer(() -> {
+                Flowable.defer(() -> {
                     if (job instanceof CreateTaskJob) {
                         final CreateTaskJob createTaskJob = (CreateTaskJob) job;
                         if (createTaskJob.getLocalTaskId().equals(taskId) && resultCode == RESULT_SUCCEED) {
@@ -156,7 +156,7 @@ public class TaskDetailPresenter extends Presenter<TaskDetailView> {
                             getTask(createTaskJob.getOnlineTaskId());
                         }
                     }
-                    return Observable.empty();
+                    return Flowable.empty();
                 }).subscribeOn(AndroidSchedulers.mainThread()).subscribe();
             }
         };

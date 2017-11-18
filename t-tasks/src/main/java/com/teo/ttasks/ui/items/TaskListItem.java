@@ -2,9 +2,10 @@ package com.teo.ttasks.ui.items;
 
 import android.content.Context;
 import android.databinding.DataBindingUtil;
-import android.support.v7.widget.RecyclerView;
+import android.support.annotation.NonNull;
 import android.view.View;
 
+import com.mikepenz.fastadapter.FastAdapter;
 import com.mikepenz.fastadapter.items.AbstractItem;
 import com.teo.ttasks.R;
 import com.teo.ttasks.data.model.TTaskList;
@@ -33,6 +34,10 @@ public class TaskListItem extends AbstractItem<TaskListItem, TaskListItem.ViewHo
         return taskList.getId();
     }
 
+    long getTaskCount() {
+        return taskCount;
+    }
+
     @Override
     public int getType() {
         return R.id.task_list_item;
@@ -43,28 +48,33 @@ public class TaskListItem extends AbstractItem<TaskListItem, TaskListItem.ViewHo
         return R.layout.item_task_list;
     }
 
-    @Override
-    public void bindView(ViewHolder viewHolder, List<Object> payloads) {
-        super.bindView(viewHolder, payloads);
-
-        ItemTaskListBinding itemTaskBinding = viewHolder.itemTaskListBinding;
-        Context context = itemTaskBinding.getRoot().getContext();
-
-        itemTaskBinding.taskListTitle.setText(taskList.getTitle());
-        itemTaskBinding.taskListSize.setText(taskCount > 0 ? context.getString(R.string.task_list_size, taskCount) : context.getString(R.string.empty_task_list));
-    }
-
-    @Override public ViewHolder getViewHolder(View view) {
+    @Override public ViewHolder getViewHolder(@NonNull View view) {
         return new ViewHolder(view);
     }
 
-    public static class ViewHolder extends RecyclerView.ViewHolder {
+    public static class ViewHolder extends FastAdapter.ViewHolder<TaskListItem> {
 
-        public ItemTaskListBinding itemTaskListBinding;
+        public final ItemTaskListBinding itemTaskListBinding;
 
         ViewHolder(View view) {
             super(view);
             itemTaskListBinding = DataBindingUtil.bind(view);
+        }
+
+        @Override
+        public void bindView(@NonNull TaskListItem item, @NonNull List<Object> payloads) {
+            Context context = itemTaskListBinding.getRoot().getContext();
+            long taskCount = item.getTaskCount();
+            itemTaskListBinding.taskListSize.setText(taskCount > 0 ?
+                    context.getString(R.string.task_list_size, taskCount) :
+                    context.getString(R.string.empty_task_list));
+            itemTaskListBinding.taskListTitle.setText(item.getTitle());
+        }
+
+        @Override
+        public void unbindView(@NonNull TaskListItem item) {
+            itemTaskListBinding.taskListSize.setText(null);
+            itemTaskListBinding.taskListTitle.setText(null);
         }
     }
 }

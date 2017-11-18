@@ -10,9 +10,9 @@ import com.teo.ttasks.data.remote.TasksHelper;
 import com.teo.ttasks.ui.base.Presenter;
 import com.teo.ttasks.util.NightHelper;
 
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
 import io.realm.Realm;
-import rx.Subscription;
-import rx.android.schedulers.AndroidSchedulers;
 import timber.log.Timber;
 
 import static com.teo.ttasks.util.NightHelper.NIGHT_AUTO;
@@ -53,7 +53,7 @@ public class MainActivityPresenter extends Presenter<MainView> {
      * Must be called after onConnected
      */
     void loadCurrentUser() {
-        final Subscription subscription = peopleApi.getCurrentUserProfile()
+        final Disposable subscription = peopleApi.getCurrentUserProfile()
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
                         person -> {
@@ -93,7 +93,7 @@ public class MainActivityPresenter extends Presenter<MainView> {
     }
 
     void getTaskLists() {
-        final Subscription subscription = tasksHelper.getTaskLists(realm)
+        final Disposable subscription = tasksHelper.getTaskLists(realm)
                 .map(taskLists -> {
                     String currentTaskListId = prefHelper.getCurrentTaskListId();
                     // Find the index of the current task list
@@ -107,7 +107,8 @@ public class MainActivityPresenter extends Presenter<MainView> {
                 .subscribe(
                         taskListsIndexPair -> {
                             final MainView view = view();
-                            if (view != null) view.onTaskListsLoaded(taskListsIndexPair.first, taskListsIndexPair.second);
+                            if (view != null)
+                                view.onTaskListsLoaded(taskListsIndexPair.first, taskListsIndexPair.second);
                         },
                         throwable -> {
                             Timber.e(throwable.toString());
@@ -118,7 +119,7 @@ public class MainActivityPresenter extends Presenter<MainView> {
     }
 
     void refreshTaskLists() {
-        final Subscription subscription = tasksHelper.refreshTaskLists()
+        final Disposable subscription = tasksHelper.refreshTaskLists()
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
                         taskListsResponse -> {

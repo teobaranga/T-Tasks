@@ -1,6 +1,7 @@
 package com.teo.ttasks;
 
 import android.content.Context;
+import android.support.multidex.MultiDex;
 
 import com.crashlytics.android.Crashlytics;
 import com.teo.ttasks.data.local.PrefHelper;
@@ -29,6 +30,12 @@ public class TTasksApp extends DaggerApplication {
     // Prevent need in a singleton (global) reference to the application object.
     public static TTasksApp get(Context context) {
         return (TTasksApp) context.getApplicationContext();
+    }
+
+    @Override
+    protected void attachBaseContext(Context base) {
+        super.attachBaseContext(base);
+        MultiDex.install(this);
     }
 
     @Override

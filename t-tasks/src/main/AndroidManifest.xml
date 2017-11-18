@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="com.teo.ttasks">
+    package="com.teo.ttasks">
 
-    <uses-permission android:name="android.permission.INTERNET"/>
-    <uses-permission android:name="android.permission.USE_CREDENTIALS"/>
-    <uses-permission android:name="android.permission.MANAGE_ACCOUNTS"/>
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
-    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.USE_CREDENTIALS" />
+    <uses-permission android:name="android.permission.MANAGE_ACCOUNTS" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <!-- TODO set allowBackup to true -->
     <application
@@ -27,9 +27,9 @@
             android:launchMode="singleTop"
             android:theme="@style/Theme.Main">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
+                <action android:name="android.intent.action.MAIN" />
 
-                <category android:name="android.intent.category.LAUNCHER"/>
+                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
         <activity
@@ -39,7 +39,7 @@
             android:theme="@style/Theme.TaskDetail">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".ui.activities.main.MainActivity"/>
+                android:value=".ui.activities.main.MainActivity" />
         </activity>
         <activity
             android:name=".ui.activities.edit_task.EditTaskActivity"
@@ -52,55 +52,55 @@
             android:theme="@style/Theme.Settings">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".ui.activities.main.MainActivity"/>
+                android:value=".ui.activities.main.MainActivity" />
         </activity>
         <activity
             android:name=".ui.activities.AboutActivity"
             android:theme="@style/Theme.About">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".ui.activities.main.MainActivity"/>
+                android:value=".ui.activities.main.MainActivity" />
         </activity>
         <activity
             android:name=".widget.configure.TasksWidgetConfigureActivity"
             android:label="Configure widget"
             android:theme="@style/Theme.TasksWidgetConfigure">
             <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE"/>
+                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
             </intent-filter>
         </activity>
 
         <receiver android:name=".widget.TasksWidgetProvider">
             <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
 
             <meta-data
                 android:name="android.appwidget.provider"
-                android:resource="@xml/tasks_widget_info"/>
+                android:resource="@xml/tasks_widget_info" />
         </receiver>
-        <receiver android:name=".receivers.TaskNotificationReceiver"/>
+        <receiver android:name=".receivers.TaskNotificationReceiver" />
 
         <service
             android:name=".widget.TasksWidgetService"
-            android:permission="android.permission.BIND_REMOTEVIEWS"/>
+            android:permission="android.permission.BIND_REMOTEVIEWS" />
 
         <service
             android:name=".services.MyJobService"
-            android:permission="android.permission.BIND_JOB_SERVICE"/>
+            android:permission="android.permission.BIND_JOB_SERVICE" />
 
         <service
             android:name=".services.MyGcmJobService"
             android:exported="true"
             android:permission="com.google.android.gms.permission.BIND_NETWORK_TASK_SERVICE">
             <intent-filter>
-                <action android:name="com.google.android.gms.gcm.ACTION_TASK_READY"/>
+                <action android:name="com.google.android.gms.gcm.ACTION_TASK_READY" />
             </intent-filter>
         </service>
 
         <meta-data
             android:name="io.fabric.ApiKey"
-            android:value="49881be4a0f3b48a47ff8a046e4e3c45d0de363d"/>
+            android:value="49881be4a0f3b48a47ff8a046e4e3c45d0de363d" />
 
     </application>
 

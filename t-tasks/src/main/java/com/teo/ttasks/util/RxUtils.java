@@ -14,9 +14,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import rx.Observable;
-import rx.Observable.Transformer;
-import rx.observables.GroupedObservable;
+import io.reactivex.Flowable;
+import io.reactivex.FlowableTransformer;
+import io.reactivex.flowables.GroupedFlowable;
 
 import static java.lang.annotation.RetentionPolicy.SOURCE;
 
@@ -29,7 +29,7 @@ public class RxUtils {
      * 2. Groups them by completion status (not completed or no due date first followed by completed ones)<br>
      * 3. Sorts the first group by due date and the second group by completion date
      */
-    public static Transformer<List<TTask>, List<IItem>> getTaskItems(boolean hideCompleted) {
+    public static FlowableTransformer<List<TTask>, List<IItem>> getTaskItems(boolean hideCompleted) {
         return observable -> observable
                 .map(tasks -> {
                     List<IItem> taskItems = new ArrayList<>();
@@ -62,7 +62,7 @@ public class RxUtils {
                 });
     }
 
-    public static Transformer<List<TTask>, GroupedObservable<Boolean, List<TaskItem>>> getTaskItems(@SortingMode int sortingMode) {
+    public static FlowableTransformer<List<TTask>, GroupedFlowable<Boolean, List<TaskItem>>> getTaskItems(@SortingMode int sortingMode) {
         return observable -> observable
                 .flatMap(tTasks -> {
                     List<TaskItem> activeTasks = new ArrayList<>();
@@ -94,9 +94,9 @@ public class RxUtils {
                             break;
                     }
 
-                    return Observable.just(
-                            GroupedObservable.from(true, Observable.just(activeTasks)),
-                            GroupedObservable.from(false, Observable.just(completedTasks)));
+                    return Flowable.just(activeTasks, completedTasks)
+                            // Group by pushing the active tasks as true and completed tasks as false
+                            .groupBy(task -> !task.isEmpty() && task.get(0).getCompleted() == null);
                 });
     }
 

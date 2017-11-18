@@ -8,6 +8,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.SystemClock;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityOptionsCompat;
@@ -27,8 +28,9 @@ import android.widget.Toast;
 import com.mikepenz.fastadapter.FastAdapter;
 import com.mikepenz.fastadapter.IAdapter;
 import com.mikepenz.fastadapter.IItem;
-import com.mikepenz.fastadapter.adapters.FooterAdapter;
-import com.mikepenz.fastadapter.commons.adapters.FastItemAdapter;
+import com.mikepenz.fastadapter.adapters.ItemAdapter;
+import com.mikepenz.fastadapter.expandable.ExpandableExtension;
+import com.mikepenz.fastadapter.listeners.OnClickListener;
 import com.teo.ttasks.R;
 import com.teo.ttasks.databinding.FragmentTasksBinding;
 import com.teo.ttasks.receivers.NetworkInfoReceiver;
@@ -39,6 +41,8 @@ import com.teo.ttasks.ui.items.CategoryItem;
 import com.teo.ttasks.ui.items.TaskItem;
 import com.teo.ttasks.util.RxUtils;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -50,6 +54,7 @@ import static android.app.Activity.RESULT_OK;
 import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
 import static android.view.Window.NAVIGATION_BAR_BACKGROUND_TRANSITION_NAME;
+import static com.mikepenz.fastadapter.adapters.ItemAdapter.items;
 
 public class TasksFragment extends DaggerFragment implements TasksView,
                                                              SwipeRefreshLayout.OnRefreshListener {
@@ -57,6 +62,8 @@ public class TasksFragment extends DaggerFragment implements TasksView,
     private static final String ARG_TASK_LIST_ID = "taskListId";
 
     private static final int RC_USER_RECOVERABLE = 1;
+
+    private static final long completedHeaderId = Long.MAX_VALUE;
 
     /**
      * Array holding the 3 shared elements used during the transition to the {@link TaskDetailActivity}.<br>
@@ -87,8 +94,11 @@ public class TasksFragment extends DaggerFragment implements TasksView,
     Pair<View, String> navBar;
 
     FloatingActionButton fab;
-    FooterAdapter<CategoryItem> completedHeaderAdapter;
-    private final FastAdapter.OnClickListener<IItem> taskItemClickListener = new FastAdapter.OnClickListener<IItem>() {
+    ItemAdapter<CategoryItem> completedHeaderAdapter;
+    ItemAdapter<IItem> itemAdapter;
+    private FastAdapter<IItem> fastAdapter;
+    private ExpandableExtension<IItem> expandableExtension;
+    private final OnClickListener<IItem> taskItemClickListener = new OnClickListener<IItem>() {
         // Reject quick, successive clicks because they break the app
         private static final long MIN_CLICK_INTERVAL = 1000;
         private long lastClickTime = 0;
@@ -150,14 +160,13 @@ public class TasksFragment extends DaggerFragment implements TasksView,
                     }
                     categoryItem.toggleArrow(true);
                     tasksPresenter.setShowCompleted(!showCompleted);
-                    completedHeaderAdapter.notifyItemChanged(completedHeaderAdapter.getGlobalPosition(0));
+                    fastAdapter.notifyAdapterItemChanged(completedHeaderAdapter.getGlobalPosition(0));
                 }
             }
             return true;
         }
     };
     private NetworkInfoReceiver networkInfoReceiver;
-    private FastItemAdapter<IItem> fastItemAdapter;
 
     /**
      * Create a new instance of this fragment
@@ -184,8 +193,8 @@ public class TasksFragment extends DaggerFragment implements TasksView,
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
-        fastItemAdapter = new FastItemAdapter<>();
-        completedHeaderAdapter = new FooterAdapter<>();
+        itemAdapter = items();
+        completedHeaderAdapter = new ItemAdapter<>();
 
         if (savedInstanceState != null) {
             taskListId = savedInstanceState.getString(ARG_TASK_LIST_ID);
@@ -193,7 +202,9 @@ public class TasksFragment extends DaggerFragment implements TasksView,
 
         createNavBarPair();
 
-        fastItemAdapter.withOnClickListener(taskItemClickListener);
+        expandableExtension = new ExpandableExtension<>();
+        fastAdapter = FastAdapter.with(Arrays.asList(itemAdapter, completedHeaderAdapter), Collections.singletonList(expandableExtension));
+        fastAdapter.withOnClickListener(taskItemClickListener);
 
         networkInfoReceiver = new NetworkInfoReceiver();
         networkInfoReceiver.setOnConnectionChangedListener(isOnline -> {
@@ -221,7 +232,7 @@ public class TasksFragment extends DaggerFragment implements TasksView,
         tasksPresenter.bindView(this);
 
         tasksBinding.tasksList.setLayoutManager(new LinearLayoutManager(getContext()));
-        tasksBinding.tasksList.setAdapter(completedHeaderAdapter.wrap(fastItemAdapter));
+        tasksBinding.tasksList.setAdapter(fastAdapter);
         ((SimpleItemAnimator) tasksBinding.tasksList.getItemAnimator()).setSupportsChangeAnimations(false);
 
         tasksBinding.swipeRefreshLayout.setOnRefreshListener(this);
@@ -241,7 +252,7 @@ public class TasksFragment extends DaggerFragment implements TasksView,
     }
 
     @Override
-    public void onSaveInstanceState(Bundle outState) {
+    public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putString(ARG_TASK_LIST_ID, taskListId);
     }
@@ -287,7 +298,7 @@ public class TasksFragment extends DaggerFragment implements TasksView,
     @Override
     public void onActiveTasksLoaded(List<TaskItem> activeTasks) {
         //noinspection unchecked
-        fastItemAdapter.setNewList((List<IItem>) (List<?>) activeTasks);
+        itemAdapter.setNewList((List<IItem>) (List<?>) activeTasks);
     }
 
     @Override
@@ -297,17 +308,17 @@ public class TasksFragment extends DaggerFragment implements TasksView,
             completedHeaderAdapter.clear();
         } else {
             if (emptyAdapter) {
-                final CategoryItem completedHeader = new CategoryItem()
+                final CategoryItem completedHeader = new CategoryItem<>()
                         .withTitle(R.string.completed)
-                        .withIsExpanded(tasksPresenter.getShowCompleted());
+                        .withIsExpanded(tasksPresenter.getShowCompleted())
+                        .withIdentifier(completedHeaderId);
                 completedHeader.withSubItems(completedTasks);
                 completedHeaderAdapter.add(completedHeader);
                 new Handler().post(() -> completedHeader.toggleArrow(false));
             } else {
-                final CategoryItem completedHeader = completedHeaderAdapter.getAdapterItem(0);
+                final CategoryItem completedHeader = completedHeaderAdapter.getAdapterItem(completedHeaderAdapter.getAdapterPosition(completedHeaderId));
                 completedHeader.withSubItems(completedTasks);
-                completedHeaderAdapter.clear();
-                completedHeaderAdapter.add(completedHeader);
+                fastAdapter.notifyAdapterItemChanged(fastAdapter.getPosition(completedHeaderId));
             }
         }
     }
@@ -324,7 +335,7 @@ public class TasksFragment extends DaggerFragment implements TasksView,
 
     @Override
     public void onTasksEmpty() {
-        fastItemAdapter.clear();
+        itemAdapter.clear();
         completedHeaderAdapter.clear();
         tasksBinding.tasksLoading.setVisibility(GONE);
         tasksBinding.tasksEmpty.setVisibility(VISIBLE);
@@ -340,7 +351,7 @@ public class TasksFragment extends DaggerFragment implements TasksView,
         tasksBinding.tasksList.post(() -> {
             final LinearLayoutManager layoutManager = (LinearLayoutManager) tasksBinding.tasksList.getLayoutManager();
             final int position = layoutManager.findLastVisibleItemPosition();
-            if ((fastItemAdapter.getItemCount() - 1) <= position || position == RecyclerView.NO_POSITION) {
+            if ((itemAdapter.getAdapterItemCount() - 1) <= position || position == RecyclerView.NO_POSITION) {
                 ((MainActivity) getActivity()).disableScrolling(true);
             } else {
                 ((MainActivity) getActivity()).enableScrolling();

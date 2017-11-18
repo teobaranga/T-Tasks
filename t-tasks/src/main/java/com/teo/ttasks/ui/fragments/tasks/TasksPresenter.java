@@ -18,9 +18,9 @@ import com.teo.ttasks.util.RxUtils;
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
 import io.realm.Realm;
-import rx.Subscription;
-import rx.android.schedulers.AndroidSchedulers;
 import timber.log.Timber;
 
 public class TasksPresenter extends Presenter<TasksView> {
@@ -28,7 +28,7 @@ public class TasksPresenter extends Presenter<TasksView> {
     private final TasksHelper tasksHelper;
     private final PrefHelper prefHelper;
 
-    private Subscription tasksSubscription;
+    private Disposable tasksSubscription;
 
     @RxUtils.SortingMode
     private int sortingMode;
@@ -53,8 +53,8 @@ public class TasksPresenter extends Presenter<TasksView> {
             return;
         final AtomicInteger taskCount = new AtomicInteger();
         // Since Realm observables do not complete, this subscription must be recreated every time
-        if (tasksSubscription != null && !tasksSubscription.isUnsubscribed())
-            tasksSubscription.unsubscribe();
+        if (tasksSubscription != null && !tasksSubscription.isDisposed())
+            tasksSubscription.dispose();
         {
             final TasksView view = view();
             if (view != null) view.onTasksLoading();
@@ -130,7 +130,7 @@ public class TasksPresenter extends Presenter<TasksView> {
     void refreshTasks(@Nullable String taskListId) {
         if (taskListId == null)
             return;
-        final Subscription subscription = tasksHelper.refreshTasks(taskListId)
+        final Disposable subscription = tasksHelper.refreshTasks(taskListId)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
                         tasksResponse -> { /* ignored since onCompleted does the job, even when the tasks have not been updated */ },
@@ -162,7 +162,7 @@ public class TasksPresenter extends Presenter<TasksView> {
             return;
         // Keep track of the number of synced tasks
         AtomicInteger taskSyncCount = new AtomicInteger(0);
-        final Subscription subscription = tasksHelper.syncTasks(taskListId)
+        final Disposable subscription = tasksHelper.syncTasks(taskListId)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
                         syncedTask -> {

@@ -22,13 +22,13 @@ import com.teo.ttasks.util.FirebaseUtil;
 import java.util.Date;
 import java.util.List;
 
+import io.reactivex.Flowable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.realm.Realm;
 import io.realm.RealmQuery;
 import io.realm.RealmResults;
 import okhttp3.ResponseBody;
 import retrofit2.HttpException;
-import rx.Observable;
-import rx.android.schedulers.AndroidSchedulers;
 import timber.log.Timber;
 
 import static com.teo.ttasks.data.model.Task.STATUS_COMPLETED;
@@ -71,7 +71,7 @@ public final class TasksHelper {
         return realm.where(TasksResponse.class).equalTo(TasksResponseFields.ID, taskListId).findFirst();
     }
 
-    private Observable handleResourceNotModified(Throwable throwable) {
+    private Flowable handleResourceNotModified(Throwable throwable) {
         // End the stream if the status code is 304 - Not Modified
         if (throwable instanceof HttpException) {
             final HttpException httpException = (HttpException) throwable;
@@ -81,22 +81,22 @@ public final class TasksHelper {
                 errorBody.close();
             }
             if (httpException.code() == 304)
-                return Observable.empty();
+                return Flowable.empty();
         }
-        return Observable.error(throwable);
+        return Flowable.error(throwable);
     }
 
     /**
      * Retrieve all the valid task lists associated with the current account.
      *
      * @param realm a Realm instance
-     * @return an Observable containing the list of task lists
+     * @return a Flowable containing the list of task lists
      */
-    public Observable<RealmResults<TTaskList>> getTaskLists(Realm realm) {
+    public Flowable<RealmResults<TTaskList>> getTaskLists(Realm realm) {
         return realm.where(TTaskList.class)
                 .equalTo(TTaskListFields.DELETED, false)
                 .findAll()
-                .asObservable();
+                .asFlowable();
     }
 
     /**
@@ -104,13 +104,13 @@ public final class TasksHelper {
      *
      * @param taskListId task list identifier
      * @param realm      a Realm instance
-     * @return an Observable containing the requested task list
+     * @return a Flowable containing the requested task list
      */
-    public Observable<TTaskList> getTaskListAsObservable(String taskListId, Realm realm) {
+    public Flowable<TTaskList> getTaskListAsFlowable(String taskListId, Realm realm) {
         final TTaskList taskList = getTaskList(taskListId, realm);
         if (taskList == null)
-            return Observable.empty();
-        return taskList.asObservable();
+            return Flowable.empty();
+        return taskList.asFlowable();
     }
 
     public TTaskList getTaskList(String taskListId, Realm realm) {
@@ -124,9 +124,9 @@ public final class TasksHelper {
      * Create a new task list.
      *
      * @param taskListFields fields that make up the new task list
-     * @return an Observable containing the newly created task list
+     * @return an Flowable containing the newly created task list
      */
-    public Observable<TaskList> newTaskList(TaskListFields taskListFields) {
+    public Flowable<TaskList> newTaskList(TaskListFields taskListFields) {
         return tasksApi.insertTaskList(taskListFields);
     }
 
@@ -136,7 +136,7 @@ public final class TasksHelper {
      * @param taskListId     task list identifier
      * @param taskListFields fields to be modified
      */
-    public Observable<TaskList> updateTaskList(String taskListId, TaskListFields taskListFields) {
+    public Flowable<TaskList> updateTaskList(String taskListId, TaskListFields taskListFields) {
         return tasksApi.updateTaskList(taskListId, taskListFields);
     }
 
@@ -146,10 +146,10 @@ public final class TasksHelper {
      *
      * @param taskListId task list identifier
      */
-    public Observable<Void> deleteTaskList(String taskListId) {
+    public Flowable<Void> deleteTaskList(String taskListId) {
         return tasksApi.deleteTaskList(taskListId)
                 .observeOn(AndroidSchedulers.mainThread())
-                .doOnCompleted(() -> {
+                .doOnComplete(() -> {
                     Realm realm = Realm.getDefaultInstance();
                     realm.executeTransaction(realm1 -> {
                         final TTaskList tTaskList = getTaskList(taskListId, realm1);
@@ -173,7 +173,7 @@ public final class TasksHelper {
         return getValidTasks(taskListId, realm).count();
     }
 
-    public Observable<TaskListsResponse> refreshTaskLists() {
+    public Flowable<TaskListsResponse> refreshTaskLists() {
         return tasksApi.getTaskLists(prefHelper.getTaskListsResponseEtag())
                 .onErrorResumeNext(this::handleResourceNotModified)
                 .doOnNext(taskListsResponse -> {
@@ -223,36 +223,37 @@ public final class TasksHelper {
      * @param taskListId the ID of the task list
      * @param realm      an instance of Realm
      */
-    public Observable<RealmResults<TTask>> getTasks(String taskListId, Realm realm) {
-        return getValidTasks(taskListId, realm).findAll().asObservable();
+    public Flowable<RealmResults<TTask>> getTasks(String taskListId, Realm realm) {
+        return getValidTasks(taskListId, realm).findAll().asFlowable();
     }
 
     /**
      * Get the tasks associated with a given task list from the local database.
      *
      * @param taskListId task list identifier
-     * @return an Observable of a list of un-managed {@link Task}s
+     * @return a Flowable of a list of un-managed {@link Task}s
      */
-    public Observable<List<TTask>> getTasks(String taskListId) {
-        return Observable.defer(() -> {
+    public Flowable<List<TTask>> getTasks(String taskListId) {
+        return Flowable.defer(() -> {
             Realm realm = Realm.getDefaultInstance();
             List<TTask> tasks = getValidTasks(taskListId, realm).findAll();
             if (tasks.isEmpty()) {
                 realm.close();
-                return Observable.empty();
+                return Flowable.empty();
             } else {
                 tasks = realm.copyFromRealm(tasks);
                 realm.close();
-                return Observable.just(tasks);
+                return Flowable.just(tasks);
             }
         });
     }
 
-    public Observable<TTask> getTaskAsObservable(String taskId, Realm realm) {
+    public Flowable<TTask> getTaskAsFlowable(String taskId, Realm realm) {
         final TTask tTask = getTask(taskId, realm);
-        if (tTask == null)
-            return Observable.empty();
-        return tTask.asObservable();
+        if (tTask == null) {
+            return Flowable.error(new NullPointerException("No task found with ID " + taskId));
+        }
+        return tTask.asFlowable();
     }
 
     @Nullable
@@ -265,10 +266,10 @@ public final class TasksHelper {
      * Delete the tasks that are marked as deleted.
      *
      * @param taskListId task list identifier
-     * @return an Observable returning every task after it was successfully synced
+     * @return a Flowable returning every task after it was successfully synced
      */
     @SuppressLint("NewApi")
-    public Observable<TTask> syncTasks(String taskListId) {
+    public Flowable<TTask> syncTasks(String taskListId) {
         return getTasks(taskListId)
                 .flatMapIterable(tasks -> tasks)
                 .filter(task -> !task.isSynced())
@@ -280,11 +281,11 @@ public final class TasksHelper {
                             return updateTask(taskListId, tTask);
                         }
                     }
-                    return Observable.empty();
+                    return Flowable.empty();
                 });
     }
 
-    public Observable<TasksResponse> refreshTasks(String taskListId) {
+    public Flowable<TasksResponse> refreshTasks(String taskListId) {
         return tasksApi.getTasks(taskListId, prefHelper.getTasksResponseEtag(taskListId))
                 .onErrorResumeNext(this::handleResourceNotModified)
                 .doOnNext(tasksResponse -> {
@@ -321,7 +322,7 @@ public final class TasksHelper {
                 });
     }
 
-    private Observable<TTask> updateTask(String taskListId, TTask tTask) {
+    private Flowable<TTask> updateTask(String taskListId, TTask tTask) {
         Timber.d("updating task %s, %s, %s", tTask.getId(), tTask.isSynced(), tTask.isDeleted());
         return tasksApi.updateTask(taskListId, tTask.getId(), tTask.task).map(task -> tTask);
     }
@@ -333,7 +334,7 @@ public final class TasksHelper {
      * @param taskId     task identifier
      * @param taskFields HashMap containing the fields to be modified and their values
      */
-    public Observable<Task> updateTask(String taskListId, String taskId, TaskFields taskFields) {
+    public Flowable<Task> updateTask(String taskListId, String taskId, TaskFields taskFields) {
         return tasksApi.updateTask(taskListId, taskId, taskFields);
     }
 
@@ -342,9 +343,9 @@ public final class TasksHelper {
      *
      * @param tTask the task whose status will change
      * @param realm a Realm instance
-     * @return an Observable containing the updated task
+     * @return a Flowable containing the updated task
      */
-    public Observable<TTask> updateCompletionStatus(TTask tTask, Realm realm) {
+    public Flowable<TTask> updateCompletionStatus(TTask tTask, Realm realm) {
         // Update the status of the local task
         realm.executeTransaction(realm1 -> {
             // Task is not synced at this point
@@ -364,7 +365,7 @@ public final class TasksHelper {
         return updateTask(tTask.getTaskListId(), tTask.getId(), taskFields)
                 .map(task -> tTask)
                 .observeOn(AndroidSchedulers.mainThread())
-                .doOnCompleted(() -> {
+                .doOnComplete(() -> {
                     // Update successful, update sync status
                     realm.executeTransaction(realm1 -> tTask.setSynced(true));
                 });
@@ -375,12 +376,12 @@ public final class TasksHelper {
      *
      * @param taskId task identifier
      * @param realm  a Realm instance
-     * @return an Observable containing the updated task
+     * @return a Flowable containing the updated task
      */
-    public Observable<TTask> updateCompletionStatus(String taskId, Realm realm) {
+    public Flowable<TTask> updateCompletionStatus(String taskId, Realm realm) {
         TTask tTask = getTask(taskId, realm);
         if (tTask != null)
             return updateCompletionStatus(tTask, realm);
-        return Observable.error(new RuntimeException("Task not found"));
+        return Flowable.error(new RuntimeException("Task not found"));
     }
 }

@@ -14,9 +14,9 @@ import com.teo.ttasks.ui.activities.sign_in.SignInActivity;
 import javax.inject.Inject;
 
 import dagger.android.support.DaggerAppCompatActivity;
-import rx.Observable;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.schedulers.Schedulers;
+import io.reactivex.Flowable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.schedulers.Schedulers;
 
 import static com.teo.ttasks.data.remote.TokenHelper.EXC_GOOGLE_AUTH;
 import static com.teo.ttasks.data.remote.TokenHelper.EXC_IO;
@@ -64,7 +64,7 @@ public abstract class BaseActivity extends DaggerAppCompatActivity {
         super.onPostCreate(savedInstanceState);
 
         // TODO: 2016-07-25 is this necessary?
-        Observable.defer(() -> Observable.just(mTokenHelper.isTokenAvailable()))
+        Flowable.defer(() -> Flowable.just(mTokenHelper.isTokenAvailable()))
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(

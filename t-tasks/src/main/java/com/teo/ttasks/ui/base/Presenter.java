@@ -4,8 +4,8 @@ import android.support.annotation.CallSuper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-import rx.Subscription;
-import rx.subscriptions.CompositeSubscription;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.disposables.Disposable;
 
 /**
  * Base presenter implementation.
@@ -15,7 +15,7 @@ import rx.subscriptions.CompositeSubscription;
 public class Presenter<V extends MvpView> {
 
     @NonNull
-    private final CompositeSubscription subscriptionsToUnsubscribeOnUnbindView = new CompositeSubscription();
+    private final CompositeDisposable subscriptionsToUnsubscribeOnUnbindView = new CompositeDisposable();
 
     @Nullable
     private volatile V view;
@@ -36,11 +36,13 @@ public class Presenter<V extends MvpView> {
         return view;
     }
 
-    /** Unsubscribe the subscriptions held by this presenter to avoid memory leaks. */
-    protected final void unsubscribeOnUnbindView(@NonNull Subscription subscription, @NonNull Subscription... subscriptions) {
+    /**
+     * Unsubscribe the subscriptions held by this presenter to avoid memory leaks.
+     */
+    protected final void unsubscribeOnUnbindView(@NonNull Disposable subscription, @NonNull Disposable... subscriptions) {
         subscriptionsToUnsubscribeOnUnbindView.add(subscription);
 
-        for (Subscription s : subscriptions) {
+        for (Disposable s : subscriptions) {
             subscriptionsToUnsubscribeOnUnbindView.add(s);
         }
     }

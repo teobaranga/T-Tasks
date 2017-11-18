@@ -11,9 +11,9 @@ import com.teo.ttasks.ui.items.TaskListItem;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
 import io.realm.Realm;
-import rx.Subscription;
-import rx.android.schedulers.AndroidSchedulers;
 import timber.log.Timber;
 
 public class TaskListsPresenter extends Presenter<TaskListsView> {
@@ -37,7 +37,7 @@ public class TaskListsPresenter extends Presenter<TaskListsView> {
             final TaskListsView view = view();
             if (view != null) view.onTaskListsLoading();
         }
-        final Subscription subscription = tasksHelper.getTaskLists(realm)
+        final Disposable subscription = tasksHelper.getTaskLists(realm)
                 .map(taskLists -> {
                     List<TaskListItem> taskListItems = new ArrayList<>(taskLists.size());
 

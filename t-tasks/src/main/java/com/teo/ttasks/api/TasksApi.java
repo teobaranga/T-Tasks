@@ -7,6 +7,7 @@ import com.teo.ttasks.data.local.TaskListFields;
 import com.teo.ttasks.data.model.Task;
 import com.teo.ttasks.data.model.TaskList;
 
+import io.reactivex.Flowable;
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.DELETE;
@@ -16,7 +17,6 @@ import retrofit2.http.PATCH;
 import retrofit2.http.POST;
 import retrofit2.http.PUT;
 import retrofit2.http.Path;
-import rx.Observable;
 
 public interface TasksApi {
 
@@ -26,25 +26,25 @@ public interface TasksApi {
      * @param ETag the ETag used to check if the data on the server has changed
      */
     @GET("users/@me/lists")
-    Observable<TaskListsResponse> getTaskLists(@Header("If-None-Match") String ETag);
+    Flowable<TaskListsResponse> getTaskLists(@Header("If-None-Match") String ETag);
 
     /**
      * Create a new task list
      */
     @POST("users/@me/lists")
-    Observable<TaskList> insertTaskList(@Body TaskListFields taskListFields);
+    Flowable<TaskList> insertTaskList(@Body TaskListFields taskListFields);
 
     /**
      * Update a task list
      */
     @PATCH("users/@me/lists/{taskList}")
-    Observable<TaskList> updateTaskList(@Path("taskList") String taskListId, @Body TaskListFields taskListFields);
+    Flowable<TaskList> updateTaskList(@Path("taskList") String taskListId, @Body TaskListFields taskListFields);
 
     /**
      * Delete a task list
      */
     @DELETE("users/@me/lists/{taskList}")
-    Observable<Void> deleteTaskList(@Path("taskList") String taskListId);
+    Flowable<Void> deleteTaskList(@Path("taskList") String taskListId);
 
     /**
      * Get the tasks associated with a given task list
@@ -53,7 +53,7 @@ public interface TasksApi {
      * @param ETag       the ETag used to check if the data on the server has changed
      */
     @GET("lists/{taskList}/tasks")
-    Observable<TasksResponse> getTasks(@Path("taskList") String taskListId, @Header("If-None-Match") String ETag);
+    Flowable<TasksResponse> getTasks(@Path("taskList") String taskListId, @Header("If-None-Match") String ETag);
 
     /**
      * Update a task from the specified task list
@@ -62,10 +62,10 @@ public interface TasksApi {
      * @param taskId     task identifier
      */
     @PATCH("lists/{taskList}/tasks/{task}/")
-    Observable<Task> updateTask(@Path("taskList") String taskListId, @Path("task") String taskId, @Body TaskFields taskFields);
+    Flowable<Task> updateTask(@Path("taskList") String taskListId, @Path("task") String taskId, @Body TaskFields taskFields);
 
     @PUT("lists/{taskList}/tasks/{task}/")
-    Observable<Task> updateTask(@Path("taskList") String taskListId, @Path("task") String taskId, @Body Task task);
+    Flowable<Task> updateTask(@Path("taskList") String taskListId, @Path("task") String taskId, @Body Task task);
 
     /**
      * Creates a new task on the specified task list

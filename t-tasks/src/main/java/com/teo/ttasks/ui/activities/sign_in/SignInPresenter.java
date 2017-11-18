@@ -15,10 +15,10 @@ import com.teo.ttasks.ui.base.Presenter;
 
 import java.util.concurrent.ExecutionException;
 
-import rx.Observable;
-import rx.Subscription;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.schedulers.Schedulers;
+import io.reactivex.Flowable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
 import timber.log.Timber;
 
 public class SignInPresenter extends Presenter<SignInView> {
@@ -43,16 +43,16 @@ public class SignInPresenter extends Presenter<SignInView> {
     }
 
     void signIn(FirebaseAuth firebaseAuth) {
-        final Subscription subscription = mTokenHelper.refreshAccessToken()
+        final Disposable subscription = mTokenHelper.refreshAccessToken()
                 .flatMap(accessToken -> {
                     final AuthCredential credential = GoogleAuthProvider.getCredential(null, accessToken);
                     final Task<AuthResult> authResultTask = firebaseAuth.signInWithCredential(credential);
                     try {
                         final AuthResult await = Tasks.await(authResultTask);
                         Timber.d("%s %s", await.getUser().getDisplayName(), await.getUser().getEmail());
-                        return Observable.just(accessToken);
+                        return Flowable.just(accessToken);
                     } catch (ExecutionException|InterruptedException e) {
-                        return Observable.error(e);
+                        return Flowable.error(e);
                     }
                 })
                 .doOnNext(ignored -> {

@@ -32,15 +32,15 @@ import javax.inject.Singleton;
 
 import dagger.Module;
 import dagger.Provides;
+import io.reactivex.schedulers.Schedulers;
 import okhttp3.ConnectionPool;
 import okhttp3.OkHttpClient;
 import okhttp3.Protocol;
 import okhttp3.Request;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
-import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
+import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
-import rx.schedulers.Schedulers;
 import timber.log.Timber;
 
 import static okhttp3.logging.HttpLoggingInterceptor.Level.BASIC;
@@ -106,7 +106,7 @@ public class TasksApiModule {
                 .authenticator((route, response) -> {
                     // Refresh the access token when it expires
                     Timber.d("requesting new access token");
-                    String accessToken = tokenHelper.refreshAccessToken().toBlocking().firstOrDefault(null);
+                    String accessToken = tokenHelper.refreshAccessToken().blockingFirst(null);
                     if (accessToken != null) {
                         prefHelper.setAccessToken(accessToken);
                         Timber.d("saved new access token %s", accessToken);
@@ -130,7 +130,7 @@ public class TasksApiModule {
         return new Retrofit.Builder()
                 .client(okHttpClient)
                 .addConverterFactory(GsonConverterFactory.create(gson))
-                .addCallAdapterFactory(RxJavaCallAdapterFactory.createWithScheduler(Schedulers.io()));
+                .addCallAdapterFactory(RxJava2CallAdapterFactory.createWithScheduler(Schedulers.io()));
     }
 
     private class GsonUTCDateAdapter implements JsonSerializer<Date>, JsonDeserializer<Date> {

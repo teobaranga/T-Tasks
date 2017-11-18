@@ -22,7 +22,6 @@ import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
-import android.support.v4.view.ViewCompat;
 import android.support.v4.view.animation.FastOutSlowInInterpolator;
 import android.util.AttributeSet;
 import android.view.View;
@@ -115,7 +114,7 @@ public class AppBarBoundFabBehavior extends FloatingActionButton.Behavior {
             return;
         }
 
-        final float currentTransY = ViewCompat.getTranslationY(fab);
+        final float currentTransY = fab.getTranslationY();
 
         // Calculate difference between what we want now and what we wanted earlier
         final float stepTransYDelta = targetTransYByThis - snackbarFabTranslationYByThis;
@@ -135,12 +134,12 @@ public class AppBarBoundFabBehavior extends FloatingActionButton.Behavior {
             if (snackbarFabTranslationYAnimator == null) {
                 snackbarFabTranslationYAnimator = ValueAnimator.ofFloat(currentTransY, targetTransY);
                 snackbarFabTranslationYAnimator.setInterpolator(new FastOutSlowInInterpolator());
-                snackbarFabTranslationYAnimator.addUpdateListener(animator -> ViewCompat.setTranslationY(fab, (Float) animator.getAnimatedValue()));
+                snackbarFabTranslationYAnimator.addUpdateListener(animator -> fab.setTranslationY((float) animator.getAnimatedValue()));
             }
             snackbarFabTranslationYAnimator.start();
         } else {
             // Now update the translation Y
-            ViewCompat.setTranslationY(fab, targetTransY);
+            fab.setTranslationY(targetTransY);
         }
 
         snackbarFabTranslationYByThis = targetTransYByThis;
@@ -156,7 +155,7 @@ public class AppBarBoundFabBehavior extends FloatingActionButton.Behavior {
         for (int i = 0, z = dependencies.size(); i < z; i++) {
             final View view = dependencies.get(i);
             if (view instanceof Snackbar.SnackbarLayout && parent.doViewsOverlap(fab, view)) {
-                minOffset = Math.min(minOffset, ViewCompat.getTranslationY(view) - view.getHeight());
+                minOffset = Math.min(minOffset, view.getTranslationY() - view.getHeight());
             }
         }
 

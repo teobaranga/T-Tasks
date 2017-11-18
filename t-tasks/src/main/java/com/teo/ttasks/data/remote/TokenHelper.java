@@ -13,7 +13,7 @@ import com.teo.ttasks.data.local.PrefHelper;
 
 import java.io.IOException;
 
-import rx.Observable;
+import io.reactivex.Flowable;
 import timber.log.Timber;
 
 import static com.google.android.gms.auth.GoogleAuthUtil.GOOGLE_ACCOUNT_TYPE;
@@ -41,20 +41,20 @@ public final class TokenHelper {
     /**
      * Get the access token and save it
      *
-     * @return an Observable containing the access token
+     * @return an Flowable containing the access token
      */
-    public Observable<String> refreshAccessToken() {
+    public Flowable<String> refreshAccessToken() {
         if (mAccount == null)
             mAccount = new Account(mPrefHelper.getUserEmail(), GOOGLE_ACCOUNT_TYPE);
-        return Observable.defer(() -> {
+        return Flowable.defer(() -> {
             try {
                 if (mPrefHelper.getAccessToken() != null)
                     GoogleAuthUtil.clearToken(mTTasksApp, mPrefHelper.getAccessToken());
-                return Observable.just(GoogleAuthUtil.getToken(mTTasksApp, mAccount, APP_SCOPES))
+                return Flowable.just(GoogleAuthUtil.getToken(mTTasksApp, mAccount, APP_SCOPES))
                         .doOnNext(mPrefHelper::setAccessToken)
                         .doOnNext(Timber::d);
             } catch (IOException | GoogleAuthException e) {
-                return Observable.error(e);
+                return Flowable.error(e);
             }
         });
     }
