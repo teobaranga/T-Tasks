@@ -17,9 +17,11 @@ More features are planned and will be added in the future.
 
 ### Screenshots
 
-<img src="http://i.imgur.com/k06QhyE.png" width="33%" height="33%"/>
-<img src="http://i.imgur.com/oPMrMDt.png" width="33%" height="33%"/>
-<img src="http://i.imgur.com/OTUHvFo.png" width="33%" height="33%"/>
+<p align="center">
+  <img src="http://i.imgur.com/k06QhyE.png" width="30%" height="30%"/>
+  <img src="http://i.imgur.com/oPMrMDt.png" width="30%" height="30%"/>
+  <img src="http://i.imgur.com/OTUHvFo.png" width="30%" height="30%"/>
+</p>
 
 
 ### Libraries
