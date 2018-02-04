@@ -10,6 +10,11 @@ repositories {
     maven { url 'https://github.com/uPhyca/stetho-realm/raw/master/maven-repo' }
 }
 
+// Load keystore
+def keystorePropertiesFile = rootProject.file("keystore.properties");
+def keystoreProperties = new Properties()
+keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+
 android {
     compileSdkVersion 27
     buildToolsVersion '27.0.1'
@@ -26,9 +31,9 @@ android {
     signingConfigs {
         release {
             storeFile file('keystore/release.jks')
-            keyAlias 'teo baranga'
-            keyPassword "$System.env.TT_KEY"
-            storePassword "$System.env.TT_KEY"
+            keyAlias keystoreProperties['keyAlias']
+            keyPassword keystoreProperties['keyPassword']
+            storePassword keystoreProperties['storePassword']
         }
     }
     buildTypes {
@@ -97,8 +102,7 @@ android {
 
 afterEvaluate {
     android.sourceSets.all { sourceSet ->
-        if (!sourceSet.name.startsWith("test"))
-        {
+        if (!sourceSet.name.startsWith("test")) {
             sourceSet.kotlin.setSrcDirs([])
         }
     }

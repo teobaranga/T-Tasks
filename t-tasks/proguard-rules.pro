@@ -3,6 +3,9 @@
 -keep class com.crashlytics.** { *; }
 -dontwarn com.crashlytics.**
 
+# Dagger
+-dontwarn com.google.errorprone.annotations.**
+
 # Keep API entities
 -keep class com.teo.ttasks.api.entities.** { *; }
 
