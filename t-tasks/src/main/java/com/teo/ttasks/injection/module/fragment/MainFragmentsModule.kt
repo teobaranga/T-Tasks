@@ -8,9 +8,9 @@ import dagger.android.ContributesAndroidInjector
 @Module
 abstract class MainFragmentsModule {
 
-    @ContributesAndroidInjector(modules = arrayOf(TasksFragmentModule::class))
+    @ContributesAndroidInjector(modules = [TasksFragmentModule::class])
     abstract fun contributeTasksFragmentInjector(): TasksFragment
 
-    @ContributesAndroidInjector(modules = arrayOf(TaskListsFragmentModule::class))
+    @ContributesAndroidInjector(modules = [TaskListsFragmentModule::class])
     abstract fun contributeTaskListsFragmentInjector(): TaskListsFragment
 }

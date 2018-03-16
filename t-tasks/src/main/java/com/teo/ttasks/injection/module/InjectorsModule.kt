@@ -16,25 +16,25 @@ import dagger.Module
 import dagger.android.ContributesAndroidInjector
 
 @Module
-abstract class InjectorsModule {
+internal abstract class InjectorsModule {
 
     /********************************
      * Activities
      ********************************/
 
-    @ContributesAndroidInjector(modules = arrayOf(SignInActivityModule::class))
+    @ContributesAndroidInjector(modules = [SignInActivityModule::class])
     internal abstract fun contributeSignInActivityInjector(): SignInActivity
 
-    @ContributesAndroidInjector(modules = arrayOf(MainActivityModule::class, MainFragmentsModule::class))
+    @ContributesAndroidInjector(modules = [MainActivityModule::class, MainFragmentsModule::class])
     internal abstract fun contributeMainActivityInjector(): MainActivity
 
-    @ContributesAndroidInjector(modules = arrayOf(TaskDetailActivityModule::class))
+    @ContributesAndroidInjector(modules = [TaskDetailActivityModule::class])
     internal abstract fun contributeTaskDetailActivityInjector(): TaskDetailActivity
 
-    @ContributesAndroidInjector(modules = arrayOf(EditTaskActivityModule::class))
+    @ContributesAndroidInjector(modules = [EditTaskActivityModule::class])
     internal abstract fun contributeEditTaskActivityInjector(): EditTaskActivity
 
-    @ContributesAndroidInjector(modules = arrayOf(TasksWidgetConfigureActivityModule::class))
+    @ContributesAndroidInjector(modules = [TasksWidgetConfigureActivityModule::class])
     internal abstract fun contributeTasksWidgetConfigureActivityInjector(): TasksWidgetConfigureActivity
 
     /********************************
@@ -50,7 +50,7 @@ abstract class InjectorsModule {
     @ContributesAndroidInjector
     internal abstract fun contributeMyJobServiceInjector(): MyJobService
 
-    @ContributesAndroidInjector(modules = arrayOf(TasksWidgetConfigureActivityModule::class))
+    @ContributesAndroidInjector(modules = [TasksWidgetConfigureActivityModule::class])
     internal abstract fun contributeMyGcmJobServiceInjector(): MyGcmJobService
 
     /********************************

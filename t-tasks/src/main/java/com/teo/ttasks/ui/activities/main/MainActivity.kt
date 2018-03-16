@@ -7,7 +7,6 @@ import android.databinding.DataBindingUtil
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
-import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.os.Handler
@@ -18,13 +17,15 @@ import android.view.View
 import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.widget.AdapterView
+import com.androidhuman.rxfirebase2.auth.rxGetCurrentUser
+import com.androidhuman.rxfirebase2.auth.rxReload
 import com.google.firebase.auth.FirebaseAuth
 import com.mikepenz.google_material_typeface_library.GoogleMaterial
-import com.mikepenz.iconics.IconicsDrawable
 import com.mikepenz.materialdrawer.AccountHeader
 import com.mikepenz.materialdrawer.AccountHeaderBuilder
 import com.mikepenz.materialdrawer.Drawer
 import com.mikepenz.materialdrawer.DrawerBuilder
+import com.mikepenz.materialdrawer.holder.ImageHolder
 import com.mikepenz.materialdrawer.model.DividerDrawerItem
 import com.mikepenz.materialdrawer.model.PrimaryDrawerItem
 import com.mikepenz.materialdrawer.model.ProfileDrawerItem
@@ -44,7 +45,10 @@ import com.teo.ttasks.ui.activities.SettingsActivity
 import com.teo.ttasks.ui.activities.sign_in.SignInActivity
 import com.teo.ttasks.ui.fragments.task_lists.TaskListsFragment
 import com.teo.ttasks.ui.fragments.tasks.TasksFragment
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.schedulers.Schedulers
 import timber.log.Timber
+import java.lang.Exception
 import javax.inject.Inject
 
 // TODO: 2015-12-29 implement multiple accounts
@@ -77,10 +81,20 @@ open class MainActivity : BaseActivity(), MainView {
         // Show the SignIn activity if there's no user connected
         firebaseAuth = FirebaseAuth.getInstance()
 
-        if (firebaseAuth.currentUser == null) {
+        val currentUser = firebaseAuth.currentUser
+        if (currentUser == null) {
             SignInActivity.start(this, false)
             finish()
             return
+        } else {
+            currentUser.rxReload()
+                    .subscribeOn(Schedulers.io())
+                    .andThen(firebaseAuth.rxGetCurrentUser())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(
+                            { firebaseUser ->
+                                onUserPicture(firebaseUser.photoUrl.toString())
+                            })
         }
 
         firebaseAuth.addAuthStateListener {
@@ -88,6 +102,7 @@ open class MainActivity : BaseActivity(), MainView {
                 authStateListener = FirebaseAuth.AuthStateListener {
                     firebaseAuth ->
                     if (firebaseAuth.currentUser == null) {
+                        // TODO Unregister all task listeners
                         mainActivityPresenter.clearUser()
                         SignInActivity.start(this, true)
                         finish()
@@ -96,7 +111,7 @@ open class MainActivity : BaseActivity(), MainView {
             }
         }
 
-        mainBinding = DataBindingUtil.setContentView<ActivityMainBinding>(this, R.layout.activity_main)
+        mainBinding = DataBindingUtil.setContentView(this, R.layout.activity_main)
 
         if (savedInstanceState == null) {
             // Create the tasks fragment
@@ -105,11 +120,7 @@ open class MainActivity : BaseActivity(), MainView {
         } else {
             // Get the tasks fragment
             val fragment = supportFragmentManager.findFragmentByTag("tasks")
-            if (fragment is TasksFragment) {
-                tasksFragment = fragment
-            } else {
-                tasksFragment = TasksFragment.newInstance()
-            }
+            tasksFragment = fragment as? TasksFragment ?: TasksFragment.newInstance()
         }
 
         taskListsAdapter = TaskListsAdapter(supportActionBar!!.themedContext)
@@ -129,6 +140,7 @@ open class MainActivity : BaseActivity(), MainView {
                 .withName(mainActivityPresenter.userName)
                 .withEmail(mainActivityPresenter.userEmail)
                 .withNameShown(true)
+                .withIdentifier(0)
                 .withTag(ProfileIconTarget())
 
         // Create the AccountHeader
@@ -154,8 +166,6 @@ open class MainActivity : BaseActivity(), MainView {
                 }
                 .withSavedInstance(savedInstanceState)
                 .build()
-
-        accountHeader.headerBackgroundView.tag = CoverPhotoTarget()
 
         // Create the drawer
         drawer = DrawerBuilder()
@@ -322,17 +332,14 @@ open class MainActivity : BaseActivity(), MainView {
      * and display it in the Navigation drawer header
      */
     override fun onUserPicture(pictureUrl: String) {
-        Picasso.with(this)
+        Picasso.get()
                 .load(pictureUrl)
                 .placeholder(DrawerUIUtils.getPlaceHolder(this))
                 .into(profile.tag as Target)
     }
 
     override fun onUserCover(coverUrl: String) {
-        Picasso.with(this)
-                .load(coverUrl)
-                .placeholder(IconicsDrawable(this).iconText(" ").backgroundColorRes(com.mikepenz.materialdrawer.R.color.primary).sizeDp(56))
-                .into(accountHeader.headerBackgroundView.tag as Target)
+        accountHeader.setHeaderBackground(ImageHolder(coverUrl))
     }
 
     /**
@@ -393,29 +400,20 @@ open class MainActivity : BaseActivity(), MainView {
     internal inner class ProfileIconTarget : Target {
         override fun onBitmapLoaded(bitmap: Bitmap, from: Picasso.LoadedFrom) {
             // Create another image the same size
-            val imageWithBG = Bitmap.createBitmap(bitmap.width, bitmap.height, bitmap.config)
-            // Set its background to white
-            imageWithBG.eraseColor(Color.WHITE)
+            val padding = 48
+            val imageWithBG = Bitmap.createBitmap(bitmap.width + padding, bitmap.height + padding, bitmap.config)
             // Create a canvas to draw on the new image
             val canvas = Canvas(imageWithBG)
+            // Set its background to white
+            canvas.drawColor(Color.WHITE)
             // Draw old image on the background
-            canvas.drawBitmap(bitmap, 0f, 0f, null)
+            canvas.drawBitmap(bitmap, padding / 2f, padding / 2f, null)
             profile.withIcon(imageWithBG)
             accountHeader.updateProfile(profile)
         }
 
-        override fun onBitmapFailed(errorDrawable: Drawable) {}
-
-        override fun onPrepareLoad(placeHolderDrawable: Drawable) {}
-    }
-
-    internal inner class CoverPhotoTarget : Target {
-        override fun onBitmapLoaded(bitmap: Bitmap, from: Picasso.LoadedFrom) {
-            accountHeader.setBackground(BitmapDrawable(resources, bitmap))
-        }
-
-        override fun onBitmapFailed(errorDrawable: Drawable) {
-            Timber.e("Error fetching cover pic")
+        override fun onBitmapFailed(e: Exception?, errorDrawable: Drawable?) {
+            Timber.e(e, "Failed to load profile icon")
         }
 
         override fun onPrepareLoad(placeHolderDrawable: Drawable) {}
@@ -423,7 +421,7 @@ open class MainActivity : BaseActivity(), MainView {
 
     companion object {
 
-        //        private val RC_ADD = 4;
+        // private const val RC_ADD = 4;
         private const val RC_NIGHT_MODE = 415
 
         private const val ID_TASKS: Long = 0x01

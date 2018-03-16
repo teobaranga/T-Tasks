@@ -10,7 +10,6 @@ import com.teo.ttasks.data.remote.TasksHelper
 import com.teo.ttasks.data.remote.TokenHelper
 import dagger.Module
 import dagger.Provides
-import io.fabric.sdk.android.services.network.HttpRequest.HEADER_AUTHORIZATION
 import io.reactivex.schedulers.Schedulers
 import okhttp3.ConnectionPool
 import okhttp3.OkHttpClient
@@ -139,7 +138,7 @@ class TasksApiModule {
 
     companion object {
         private const val TASKS_BASE_URL = "https://www.googleapis.com/tasks/v1/"
-        private const val PEOPLE_BASE_URL = "https://www.googleapis.com/plus/v1/"
+        private const val PEOPLE_BASE_URL = "https://people.googleapis.com/v1/"
 
         private const val HEADER_AUTHORIZATION = "Authorization"
         private const val VALUE_BEARER = "Bearer %s"

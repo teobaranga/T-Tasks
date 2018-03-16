@@ -11,7 +11,9 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.realm.Realm
 import timber.log.Timber
 
-class MainActivityPresenter(private val tasksHelper: TasksHelper, private val prefHelper: PrefHelper, private val peopleApi: PeopleApi) : Presenter<MainView>() {
+class MainActivityPresenter(private val tasksHelper: TasksHelper,
+                            private val prefHelper: PrefHelper,
+                            private val peopleApi: PeopleApi) : Presenter<MainView>() {
 
     private lateinit var realm: Realm
 
@@ -35,32 +37,22 @@ class MainActivityPresenter(private val tasksHelper: TasksHelper, private val pr
      * Must be called after onConnected
      */
     internal fun loadCurrentUser() {
-        val subscription = peopleApi.getCurrentUserProfile()
+        val subscription = peopleApi.getCurrentPersonCoverPhotos()
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({ person ->
-                    /**
-                     * By default the profile url gives a 50x50 px image only,
-                     * but we can replace the value with whatever dimension we want by replacing sz=X
-                     */
-                    val pictureUrl = person.image.url.split("\\?".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()[0]
-                    if (pictureUrl != prefHelper.userPhoto) {
-                        prefHelper.userPhoto = pictureUrl
-                        view()?.onUserPicture(pictureUrl)
-                    }
-
-                    // Get cover picture
-                    person.cover?.coverPhoto?.url?.let {
-                        if (it != prefHelper.userCover) {
-                            prefHelper.userCover = it
-                            view()?.onUserCover(it)
+                .subscribe({ coverPhotosResponse ->
+                    Timber.v("Found %d cover photo(s)", coverPhotosResponse.coverPhotos.size)
+                    coverPhotosResponse.coverPhotos.forEachIndexed({ index, coverPhotos ->
+                        Timber.v("Cover photo %d: %s", index, coverPhotos.url)
+                        if (index == 0) {
+                            view()?.onUserCover(coverPhotos.url)
                         }
-                    }
+                    })
                 }, { Timber.e(it.toString()) })
         disposeOnUnbindView(subscription)
     }
 
     internal fun loadUserPictures() {
-        prefHelper.userPhoto?.let { view()?.onUserPicture(it) }
+//        prefHelper.userPhoto?.let { view()?.onUserPicture(it) }
         prefHelper.userCover?.let { view()?.onUserCover(it) }
     }
 

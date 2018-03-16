@@ -12,11 +12,12 @@ import dagger.android.support.AndroidSupportInjectionModule
 import javax.inject.Singleton
 
 @Singleton
-@Component(modules = arrayOf(
-        AndroidSupportInjectionModule::class,
-        ApplicationModule::class,
-        TasksApiModule::class,
-        InjectorsModule::class))
+@Component(modules = [
+    AndroidSupportInjectionModule::class,
+    ApplicationModule::class,
+    TasksApiModule::class,
+    InjectorsModule::class
+])
 interface ApplicationComponent : AndroidInjector<TTasksApp> {
 
     @Component.Builder

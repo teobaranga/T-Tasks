@@ -1,6 +1,7 @@
 package com.teo.ttasks.ui.items
 
 import android.databinding.DataBindingUtil
+import android.support.v7.widget.RecyclerView
 import android.view.View
 import com.teo.ttasks.R
 import com.teo.ttasks.data.model.TTaskList
@@ -27,7 +28,7 @@ class TaskListItem(private val taskList: TTaskList, private val taskCount: Long)
         return R.layout.item_task_list
     }
 
-    override fun bindViewHolder(adapter: FlexibleAdapter<out IFlexible<*>>, viewHolder: ViewHolder, position: Int, payloads: MutableList<Any?>) {
+    override fun bindViewHolder(adapter: FlexibleAdapter<IFlexible<RecyclerView.ViewHolder>>, viewHolder: ViewHolder, position: Int, payloads: MutableList<Any?>) {
         val itemTaskBinding = viewHolder.itemTaskListBinding
         val context = itemTaskBinding.root.context
 
@@ -35,7 +36,7 @@ class TaskListItem(private val taskList: TTaskList, private val taskCount: Long)
         itemTaskBinding.taskListSize.text = if (taskCount > 0) context.getString(R.string.task_list_size, taskCount) else context.getString(R.string.empty_task_list)
     }
 
-    override fun createViewHolder(view: View, adapter: FlexibleAdapter<out IFlexible<*>>): ViewHolder {
+    override fun createViewHolder(view: View, adapter: FlexibleAdapter<IFlexible<RecyclerView.ViewHolder>>): ViewHolder {
         return ViewHolder(view, adapter)
     }
 

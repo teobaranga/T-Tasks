@@ -1,20 +1,15 @@
 package com.teo.ttasks.injection.module
 
 import android.content.Context
-import android.os.Build
 import com.birbit.android.jobqueue.JobManager
 import com.birbit.android.jobqueue.config.Configuration
 import com.birbit.android.jobqueue.scheduling.FrameworkJobSchedulerService
-import com.birbit.android.jobqueue.scheduling.GcmJobSchedulerService
-import com.google.android.gms.common.ConnectionResult
-import com.google.android.gms.common.GoogleApiAvailability
 import com.teo.ttasks.TTasksApp
 import com.teo.ttasks.data.local.PrefHelper
 import com.teo.ttasks.data.local.WidgetHelper
 import com.teo.ttasks.jobs.CreateTaskJob
 import com.teo.ttasks.jobs.DeleteTaskJob
 import com.teo.ttasks.receivers.NetworkInfoReceiver
-import com.teo.ttasks.services.MyGcmJobService
 import com.teo.ttasks.services.MyJobService
 import com.teo.ttasks.util.NotificationHelper
 import dagger.Module
@@ -60,26 +55,19 @@ class ApplicationModule {
 
     @Provides
     @Singleton
-    internal fun provideJobManager(context: Context): JobManager {
-        val builder = Configuration.Builder(context)
+    internal fun provideJobManager(application: TTasksApp): JobManager {
+        val builder = Configuration.Builder(application)
                 .injector { job ->
                     if (job is CreateTaskJob)
-                        TTasksApp[context].applicationComponent().inject(job)
+                        application.applicationComponent().inject(job)
                     else if (job is DeleteTaskJob)
-                        TTasksApp[context].applicationComponent().inject(job)
+                        application.applicationComponent().inject(job)
                 }
                 .minConsumerCount(1)//always keep at least one consumer alive
                 .maxConsumerCount(3)//up to 3 consumers at a time
                 .loadFactor(3)//3 jobs per consumer
                 .consumerKeepAlive(120)//wait 2 minute
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            builder.scheduler(FrameworkJobSchedulerService.createSchedulerFor(context, MyJobService::class.java), true)
-        } else {
-            val enableGcm = GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(context)
-            if (enableGcm == ConnectionResult.SUCCESS) {
-                builder.scheduler(GcmJobSchedulerService.createSchedulerFor(context, MyGcmJobService::class.java), true)
-            }
-        }
+        builder.scheduler(FrameworkJobSchedulerService.createSchedulerFor(application, MyJobService::class.java), true)
         return JobManager(builder.build())
     }
 }

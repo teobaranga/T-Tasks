@@ -76,7 +76,7 @@ class TasksFragment : DaggerFragment(), TasksView, SwipeRefreshLayout.OnRefreshL
         private val MIN_CLICK_INTERVAL: Long = 1000
         private var lastClickTime: Long = 0
 
-        override fun onItemClick(position: Int): Boolean {
+        override fun onItemClick(view: View, position: Int): Boolean {
             val item = adapter.getItem(position)!!
             if (item is CategoryItem && item === completedTasksHeader) {
                 if (item.hasSubItems()) {

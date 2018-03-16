@@ -1,23 +1,44 @@
 ext.deps = [:]
 
 def ver = [:]
+ver.dagger = "2.15"
 ver.espresso = "3.0.1"
-ver.firebase = "11.6.2"
-ver.kotlin = "1.2.0"
-ver.okhttp = "3.9.1"
-ver.rxjava = "2.1.7"
-ver.support = "27.0.2"
+ver.fastadapter = "3.2.4"
+ver.firebase = "11.8.0"
+ver.kotlin = "1.2.30"
+ver.okhttp = "3.10.0"
+ver.playServices = "11.8.0"
+ver.powermock = "1.7.4"
+ver.rxAndroid = "2.0.2"
+ver.rxjava = "2.1.10"
+ver.support = "27.1.0"
+ext.ver = ver
 
 def deps = [:]
 
-deps.aboutlibraries = "com.mikepenz:aboutlibraries:6.0.1@aar"
-deps.crashlytics = "com.crashlytics.sdk.android:crashlytics:2.8.0@aar"
-deps.materialdrawer = "com.mikepenz:materialdrawer:6.0.2@aar"
+deps.aboutlibraries = "com.mikepenz:aboutlibraries:6.0.6@aar"
+deps.crashlytics = "com.crashlytics.sdk.android:crashlytics:2.9.1@aar"
+deps.materialdrawer = "com.mikepenz:materialdrawer:6.0.6@aar"
+deps.timber = "com.jakewharton.timber:timber:4.6.1"
+
+def dagger = [:]
+dagger.dagger = "com.google.dagger:dagger:$ver.dagger"
+dagger.compiler = "com.google.dagger:dagger-compiler:$ver.dagger"
+dagger.android = [:]
+dagger.android.processor = "com.google.dagger:dagger-android-processor:$ver.dagger"
+dagger.android.support = "com.google.dagger:dagger-android-support:$ver.dagger"
+deps.dagger = dagger
 
 def espresso = [:]
 espresso.core = "com.android.support.test.espresso:espresso-core:$ver.espresso"
 espresso.contrib = "com.android.support.test.espresso:espresso-contrib:$ver.espresso"
 deps.espresso = espresso
+
+def fastadapter = [:]
+fastadapter.fastadapter = "com.mikepenz:fastadapter:${ver.fastadapter}@aar"
+fastadapter.commons = "com.mikepenz:fastadapter-commons:${ver.fastadapter}@aar"
+fastadapter.expandable = "com.mikepenz:fastadapter-extensions-expandable:${ver.fastadapter}@aar"
+deps.fastadapter = fastadapter
 
 def firebase = [:]
 firebase.auth = "com.google.firebase:firebase-auth:$ver.firebase"
@@ -26,6 +47,7 @@ deps.firebase = firebase
 
 def kotlin = [:]
 kotlin.stdlib = "org.jetbrains.kotlin:kotlin-stdlib:$ver.kotlin"
+kotlin.jUnit = "org.jetbrains.kotlin:kotlin-test-junit:$ver.kotlin"
 deps.kotlin = kotlin
 
 def okhttp = [:]
@@ -33,8 +55,19 @@ okhttp.core = "com.squareup.okhttp3:okhttp:$ver.okhttp"
 okhttp.logging_interceptor = "com.squareup.okhttp3:logging-interceptor:$ver.okhttp"
 deps.okhttp = okhttp
 
+def playServices = [:]
+playServices.auth = "com.google.android.gms:play-services-auth:$ver.playServices"
+playServices.gcm = "com.google.android.gms:play-services-gcm:$ver.playServices"
+deps.playServices = playServices
+
+def powermock = [:]
+powermock.jUnit4 = "org.powermock:powermock-module-junit4:$ver.powermock"
+powermock.mockito = "org.powermock:powermock-api-mockito:$ver.powermock"
+deps.powermock = powermock
+
 def rx = [:]
 rx.java = "io.reactivex.rxjava2:rxjava:$ver.rxjava"
+rx.android = "io.reactivex.rxjava2:rxandroid:$ver.rxAndroid"
 deps.rx = rx
 
 def support = [:]
@@ -47,20 +80,6 @@ deps.support = support
 ext.deps = deps
 
 ext.versions = [
-        kotlin                       : '1.2.0',
-
-        androidGradlePlugin          : '2.1.2',
-        retrolambdaGradlePlugin      : '3.2.5',
-        lombokGradlePlugin           : '0.2.3.a2',
-        androidDevMetricsGradlePlugin: '0.4',
-        errorProneVersion            : '0.0.8',
-        errorProneCoreVersion        : '2.0.9',
-        dexcountPlugin               : '0.7.1',
-
-        dagger                       : '2.13',
-
-        playServices                 : '11.6.2',
-        rxAndroid                    : '2.0.1',
         rxJava                       : '2.1.6',
         rxJava2Adapter               : '1.0.0',
         rxLint                       : '1.0',
@@ -71,7 +90,6 @@ ext.versions = [
         butterKnife                  : '8.2.1',
         picasso                      : '2.5.2',
         picassoOkHttpDownloader      : '1.0.2',
-        timber                       : '4.6.0',
 
         stetho                       : '1.5.0',
         leakCanary                   : '1.4-beta2',
@@ -88,25 +106,7 @@ ext.versions = [
         supportTestRunner            : '1.0.1',
 ]
 
-ext.gradlePlugins = [
-        android          : "com.android.tools.build:gradle:$versions.androidGradlePlugin",
-        jacoco           : "org.jacoco:org.jacoco.core:$versions.jacocoGradlePlugin",
-        androidDevMetrics: "com.frogermcs.androiddevmetrics:androiddevmetrics-plugin:$versions.androidDevMetricsGradlePlugin",
-        errorProne       : "net.ltgt.gradle:gradle-errorprone-plugin:$versions.errorProneVersion",
-        dexcount         : "com.getkeepsafe.dexcount:dexcount-gradle-plugin:$versions.dexcountPlugin",
-]
-
 ext.libraries = [
-        dagger                  : "com.google.dagger:dagger:$versions.dagger",
-        daggerAndroidProcessor  : "com.google.dagger:dagger-android-processor:$versions.dagger",
-        daggerAndroidSupport    : "com.google.dagger:dagger-android-support:$versions.dagger",
-        daggerCompiler          : "com.google.dagger:dagger-compiler:$versions.dagger",
-
-        playServicesPlus        : "com.google.android.gms:play-services-plus:$versions.playServices",
-        playServicesAuth        : "com.google.android.gms:play-services-auth:$versions.playServices",
-        playServicesGcm         : "com.google.android.gms:play-services-gcm:$versions.playServices",
-
-        rxAndroid               : "io.reactivex.rxjava2:rxandroid:$versions.rxAndroid",
         rxLint                  : "nl.littlerobots.rxlint:rxlint:$versions.rxLint",
 
         retrofit                : "com.squareup.retrofit2:retrofit:$versions.retrofit",
@@ -123,7 +123,6 @@ ext.libraries = [
         butterKnifeCompiler     : "com.jakewharton:butterknife-compiler:$versions.butterKnife",
         picasso                 : "com.squareup.picasso:picasso:$versions.picasso",
         picassoOkHttpDownloader : "com.jakewharton.picasso:picasso2-okhttp3-downloader:$versions.picassoOkHttpDownloader",
-        timber                  : "com.jakewharton.timber:timber:$versions.timber",
 
         // Developer Tools
         stetho                  : "com.facebook.stetho:stetho:$versions.stetho",

@@ -2,6 +2,7 @@ package com.teo.ttasks.ui.items
 
 import android.databinding.DataBindingUtil
 import android.support.graphics.drawable.VectorDrawableCompat
+import android.support.v7.widget.RecyclerView
 import android.util.TypedValue
 import android.view.View
 import android.view.View.GONE
@@ -72,7 +73,7 @@ class TaskItem(tTask: TTask) : AbstractFlexibleItem<TaskItem.ViewHolder>(), Comp
 
     override fun getLayoutRes(): Int = R.layout.item_task
 
-    override fun bindViewHolder(adapter: FlexibleAdapter<out IFlexible<*>>, viewHolder: ViewHolder, position: Int, payloads: MutableList<Any?>) {
+    override fun bindViewHolder(adapter: FlexibleAdapter<IFlexible<RecyclerView.ViewHolder>>, viewHolder: ViewHolder, position: Int, payloads: MutableList<Any?>) {
         this.viewHolder = viewHolder
         val binding = viewHolder.binding
 
@@ -126,7 +127,7 @@ class TaskItem(tTask: TTask) : AbstractFlexibleItem<TaskItem.ViewHolder>(), Comp
         }
     }
 
-    override fun createViewHolder(view: View, adapter: FlexibleAdapter<*>): ViewHolder {
+    override fun createViewHolder(view: View, adapter: FlexibleAdapter<IFlexible<RecyclerView.ViewHolder>>): ViewHolder {
         return ViewHolder(view, adapter)
     }
 

@@ -5,6 +5,7 @@ import android.databinding.DataBindingUtil
 import android.support.annotation.StringRes
 import android.support.graphics.drawable.AnimatedVectorDrawableCompat
 import android.support.v4.content.res.ResourcesCompat
+import android.support.v7.widget.RecyclerView
 import android.util.TypedValue
 import android.view.View
 import com.mikepenz.materialdrawer.holder.StringHolder
@@ -36,7 +37,8 @@ class CategoryItem : AbstractExpandableItem<CategoryItem.ViewHolder, TaskItem>()
 
     override fun getLayoutRes(): Int = R.layout.item_category
 
-    override fun createViewHolder(view: View, adapter: FlexibleAdapter<*>): ViewHolder {
+
+    override fun createViewHolder(view: View, adapter: FlexibleAdapter<IFlexible<RecyclerView.ViewHolder>>): ViewHolder {
         return ViewHolder(view, adapter)
     }
 
@@ -80,7 +82,7 @@ class CategoryItem : AbstractExpandableItem<CategoryItem.ViewHolder, TaskItem>()
         return 0
     }
 
-    override fun bindViewHolder(adapter: FlexibleAdapter<out IFlexible<*>>?, viewHolder: ViewHolder, position: Int, payloads: MutableList<Any?>?) {
+    override fun bindViewHolder(adapter: FlexibleAdapter<IFlexible<RecyclerView.ViewHolder>>, viewHolder: ViewHolder, position: Int, payloads: MutableList<Any?>?) {
         this.viewHolder = viewHolder
         StringHolder.applyTo(title, viewHolder.itemCategoryBinding.text)
         toggleArrow(false)

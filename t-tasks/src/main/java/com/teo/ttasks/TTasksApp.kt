@@ -1,8 +1,13 @@
 package com.teo.ttasks
 
 import android.content.Context
-import android.support.multidex.MultiDex
+import android.graphics.drawable.Drawable
+import android.net.Uri
+import android.widget.ImageView
 import com.crashlytics.android.Crashlytics
+import com.mikepenz.materialdrawer.util.AbstractDrawerImageLoader
+import com.mikepenz.materialdrawer.util.DrawerImageLoader
+import com.squareup.picasso.Picasso
 import com.teo.ttasks.data.local.PrefHelper
 import com.teo.ttasks.injection.component.ApplicationComponent
 import com.teo.ttasks.injection.component.DaggerApplicationComponent
@@ -20,11 +25,6 @@ class TTasksApp : DaggerApplication() {
     @Inject internal lateinit var prefHelper: PrefHelper
 
     private lateinit var applicationComponent: ApplicationComponent
-
-    override fun attachBaseContext(base: Context?) {
-        super.attachBaseContext(base)
-        MultiDex.install(this)
-    }
 
     override fun onCreate() {
         super.onCreate()
@@ -46,9 +46,22 @@ class TTasksApp : DaggerApplication() {
         }
 
         initRealmConfiguration()
+
+        //initialize and create the image loader logic
+        DrawerImageLoader.init(object : AbstractDrawerImageLoader() {
+            override fun set(imageView: ImageView?, uri: Uri?, placeholder: Drawable?, tag: String?) {
+                var requestCreator = Picasso.get().load(uri)
+                placeholder?.let { requestCreator = requestCreator.placeholder(it) }
+                requestCreator.into(imageView)
+            }
+
+            override fun cancel(imageView: ImageView?) {
+                imageView?.let { Picasso.get().cancelRequest(it) }
+            }
+        })
     }
 
-    override fun applicationInjector(): AndroidInjector<out DaggerApplication> {
+    override fun applicationInjector(): AndroidInjector<out TTasksApp> {
         val injector = DaggerApplicationComponent
                 .builder()
                 .create(this)
