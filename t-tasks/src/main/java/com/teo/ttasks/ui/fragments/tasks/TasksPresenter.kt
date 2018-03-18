@@ -10,7 +10,7 @@ import com.teo.ttasks.data.remote.TasksHelper
 import com.teo.ttasks.ui.base.Presenter
 import com.teo.ttasks.ui.items.TaskItem
 import com.teo.ttasks.util.RxUtils
-import com.teo.ttasks.util.RxUtils.SortingMode
+import com.teo.ttasks.util.SortType
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
@@ -26,8 +26,7 @@ internal class TasksPresenter(private val tasksHelper: TasksHelper, private val 
 
     private var tasksSubscription: Disposable? = null
 
-    @SortingMode
-    private var sortingMode = 0L
+    private var sortingMode : SortType = SortType.SORT_DATE
 
     internal lateinit var realm: Realm
 
@@ -77,7 +76,7 @@ internal class TasksPresenter(private val tasksHelper: TasksHelper, private val 
                                 .subscribe({}, {}, {
                                     Timber.d("completed")
                                     if (map.isNotEmpty()) {
-                                        realm.executeTransactionAsync {
+                                        realm.executeTransaction {
                                             for ((tTask, reminder) in map) {
                                                 tTask.reminder = reminder
                                                 Timber.d("Restored reminder for %s", tTask.id)
@@ -205,7 +204,7 @@ internal class TasksPresenter(private val tasksHelper: TasksHelper, private val 
      * *
      * @return true if the new sorting mode is different, false otherwise
      */
-    internal fun switchSortMode(@SortingMode sortingMode: Long): Boolean {
+    internal fun switchSortMode(sortingMode: SortType): Boolean {
         if (sortingMode != this.sortingMode) {
             this.sortingMode = sortingMode
             prefHelper.sortMode = sortingMode

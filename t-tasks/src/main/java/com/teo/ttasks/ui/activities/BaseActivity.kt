@@ -6,15 +6,15 @@ import android.os.Bundle
 import android.support.v7.widget.Toolbar
 import android.view.View
 import android.view.ViewGroup
+import com.google.android.gms.auth.UserRecoverableAuthException
 import com.teo.ttasks.R
 import com.teo.ttasks.data.remote.TokenHelper
-import com.teo.ttasks.data.remote.TokenHelper.Companion.EXC_GOOGLE_AUTH
-import com.teo.ttasks.data.remote.TokenHelper.Companion.EXC_IO
 import com.teo.ttasks.ui.activities.sign_in.SignInActivity
 import dagger.android.support.DaggerAppCompatActivity
-import io.reactivex.Flowable
+import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
+import timber.log.Timber
 import javax.inject.Inject
 
 abstract class BaseActivity : DaggerAppCompatActivity() {
@@ -49,27 +49,27 @@ abstract class BaseActivity : DaggerAppCompatActivity() {
         super.onPostCreate(savedInstanceState)
 
         // TODO: 2016-07-25 is this necessary?
-        Flowable.defer { Flowable.just<Intent>(mTokenHelper.isTokenAvailable) }
+        Single.defer { Single.just(mTokenHelper.token) }
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
-                        { intent ->
-                            if (intent == null) {
-                                onApiReady()
-                            } else {
-                                when (intent.action) {
-                                    EXC_IO -> {
-                                    }
-                                    EXC_GOOGLE_AUTH -> {
-                                    }
-                                    else ->
-                                        // User recoverable action
-                                        startActivityForResult(intent, RC_USER_RECOVERABLE)
-                                }// TODO: 2016-07-25 probably an error cause by a missing internet connection
-                                // TODO: 2016-07-25 not sure what to do in this case
+                        { token ->
+                            Timber.v("Token: %s", token)
+                            onApiReady()
+                        },
+                        { throwable ->
+                            when (throwable) {
+                                is UserRecoverableAuthException -> {
+                                    startActivityForResult(throwable.intent, RC_USER_RECOVERABLE)
+                                }
+                                else -> {
+                                    Timber.e(throwable, "Error while retrieving token")
+                                    // TODO: 2016-07-25 probably an error cause by a missing internet connection
+                                    // TODO: 2016-07-25 not sure what to do in this case
+                                }
                             }
                         }
-                ) { }
+                )
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

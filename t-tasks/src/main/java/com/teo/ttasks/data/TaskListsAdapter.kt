@@ -32,7 +32,7 @@ class TaskListsAdapter(context: Context) : ArrayAdapter<TTaskList>(context, layo
         if (view == null) {
             view = LayoutInflater.from(context).inflate(layoutResId, parent, false)
             viewHolder = ViewHolder()
-            viewHolder.name = view.findViewById<TextView>(R.id.taskListTitle) as TextView
+            viewHolder.name = view.findViewById(R.id.taskListTitle)
             view.tag = viewHolder
         } else {
             viewHolder = view.tag as ViewHolder
@@ -50,7 +50,7 @@ class TaskListsAdapter(context: Context) : ArrayAdapter<TTaskList>(context, layo
         if (view == null) {
             view = LayoutInflater.from(context).inflate(layoutResDropDownId, parent, false)
             viewHolder = ViewHolder()
-            viewHolder.name = view.findViewById<TextView>(R.id.taskListTitle) as TextView
+            viewHolder.name = view.findViewById(R.id.taskListTitle)
             view.tag = viewHolder
         } else {
             viewHolder = view.tag as ViewHolder

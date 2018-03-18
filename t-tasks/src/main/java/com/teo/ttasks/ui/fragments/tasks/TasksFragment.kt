@@ -28,7 +28,7 @@ import com.teo.ttasks.ui.activities.main.MainActivity
 import com.teo.ttasks.ui.activities.task_detail.TaskDetailActivity
 import com.teo.ttasks.ui.items.CategoryItem
 import com.teo.ttasks.ui.items.TaskItem
-import com.teo.ttasks.util.RxUtils
+import com.teo.ttasks.util.SortType
 import dagger.android.support.DaggerFragment
 import eu.davidea.flexibleadapter.FlexibleAdapter
 import eu.davidea.flexibleadapter.items.IFlexible
@@ -224,11 +224,11 @@ class TasksFragment : DaggerFragment(), TasksView, SwipeRefreshLayout.OnRefreshL
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
         when (item!!.itemId) {
-            R.id.menu_sort_due_date -> if (tasksPresenter.switchSortMode(RxUtils.SORT_DATE))
+            R.id.menu_sort_due_date -> if (tasksPresenter.switchSortMode(SortType.SORT_DATE))
                 tasksPresenter.getTasks(taskListId!!)
-            R.id.menu_sort_alphabetical -> if (tasksPresenter.switchSortMode(RxUtils.SORT_ALPHA))
+            R.id.menu_sort_alphabetical -> if (tasksPresenter.switchSortMode(SortType.SORT_ALPHA))
                 tasksPresenter.getTasks(taskListId!!)
-            R.id.menu_sort_my_order -> if (tasksPresenter.switchSortMode(RxUtils.SORT_MY_ORDER))
+            R.id.menu_sort_my_order -> if (tasksPresenter.switchSortMode(SortType.SORT_CUSTOM))
                 tasksPresenter.getTasks(taskListId!!)
         }
         return super.onOptionsItemSelected(item)

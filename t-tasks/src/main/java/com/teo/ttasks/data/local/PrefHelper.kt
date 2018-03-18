@@ -4,8 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.preference.PreferenceManager
 import com.teo.ttasks.util.NightHelper.NIGHT_AUTO
-import com.teo.ttasks.util.RxUtils.SORT_DATE
-import com.teo.ttasks.util.RxUtils.SortingMode
+import com.teo.ttasks.util.SortType
 
 class PrefHelper(context: Context) {
 
@@ -33,7 +32,9 @@ class PrefHelper(context: Context) {
         private const val PREF_NIGHT_MODE = "night_mode"
     }
 
-    private val sharedPreferences: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
+    private val sharedPreferences: SharedPreferences by lazy {
+        PreferenceManager.getDefaultSharedPreferences(context)
+    }
 
     val nightMode: String
         get() = sharedPreferences.getString(PREF_NIGHT_MODE, NIGHT_AUTO)
@@ -69,10 +70,9 @@ class PrefHelper(context: Context) {
         get() = sharedPreferences.getBoolean(PREF_SHOW_COMPLETED, true)
         set(showCompleted) = sharedPreferences.edit().putBoolean(PREF_SHOW_COMPLETED, showCompleted).apply()
 
-    var sortMode: Long
-        @SortingMode
-        get() = sharedPreferences.getLong(PREF_SORT_MODE, SORT_DATE)
-        set(@SortingMode sortMode) = sharedPreferences.edit().putLong(PREF_SORT_MODE, sortMode).apply()
+    var sortMode: SortType
+        get() = SortType.valueOf(sharedPreferences.getString(PREF_SORT_MODE, null) ?: SortType.SORT_DATE.name)
+        set(sortMode) = sharedPreferences.edit().putString(PREF_SORT_MODE, sortMode.name).apply()
 
     fun setUser(email: String, displayName: String) {
         sharedPreferences.edit().putString(PREF_USER_EMAIL, email)

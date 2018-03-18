@@ -3,7 +3,9 @@ package com.teo.ttasks.data.local
 import com.teo.ttasks.data.model.Task
 import java.util.*
 
-class TaskFields : HashMap<String, Any>() {
+private const val NUM_FIELDS = 5
+
+class TaskFields : HashMap<String, Any>(NUM_FIELDS) {
 
     companion object {
         private const val KEY_TITLE = "title"
@@ -14,19 +16,38 @@ class TaskFields : HashMap<String, Any>() {
     }
 
     var title: String?
-        get() = get(KEY_TITLE) as? String
-        set(title) = title.let { if (it == null || it.isBlank()) remove(KEY_TITLE) else put(KEY_TITLE, it) }
+        get() = this[KEY_TITLE] as? String
+        set(title) {
+            when {
+            // Disallow tasks with empty or no title
+                title == null || title.isBlank() -> remove(KEY_TITLE)
+                else -> this[KEY_TITLE] = title
+            }
+        }
 
     var dueDate: Date?
-        get() = get(KEY_DUE) as? Date
-        set(dueDate) = dueDate.let { if (it == null) remove(KEY_DUE) else put(KEY_DUE, it) }
+        get() = this[KEY_DUE] as? Date
+        set(dueDate) {
+            when (dueDate) {
+                null -> remove(KEY_DUE)
+                else -> this[KEY_DUE] = dueDate
+            }
+        }
 
     var notes: String?
-        get() = get(KEY_NOTES) as? String
-        set(notes) = notes.let { if (it == null || it.isBlank()) remove(KEY_NOTES) else put(KEY_NOTES, it) }
+        get() = this[KEY_NOTES] as? String
+        set(notes) {
+            when {
+                notes == null || notes.isBlank() -> remove(KEY_NOTES)
+                else -> this[KEY_NOTES] = notes
+            }
+        }
 
     fun putCompleted(isCompleted: Boolean, completed: Date?) {
-        put(KEY_STATUS, if (isCompleted) Task.STATUS_COMPLETED else Task.STATUS_NEEDS_ACTION)
-        if (completed == null) remove(KEY_COMPLETED) else put(KEY_COMPLETED, completed)
+        this[KEY_STATUS] = if (isCompleted) Task.STATUS_COMPLETED else Task.STATUS_NEEDS_ACTION
+        when (completed) {
+            null -> remove(KEY_COMPLETED)
+            else -> this[KEY_COMPLETED] = completed
+        }
     }
 }

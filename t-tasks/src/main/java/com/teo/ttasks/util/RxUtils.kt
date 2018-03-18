@@ -1,6 +1,5 @@
 package com.teo.ttasks.util
 
-import android.support.annotation.IntDef
 import com.teo.ttasks.data.model.TTask
 import com.teo.ttasks.data.model.Task
 import com.teo.ttasks.ui.items.TaskItem
@@ -36,7 +35,7 @@ object RxUtils {
                         }
 
                         // Sort active tasks by due date in descending order
-                        Collections.sort(activeTasks)
+                        activeTasks.sort()
                         taskItems.addAll(activeTasks)
 
                         if (!hideCompleted) {
@@ -51,7 +50,7 @@ object RxUtils {
         }
     }
 
-    fun getTaskItems(@SortingMode sortingMode: Long): FlowableTransformer<List<TTask>, GroupedFlowable<Boolean, List<TaskItem>>> {
+    fun getTaskItems(sortingMode: SortType): FlowableTransformer<List<TTask>, GroupedFlowable<Boolean, List<TaskItem>>> {
         return FlowableTransformer { observable ->
             observable
                     .flatMap { tTasks ->
@@ -69,17 +68,17 @@ object RxUtils {
                         }
 
                         when (sortingMode) {
-                            SORT_DATE -> {
+                            SortType.SORT_DATE -> {
                                 // Sort active tasks by due date in ascending order
-                                Collections.sort(activeTasks)
+                                activeTasks.sort()
                                 // Sort completed tasks by completion date in descending order
                                 Collections.sort(completedTasks, TaskItem.completionDateComparator)
                             }
-                            SORT_ALPHA -> {
+                            SortType.SORT_ALPHA -> {
                                 Collections.sort(activeTasks, TaskItem.alphabeticalComparator)
                                 Collections.sort(completedTasks, TaskItem.alphabeticalComparator)
                             }
-                            SORT_MY_ORDER -> {
+                            SortType.SORT_CUSTOM -> {
                             }
                         }// Do nothing
 
@@ -88,12 +87,4 @@ object RxUtils {
                     }
         }
     }
-
-    @Retention(AnnotationRetention.SOURCE)
-    @IntDef(SORT_DATE, SORT_ALPHA, SORT_MY_ORDER)
-    annotation class SortingMode
-
-    const val SORT_DATE: Long = 0
-    const val SORT_ALPHA: Long = 1
-    const val SORT_MY_ORDER: Long = 2
 }
