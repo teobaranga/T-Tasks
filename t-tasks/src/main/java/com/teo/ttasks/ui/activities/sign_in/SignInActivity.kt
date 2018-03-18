@@ -1,7 +1,6 @@
 package com.teo.ttasks.ui.activities.sign_in
 
 import android.app.Activity
-import android.app.ProgressDialog
 import android.content.Context
 import android.content.Intent
 import android.content.IntentSender
@@ -37,28 +36,29 @@ open class SignInActivity : DaggerAppCompatActivity(), SignInView, GoogleApiClie
     @Inject internal lateinit var signInPresenter: SignInPresenter
     @Inject internal lateinit var networkInfoReceiver: NetworkInfoReceiver
 
-    private var googleApiClient: GoogleApiClient? = null
-    private lateinit var firebaseAuth: FirebaseAuth
-    private var progressDialog: ProgressDialog? = null
+    private val firebaseAuth by lazy {
+        FirebaseAuth.getInstance()
+    }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        val signInBinding = DataBindingUtil.setContentView<ActivitySignInBinding>(this, R.layout.activity_sign_in)
-        signInPresenter.bindView(this)
-
-        firebaseAuth = FirebaseAuth.getInstance()
-
+    private val googleApiClient by lazy {
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestEmail()
                 .requestIdToken(getString(R.string.default_web_client_id))
                 .requestScopes(Scope(SCOPE_TASKS), Scope(Scopes.PLUS_ME))
                 .build()
 
-        googleApiClient = GoogleApiClient.Builder(this)
+        GoogleApiClient.Builder(this)
                 .enableAutoManage(this, this)
                 .addConnectionCallbacks(this)
                 .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
                 .build()
+    }
+    private lateinit var signInBinding: ActivitySignInBinding
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        signInBinding = DataBindingUtil.setContentView(this, R.layout.activity_sign_in)
+        signInPresenter.bindView(this)
 
         signInBinding.signInButton.setOnClickListener {
             if (!networkInfoReceiver.isOnline(this)) {
@@ -83,8 +83,8 @@ open class SignInActivity : DaggerAppCompatActivity(), SignInView, GoogleApiClie
                 resolvingError = false
                 if (resultCode == Activity.RESULT_OK) {
                     // Make sure the app is not already connected or attempting to connect
-                    if (!googleApiClient!!.isConnecting && !googleApiClient!!.isConnected)
-                        googleApiClient!!.connect()
+                    if (!googleApiClient.isConnecting && !googleApiClient.isConnected)
+                        googleApiClient.connect()
                 }
                 return
             }
@@ -103,12 +103,14 @@ open class SignInActivity : DaggerAppCompatActivity(), SignInView, GoogleApiClie
 
                 val result = Auth.GoogleSignInApi.getSignInResultFromIntent(data)
                 if (result.isSuccess) {
-                    progressDialog = ProgressDialog.show(this, null, getString(R.string.signing_in), true, false)
+                    signInBinding.loadingText.setText(R.string.signing_in)
+                    signInBinding.viewSwitcher.showNext()
                     signInPresenter.saveUser(result.signInAccount!!)
                     signInPresenter.signIn(firebaseAuth)
                 } else if (result.status.statusCode != SIGN_IN_CANCELLED) {
                     Timber.e(result.status.toString())
                     Toast.makeText(this, R.string.error_sign_in, Toast.LENGTH_SHORT).show()
+                    signInBinding.viewSwitcher.showPrevious()
                 }
                 return
             }
@@ -124,18 +126,17 @@ open class SignInActivity : DaggerAppCompatActivity(), SignInView, GoogleApiClie
 
     override fun onLoadingTaskLists() {
         runOnUiThread {
-            progressDialog?.setMessage(getString(R.string.loading_task_lists))
+            signInBinding.loadingText.setText(R.string.loading_task_lists)
         }
     }
 
     override fun onSignInSuccess() {
-        progressDialog?.let { if (it.isShowing) it.cancel() }
         MainActivity.start(this)
         finish()
     }
 
     override fun onSignInError(resolveIntent: Intent?) {
-        progressDialog?.let { if (it.isShowing) it.cancel() }
+        signInBinding.viewSwitcher.showPrevious()
         if (resolveIntent != null) {
             startActivityForResult(resolveIntent, RC_USER_RECOVERABLE)
         } else {
@@ -163,7 +164,7 @@ open class SignInActivity : DaggerAppCompatActivity(), SignInView, GoogleApiClie
                     result.startResolutionForResult(this, RC_RESOLVE_ERROR)
                 } catch (e: IntentSender.SendIntentException) {
                     // There was an error with the resolution intent. Try again.
-                    googleApiClient!!.connect()
+                    googleApiClient.connect()
                 }
 
             } else {
