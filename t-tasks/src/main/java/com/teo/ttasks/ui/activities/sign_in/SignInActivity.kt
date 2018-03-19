@@ -114,9 +114,7 @@ open class SignInActivity : DaggerAppCompatActivity(), SignInView, GoogleApiClie
     }
 
     override fun onLoadingTaskLists() {
-        runOnUiThread {
-            signInBinding.loadingText.setText(R.string.loading_task_lists)
-        }
+        signInBinding.loadingText.setText(R.string.loading_task_lists)
     }
 
     override fun onSignInSuccess() {

@@ -34,25 +34,27 @@ internal class SignInPresenter(private val tokenHelper: TokenHelper,
                     firebaseAuth.rxSignInWithCredential(credential)
                 }
                 .doOnSuccess { firebaseUser ->
-                    Timber.d("%s %s", firebaseUser.displayName, firebaseUser.email)
                     prefHelper.userPhoto = firebaseUser.photoUrl.toString()
+                    Timber.v("%s %s", firebaseUser.displayName, firebaseUser.email)
                     Timber.v("Photo URL: %s", prefHelper.userPhoto)
+                }
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnSuccess {
                     // Indicate that we're loading the task lists next
                     view()?.onLoadingTaskLists()
                 }
+                .observeOn(Schedulers.io())
                 .flatMapCompletable { tasksHelper.refreshTaskLists() }
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
-                        {
-                            view()?.onSignInSuccess()
-                        },
+                        { view()?.onSignInSuccess() },
                         { throwable ->
                             Timber.e("Error signing in: %s", throwable.toString())
-                            if (throwable.cause is UserRecoverableAuthException) {
-                                view()?.onSignInError((throwable.cause as UserRecoverableAuthException).intent)
-                            } else {
-                                view()?.onSignInError(null)
+                            val exception = throwable.cause
+                            when (exception) {
+                                is UserRecoverableAuthException -> view()?.onSignInError(exception.intent)
+                                else -> view()?.onSignInError(null)
                             }
                         })
         disposeOnUnbindView(disposable)

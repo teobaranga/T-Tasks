@@ -3,12 +3,12 @@ ext.deps = [:]
 def ver = [:]
 ver.dagger = "2.15"
 ver.espresso = "3.0.1"
-ver.fastadapter = "3.2.4"
 ver.firebase = "11.8.0"
 ver.kotlin = "1.2.30"
 ver.okhttp = "3.10.0"
 ver.playServices = "11.8.0"
 ver.powermock = "1.7.4"
+ver.retrofit = "2.4.0"
 ver.rxAndroid = "2.0.2"
 ver.rxjava = "2.1.10"
 ver.support = "27.1.0"
@@ -33,12 +33,6 @@ def espresso = [:]
 espresso.core = "com.android.support.test.espresso:espresso-core:$ver.espresso"
 espresso.contrib = "com.android.support.test.espresso:espresso-contrib:$ver.espresso"
 deps.espresso = espresso
-
-def fastadapter = [:]
-fastadapter.fastadapter = "com.mikepenz:fastadapter:${ver.fastadapter}@aar"
-fastadapter.commons = "com.mikepenz:fastadapter-commons:${ver.fastadapter}@aar"
-fastadapter.expandable = "com.mikepenz:fastadapter-extensions-expandable:${ver.fastadapter}@aar"
-deps.fastadapter = fastadapter
 
 def firebase = [:]
 firebase.auth = "com.google.firebase:firebase-auth:$ver.firebase"
@@ -65,6 +59,14 @@ powermock.jUnit4 = "org.powermock:powermock-module-junit4:$ver.powermock"
 powermock.mockito = "org.powermock:powermock-api-mockito:$ver.powermock"
 deps.powermock = powermock
 
+def retrofit = [:]
+retrofit.retrofit = "com.squareup.retrofit2:retrofit:$ver.retrofit"
+retrofit.converter = [:]
+retrofit.converter.gson = "com.squareup.retrofit2:converter-gson:$ver.retrofit"
+retrofit.adapter = [:]
+retrofit.adapter.rxjava = "com.squareup.retrofit2:adapter-rxjava2:$ver.retrofit"
+deps.retrofit = retrofit
+
 def rx = [:]
 rx.java = "io.reactivex.rxjava2:rxjava:$ver.rxjava"
 rx.android = "io.reactivex.rxjava2:rxandroid:$ver.rxAndroid"
@@ -80,16 +82,7 @@ deps.support = support
 ext.deps = deps
 
 ext.versions = [
-        rxJava                       : '2.1.6',
-        rxJava2Adapter               : '1.0.0',
         rxLint                       : '1.0',
-        supportLibs                  : '27.0.0',
-        okHttp                       : '3.9.0',
-        retrofit                     : '2.3.0',
-        jackson                      : '2.6.3',
-        butterKnife                  : '8.2.1',
-        picasso                      : '2.5.2',
-        picassoOkHttpDownloader      : '1.0.2',
 
         stetho                       : '1.5.0',
         leakCanary                   : '1.4-beta2',
@@ -109,21 +102,6 @@ ext.versions = [
 ext.libraries = [
         rxLint                  : "nl.littlerobots.rxlint:rxlint:$versions.rxLint",
 
-        retrofit                : "com.squareup.retrofit2:retrofit:$versions.retrofit",
-        retrofitMoshi           : "com.squareup.retrofit2:converter-moshi:$versions.retrofit",
-        retrofitGson            : "com.squareup.retrofit2:converter-gson:$versions.retrofit",
-        retrofitRxJavaAdapter   : "com.squareup.retrofit2:adapter-rxjava2:$versions.retrofit",
-        jacksonDataBind         : "com.fasterxml.jackson.core:jackson-databind:$versions.jackson",
-
-        supportV4Compat         : "com.android.support:support-compat:$versions.supportLibs",
-        supportAnnotations      : "com.android.support:support-annotations:$versions.supportLibs",
-        supportAppCompat        : "com.android.support:appcompat-v7:$versions.supportLibs",
-
-        butterKnife             : "com.jakewharton:butterknife:$versions.butterKnife",
-        butterKnifeCompiler     : "com.jakewharton:butterknife-compiler:$versions.butterKnife",
-        picasso                 : "com.squareup.picasso:picasso:$versions.picasso",
-        picassoOkHttpDownloader : "com.jakewharton.picasso:picasso2-okhttp3-downloader:$versions.picassoOkHttpDownloader",
-
         // Developer Tools
         stetho                  : "com.facebook.stetho:stetho:$versions.stetho",
         stethoOkHttp            : "com.facebook.stetho:stetho-okhttp3:$versions.stetho",
@@ -138,7 +116,6 @@ ext.libraries = [
         robolectric             : "org.robolectric:robolectric:$versions.robolectric",
         assertJ                 : "org.assertj:assertj-core:$versions.assertJ",
         equalsVerifier          : "nl.jqno.equalsverifier:equalsverifier:$versions.equalsVerifier",
-        okHttpMockWebServer     : "com.squareup.okhttp3:mockwebserver:$versions.okHttp",
         mockitoCore             : "org.mockito:mockito-core:$versions.mockito",
         supportTestRunner       : "com.android.support.test:runner:$versions.supportTestRunner",
         supportTestRules        : "com.android.support.test:rules:$versions.supportTestRunner",

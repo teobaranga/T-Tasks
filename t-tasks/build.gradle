@@ -120,7 +120,6 @@ dependencies {
     implementation deps.dagger.android.support
     implementation deps.rx.java
     implementation deps.rx.android
-    implementation deps.support.cardview
     implementation deps.support.design
     implementation deps.support.fragment
     implementation deps.timber
@@ -128,17 +127,14 @@ dependencies {
     implementation deps.playServices.gcm
     implementation 'com.androidhuman.rxfirebase2:firebase-auth-kotlin:11.8.0.1'
     implementation 'com.androidhuman.rxfirebase2:firebase-database-kotlin:11.8.0.1'
-    implementation libraries.retrofit
-    implementation libraries.retrofitGson
-    implementation libraries.retrofitRxJavaAdapter
+    implementation deps.retrofit.retrofit
+    implementation deps.retrofit.converter.gson
+    implementation deps.retrofit.adapter.rxjava
     implementation deps.okhttp.logging_interceptor
     implementation deps.firebase.auth
     implementation deps.firebase.database
     implementation 'com.birbit:android-priority-jobqueue:2.0.1'
     implementation(deps.aboutlibraries) { transitive = true }
-    implementation deps.fastadapter.fastadapter
-    implementation deps.fastadapter.commons
-    implementation deps.fastadapter.expandable
     implementation(deps.materialdrawer) { transitive = true }
     implementation 'com.mikepenz:google-material-typeface:3.0.1.2.original@aar'
     implementation 'com.squareup.picasso:picasso:2.71828'
