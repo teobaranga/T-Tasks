@@ -9,6 +9,10 @@ import io.realm.annotations.PrimaryKey
 
 open class TaskListsResponse : RealmObject() {
 
+    companion object {
+        val EMPTY: TaskListsResponse = TaskListsResponse()
+    }
+
     /**
      * The ID of this TaskListResponse, which is the email of the user
      */

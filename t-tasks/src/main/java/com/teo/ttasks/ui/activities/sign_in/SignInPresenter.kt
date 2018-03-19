@@ -26,10 +26,6 @@ internal class SignInPresenter(private val tokenHelper: TokenHelper,
         prefHelper.setUser(account.email!!, account.displayName!!)
     }
 
-    internal fun saveToken(token: String) {
-        prefHelper.accessToken = token
-    }
-
     internal fun signIn(firebaseAuth: FirebaseAuth) {
         val disposable = tokenHelper.refreshAccessToken()
                 .flatMap { accessToken ->
@@ -44,19 +40,21 @@ internal class SignInPresenter(private val tokenHelper: TokenHelper,
                     // Indicate that we're loading the task lists next
                     view()?.onLoadingTaskLists()
                 }
-                .flatMapPublisher { tasksHelper.refreshTaskLists() }
+                .flatMapCompletable { tasksHelper.refreshTaskLists() }
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({
-                    view()?.onSignInSuccess()
-                }, { throwable ->
-                    Timber.e("Error signing in: %s", throwable.toString())
-                    if (throwable.cause is UserRecoverableAuthException) {
-                        view()?.onSignInError((throwable.cause as UserRecoverableAuthException).intent)
-                    } else {
-                        view()?.onSignInError(null)
-                    }
-                })
+                .subscribe(
+                        {
+                            view()?.onSignInSuccess()
+                        },
+                        { throwable ->
+                            Timber.e("Error signing in: %s", throwable.toString())
+                            if (throwable.cause is UserRecoverableAuthException) {
+                                view()?.onSignInError((throwable.cause as UserRecoverableAuthException).intent)
+                            } else {
+                                view()?.onSignInError(null)
+                            }
+                        })
         disposeOnUnbindView(disposable)
     }
 }

@@ -4,6 +4,7 @@ import com.birbit.android.jobqueue.CancelReason
 import com.birbit.android.jobqueue.Job
 import com.birbit.android.jobqueue.Params
 import com.birbit.android.jobqueue.RetryConstraint
+import com.google.firebase.database.FirebaseDatabase
 import com.teo.ttasks.api.TasksApi
 import com.teo.ttasks.data.local.PrefHelper
 import com.teo.ttasks.data.local.TaskFields
@@ -11,7 +12,8 @@ import com.teo.ttasks.data.local.WidgetHelper
 import com.teo.ttasks.data.model.TTask
 import com.teo.ttasks.data.remote.TasksHelper
 import com.teo.ttasks.delete
-import com.teo.ttasks.util.FirebaseUtil
+import com.teo.ttasks.util.FirebaseUtil.getTasksDatabase
+import com.teo.ttasks.util.FirebaseUtil.saveReminder
 import com.teo.ttasks.util.NotificationHelper
 import io.realm.Realm
 import timber.log.Timber
@@ -76,7 +78,10 @@ class CreateTaskJob(val localTaskId: String, private val taskListId: String, pri
 
         // Save the reminder online
         onlineTaskId = onlineTask.id
-        onlineTask.reminder?.let { FirebaseUtil.saveReminder(onlineTaskId, it.time) }
+        onlineTask.reminder?.let {
+            val tasksDatabase = FirebaseDatabase.getInstance().getTasksDatabase()
+            tasksDatabase.saveReminder(onlineTaskId, it.time)
+        }
 
         Timber.d("saved new task with id %s", onlineTaskId)
     }

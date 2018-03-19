@@ -4,10 +4,12 @@ import com.birbit.android.jobqueue.CancelReason
 import com.birbit.android.jobqueue.Job
 import com.birbit.android.jobqueue.Params
 import com.birbit.android.jobqueue.RetryConstraint
+import com.google.firebase.database.FirebaseDatabase
 import com.teo.ttasks.api.TasksApi
 import com.teo.ttasks.data.remote.TasksHelper
 import com.teo.ttasks.delete
-import com.teo.ttasks.util.FirebaseUtil
+import com.teo.ttasks.util.FirebaseUtil.getTasksDatabase
+import com.teo.ttasks.util.FirebaseUtil.saveReminder
 import io.realm.Realm
 import timber.log.Timber
 import javax.inject.Inject
@@ -25,7 +27,8 @@ class DeleteTaskJob(private val taskId: String, private val taskListId: String) 
     @Throws(Throwable::class)
     override fun onRun() {
         // Delete the reminder
-        FirebaseUtil.saveReminder(taskId, null)
+        val tasksDatabase = FirebaseDatabase.getInstance().getTasksDatabase()
+        tasksDatabase.saveReminder(taskId, null)
 
         val realm = Realm.getDefaultInstance()
         val tTask = tasksHelper.getTask(taskId, realm)

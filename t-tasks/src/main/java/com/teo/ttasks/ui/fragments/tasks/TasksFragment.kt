@@ -5,7 +5,6 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.databinding.DataBindingUtil
 import android.net.ConnectivityManager
-import android.os.Build
 import android.os.Bundle
 import android.os.SystemClock
 import android.support.design.widget.FloatingActionButton
@@ -300,11 +299,9 @@ class TasksFragment : DaggerFragment(), TasksView, SwipeRefreshLayout.OnRefreshL
 
     /** Cache the Pair holding the navigation bar view and its associated transition name  */
     internal fun createNavBarPair() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            val navBarView = activity!!.window.decorView.findViewById<View>(android.R.id.navigationBarBackground)
-            navBar = Pair.create(navBarView, NAVIGATION_BAR_BACKGROUND_TRANSITION_NAME)
-            pairs[1] = navBar
-        }
+        val navBarView = activity!!.window.decorView.findViewById<View>(android.R.id.navigationBarBackground)
+        navBar = Pair.create(navBarView, NAVIGATION_BAR_BACKGROUND_TRANSITION_NAME)
+        pairs[1] = navBar
     }
 
     /**

@@ -5,6 +5,7 @@ import com.birbit.android.jobqueue.Job
 import com.birbit.android.jobqueue.JobManager
 import com.birbit.android.jobqueue.callback.JobManagerCallback
 import com.birbit.android.jobqueue.callback.JobManagerCallbackAdapter
+import com.google.firebase.database.FirebaseDatabase
 import com.teo.ttasks.data.local.TaskFields
 import com.teo.ttasks.data.local.WidgetHelper
 import com.teo.ttasks.data.model.TTask
@@ -13,7 +14,8 @@ import com.teo.ttasks.data.model.Task
 import com.teo.ttasks.data.remote.TasksHelper
 import com.teo.ttasks.jobs.CreateTaskJob
 import com.teo.ttasks.ui.base.Presenter
-import com.teo.ttasks.util.FirebaseUtil
+import com.teo.ttasks.util.FirebaseUtil.getTasksDatabase
+import com.teo.ttasks.util.FirebaseUtil.saveReminder
 import com.teo.ttasks.util.NotificationHelper
 import io.reactivex.Flowable
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -32,7 +34,6 @@ internal class EditTaskPresenter(private val tasksHelper: TasksHelper, private v
 
     /** The due date in UTC  */
     internal var dueDate: Date? = null
-        get
         set(value) {
             /**
              * Set the due date. If one isn't present, assign the new one. Otherwise, modify the old one.
@@ -236,9 +237,8 @@ internal class EditTaskPresenter(private val tasksHelper: TasksHelper, private v
             view()?.onTaskSaved()
             return
         }
-        // Update the task locally
-        val managedTask = tasksHelper.getTask(taskId, realm) ?: // TODO: 2016-10-22 check this
-                return
+        // Update the task locally TODO: 2016-10-22 check this
+        val managedTask = tasksHelper.getTask(taskId, realm) ?: return
         val reminderId = managedTask.reminder?.hashCode() ?: 0
         val notificationId = managedTask.notificationId
         realm.executeTransaction {
@@ -258,7 +258,8 @@ internal class EditTaskPresenter(private val tasksHelper: TasksHelper, private v
             notificationHelper.cancelTaskNotification(notificationId)
 
         // Update or clear the reminder
-        FirebaseUtil.saveReminder(managedTask.id, reminder?.time)
+        val tasksDatabase = FirebaseDatabase.getInstance().getTasksDatabase()
+        tasksDatabase.saveReminder(managedTask.id, reminder?.time)
 
         // Update the task on an active network connection
         if (isOnline) {

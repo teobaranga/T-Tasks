@@ -87,6 +87,7 @@ open class MainActivity : BaseActivity(), MainView {
             finish()
             return
         } else {
+            // TODO refresh the user picture only if necessary
             currentUser.rxReload()
                     .subscribeOn(Schedulers.io())
                     .andThen(firebaseAuth.rxGetCurrentUser())
@@ -98,15 +99,13 @@ open class MainActivity : BaseActivity(), MainView {
         }
 
         firebaseAuth.addAuthStateListener {
-            let {
-                authStateListener = FirebaseAuth.AuthStateListener {
-                    firebaseAuth ->
-                    if (firebaseAuth.currentUser == null) {
-                        // TODO Unregister all task listeners
-                        mainActivityPresenter.clearUser()
-                        SignInActivity.start(this, true)
-                        finish()
-                    }
+            authStateListener = FirebaseAuth.AuthStateListener {
+                firebaseAuth ->
+                if (firebaseAuth.currentUser == null) {
+                    // TODO Unregister all task listeners
+                    mainActivityPresenter.clearUser()
+                    SignInActivity.start(this, true)
+                    finish()
                 }
             }
         }

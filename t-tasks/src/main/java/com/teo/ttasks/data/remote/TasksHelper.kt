@@ -1,5 +1,6 @@
 package com.teo.ttasks.data.remote
 
+import com.google.firebase.database.FirebaseDatabase
 import com.teo.ttasks.api.TasksApi
 import com.teo.ttasks.api.entities.TaskListsResponse
 import com.teo.ttasks.api.entities.TasksResponse
@@ -10,8 +11,11 @@ import com.teo.ttasks.data.local.TaskListFields
 import com.teo.ttasks.data.model.*
 import com.teo.ttasks.data.model.Task.Companion.STATUS_COMPLETED
 import com.teo.ttasks.data.model.Task.Companion.STATUS_NEEDS_ACTION
-import com.teo.ttasks.util.FirebaseUtil
+import com.teo.ttasks.util.FirebaseUtil.getTasksDatabase
+import com.teo.ttasks.util.FirebaseUtil.saveReminder
+import io.reactivex.Completable
 import io.reactivex.Flowable
+import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.realm.Realm
 import io.realm.RealmQuery
@@ -117,10 +121,18 @@ class TasksHelper(private val tasksApi: TasksApi, private val prefHelper: PrefHe
      */
     fun getTaskListSize(taskListId: String, realm: Realm): Long = getValidTasks(taskListId, realm).count()
 
-    fun refreshTaskLists(): Flowable<TaskListsResponse> {
+    fun refreshTaskLists(): Completable {
         return tasksApi.getTaskLists(prefHelper.taskListsResponseEtag)
-                .onErrorResumeNext({ t: Throwable -> handleResourceNotModified(t)})
-                .doOnNext({ taskListsResponse ->
+                .onErrorResumeNext({ throwable ->
+                    if (handleResourceNotModified(throwable)) {
+                        return@onErrorResumeNext Single.just(TaskListsResponse.EMPTY)
+                    }
+                    return@onErrorResumeNext Single.error(throwable)
+                })
+                .doOnSuccess({ taskListsResponse ->
+                    if (taskListsResponse == TaskListsResponse.EMPTY) {
+                        return@doOnSuccess
+                    }
                     Timber.d("Fetching a new task list response")
                     // Save the task lists
                     Realm.getDefaultInstance().use { realm ->
@@ -142,6 +154,7 @@ class TasksHelper(private val tasksApi: TasksApi, private val prefHelper: PrefHe
                         }
                     }
                 })
+                .toCompletable()
     }
 
     /**
@@ -200,10 +213,18 @@ class TasksHelper(private val tasksApi: TasksApi, private val prefHelper: PrefHe
                 }
     }
 
-    fun refreshTasks(taskListId: String): Flowable<TasksResponse> {
+    fun refreshTasks(taskListId: String): Completable {
         return tasksApi.getTasks(taskListId, prefHelper.getTasksResponseEtag(taskListId))
-                .onErrorResumeNext({ t: Throwable -> handleResourceNotModified(t) })
-                .doOnNext({ tasksResponse ->
+                .onErrorResumeNext({ throwable ->
+                    if (handleResourceNotModified(throwable)) {
+                        return@onErrorResumeNext Single.just(TasksResponse.EMPTY)
+                    }
+                    return@onErrorResumeNext Single.error(throwable)
+                })
+                .doOnSuccess({ tasksResponse ->
+                    if (tasksResponse == TasksResponse.EMPTY) {
+                        return@doOnSuccess
+                    }
                     // Save the tasks if required
                     Realm.getDefaultInstance().use { realm ->
                         // Check if the task list was changed
@@ -217,13 +238,14 @@ class TasksHelper(private val tasksApi: TasksApi, private val prefHelper: PrefHe
                             realm.executeTransaction {
                                 it.insertOrUpdate(tasksResponse)
                                 // Create a new TTask for each Task, if the task list isn't empty
+                                val tasksDatabase = FirebaseDatabase.getInstance().getTasksDatabase()
                                 tasksResponse.items?.forEach { task ->
                                     val tTask = getTask(task.id, it)
                                     if (tTask == null) {
                                         it.insertOrUpdate(TTask(task, taskListId))
                                     } else tTask.reminder?.let {
                                         Timber.d("saving reminder")
-                                        FirebaseUtil.saveReminder(tTask.id, it.time)
+                                        tasksDatabase.saveReminder(tTask.id, it.time)
                                     }
 
                                 }
@@ -233,6 +255,7 @@ class TasksHelper(private val tasksApi: TasksApi, private val prefHelper: PrefHe
                         }
                     }
                 })
+                .toCompletable()
     }
 
     /**
@@ -295,15 +318,16 @@ class TasksHelper(private val tasksApi: TasksApi, private val prefHelper: PrefHe
     private fun getTasksResponse(taskListId: String, realm: Realm): TasksResponse? =
             realm.where(TasksResponse::class.java).equalTo(TasksResponseFields.ID, taskListId).findFirst()
 
-    private fun <T : Any> handleResourceNotModified(throwable: Throwable): Flowable<out T> {
+    private fun handleResourceNotModified(throwable: Throwable): Boolean {
         // End the stream if the status code is 304 - Not Modified
         if (throwable is HttpException) {
-            throwable.response().errorBody()?.let { it.close(); Timber.d("closing error body") }
+            throwable.response().errorBody()?.let { it.close(); Timber.v("closed error body") }
 
-            if (throwable.code() == 304)
-                return Flowable.empty()
+            if (throwable.code() == 304) {
+                return true
+            }
         }
-        return Flowable.error(throwable)
+        return false
     }
 
     /**

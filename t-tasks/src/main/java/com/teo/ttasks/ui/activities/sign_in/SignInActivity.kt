@@ -8,14 +8,11 @@ import android.databinding.DataBindingUtil
 import android.os.Bundle
 import android.widget.Toast
 import com.google.android.gms.auth.api.Auth
-import com.google.android.gms.auth.api.signin.GoogleSignIn
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
-import com.google.android.gms.auth.api.signin.GoogleSignInStatusCodes.SIGN_IN_CANCELLED
+import com.google.android.gms.auth.api.signin.GoogleSignInStatusCodes
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.gms.common.Scopes
-import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.GoogleApiClient
 import com.google.android.gms.common.api.Scope
 import com.google.firebase.auth.FirebaseAuth
@@ -64,6 +61,7 @@ open class SignInActivity : DaggerAppCompatActivity(), SignInView, GoogleApiClie
             if (!networkInfoReceiver.isOnline(this)) {
                 Toast.makeText(this, R.string.error_sign_in_offline, Toast.LENGTH_SHORT).show()
             } else {
+                // Trigger the sign in flow
                 val signInIntent = Auth.GoogleSignInApi.getSignInIntent(googleApiClient)
                 startActivityForResult(signInIntent, RC_SIGN_IN)
             }
@@ -89,27 +87,18 @@ open class SignInActivity : DaggerAppCompatActivity(), SignInView, GoogleApiClie
                 return
             }
             RC_SIGN_IN -> {
-                val accountTask = GoogleSignIn.getSignedInAccountFromIntent(data)
-                val account: GoogleSignInAccount
-                try {
-                    account = accountTask.getResult(ApiException::class.java)
-                } catch (e: ApiException) {
-                    Timber.e(e.toString())
-                    Toast.makeText(this, R.string.error_sign_in, Toast.LENGTH_SHORT).show()
-                    return
-                }
-                signInPresenter.saveUser(account)
-                signInPresenter.saveToken(account.idToken!!)
-
                 val result = Auth.GoogleSignInApi.getSignInResultFromIntent(data)
                 if (result.isSuccess) {
                     signInBinding.loadingText.setText(R.string.signing_in)
                     signInBinding.viewSwitcher.showNext()
-                    signInPresenter.saveUser(result.signInAccount!!)
+                    val account = result.signInAccount!!
+                    signInPresenter.saveUser(account)
                     signInPresenter.signIn(firebaseAuth)
-                } else if (result.status.statusCode != SIGN_IN_CANCELLED) {
-                    Timber.e(result.status.toString())
-                    Toast.makeText(this, R.string.error_sign_in, Toast.LENGTH_SHORT).show()
+                } else {
+                    if (result.status.statusCode != GoogleSignInStatusCodes.SIGN_IN_CANCELLED) {
+                        Timber.e(result.status.toString())
+                        Toast.makeText(this, R.string.error_sign_in, Toast.LENGTH_SHORT).show()
+                    }
                     signInBinding.viewSwitcher.showPrevious()
                 }
                 return

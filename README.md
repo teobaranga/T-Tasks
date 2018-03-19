@@ -30,6 +30,7 @@ More features are planned and will be added in the future.
 - **Android Support Library**
 - **Google Tasks API**: https://developers.google.com/google-apps/tasks/
 - **Google Sign In**: https://developers.google.com/identity/sign-in/android/
+- **FlexibleAdapter**: https://github.com/davideas/FlexibleAdapter
 - **Firebase**: https://firebase.google.com
 - **Retrofit**: https://github.com/square/retrofit
 - **Android Priority Job Queue**: https://github.com/yigit/android-priority-jobqueue

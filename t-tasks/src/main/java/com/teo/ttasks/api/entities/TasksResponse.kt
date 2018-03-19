@@ -9,6 +9,10 @@ import io.realm.annotations.PrimaryKey
 
 open class TasksResponse : RealmObject() {
 
+    companion object {
+        val EMPTY: TasksResponse = TasksResponse()
+    }
+
     @Expose
     @PrimaryKey
     var id: String? = null

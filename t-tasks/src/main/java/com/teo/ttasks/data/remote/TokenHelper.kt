@@ -26,23 +26,21 @@ class TokenHelper(private val prefHelper: PrefHelper, private val tTasksApp: TTa
     val token: String
         get() {
             account = account ?: Account(prefHelper.userEmail!!, GOOGLE_ACCOUNT_TYPE)
-            return GoogleAuthUtil.getToken(tTasksApp, account!!, APP_SCOPES)
+            return GoogleAuthUtil.getToken(tTasksApp, account, APP_SCOPES)
         }
 
     /**
-     * Get the access token and save it
+     * Refresh the access token associated with the user currently logged in and save it
      *
      * @return a Single containing the access token
      */
     fun refreshAccessToken(): Single<String> {
-        account = account ?: Account(prefHelper.userEmail!!, GOOGLE_ACCOUNT_TYPE)
         return Single
                 .fromCallable {
                     // Clear the old token if it exists
-                    prefHelper.accessToken?.let { token -> GoogleAuthUtil.clearToken(tTasksApp, token) }
-                    // Return a Single with the new token
-                    return@fromCallable GoogleAuthUtil.getToken(tTasksApp, account!!, APP_SCOPES)
-
+                    prefHelper.accessToken?.let { GoogleAuthUtil.clearToken(tTasksApp, it) }
+                    // Return a new token
+                    token
                 }
                 .doOnSuccess {
                     // Save the token to the preferences
