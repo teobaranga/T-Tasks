@@ -158,7 +158,7 @@ class TasksHelper(private val tasksApi: TasksApi, private val prefHelper: PrefHe
     }
 
     /**
-     * Get the tasks associated with a given task list from the local database.
+     * Get the Realm-managed tasks associated with a given task list from the local database.
      * Also acts as a listener, pushing a new set of tasks every time they are updated.
      * Never calls onComplete.
      *
@@ -166,7 +166,7 @@ class TasksHelper(private val tasksApi: TasksApi, private val prefHelper: PrefHe
      * @param realm      an instance of Realm
      */
     fun getTasks(taskListId: String, realm: Realm): Flowable<RealmResults<TTask>> =
-            getValidTasks(taskListId, realm).findAllAsync().asFlowable()
+            getValidTasks(taskListId, realm).findAllAsync().asFlowable().filter { it.isLoaded }
 
     /**
      * Get the tasks associated with a given task list from the local database.

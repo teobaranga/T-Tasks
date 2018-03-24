@@ -32,7 +32,6 @@ import dagger.android.support.DaggerFragment
 import eu.davidea.flexibleadapter.FlexibleAdapter
 import eu.davidea.flexibleadapter.items.IFlexible
 import timber.log.Timber
-import java.util.*
 import javax.inject.Inject
 
 class TasksFragment : DaggerFragment(), TasksView, SwipeRefreshLayout.OnRefreshListener {
@@ -81,9 +80,9 @@ class TasksFragment : DaggerFragment(), TasksView, SwipeRefreshLayout.OnRefreshL
                 if (item.hasSubItems()) {
                     val showCompleted = !item.isExpanded
                     if (showCompleted) {
-                        item.withTitle(String.format(getString(R.string.completed_count), item.subItemsCount))
+                        item.setTitle(String.format(getString(R.string.completed_count), item.subItemsCount))
                     } else {
-                        item.withTitle(R.string.completed)
+                        item.setTitle(getString(R.string.completed))
                     }
                     item.toggleArrow(true)
                     tasksPresenter.showCompleted = !showCompleted
@@ -153,12 +152,10 @@ class TasksFragment : DaggerFragment(), TasksView, SwipeRefreshLayout.OnRefreshL
 
         savedInstanceState?.let { taskListId = it.getString(ARG_TASK_LIST_ID) }
 
-        activeTasksHeader = CategoryItem()
-                .withTitle("Active")
-        completedTasksHeader = CategoryItem()
-                .withTitle(R.string.completed)
+        activeTasksHeader = CategoryItem(getString(R.string.active))
+        completedTasksHeader = CategoryItem(getString(R.string.completed))
 
-        adapter = FlexibleAdapter(Arrays.asList(activeTasksHeader, completedTasksHeader) as List<IFlexible<*>>)
+        adapter = FlexibleAdapter(listOf(activeTasksHeader, completedTasksHeader), null, true)
         adapter.isAutoScrollOnExpand = false
         adapter.addListener(taskItemClickListener)
 
@@ -191,7 +188,7 @@ class TasksFragment : DaggerFragment(), TasksView, SwipeRefreshLayout.OnRefreshL
         tasksBinding.swipeRefreshLayout.setOnRefreshListener(this)
 
         if (!taskListId.isNullOrBlank()) {
-            tasksPresenter.getTasks(taskListId!!)
+            tasksPresenter.subscribeToTasks(taskListId!!)
         }
 
         // Synchronize tasks and then refresh this task list
@@ -216,19 +213,20 @@ class TasksFragment : DaggerFragment(), TasksView, SwipeRefreshLayout.OnRefreshL
         context!!.unregisterReceiver(networkInfoReceiver)
     }
 
-    override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         super.onCreateOptionsMenu(menu, inflater)
-        inflater!!.inflate(R.menu.menu_tasks, menu)
+        inflater.inflate(R.menu.menu_tasks, menu)
     }
 
-    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
-        when (item!!.itemId) {
-            R.id.menu_sort_due_date -> if (tasksPresenter.switchSortMode(SortType.SORT_DATE))
-                tasksPresenter.getTasks(taskListId!!)
-            R.id.menu_sort_alphabetical -> if (tasksPresenter.switchSortMode(SortType.SORT_ALPHA))
-                tasksPresenter.getTasks(taskListId!!)
-            R.id.menu_sort_my_order -> if (tasksPresenter.switchSortMode(SortType.SORT_CUSTOM))
-                tasksPresenter.getTasks(taskListId!!)
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        val refresh: Boolean = when (item.itemId) {
+            R.id.menu_sort_due_date -> tasksPresenter.switchSortMode(SortType.SORT_DATE)
+            R.id.menu_sort_alphabetical -> tasksPresenter.switchSortMode(SortType.SORT_ALPHA)
+            R.id.menu_sort_my_order -> tasksPresenter.switchSortMode(SortType.SORT_CUSTOM)
+            else -> false
+        }
+        if (refresh) {
+            tasksPresenter.subscribeToTasks(taskListId!!)
         }
         return super.onOptionsItemSelected(item)
     }
@@ -241,6 +239,7 @@ class TasksFragment : DaggerFragment(), TasksView, SwipeRefreshLayout.OnRefreshL
     override fun onActiveTasksLoaded(activeTasks: List<TaskItem>) {
         activeTasksHeader.subItems = activeTasks
         adapter.expand(activeTasksHeader)
+        Timber.v("Loaded %d active tasks", activeTasks.size)
     }
 
     override fun onCompletedTasksLoaded(completedTasks: List<TaskItem>) {
@@ -249,6 +248,7 @@ class TasksFragment : DaggerFragment(), TasksView, SwipeRefreshLayout.OnRefreshL
             adapter.expand(completedTasksHeader)
 //            Handler().post { completedTasksHeader.toggleArrow(false) }
         }
+        Timber.v("loaded %d completed tasks", completedTasks.size)
     }
 
     override fun onTasksLoadError(resolveIntent: Intent?) {
@@ -261,15 +261,21 @@ class TasksFragment : DaggerFragment(), TasksView, SwipeRefreshLayout.OnRefreshL
     }
 
     override fun onTasksEmpty() {
-        adapter.clear()
+        Timber.v("onTasksEmpty")
+        activeTasksHeader.subItems = null
+        completedTasksHeader.subItems = null
+        tasksBinding.tasksList.visibility = GONE
         tasksBinding.tasksLoading.visibility = GONE
         tasksBinding.tasksEmpty.visibility = VISIBLE
         onRefreshDone()
     }
 
     override fun onTasksLoaded() {
+        Timber.v("onTasksLoaded")
+        adapter.updateDataSet(listOf(activeTasksHeader, completedTasksHeader))
         tasksBinding.tasksLoading.visibility = GONE
         tasksBinding.tasksEmpty.visibility = GONE
+        tasksBinding.tasksList.visibility = VISIBLE
         onRefreshDone()
 
         tasksBinding.tasksList.post {
@@ -327,7 +333,7 @@ class TasksFragment : DaggerFragment(), TasksView, SwipeRefreshLayout.OnRefreshL
                 (activity as MainActivity).disableScrolling(false)
             taskListId = newTaskListId
 
-            tasksPresenter.getTasks(taskListId!!)
+            tasksPresenter.subscribeToTasks(taskListId!!)
             refreshTasks()
         }
     }

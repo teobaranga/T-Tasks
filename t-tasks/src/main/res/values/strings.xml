@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <string name="active">Active</string>
+
     <!-- Sign In -->
     <string name="welcome">Welcome to T-Tasks</string>
     <string name="welcome_description">All your tasks beautifully organized in one place and easy to manage, so you can focus on having a most productive day :)</string>

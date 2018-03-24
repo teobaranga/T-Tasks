@@ -1,7 +1,7 @@
 package com.teo.ttasks.ui.fragments.tasks
 
-import com.androidhuman.rxfirebase2.database.data
-import com.androidhuman.rxfirebase2.database.dataChanges
+import com.androidhuman.rxfirebase2.database.dataChangesOf
+import com.androidhuman.rxfirebase2.database.model.DataValue
 import com.google.android.gms.auth.UserRecoverableAuthException
 import com.google.firebase.database.FirebaseDatabase
 import com.teo.ttasks.data.local.PrefHelper
@@ -13,108 +13,107 @@ import com.teo.ttasks.util.FirebaseUtil.getTasksDatabase
 import com.teo.ttasks.util.FirebaseUtil.reminder
 import com.teo.ttasks.util.RxUtils
 import com.teo.ttasks.util.SortType
-import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
 import io.reactivex.flowables.GroupedFlowable
+import io.reactivex.processors.PublishProcessor
 import io.reactivex.schedulers.Schedulers
 import io.realm.Realm
 import timber.log.Timber
 import java.util.*
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 
-internal class TasksPresenter(private val tasksHelper: TasksHelper, private val prefHelper: PrefHelper) : Presenter<TasksView>() {
+internal class TasksPresenter(private val tasksHelper: TasksHelper,
+                              private val prefHelper: PrefHelper) : Presenter<TasksView>() {
 
     private var tasksSubscription: Disposable? = null
 
-    private var sortingMode: SortType = SortType.SORT_DATE
+    private var sortingMode = prefHelper.sortMode
 
-    init {
-        sortingMode = prefHelper.sortMode
-    }
+    internal var showCompleted: Boolean
+        get() = prefHelper.showCompleted
+        set(showCompleted) {
+            prefHelper.showCompleted = showCompleted
+        }
 
     private lateinit var realm: Realm
-    private lateinit var reminderDisposables: CompositeDisposable
+
+    private val reminderProcessor = PublishProcessor.create<TTask>()
+
+    /**
+     * Map of task IDs to their respective reminder disposable.
+     * Used to keep the list of reminder updates synchronized with the tasks on add/delete.
+     */
+    private val reminderMap = hashMapOf<String, Disposable>()
+
+    private val reminderDisposables = CompositeDisposable()
 
     private val tasks by lazy { FirebaseDatabase.getInstance().getTasksDatabase() }
 
     /**
-     * Load the tasks associated with the provided task list from the local database.
+     * Load and monitor changes to the tasks associated with the provided
+     * task list from the local database.
 
      * @param taskListId task list identifier
      */
-    internal fun getTasks(taskListId: String) {
+    internal fun subscribeToTasks(taskListId: String) {
         var taskCount = 0
+
         // Since Realm observables do not complete, this subscription must be recreated every time
         tasksSubscription?.let { if (!it.isDisposed) it.dispose() }
         view()?.onTasksLoading()
-        reminderDisposables = CompositeDisposable()
-        var initialized = false
+
         tasksSubscription = tasksHelper.getTasks(taskListId, realm)
                 .doOnNext { tTasks ->
-                    if (!initialized) {
-                        initialized = true
+                    val tTasksMap = tTasks.associateBy({ it.id }, { it })
 
-                        val map = hashMapOf<TTask, Date>()
+                    // Dispose reminders for deleted tasks
+                    val deletedTaskIds = reminderMap.keys - tTasksMap.keys
+                    deletedTaskIds.forEach { id ->
+                        // Remove and dispose
+                        reminderDisposables.remove(reminderMap.getValue(id))
+                        reminderMap.remove(id)
+                        Timber.v("Removed listener for task $id")
+                    }
 
-                        Observable.fromIterable(tTasks)
-                                .flatMapSingle { tTask ->
-                                    Timber.d("Getting reminders for ${tTask.id} on ${Thread.currentThread()}")
-                                    tasks.reminder(tTask.id)!!.data()
-                                            .subscribeOn(Schedulers.io())
-                                            .observeOn(AndroidSchedulers.mainThread())
-                                            .doOnSuccess { dataSnapshot ->
-                                                Timber.d("Got reminder for ${tTask.id} on ${Thread.currentThread()}: $dataSnapshot")
-                                                if (dataSnapshot.exists()) {
-                                                    val reminder = Date(dataSnapshot.getValue(Long::class.java)!!)
-                                                    if (tTask.reminder != reminder) {
-                                                        map[tTask] = reminder
-                                                    }
+                    // Add reminder listeners for new tasks
+                    val newTaskIds = tTasksMap.keys - reminderMap.keys
+                    newTaskIds.forEach { id ->
+                        val reminderDisposable = tasks.reminder(id)!!.dataChangesOf<Long>()
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .subscribeOn(Schedulers.io())
+                                .subscribe(
+                                        { t ->
+                                            if (t == DataValue.empty<Long>()) {
+                                                Timber.v("Reminder for $id: empty")
+                                            } else {
+                                                val dateInMillis = t.value()
+                                                Timber.v("Reminder for $id: $dateInMillis")
+                                                val reminder = Date(dateInMillis)
+                                                if (tTasksMap[id]!!.reminder != reminder) {
+                                                    val tTask = realm.copyFromRealm(tTasksMap[id]!!)
+                                                    tTask.reminder = reminder
+                                                    reminderProcessor.onNext(tTask)
                                                 }
                                             }
-                                }
-                                .subscribe({}, {}, {
-                                    Timber.d("completed")
-                                    if (map.isNotEmpty()) {
-                                        realm.executeTransaction {
-                                            for ((tTask, reminder) in map) {
-                                                tTask.reminder = reminder
-                                                Timber.d("Restored reminder for %s", tTask.id)
-                                            }
                                         }
-                                    }
-                                    Timber.d("Subscribing...")
-
-                                    for (tTask in tTasks) {
-                                        // Add a listener in order to get notified whenever the reminder date changes
-                                        // TODO: 2016-10-01 remove this at sign out
-                                        reminderDisposables.add(
-                                                tasks.reminder(tTask.id)!!.dataChanges()
-                                                        .subscribe { newDataSnapshot ->
-                                                            if (newDataSnapshot.exists()) {
-                                                                val reminder = Date(newDataSnapshot.getValue(Long::class.java)!!)
-                                                                if (tTask.reminder != reminder) {
-                                                                    realm.executeTransaction { tTask.reminder = reminder }
-                                                                    Timber.v("New reminder retrieved for %s", tTask.id)
-                                                                }
-                                                            }
-                                                        })
-                                    }
-                                })
+                                )
+                        reminderDisposables.add(reminderDisposable)
+                        reminderMap[id] = reminderDisposable
+                        Timber.v("Added listener for task $id")
                     }
                 }
                 .compose<GroupedFlowable<Boolean, List<TaskItem>>>(RxUtils.getTaskItems(sortingMode))
                 .flatMap { groupedFlowable ->
                     groupedFlowable.doOnNext { taskItems ->
                         if (groupedFlowable.key!!) {
-                            Timber.d("loaded %d active tasks", taskItems.size)
                             view()?.let {
                                 it.onActiveTasksLoaded(taskItems)
                                 if (!taskItems.isEmpty()) taskCount += taskItems.size
                             }
                         } else {
-                            Timber.d("loaded %d completed tasks", taskItems.size)
                             view()?.let {
                                 // Show completed tasks
                                 it.onCompletedTasksLoaded(taskItems)
@@ -190,12 +189,6 @@ internal class TasksPresenter(private val tasksHelper: TasksHelper, private val 
         disposeOnUnbindView(subscription)
     }
 
-    internal var showCompleted: Boolean
-        get() = prefHelper.showCompleted
-        set(showCompleted) {
-            prefHelper.showCompleted = showCompleted
-        }
-
     /**
      * Switch the sorting mode.
 
@@ -215,13 +208,24 @@ internal class TasksPresenter(private val tasksHelper: TasksHelper, private val 
     override fun bindView(view: TasksView) {
         super.bindView(view)
         realm = Realm.getDefaultInstance()
+        // TODO: optimize this since it still runs in the background...
+        reminderProcessor
+                .buffer(1, TimeUnit.SECONDS)
+                .filter { tTasks -> tTasks.size != 0 }
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        { tTasks ->
+                            realm.executeTransaction { it.copyToRealmOrUpdate(tTasks) }
+                            Timber.v("Processed reminders for %d tasks", tTasks.size)
+                        },
+                        { Timber.e(it, "Error while processing the reminders") }
+                )
     }
 
     override fun unbindView(view: TasksView) {
         super.unbindView(view)
-        if (::reminderDisposables.isInitialized) {
-            reminderDisposables.clear()
-        }
+        reminderDisposables.clear()
+        reminderMap.clear()
         realm.close()
     }
 }

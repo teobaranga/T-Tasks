@@ -137,9 +137,24 @@ class TaskItem(tTask: TTask) : AbstractFlexibleItem<TaskItem.ViewHolder>(), Comp
      */
     override fun compareTo(other: TaskItem): Int = dueDateComparator.compare(this, other)
 
-    override fun equals(other: Any?): Boolean = other is TaskItem && taskId == other.taskId
+    override fun equals(other: Any?): Boolean =
+            other is TaskItem &&
+                    taskId == other.taskId &&
+                    title == other.title &&
+                    notes == other.notes &&
+                    dueDate == other.dueDate &&
+                    completed == other.completed &&
+                    reminder == other.reminder
 
-    override fun hashCode(): Int = taskId.hashCode()
+    override fun hashCode(): Int {
+        var result = taskId.hashCode()
+        title?.let { result = 37 * result + it.hashCode() }
+        notes?.let { result = 37 * result + it.hashCode() }
+        dueDate?.let { result = 37 * result + it.hashCode() }
+        completed?.let { result = 37 * result + it.hashCode() }
+        reminder?.let { result = 37 * result + it.hashCode() }
+        return result
+    }
 
     class ViewHolder internal constructor(view: View, adapter: FlexibleAdapter<*>) : FlexibleViewHolder(view, adapter) {
 

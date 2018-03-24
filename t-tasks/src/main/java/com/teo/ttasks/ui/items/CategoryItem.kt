@@ -2,7 +2,6 @@ package com.teo.ttasks.ui.items
 
 import android.content.Context
 import android.databinding.DataBindingUtil
-import android.support.annotation.StringRes
 import android.support.graphics.drawable.AnimatedVectorDrawableCompat
 import android.support.v4.content.res.ResourcesCompat
 import android.support.v7.widget.RecyclerView
@@ -19,24 +18,17 @@ import eu.davidea.viewholders.ExpandableViewHolder
 /**
  * RecyclerView Item which represents a Date in an Order list
  */
-class CategoryItem : AbstractExpandableItem<CategoryItem.ViewHolder, TaskItem>() {
+class CategoryItem(val title: StringHolder) : AbstractExpandableItem<CategoryItem.ViewHolder, TaskItem>() {
 
-    private var title: StringHolder? = null
+    constructor(title: String): this(StringHolder(title))
 
     private var viewHolder: ViewHolder? = null
 
-    fun withTitle(title: String): CategoryItem {
-        this.title = StringHolder(title)
-        return this
-    }
-
-    fun withTitle(@StringRes titleRes: Int): CategoryItem {
-        this.title = StringHolder(titleRes)
-        return this
+    fun setTitle(title: String) {
+        this.title.setText(title)
     }
 
     override fun getLayoutRes(): Int = R.layout.item_category
-
 
     override fun createViewHolder(view: View, adapter: FlexibleAdapter<IFlexible<RecyclerView.ViewHolder>>): ViewHolder {
         return ViewHolder(view, adapter)
@@ -88,9 +80,9 @@ class CategoryItem : AbstractExpandableItem<CategoryItem.ViewHolder, TaskItem>()
         toggleArrow(false)
     }
 
-    override fun equals(other: Any?) = other is CategoryItem && title!!.text?.toString() == other.title!!.text?.toString()
+    override fun equals(other: Any?) = other is CategoryItem && title.text.toString() == other.title.text.toString()
 
-    override fun hashCode() = title!!.text!!.hashCode()
+    override fun hashCode() = title.text.hashCode()
 
     class ViewHolder(view: View, adapter: FlexibleAdapter<*>) : ExpandableViewHolder(view, adapter) {
         val itemCategoryBinding: ItemCategoryBinding = DataBindingUtil.bind(view)
