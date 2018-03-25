@@ -145,6 +145,7 @@ class TasksFragment : DaggerFragment(), TasksView, SwipeRefreshLayout.OnRefreshL
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setHasOptionsMenu(true)
+        retainInstance = true
 
         savedInstanceState?.let { taskListId = it.getString(ARG_TASK_LIST_ID) }
 
@@ -186,7 +187,7 @@ class TasksFragment : DaggerFragment(), TasksView, SwipeRefreshLayout.OnRefreshL
         tasksBinding.swipeRefreshLayout.setOnRefreshListener(this)
 
         if (!taskListId.isNullOrBlank()) {
-            tasksPresenter.subscribeToTasks(taskListId!!)
+            tasksPresenter.subscribeToTasks(taskListId!!, savedInstanceState != null)
         }
 
         // Synchronize tasks and then refresh this task list

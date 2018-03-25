@@ -54,6 +54,28 @@ import javax.inject.Inject
 // TODO: 2015-12-29 implement multiple accounts
 open class MainActivity : BaseActivity(), MainView {
 
+    companion object {
+        private const val TAG_TASKS = "tasks"
+        private const val TAG_TASK_LISTS = "taskLists"
+
+        // private const val RC_ADD = 4;
+        private const val RC_NIGHT_MODE = 415
+
+        private const val ID_TASKS: Long = 0x01
+        private const val ID_TASK_LISTS: Long = 0x02
+        //        private const val ID_ADD_ACCOUNT = 0x01
+//        private const val ID_MANAGE_ACCOUNT = 0x02
+        private const val ID_SETTINGS: Long = 0xF0
+        private const val ID_HELP_AND_FEEDBACK: Long = 0xF1
+        private const val ID_ABOUT: Long = 0xF2
+        private const val ID_SIGN_OUT: Long = 0xF3
+
+        fun start(context: Context) {
+            val starter = Intent(context, MainActivity::class.java)
+            context.startActivity(starter)
+        }
+    }
+
     @Inject internal lateinit var mainActivityPresenter: MainActivityPresenter
     @Inject internal lateinit var networkInfoReceiver: NetworkInfoReceiver
 
@@ -118,8 +140,11 @@ open class MainActivity : BaseActivity(), MainView {
             taskListsFragment = TaskListsFragment.newInstance()
         } else {
             // Get the tasks fragment
-            val fragment = supportFragmentManager.findFragmentByTag("tasks")
+            val fragment = supportFragmentManager.findFragmentByTag(TAG_TASKS)
             tasksFragment = fragment as? TasksFragment ?: TasksFragment.newInstance()
+            // Get the task lists fragment
+            val fragmentTaskLists = supportFragmentManager.findFragmentByTag(TAG_TASK_LISTS)
+            taskListsFragment = fragmentTaskLists as? TaskListsFragment ?: TaskListsFragment.newInstance()
         }
 
         taskListsAdapter = TaskListsAdapter(supportActionBar!!.themedContext)
@@ -208,7 +233,7 @@ open class MainActivity : BaseActivity(), MainView {
                 .withOnDrawerItemClickListener { _, _, drawerItem ->
                     // The header and footer items don't contain a drawerItem
                     drawerItem?.let {
-                        val currentFragment = supportFragmentManager.findFragmentById(R.id.fragment_container)
+                        val currentFragment: Fragment? = supportFragmentManager.findFragmentById(R.id.fragment_container)
                         var fragment: Fragment? = null
                         var tag: String? = null
                         val supportActionBar = supportActionBar!!
@@ -219,7 +244,7 @@ open class MainActivity : BaseActivity(), MainView {
                                 supportActionBar.setDisplayShowTitleEnabled(false)
                                 mainBinding.spinnerTaskLists.visibility = VISIBLE
                                 fragment = tasksFragment
-                                tag = "tasks"
+                                tag = TAG_TASKS
                             }
                             ID_TASK_LISTS -> {
                                 if (currentFragment is TaskListsFragment)
@@ -227,8 +252,8 @@ open class MainActivity : BaseActivity(), MainView {
                                 supportActionBar.setTitle(R.string.task_lists)
                                 supportActionBar.setDisplayShowTitleEnabled(true)
                                 mainBinding.spinnerTaskLists.visibility = GONE
-                                fragment = TaskListsFragment.newInstance()
-                                tag = "taskLists"
+                                fragment = taskListsFragment
+                                tag = TAG_TASK_LISTS
                             }
                             ID_SETTINGS -> SettingsActivity.startForResult(this, RC_NIGHT_MODE)
                             ID_ABOUT -> AboutActivity.start(this)
@@ -242,10 +267,23 @@ open class MainActivity : BaseActivity(), MainView {
                         Timber.d("fragment is %s", fragment)
                         fragment?.let {
                             mainBinding.appbar.setExpanded(true)
-                            supportFragmentManager
-                                    .beginTransaction()
-                                    .replace(R.id.fragment_container, fragment, tag)
-                                    .commitAllowingStateLoss()
+                            currentFragment?.let {
+                                Timber.v("Detaching current fragment %s", it)
+                                supportFragmentManager.beginTransaction().detach(it).commit()
+                            }
+                            when (supportFragmentManager.findFragmentByTag(tag)) {
+                                null -> {
+                                    Timber.v("Adding new fragment with tag %s", tag)
+                                    supportFragmentManager
+                                            .beginTransaction()
+                                            .add(R.id.fragment_container, fragment, tag)
+                                            .commit()
+                                }
+                                else -> {
+                                    Timber.v("Re-attaching fragment with tag %s", tag)
+                                    supportFragmentManager.beginTransaction().attach(fragment).commit()
+                                }
+                            }
                         }
                     }
                     false
@@ -416,26 +454,6 @@ open class MainActivity : BaseActivity(), MainView {
         }
 
         override fun onPrepareLoad(placeHolderDrawable: Drawable) {}
-    }
-
-    companion object {
-
-        // private const val RC_ADD = 4;
-        private const val RC_NIGHT_MODE = 415
-
-        private const val ID_TASKS: Long = 0x01
-        private const val ID_TASK_LISTS: Long = 0x02
-        //        private const val ID_ADD_ACCOUNT = 0x01
-//        private const val ID_MANAGE_ACCOUNT = 0x02
-        private const val ID_SETTINGS: Long = 0xF0
-        private const val ID_HELP_AND_FEEDBACK: Long = 0xF1
-        private const val ID_ABOUT: Long = 0xF2
-        private const val ID_SIGN_OUT: Long = 0xF3
-
-        fun start(context: Context) {
-            val starter = Intent(context, MainActivity::class.java)
-            context.startActivity(starter)
-        }
     }
 
     // TODO: implement chooseAccount

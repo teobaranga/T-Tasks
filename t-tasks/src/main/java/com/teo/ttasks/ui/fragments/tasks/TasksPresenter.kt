@@ -57,12 +57,14 @@ internal class TasksPresenter(private val tasksHelper: TasksHelper,
 
      * @param taskListId task list identifier
      */
-    internal fun subscribeToTasks(taskListId: String) {
+    internal fun subscribeToTasks(taskListId: String, resubscribe: Boolean = false) {
         var taskCount = 0
 
         // Since Realm observables do not complete, this subscription must be recreated every time
         tasksSubscription?.let { if (!it.isDisposed) it.dispose() }
-        view()?.onTasksLoading()
+        if (!resubscribe) {
+            view()?.onTasksLoading()
+        }
 
         tasksSubscription = tasksHelper.getTasks(taskListId, realm)
                 .map { realm.copyFromRealm(it) }

@@ -89,6 +89,7 @@ class TaskListsFragment : DaggerFragment(), TaskListsView, SwipeRefreshLayout.On
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        retainInstance = true
         adapter = FlexibleAdapter(null)
         adapter.addListener(FlexibleAdapter.OnItemClickListener { _, position ->
             val item = adapter.getItem(position)
