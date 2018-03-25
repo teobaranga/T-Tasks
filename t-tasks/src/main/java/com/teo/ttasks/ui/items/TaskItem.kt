@@ -13,33 +13,29 @@ import com.teo.ttasks.databinding.ItemTaskBinding
 import com.teo.ttasks.util.DateUtils
 import com.teo.ttasks.util.DateUtils.Companion.sdfDay
 import com.teo.ttasks.util.DateUtils.Companion.sdfMonth
+import com.teo.ttasks.util.TaskType
 import eu.davidea.flexibleadapter.FlexibleAdapter
 import eu.davidea.flexibleadapter.items.AbstractFlexibleItem
 import eu.davidea.flexibleadapter.items.IFlexible
 import eu.davidea.viewholders.FlexibleViewHolder
-import timber.log.Timber
 import java.util.*
 
 
-class TaskItem(tTask: TTask) : AbstractFlexibleItem<TaskItem.ViewHolder>(), Comparable<TaskItem> {
+class TaskItem(tTask: TTask,
+               private val taskType: TaskType)
+    : AbstractFlexibleItem<TaskItem.ViewHolder>(), Comparable<TaskItem> {
 
-    val taskId: String
-        get
+    val taskId: String = tTask.id
 
-    val title: String?
-        get
+    val title: String = tTask.title
 
-    val notes: String?
-        get
+    val notes: String? = tTask.notes
 
-    val dueDate: Date?
-        get
+    val dueDate: Date? = tTask.due
 
-    val completed: Date?
-        get
+    val completed: Date? = tTask.completed
 
-    val reminder: Date?
-        get
+    val reminder: Date? = tTask.reminder
 
     private lateinit var viewHolder: ViewHolder
 
@@ -58,18 +54,11 @@ class TaskItem(tTask: TTask) : AbstractFlexibleItem<TaskItem.ViewHolder>(), Comp
      */
     private var combineMonth: Boolean = false
 
-    init {
-        taskId = tTask.id
-        title = tTask.title
-        notes = tTask.notes
-        dueDate = tTask.due
-        completed = tTask.completed
-        reminder = tTask.reminder
-    }
-
     override fun shouldNotifyChange(newItem: IFlexible<*>?): Boolean =
-            // Should be bound again if ID is different
+    // Should be bound again if ID is different
             taskId != (newItem as TaskItem).taskId
+
+    override fun getItemViewType(): Int = taskType.id
 
     override fun getLayoutRes(): Int = R.layout.item_task
 
@@ -98,7 +87,6 @@ class TaskItem(tTask: TTask) : AbstractFlexibleItem<TaskItem.ViewHolder>(), Comp
         if (reminder == null) {
             binding.reminder.visibility = GONE
         } else {
-            Timber.d("reminder is not null")
             binding.reminder.text = DateUtils.formatTime(binding.root.context, reminder!!)
             binding.reminder.visibility = VISIBLE
         }

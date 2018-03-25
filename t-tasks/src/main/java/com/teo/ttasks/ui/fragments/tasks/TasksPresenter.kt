@@ -8,15 +8,14 @@ import com.teo.ttasks.data.local.PrefHelper
 import com.teo.ttasks.data.model.TTask
 import com.teo.ttasks.data.remote.TasksHelper
 import com.teo.ttasks.ui.base.Presenter
-import com.teo.ttasks.ui.items.TaskItem
 import com.teo.ttasks.util.FirebaseUtil.getTasksDatabase
 import com.teo.ttasks.util.FirebaseUtil.reminder
 import com.teo.ttasks.util.RxUtils
 import com.teo.ttasks.util.SortType
+import com.teo.ttasks.util.TaskType
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
-import io.reactivex.flowables.GroupedFlowable
 import io.reactivex.processors.PublishProcessor
 import io.reactivex.schedulers.Schedulers
 import io.realm.Realm
@@ -66,6 +65,8 @@ internal class TasksPresenter(private val tasksHelper: TasksHelper,
         view()?.onTasksLoading()
 
         tasksSubscription = tasksHelper.getTasks(taskListId, realm)
+                .map { realm.copyFromRealm(it) }
+                .observeOn(Schedulers.io())
                 .doOnNext { tTasks ->
                     val tTasksMap = tTasks.associateBy({ it.id }, { it })
 
@@ -92,8 +93,8 @@ internal class TasksPresenter(private val tasksHelper: TasksHelper,
                                                 val dateInMillis = t.value()
                                                 Timber.v("Reminder for $id: $dateInMillis")
                                                 val reminder = Date(dateInMillis)
-                                                if (tTasksMap[id]!!.reminder != reminder) {
-                                                    val tTask = realm.copyFromRealm(tTasksMap[id]!!)
+                                                val tTask = tTasksMap[id]!!
+                                                if (tTask.reminder != reminder) {
                                                     tTask.reminder = reminder
                                                     reminderProcessor.onNext(tTask)
                                                 }
@@ -105,31 +106,35 @@ internal class TasksPresenter(private val tasksHelper: TasksHelper,
                         Timber.v("Added listener for task $id")
                     }
                 }
-                .compose<GroupedFlowable<Boolean, List<TaskItem>>>(RxUtils.getTaskItems(sortingMode))
-                .flatMap { groupedFlowable ->
-                    groupedFlowable.doOnNext { taskItems ->
-                        if (groupedFlowable.key!!) {
-                            view()?.let {
-                                it.onActiveTasksLoaded(taskItems)
-                                if (!taskItems.isEmpty()) taskCount += taskItems.size
-                            }
-                        } else {
-                            view()?.let {
-                                // Show completed tasks
-                                it.onCompletedTasksLoaded(taskItems)
-                                if (!taskItems.isEmpty()) taskCount += taskItems.size
-
-                                if (taskCount == 0) {
-                                    it.onTasksEmpty()
-                                } else {
-                                    it.onTasksLoaded()
-                                    taskCount = 0
+                .compose(RxUtils.getTaskItems(sortingMode))
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        { (taskType, taskItems) ->
+                            taskCount += taskItems.size
+                            when (taskType) {
+                                TaskType.ACTIVE -> {
+                                    // Show active tasks
+                                    view()?.onActiveTasksLoaded(taskItems)
+                                }
+                                TaskType.COMPLETED -> {
+                                    // Show completed tasks
+                                    view()?.onCompletedTasksLoaded(taskItems)
+                                }
+                                // End of tasks - all the previous task types have been processed
+                                TaskType.EOT -> {
+                                    view()?.let {
+                                        if (taskCount == 0) {
+                                            it.onTasksEmpty()
+                                        } else {
+                                            it.onTasksLoaded()
+                                            taskCount = 0
+                                        }
+                                    }
                                 }
                             }
-                        }
-                    }
-                }
-                .subscribe()
+                        },
+                        { Timber.e(it, "Error when subscribing to tasks")}
+                )
         disposeOnUnbindView(tasksSubscription!!)
     }
 
@@ -178,14 +183,13 @@ internal class TasksPresenter(private val tasksHelper: TasksHelper,
                         { throwable ->
                             // Sync failed for at least one task, will retry on next refresh
                             Timber.e(throwable.toString())
-                            val view = view()
-                            view?.onSyncDone(taskSyncCount.get())
+                            view()?.onSyncDone(taskSyncCount.get())
+                        },
+                        {
+                            // Syncing done
+                            view()?.onSyncDone(taskSyncCount.get())
                         }
-                ) {
-                    // Syncing done
-                    val view = view()
-                    view?.onSyncDone(taskSyncCount.get())
-                }
+                )
         disposeOnUnbindView(subscription)
     }
 

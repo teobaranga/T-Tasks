@@ -17,7 +17,7 @@ open class Task : RealmObject {
         private set
 
     @Expose
-    lateinit var etag: String
+    var etag: String? = null
 
     @Expose
     var title: String? = null

@@ -119,7 +119,7 @@ class TasksHelper(private val tasksApi: TasksApi, private val prefHelper: PrefHe
      * @param realm      a Realm instance
      * @return the number of tasks in the task list
      */
-    fun getTaskListSize(taskListId: String, realm: Realm): Long = getValidTasks(taskListId, realm).count()
+    fun getTaskListSize(taskListId: String, realm: Realm): Long = queryTasks(taskListId, realm).count()
 
     fun refreshTaskLists(): Completable {
         return tasksApi.getTaskLists(prefHelper.taskListsResponseEtag)
@@ -166,7 +166,10 @@ class TasksHelper(private val tasksApi: TasksApi, private val prefHelper: PrefHe
      * @param realm      an instance of Realm
      */
     fun getTasks(taskListId: String, realm: Realm): Flowable<RealmResults<TTask>> =
-            getValidTasks(taskListId, realm).findAllAsync().asFlowable().filter { it.isLoaded }
+            queryTasks(taskListId, realm)
+                    .findAllAsync()
+                    .asFlowable()
+                    .filter { it.isLoaded && it.isValid }
 
     /**
      * Get the tasks associated with a given task list from the local database.
@@ -174,14 +177,12 @@ class TasksHelper(private val tasksApi: TasksApi, private val prefHelper: PrefHe
      * @param taskListId task list identifier
      * @return a Flowable of a list of un-managed [Task]s
      */
-    fun getTasks(taskListId: String): Flowable<List<TTask>> {
-        return Flowable.defer<List<TTask>> {
-            var tasks: List<TTask>? = null
-            Realm.getDefaultInstance().use { realm ->
-                tasks = realm.copyFromRealm(getValidTasks(taskListId, realm).findAll())
-            }
-            if (tasks?.isEmpty() == true) Flowable.empty() else Flowable.just(tasks)
+    fun getUnManagedTasks(taskListId: String): Flowable<TTask> = Flowable.defer {
+        lateinit var tasks: List<TTask>
+        Realm.getDefaultInstance().use {
+            tasks = it.copyFromRealm(queryTasks(taskListId, it).findAll())
         }
+        if (tasks.isEmpty()) Flowable.empty() else Flowable.fromIterable(tasks)
     }
 
     fun getTaskAsFlowable(taskId: String, realm: Realm): Flowable<TTask> {
@@ -194,24 +195,18 @@ class TasksHelper(private val tasksApi: TasksApi, private val prefHelper: PrefHe
 
     /**
      * Sync the tasks from the specified task list that are not currently marked as synced.
-     * Delete the tasks that are marked as deleted.
+     * Delete the tasks that are marked as deleted. TODO: is this correct?
      *
      * @param taskListId task list identifier
      * @return a Flowable returning every task after it was successfully synced
      */
-    fun syncTasks(taskListId: String): Flowable<TTask> {
-        return getTasks(taskListId)
-                .flatMapIterable { tasks -> tasks }
-                .filter { task -> !task.synced }
-                .flatMap { tTask ->
-                    // These tasks are not managed by Realm
-                    // Handle unsynced tasks
-                    if (!tTask.synced && !tTask.isLocalOnly) {
-                        updateTask(taskListId, tTask)
+    fun syncTasks(taskListId: String): Flowable<TTask> =
+            getUnManagedTasks(taskListId)
+                    .filter {
+                        // Handle unsynced tasks
+                        !it.synced && !it.isLocalOnly
                     }
-                    Flowable.empty<TTask>()
-                }
-    }
+                    .flatMapSingle { updateTask(taskListId, it) }
 
     fun refreshTasks(taskListId: String): Completable {
         return tasksApi.getTasks(taskListId, prefHelper.getTasksResponseEtag(taskListId))
@@ -337,13 +332,13 @@ class TasksHelper(private val tasksApi: TasksApi, private val prefHelper: PrefHe
      * @param realm      Realm instance
      * @return a RealmResults containing objects. If no objects match the condition, a list with zero objects is returned.
      */
-    private fun getValidTasks(taskListId: String, realm: Realm): RealmQuery<TTask> {
+    private fun queryTasks(taskListId: String, realm: Realm): RealmQuery<TTask> {
         return realm.where(TTask::class.java)
                 .equalTo(TTaskFields.TASK_LIST_ID, taskListId)
                 .equalTo(TTaskFields.DELETED, false)
     }
 
-    private fun updateTask(taskListId: String, tTask: TTask): Flowable<TTask> {
+    private fun updateTask(taskListId: String, tTask: TTask): Single<TTask> {
         Timber.d("updating task %s, %s, %s", tTask.id, tTask.synced, tTask.deleted)
         return tasksApi.updateTask(taskListId, tTask.id, tTask.task).map { tTask }
     }

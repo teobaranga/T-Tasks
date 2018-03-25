@@ -109,7 +109,7 @@ class TaskDetailActivity : DaggerAppCompatActivity(), TaskDetailView {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        taskDetailBinding = DataBindingUtil.setContentView<ActivityTaskDetailBinding>(this, R.layout.activity_task_detail)
+        taskDetailBinding = DataBindingUtil.setContentView(this, R.layout.activity_task_detail)
         taskDetailPresenter.bindView(this)
 
         taskDetailBinding.more.setOnClickListener(overflowClickListener)

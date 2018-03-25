@@ -120,6 +120,7 @@ dependencies {
     implementation deps.dagger.android.support
     implementation deps.rx.java
     implementation deps.rx.android
+    implementation deps.support.cardview
     implementation deps.support.design
     implementation deps.support.fragment
     implementation deps.timber

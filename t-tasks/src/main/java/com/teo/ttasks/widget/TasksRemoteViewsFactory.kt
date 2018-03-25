@@ -29,15 +29,13 @@ class TasksRemoteViewsFactory internal constructor(context: Context, intent: Int
     }
 
     override fun onDataSetChanged() {
-
-        tasksHelper.getTasks(taskListId)
+        tasksHelper.getUnManagedTasks(taskListId)
+                .toList()
                 .compose(RxUtils.getTaskItems(true))
-                .subscribe({ taskItems ->
-                    this.taskItems = taskItems
-                }, { throwable ->
-                    Timber.e(throwable.toString())
-                })
-        Timber.d("Widget taskItems count %d", if (taskItems != null) taskItems!!.size else 0)
+                .subscribe(
+                        { taskItems -> this.taskItems = taskItems },
+                        { Timber.e(it, "Error while retrieving widget data") })
+        Timber.d("Widget taskItems count %d", taskItems?.size ?: 0)
     }
 
     override fun onDestroy() {

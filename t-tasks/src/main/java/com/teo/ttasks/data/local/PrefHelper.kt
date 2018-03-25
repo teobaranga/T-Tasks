@@ -66,6 +66,7 @@ class PrefHelper(context: Context) {
         get() = sharedPreferences.getString(PREF_CURRENT_TASK_LIST_ID, null)
         set(currentTaskListId) = sharedPreferences.edit().putString(PREF_CURRENT_TASK_LIST_ID, currentTaskListId).apply()
 
+    /** Flag indicating whether to show completed tasks as expanded at startup */
     var showCompleted: Boolean
         get() = sharedPreferences.getBoolean(PREF_SHOW_COMPLETED, true)
         set(showCompleted) = sharedPreferences.edit().putBoolean(PREF_SHOW_COMPLETED, showCompleted).apply()

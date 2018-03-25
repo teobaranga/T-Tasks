@@ -60,7 +60,7 @@ interface TasksApi {
     fun updateTask(@Path("taskList") taskListId: String, @Path("task") taskId: String, @Body taskFields: TaskFields): Flowable<Task>
 
     @PUT("lists/{taskList}/tasks/{task}/")
-    fun updateTask(@Path("taskList") taskListId: String, @Path("task") taskId: String, @Body task: Task): Flowable<Task>
+    fun updateTask(@Path("taskList") taskListId: String, @Path("task") taskId: String, @Body task: Task): Single<Task>
 
     /**
      * Creates a new task on the specified task list

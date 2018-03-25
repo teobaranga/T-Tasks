@@ -5,7 +5,7 @@ import com.teo.ttasks.data.model.Task
 import com.teo.ttasks.ui.items.TaskItem
 import io.reactivex.Flowable
 import io.reactivex.FlowableTransformer
-import io.reactivex.flowables.GroupedFlowable
+import io.reactivex.SingleTransformer
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -16,8 +16,8 @@ object RxUtils {
      * 2. Groups them by completion status (not completed or no due date first followed by completed ones)<br></br>
      * 3. Sorts the first group by due date and the second group by completion date
      */
-    fun getTaskItems(hideCompleted: Boolean): FlowableTransformer<List<TTask>, List<TaskItem>> {
-        return FlowableTransformer { observable ->
+    fun getTaskItems(hideCompleted: Boolean): SingleTransformer<List<TTask>, List<TaskItem>> {
+        return SingleTransformer { observable ->
             observable
                     .map({ tasks ->
                         val taskItems = ArrayList<TaskItem>()
@@ -27,10 +27,10 @@ object RxUtils {
                         for (task in tasks) {
                             if (task.completed == null) {
                                 // Active task
-                                activeTasks.add(TaskItem(task))
+                                activeTasks.add(TaskItem(task, TaskType.ACTIVE))
                             } else if (!hideCompleted) {
                                 // Completed task
-                                completedTasks.add(TaskItem(task))
+                                completedTasks.add(TaskItem(task, TaskType.COMPLETED))
                             }
                         }
 
@@ -50,7 +50,7 @@ object RxUtils {
         }
     }
 
-    fun getTaskItems(sortingMode: SortType): FlowableTransformer<List<TTask>, GroupedFlowable<Boolean, List<TaskItem>>> {
+    fun getTaskItems(sortingMode: SortType): FlowableTransformer<List<TTask>, Pair<TaskType, List<TaskItem>>> {
         return FlowableTransformer { observable ->
             observable
                     .flatMap { tTasks ->
@@ -60,10 +60,10 @@ object RxUtils {
                         for (task in tTasks) {
                             if (task.completed == null) {
                                 // Active task
-                                activeTasks.add(TaskItem(task))
+                                activeTasks.add(TaskItem(task, TaskType.ACTIVE))
                             } else {
                                 // Completed task
-                                completedTasks.add(TaskItem(task))
+                                completedTasks.add(TaskItem(task, TaskType.COMPLETED))
                             }
                         }
 
@@ -72,18 +72,21 @@ object RxUtils {
                                 // Sort active tasks by due date in ascending order
                                 activeTasks.sort()
                                 // Sort completed tasks by completion date in descending order
-                                Collections.sort(completedTasks, TaskItem.completionDateComparator)
+                                completedTasks.sortWith(TaskItem.completionDateComparator)
                             }
                             SortType.SORT_ALPHA -> {
-                                Collections.sort(activeTasks, TaskItem.alphabeticalComparator)
-                                Collections.sort(completedTasks, TaskItem.alphabeticalComparator)
+                                activeTasks.sortWith(TaskItem.alphabeticalComparator)
+                                completedTasks.sortWith(TaskItem.alphabeticalComparator)
                             }
                             SortType.SORT_CUSTOM -> {
+                                // Do nothing
                             }
-                        }// Do nothing
+                        }
 
-                        Flowable.just(activeTasks.toList(), completedTasks.toList())
-                                .groupBy { task -> !task.isEmpty() && task[0].completed == null }
+                        Flowable.just(
+                                Pair(TaskType.ACTIVE, activeTasks.toList()),
+                                Pair(TaskType.COMPLETED, completedTasks.toList()),
+                                Pair(TaskType.EOT, emptyList()))
                     }
         }
     }

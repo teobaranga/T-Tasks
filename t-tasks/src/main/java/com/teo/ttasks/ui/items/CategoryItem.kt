@@ -7,7 +7,6 @@ import android.support.v4.content.res.ResourcesCompat
 import android.support.v7.widget.RecyclerView
 import android.util.TypedValue
 import android.view.View
-import com.mikepenz.materialdrawer.holder.StringHolder
 import com.teo.ttasks.R
 import com.teo.ttasks.databinding.ItemCategoryBinding
 import eu.davidea.flexibleadapter.FlexibleAdapter
@@ -18,15 +17,13 @@ import eu.davidea.viewholders.ExpandableViewHolder
 /**
  * RecyclerView Item which represents a Date in an Order list
  */
-class CategoryItem(val title: StringHolder) : AbstractExpandableItem<CategoryItem.ViewHolder, TaskItem>() {
+class CategoryItem(private val titleExpanded: String,
+                   private val titleCollapsed: String)
+    : AbstractExpandableItem<CategoryItem.ViewHolder, TaskItem>() {
 
-    constructor(title: String): this(StringHolder(title))
+    constructor(title: String): this(title, title)
 
     private var viewHolder: ViewHolder? = null
-
-    fun setTitle(title: String) {
-        this.title.setText(title)
-    }
 
     override fun getLayoutRes(): Int = R.layout.item_category
 
@@ -39,7 +36,7 @@ class CategoryItem(val title: StringHolder) : AbstractExpandableItem<CategoryIte
 
      * @param animate animate the arrow (rotate it)
      */
-    fun toggleArrow(animate: Boolean) {
+    private fun toggleArrow(animate: Boolean) {
         if (viewHolder == null) {
             return
         }
@@ -76,16 +73,22 @@ class CategoryItem(val title: StringHolder) : AbstractExpandableItem<CategoryIte
 
     override fun bindViewHolder(adapter: FlexibleAdapter<IFlexible<RecyclerView.ViewHolder>>, viewHolder: ViewHolder, position: Int, payloads: MutableList<Any?>?) {
         this.viewHolder = viewHolder
-        StringHolder.applyTo(title, viewHolder.itemCategoryBinding.text)
-        toggleArrow(false)
+        viewHolder.itemCategoryBinding.text.text =
+                if (isExpanded) String.format(titleExpanded, subItemsCount)
+                else String.format(titleCollapsed, subItemsCount)
+        toggleArrow(true)
     }
 
-    override fun equals(other: Any?) = other is CategoryItem && title.text.toString() == other.title.text.toString()
+    override fun equals(other: Any?) =
+            other is CategoryItem
+                    && titleExpanded == other.titleExpanded
 
-    override fun hashCode() = title.text.hashCode()
+    override fun hashCode() = titleExpanded.hashCode()
 
     class ViewHolder(view: View, adapter: FlexibleAdapter<*>) : ExpandableViewHolder(view, adapter) {
         val itemCategoryBinding: ItemCategoryBinding = DataBindingUtil.bind(view)
+
+        override fun shouldNotifyParentOnClick(): Boolean = true
     }
 
     companion object {
