@@ -48,6 +48,7 @@
     <!-- Task Detail -->
     <string name="share">Share</string>
     <string name="delete">Delete</string>
+    <string name="due_date_not_set">No due date</string>
 
     <!-- Edit Task -->
     <string name="title_activity_edit_task">Edit Task</string>

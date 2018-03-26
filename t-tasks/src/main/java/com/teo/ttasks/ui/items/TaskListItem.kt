@@ -1,6 +1,5 @@
 package com.teo.ttasks.ui.items
 
-import android.databinding.DataBindingUtil
 import android.support.v7.widget.RecyclerView
 import android.view.View
 import com.teo.ttasks.R
@@ -43,6 +42,6 @@ class TaskListItem(private val taskList: TTaskList, private val taskCount: Long)
     override fun equals(other: Any?): Boolean = other is TaskListItem && id == other.id
 
     class ViewHolder internal constructor(view: View, adapter: FlexibleAdapter<out IFlexible<*>>) : FlexibleViewHolder(view, adapter) {
-        var itemTaskListBinding: ItemTaskListBinding = DataBindingUtil.bind(view)
+        var itemTaskListBinding = ItemTaskListBinding.bind(view)
     }
 }

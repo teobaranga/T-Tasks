@@ -1,7 +1,6 @@
 package com.teo.ttasks.ui.items
 
 import android.content.Context
-import android.databinding.DataBindingUtil
 import android.support.graphics.drawable.AnimatedVectorDrawableCompat
 import android.support.v4.content.res.ResourcesCompat
 import android.support.v7.widget.RecyclerView
@@ -86,7 +85,7 @@ class CategoryItem(private val titleExpanded: String,
     override fun hashCode() = titleExpanded.hashCode()
 
     class ViewHolder(view: View, adapter: FlexibleAdapter<*>) : ExpandableViewHolder(view, adapter) {
-        val itemCategoryBinding: ItemCategoryBinding = DataBindingUtil.bind(view)
+        val itemCategoryBinding = ItemCategoryBinding.bind(view)
 
         override fun shouldNotifyParentOnClick(): Boolean = true
     }

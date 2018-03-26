@@ -107,7 +107,7 @@ afterEvaluate {
 }
 
 dependencies {
-    kapt 'com.android.databinding:compiler:3.0.1'
+    kapt 'com.android.databinding:compiler:3.1.0'
 
     implementation 'eu.davidea:flexible-adapter:5.0.3'
     implementation 'eu.davidea:flexible-adapter-databinding:1.0.0-b2'

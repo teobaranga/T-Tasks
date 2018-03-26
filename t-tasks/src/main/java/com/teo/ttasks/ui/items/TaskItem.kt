@@ -1,6 +1,5 @@
 package com.teo.ttasks.ui.items
 
-import android.databinding.DataBindingUtil
 import android.support.graphics.drawable.VectorDrawableCompat
 import android.support.v7.widget.RecyclerView
 import android.util.TypedValue
@@ -87,7 +86,7 @@ class TaskItem(tTask: TTask,
         if (reminder == null) {
             binding.reminder.visibility = GONE
         } else {
-            binding.reminder.text = DateUtils.formatTime(binding.root.context, reminder!!)
+            binding.reminder.text = DateUtils.formatTime(binding.root.context, reminder)
             binding.reminder.visibility = VISIBLE
         }
 
@@ -107,9 +106,9 @@ class TaskItem(tTask: TTask,
             binding.month.visibility = GONE
         } else {
             when {
-                completed != null -> binding.month.text = DateUtils.getMonthAndYear(completed!!)
-                dueDate != null -> binding.month.text = DateUtils.getMonthAndYear(dueDate!!)
-                else -> binding.month.text = "No due date"
+                completed != null -> binding.month.text = DateUtils.getMonthAndYear(completed)
+                dueDate != null -> binding.month.text = DateUtils.getMonthAndYear(dueDate)
+                else -> binding.month.setText(R.string.due_date_not_set)
             }
             binding.month.visibility = VISIBLE
         }
@@ -136,7 +135,7 @@ class TaskItem(tTask: TTask,
 
     override fun hashCode(): Int {
         var result = taskId.hashCode()
-        title?.let { result = 37 * result + it.hashCode() }
+        result = 37 * result + title.hashCode()
         notes?.let { result = 37 * result + it.hashCode() }
         dueDate?.let { result = 37 * result + it.hashCode() }
         completed?.let { result = 37 * result + it.hashCode() }
@@ -146,7 +145,7 @@ class TaskItem(tTask: TTask,
 
     class ViewHolder internal constructor(view: View, adapter: FlexibleAdapter<*>) : FlexibleViewHolder(view, adapter) {
 
-        val binding: ItemTaskBinding = DataBindingUtil.bind(view)
+        val binding = ItemTaskBinding.bind(view)
 
         internal val topMargin: Int
 
@@ -187,18 +186,17 @@ class TaskItem(tTask: TTask,
             val sameDay = sdfDay.format(lhs.completed) == sdfDay.format(rhs.completed)
             val sameMonth = sdfMonth.format(lhs.completed) == sdfMonth.format(rhs.completed)
 
-            val returnCode: Int
-
             // Check the completed date
-            if (lhs.completed == null && rhs.completed == null) {
-                returnCode = 0
-            } else if (lhs.completed == null) {
-                returnCode = 1
-            } else if (rhs.completed == null) {
-                returnCode = -1
-            } else {
-                returnCode = rhs.completed!!.compareTo(lhs.completed)
-            }
+            val returnCode =
+                    if (lhs.completed == null && rhs.completed == null) {
+                        0
+                    } else if (lhs.completed == null) {
+                        1
+                    } else if (rhs.completed == null) {
+                        -1
+                    } else {
+                        rhs.completed.compareTo(lhs.completed)
+                    }
 
             // Decide whether the day number and name will be shown i.e. whether the task item will be combined or not
             if (sameDay) {
@@ -227,15 +225,15 @@ class TaskItem(tTask: TTask,
 
         var alphabeticalComparator = Comparator<TaskItem> { lhs, rhs ->
             // Titles should never be null or empty but just in case
-            val noTitleLeft = lhs.title == null || lhs.title!!.isEmpty()
-            val noTitleRight = rhs.title == null || rhs.title!!.isEmpty()
+            val noTitleLeft = lhs.title.isEmpty()
+            val noTitleRight = rhs.title.isEmpty()
             if (noTitleLeft && noTitleRight)
                 return@Comparator 0
             if (noTitleLeft)
                 return@Comparator -1
             if (noTitleRight)
                 return@Comparator 1
-            return@Comparator lhs.title!!.compareTo(rhs.title!!, ignoreCase = true)
+            return@Comparator lhs.title.compareTo(rhs.title, ignoreCase = true)
         }
 
         /**
@@ -248,23 +246,22 @@ class TaskItem(tTask: TTask,
             val sameMonth = lhs.dueDate != null && rhs.dueDate != null &&
                     sdfDay.format(lhs.dueDate).substring(4, 6) == sdfDay.format(rhs.dueDate).substring(4, 6)
 
-            val returnCode: Int
-
-            if (lhs.dueDate != null) {
-                // Compare non-null due dates, most recent ones at the top
-                if (rhs.dueDate != null) {
-                    returnCode = lhs.dueDate!!.compareTo(rhs.dueDate)
-                } else {
-                    // This task comes after the other task
-                    returnCode = 1
-                }
-            } else if (rhs.dueDate != null) {
-                // This task comes before the other task
-                returnCode = -1
-            } else {
-                // Both tasks have missing due dates, they are considered equal
-                returnCode = 0
-            }
+            val returnCode =
+                    if (lhs.dueDate != null) {
+                        // Compare non-null due dates, most recent ones at the top
+                        if (rhs.dueDate != null) {
+                            lhs.dueDate.compareTo(rhs.dueDate)
+                        } else {
+                            // This task comes after the other task
+                            1
+                        }
+                    } else if (rhs.dueDate != null) {
+                        // This task comes before the other task
+                        -1
+                    } else {
+                        // Both tasks have missing due dates, they are considered equal
+                        0
+                    }
 
             if (sameDay) {
                 if (returnCode == 0 || returnCode == -1)

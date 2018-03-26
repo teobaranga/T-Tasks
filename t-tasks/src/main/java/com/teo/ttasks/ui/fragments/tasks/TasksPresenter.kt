@@ -78,7 +78,7 @@ internal class TasksPresenter(private val tasksHelper: TasksHelper,
                         // Remove and dispose
                         reminderDisposables.remove(reminderMap.getValue(id))
                         reminderMap.remove(id)
-                        Timber.v("Removed listener for task $id")
+//                        Timber.v("Removed listener for task $id")
                     }
 
                     // Add reminder listeners for new tasks
@@ -90,10 +90,10 @@ internal class TasksPresenter(private val tasksHelper: TasksHelper,
                                 .subscribe(
                                         { t ->
                                             if (t == DataValue.empty<Long>()) {
-                                                Timber.v("Reminder for $id: empty")
+//                                                Timber.v("Reminder for $id: empty")
                                             } else {
                                                 val dateInMillis = t.value()
-                                                Timber.v("Reminder for $id: $dateInMillis")
+//                                                Timber.v("Reminder for $id: $dateInMillis")
                                                 val reminder = Date(dateInMillis)
                                                 val tTask = tTasksMap[id]!!
                                                 if (tTask.reminder != reminder) {
@@ -105,7 +105,7 @@ internal class TasksPresenter(private val tasksHelper: TasksHelper,
                                 )
                         reminderDisposables.add(reminderDisposable)
                         reminderMap[id] = reminderDisposable
-                        Timber.v("Added listener for task $id")
+//                        Timber.v("Added listener for task $id")
                     }
                 }
                 .compose(RxUtils.getTaskItems(sortingMode))

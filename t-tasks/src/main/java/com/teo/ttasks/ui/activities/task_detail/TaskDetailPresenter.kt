@@ -35,14 +35,16 @@ internal class TaskDetailPresenter(private val tasksHelper: TasksHelper, private
         this.taskId = taskId
         taskSubscription?.let { if (!it.isDisposed) it.dispose() }
         taskSubscription = tasksHelper.getTaskAsFlowable(taskId, realm)
-                .subscribe { tTask ->
-                    if (tTask.isValid) {
-                        this.tTask = tTask
-                        view()?.onTaskLoaded(tTask)
-                    } else {
-                        view()?.onTaskLoadError()
-                    }
-                }
+                .subscribe(
+                        { tTask ->
+                            if (tTask.isValid) {
+                                this.tTask = tTask
+                                view()?.onTaskLoaded(tTask)
+                            } else {
+                                view()?.onTaskLoadError()
+                            }
+                        },
+                        { Timber.e(it, "Error while retrieving the task")})
     }
 
     internal fun getTaskList(taskListId: String) {

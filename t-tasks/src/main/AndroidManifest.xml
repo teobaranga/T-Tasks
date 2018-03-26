@@ -101,6 +101,12 @@
         <meta-data
             android:name="io.fabric.ApiKey"
             android:value="49881be4a0f3b48a47ff8a046e4e3c45d0de363d" />
+        <meta-data
+            android:name="firebase_analytics_collection_deactivated"
+            android:value="true" />
+        <meta-data
+            android:name="google_analytics_adid_collection_enabled"
+            android:value="false" />
 
     </application>
 
