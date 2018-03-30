@@ -154,7 +154,7 @@ open class MainActivity : BaseActivity(), MainView {
                 val taskList = adapterView.getItemAtPosition(position) as TTaskList
                 val taskListId = taskList.id
                 mainActivityPresenter.setLastAccessedTaskList(taskListId)
-                tasksFragment.setTaskList(taskListId)
+                tasksFragment.updateTaskListId(taskListId)
             }
 
             override fun onNothingSelected(adapterView: AdapterView<*>) {}

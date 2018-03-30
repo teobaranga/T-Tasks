@@ -5,6 +5,7 @@ import com.teo.ttasks.data.model.Task
 
 import io.realm.RealmList
 import io.realm.RealmObject
+import io.realm.annotations.Ignore
 import io.realm.annotations.PrimaryKey
 
 open class TasksResponse : RealmObject() {
@@ -13,6 +14,7 @@ open class TasksResponse : RealmObject() {
         val EMPTY: TasksResponse = TasksResponse()
     }
 
+    /** The task list ID */
     @Expose
     @PrimaryKey
     var id: String? = null
@@ -21,8 +23,15 @@ open class TasksResponse : RealmObject() {
     var etag: String? = null
 
     @Expose
+    @Ignore
     var nextPageToken: String? = null
 
+    /**
+     * The list of tasks associated with this task list.
+     *
+     * This list does not need to be persisted since each individual task will be persisted anyways.
+     * */
     @Expose
+    @Ignore
     var items: RealmList<Task>? = null
 }

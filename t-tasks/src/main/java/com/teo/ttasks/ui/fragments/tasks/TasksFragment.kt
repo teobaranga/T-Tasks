@@ -33,35 +33,49 @@ import eu.davidea.flexibleadapter.items.IFlexible
 import timber.log.Timber
 import javax.inject.Inject
 
+/**
+ * Fragment that displays the list of tasks belonging to the provided [taskListId].
+ *
+ * The fragment is initially created without a task list ID. When the task list IDs are available,
+ * switching can be done using [updateTaskListId], which will register a subscription listening for
+ * updates to the tasks from that task list. A refresh is then triggered in order to make sure the
+ * data is not stale.
+ */
 class TasksFragment : DaggerFragment(), TasksView, SwipeRefreshLayout.OnRefreshListener {
 
     /**
-     * Array holding the 3 shared elements used during the transition to the [TaskDetailActivity].<br></br>
-     * Indexes:<br></br>
-     * 0 - task header layout, always present<br></br>
-     * 1 - Navigation bar, can be missing<br></br>
-     * 2 - FAB, could be hidden<br></br>
+     * Array holding the 3 shared elements used during the transition to the [TaskDetailActivity].
+     *
+     * **0**: Task header layout, always present - *mandatory*
+     *
+     * **1**: Navigation bar, can be missing - *optional*
+     *
+     * **2**: FAB, could be hidden - *optional*
      */
-    internal val pairs: Array<Pair<View, String>?> = arrayOfNulls(3)
+    private val pairs: Array<Pair<View, String>?> = arrayOfNulls(3)
 
     @Inject
     internal lateinit var tasksPresenter: TasksPresenter
 
+    /** ID of the current task list */
     internal var taskListId: String? = null
 
     /**
      * The navigation bar view along with its associated transition name, used as a shared
      * element when selecting a task to prevent the task item from overlapping
-     * it during the animation<br></br><br></br>
-     * This is cached to avoid the `findViewById` every time a task is selected.<br></br>
+     * it during the animation. This is cached to avoid the `findViewById` every time a task is
+     * selected.
+     *
      * **Note:** The view can be null if the activity is re-created after getting killed and
-     * if that's the case [.createNavBarPair] must be called to recreate it.
-
-     * @see [Shared elements overflow navigation bar in transition animation](http://stackoverflow.com/q/32501024/5606622)
+     * if that's the case [createNavBarPair] must be called to recreate it.
+     *
+     * For more information, see
+     * [Shared elements overflow navigation bar in transition animation](http://stackoverflow.com/q/32501024/5606622).
      */
     internal lateinit var navBar: Pair<View, String>
 
     internal lateinit var fab: FloatingActionButton
+
     internal lateinit var adapter: FlexibleAdapter<IFlexible<*>>
 
     private lateinit var activeTasksHeader: CategoryItem
@@ -92,7 +106,7 @@ class TasksFragment : DaggerFragment(), TasksView, SwipeRefreshLayout.OnRefreshL
                             createNavBarPair()
 
                         // Add the task header layout to the shared elements
-                        pairs[0] = Pair.create<View, String>(item.binding.layoutTask, getString(R.string.transition_task_header))
+                        pairs[0] = Pair.create(item.binding.layoutTask, getString(R.string.transition_task_header))
 
                         // Find the shared elements to be used in the transition
                         val sharedElements: Array<Pair<View, String>?>
@@ -295,18 +309,19 @@ class TasksFragment : DaggerFragment(), TasksView, SwipeRefreshLayout.OnRefreshL
         }
     }
 
+    override fun onRefresh() {
+        refreshTasks()
+    }
+
     override fun onRefreshDone() {
         tasksBinding.swipeRefreshLayout.isRefreshing = false
     }
 
     override fun onSyncDone(taskSyncCount: Int) {
-        if (taskSyncCount != 0)
+        if (taskSyncCount != 0) {
             Toast.makeText(context, "Synchronized $taskSyncCount tasks", Toast.LENGTH_SHORT).show()
+        }
         tasksPresenter.refreshTasks(taskListId)
-    }
-
-    override fun onRefresh() {
-        refreshTasks()
     }
 
     /** Cache the Pair holding the navigation bar view and its associated transition name  */
@@ -317,7 +332,7 @@ class TasksFragment : DaggerFragment(), TasksView, SwipeRefreshLayout.OnRefreshL
     }
 
     /**
-     * Trigger the refresh process on an active network connection.
+     * Trigger the refresh process if an active network connection is available.
      */
     private fun refreshTasks() {
         if (!networkInfoReceiver.isOnline(context)) {
@@ -332,13 +347,13 @@ class TasksFragment : DaggerFragment(), TasksView, SwipeRefreshLayout.OnRefreshL
 
      * @param newTaskListId task list identifier
      */
-    fun setTaskList(newTaskListId: String) {
+    fun updateTaskListId(newTaskListId: String) {
         if (newTaskListId != taskListId) {
-            // Disable fragment scrolling only if attached to prevent crashing
-            if (isAdded)
+            // In case it is attached, disable fragment scrolling to prevent crashing
+            if (isAdded) {
                 (activity as MainActivity).disableScrolling(false)
+            }
             taskListId = newTaskListId
-
             tasksPresenter.subscribeToTasks(taskListId!!)
             refreshTasks()
         }

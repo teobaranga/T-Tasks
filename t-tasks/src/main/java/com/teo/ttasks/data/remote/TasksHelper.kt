@@ -194,11 +194,11 @@ class TasksHelper(private val tasksApi: TasksApi, private val prefHelper: PrefHe
             realm.where(TTask::class.java).equalTo(TTaskFields.ID, taskId).findFirst()
 
     /**
-     * Sync the tasks from the specified task list that are not currently marked as synced.
+     * Sync all the tasks from the specified task list that are not currently marked as synced.
      * Delete the tasks that are marked as deleted. TODO: is this correct?
      *
      * @param taskListId task list identifier
-     * @return a Flowable returning every task after it was successfully synced
+     * @return a Flowable with every successfully synced task
      */
     fun syncTasks(taskListId: String): Flowable<TTask> =
             getUnManagedTasks(taskListId)
@@ -208,15 +208,19 @@ class TasksHelper(private val tasksApi: TasksApi, private val prefHelper: PrefHe
                     }
                     .flatMapSingle { updateTask(taskListId, it) }
 
+    /**
+     * Retrieve a fresh copy of the tasks from the given tasks list and update the local store
+     * with the new and updated tasks
+     */
     fun refreshTasks(taskListId: String): Completable {
         return tasksApi.getTasks(taskListId, prefHelper.getTasksResponseEtag(taskListId))
-                .onErrorResumeNext({ throwable ->
+                .onErrorResumeNext { throwable ->
                     if (handleResourceNotModified(throwable)) {
                         return@onErrorResumeNext Single.just(TasksResponse.EMPTY)
                     }
                     return@onErrorResumeNext Single.error(throwable)
-                })
-                .doOnSuccess({ tasksResponse ->
+                }
+                .doOnSuccess { tasksResponse ->
                     if (tasksResponse == TasksResponse.EMPTY) {
                         return@doOnSuccess
                     }
@@ -249,7 +253,7 @@ class TasksHelper(private val tasksApi: TasksApi, private val prefHelper: PrefHe
                             Timber.d("Tasks are up-to-date")
                         }
                     }
-                })
+                }
                 .toCompletable()
     }
 
@@ -338,6 +342,12 @@ class TasksHelper(private val tasksApi: TasksApi, private val prefHelper: PrefHe
                 .equalTo(TTaskFields.DELETED, false)
     }
 
+    /**
+     * Update the given task from the provided task list to the new value
+     *
+     * @param taskListId task list ID
+     * @param tTask      local task containing the new values
+     */
     private fun updateTask(taskListId: String, tTask: TTask): Single<TTask> {
         Timber.d("updating task %s, %s, %s", tTask.id, tTask.synced, tTask.deleted)
         return tasksApi.updateTask(taskListId, tTask.id, tTask.task).map { tTask }

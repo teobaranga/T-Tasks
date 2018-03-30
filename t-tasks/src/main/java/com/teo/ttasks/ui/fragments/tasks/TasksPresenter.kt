@@ -22,7 +22,6 @@ import io.realm.Realm
 import timber.log.Timber
 import java.util.*
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicInteger
 
 internal class TasksPresenter(private val tasksHelper: TasksHelper,
                               private val prefHelper: PrefHelper) : Presenter<TasksView>() {
@@ -148,13 +147,13 @@ internal class TasksPresenter(private val tasksHelper: TasksHelper,
                 .subscribe(
                         { view()?.onRefreshDone() },
                         { throwable ->
-                            Timber.e(throwable.toString())
-                            val view = view()
-                            if (view != null) {
-                                if (throwable.cause is UserRecoverableAuthException)
-                                    view.onTasksLoadError((throwable.cause as UserRecoverableAuthException).intent)
-                                else
-                                    view.onTasksLoadError(null)
+                            Timber.e(throwable, "Error refreshing tasks")
+                            view()?.let {
+                                val cause = throwable.cause
+                                when (cause) {
+                                    is UserRecoverableAuthException -> it.onTasksLoadError(cause.intent)
+                                    else -> it.onTasksLoadError(null)
+                                }
                             }
                         })
         disposeOnUnbindView(subscription)
@@ -162,14 +161,15 @@ internal class TasksPresenter(private val tasksHelper: TasksHelper,
 
     /**
      * Synchronize the local tasks from the specified task list.
-
+     * Tasks that have only been updated locally are uploaded to the Google servers.
+     *
      * @param taskListId task list identifier
      */
     internal fun syncTasks(taskListId: String?) {
         if (taskListId == null)
             return
         // Keep track of the number of synced tasks
-        val taskSyncCount = AtomicInteger(0)
+        var taskSyncCount = 0
         val subscription = tasksHelper.syncTasks(taskListId)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
@@ -180,16 +180,16 @@ internal class TasksPresenter(private val tasksHelper: TasksHelper,
                                 // This task is not managed by Realm so it needs to be updated manually
                                 realm.insertOrUpdate(syncedTask)
                             }
-                            taskSyncCount.incrementAndGet()
+                            taskSyncCount++
                         },
-                        { throwable ->
+                        {
                             // Sync failed for at least one task, will retry on next refresh
-                            Timber.e(throwable.toString())
-                            view()?.onSyncDone(taskSyncCount.get())
+                            Timber.e(it, "Error synchronizing tasks")
+                            view()?.onSyncDone(taskSyncCount)
                         },
                         {
                             // Syncing done
-                            view()?.onSyncDone(taskSyncCount.get())
+                            view()?.onSyncDone(taskSyncCount)
                         }
                 )
         disposeOnUnbindView(subscription)
