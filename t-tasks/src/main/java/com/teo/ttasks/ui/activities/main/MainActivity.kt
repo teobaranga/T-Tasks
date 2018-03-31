@@ -13,6 +13,7 @@ import android.os.Handler
 import android.support.design.widget.AppBarLayout
 import android.support.design.widget.FloatingActionButton
 import android.support.v4.app.Fragment
+import android.support.v7.app.ActionBar
 import android.view.View
 import android.view.View.GONE
 import android.view.View.VISIBLE
@@ -89,11 +90,22 @@ open class MainActivity : BaseActivity(), MainView {
     private lateinit var taskListsAdapter: TaskListsAdapter
 
     private lateinit var firebaseAuth: FirebaseAuth
-    private var authStateListener: FirebaseAuth.AuthStateListener? = null
+
+    /** Listener handling the sign out event */
+    private val authStateListener = FirebaseAuth.AuthStateListener { firebaseAuth ->
+        if (firebaseAuth.currentUser == null) {
+            // The user has signed out
+            // TODO Unregister all task listeners
+            mainActivityPresenter.clearUser()
+            SignInActivity.start(this, true)
+            finish()
+        }
+    }
 
     /** The profile of the currently logged in user  */
     private lateinit var drawer: Drawer
 
+    /** Recreate the activity after a night mode setting change */
     private var recreate: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -105,32 +117,13 @@ open class MainActivity : BaseActivity(), MainView {
 
         val currentUser = firebaseAuth.currentUser
         if (currentUser == null) {
+            // Return to the sign in activity
             SignInActivity.start(this, false)
             finish()
             return
-        } else {
-            // TODO refresh the user picture only if necessary
-            currentUser.rxReload()
-                    .subscribeOn(Schedulers.io())
-                    .andThen(firebaseAuth.rxGetCurrentUser())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(
-                            { firebaseUser ->
-                                onUserPicture(firebaseUser.photoUrl.toString())
-                            })
         }
 
-        firebaseAuth.addAuthStateListener {
-            authStateListener = FirebaseAuth.AuthStateListener {
-                firebaseAuth ->
-                if (firebaseAuth.currentUser == null) {
-                    // TODO Unregister all task listeners
-                    mainActivityPresenter.clearUser()
-                    SignInActivity.start(this, true)
-                    finish()
-                }
-            }
-        }
+        firebaseAuth.addAuthStateListener(authStateListener)
 
         mainBinding = DataBindingUtil.setContentView(this, R.layout.activity_main)
 
@@ -232,61 +225,65 @@ open class MainActivity : BaseActivity(), MainView {
                 )
                 .withOnDrawerItemClickListener { _, _, drawerItem ->
                     // The header and footer items don't contain a drawerItem
-                    drawerItem?.let {
-                        val currentFragment: Fragment? = supportFragmentManager.findFragmentById(R.id.fragment_container)
-                        var fragment: Fragment? = null
-                        var tag: String? = null
-                        val supportActionBar = supportActionBar!!
-                        when (drawerItem.identifier) {
-                            ID_TASKS -> {
-                                if (currentFragment is TasksFragment)
-                                    return@withOnDrawerItemClickListener false
-                                supportActionBar.setDisplayShowTitleEnabled(false)
-                                mainBinding.spinnerTaskLists.visibility = VISIBLE
-                                fragment = tasksFragment
-                                tag = TAG_TASKS
+                    if (drawerItem == null) {
+                        return@withOnDrawerItemClickListener false
+                    }
+
+                    val currentFragment = supportFragmentManager.findFragmentById(R.id.fragment_container)
+                    val supportActionBar = supportActionBar!!
+                    var fragment: Fragment? = null
+                    var tag: String? = null
+
+                    when (drawerItem.identifier) {
+                        ID_TASKS -> {
+                            if (currentFragment is TasksFragment) {
+                                return@withOnDrawerItemClickListener false
                             }
-                            ID_TASK_LISTS -> {
-                                if (currentFragment is TaskListsFragment)
-                                    return@withOnDrawerItemClickListener false
-                                supportActionBar.setTitle(R.string.task_lists)
-                                supportActionBar.setDisplayShowTitleEnabled(true)
-                                mainBinding.spinnerTaskLists.visibility = GONE
-                                fragment = taskListsFragment
-                                tag = TAG_TASK_LISTS
-                            }
-                            ID_SETTINGS -> SettingsActivity.startForResult(this, RC_NIGHT_MODE)
-                            ID_ABOUT -> AboutActivity.start(this)
-                            ID_SIGN_OUT -> firebaseAuth.signOut()
-                            else -> {
-                                // If we're being restored from a previous state,
-                                // then we don't need to do anything and should return or else
-                                // we could end up with overlapping fragments.
-                            }
+                            fragment = tasksFragment
+                            tag = TAG_TASKS
                         }
-                        Timber.d("fragment is %s", fragment)
-                        fragment?.let {
-                            mainBinding.appbar.setExpanded(true)
-                            currentFragment?.let {
-                                Timber.v("Detaching current fragment %s", it)
-                                supportFragmentManager.beginTransaction().detach(it).commit()
+                        ID_TASK_LISTS -> {
+                            if (currentFragment is TaskListsFragment) {
+                                return@withOnDrawerItemClickListener false
                             }
-                            when (supportFragmentManager.findFragmentByTag(tag)) {
-                                null -> {
-                                    Timber.v("Adding new fragment with tag %s", tag)
-                                    supportFragmentManager
-                                            .beginTransaction()
-                                            .add(R.id.fragment_container, fragment, tag)
-                                            .commit()
-                                }
-                                else -> {
-                                    Timber.v("Re-attaching fragment with tag %s", tag)
-                                    supportFragmentManager.beginTransaction().attach(fragment).commit()
-                                }
+                            supportActionBar.setTitle(R.string.task_lists)
+                            supportActionBar.setDisplayShowTitleEnabled(true)
+                            mainBinding.spinnerTaskLists.visibility = GONE
+                            fragment = taskListsFragment
+                            tag = TAG_TASK_LISTS
+                        }
+                        ID_SETTINGS -> SettingsActivity.startForResult(this, RC_NIGHT_MODE)
+                        ID_ABOUT -> AboutActivity.start(this)
+                        ID_SIGN_OUT -> firebaseAuth.signOut()
+                        else -> {
+                            // If we're being restored from a previous state,
+                            // then we don't need to do anything and should return or else
+                            // we could end up with overlapping fragments.
+                        }
+                    }
+                    if (fragment != null) {
+                        Timber.d("New fragment %s", fragment)
+                        updateActionBar(supportActionBar, drawerItem.identifier)
+                        mainBinding.appbar.setExpanded(true)
+                        currentFragment?.let {
+                            Timber.v("Detaching current fragment %s", it)
+                            supportFragmentManager.beginTransaction().detach(it).commit()
+                        }
+                        when (supportFragmentManager.findFragmentByTag(tag)) {
+                            null -> {
+                                Timber.v("Adding new fragment with tag %s", tag)
+                                supportFragmentManager
+                                        .beginTransaction()
+                                        .add(R.id.fragment_container, fragment, tag)
+                                        .commit()
+                            }
+                            else -> {
+                                Timber.v("Re-attaching fragment with tag %s", tag)
+                                supportFragmentManager.beginTransaction().attach(fragment).commit()
                             }
                         }
                     }
-                    false
+                    return@withOnDrawerItemClickListener false
                 }
                 .withSavedInstance(savedInstanceState)
                 .build()
@@ -299,20 +296,18 @@ open class MainActivity : BaseActivity(), MainView {
             accountHeader.activeProfile = profile
         } else {
             // Restore state
-            when (drawer.currentSelection) {
-                ID_TASKS -> {
-                    supportActionBar!!.setDisplayShowTitleEnabled(false)
-                    mainBinding.spinnerTaskLists.visibility = VISIBLE
-                }
-                ID_TASK_LISTS -> {
-                    // Restore visibility of the task lists spinner & toolbar title
-                    mainBinding.spinnerTaskLists.visibility = GONE
-
-                    supportActionBar!!.setTitle(R.string.task_lists)
-                    supportActionBar!!.setDisplayShowTitleEnabled(true)
-                }
-            }
+            updateActionBar(supportActionBar!!, drawer.currentSelection)
         }
+
+        // TODO refresh the user picture only if necessary
+        currentUser.rxReload()
+                .subscribeOn(Schedulers.io())
+                .andThen(firebaseAuth.rxGetCurrentUser())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        { firebaseUser ->
+                            onUserPicture(firebaseUser.photoUrl.toString())
+                        })
 
         mainActivityPresenter.getTaskLists()
         mainActivityPresenter.loadUserPictures()
@@ -331,7 +326,7 @@ open class MainActivity : BaseActivity(), MainView {
     override fun onDestroy() {
         super.onDestroy()
         mainActivityPresenter.unbindView(this)
-        authStateListener?.let { firebaseAuth.removeAuthStateListener(it) }
+        firebaseAuth.removeAuthStateListener(authStateListener)
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -348,13 +343,14 @@ open class MainActivity : BaseActivity(), MainView {
         when (requestCode) {
             RC_NIGHT_MODE -> if (resultCode == Activity.RESULT_OK)
                 recreate = true
-        }//            case RC_ADD:
-        //                if(resultCode == RESULT_OK) {
-        //                    MaterialAccount acc = new MaterialAccount(this.getResources(), data.getStringExtra(AccountManager.KEY_ACCOUNT_NAME),"", R.drawable.ic_photo, R.drawable.ic_cover);
-        //                    this.addAccount(acc);
-        //                    Toast.makeText(MainActivity.this, data.getStringExtra(AccountManager.KEY_ACCOUNT_NAME), Toast.LENGTH_SHORT).show();
-        //                }
-        //                break;
+//            RC_ADD -> {
+//                if(resultCode == RESULT_OK) {
+//                    val acc: MaterialAccount = MaterialAccount(resources, data?.getStringExtra(AccountManager.KEY_ACCOUNT_NAME),"", R.drawable.ic_photo, R.drawable.ic_cover)
+//                    addAccount(acc)
+//                    Toast.makeText(this, data?.getStringExtra(AccountManager.KEY_ACCOUNT_NAME), Toast.LENGTH_SHORT).show()
+//                }
+//            }
+        }
     }
 
     override fun onApiReady() {
@@ -366,7 +362,7 @@ open class MainActivity : BaseActivity(), MainView {
 
     /**
      * Load the profile picture into the current profile
-     * and display it in the Navigation drawer header
+     * and display it in the Navigation drawer header.
      */
     override fun onUserPicture(pictureUrl: String) {
         Picasso.get()
@@ -380,8 +376,8 @@ open class MainActivity : BaseActivity(), MainView {
     }
 
     /**
-     * Load the task lists and prepare them to be displayed
-     * Select the last accessed task list
+     * Load the task lists and prepare them to be displayed.
+     * Select the last accessed task list.
      */
     override fun onTaskListsLoaded(taskLists: List<TTaskList>, currentTaskListIndex: Int) {
         taskListsAdapter.clear()
@@ -395,10 +391,11 @@ open class MainActivity : BaseActivity(), MainView {
     }
 
     override fun onBackPressed() {
-        if (drawer.isDrawerOpen)
+        if (drawer.isDrawerOpen) {
             drawer.closeDrawer()
-        else
+        } else {
             super.onBackPressed()
+        }
     }
 
     /**
@@ -432,6 +429,25 @@ open class MainActivity : BaseActivity(), MainView {
 
     fun fab(): FloatingActionButton {
         return mainBinding.fab
+    }
+
+    /**
+     * Update the action bar layout based on the currently selected drawer item
+     */
+    private fun updateActionBar(actionBar: ActionBar, drawerItemId: Long) {
+        when (drawerItemId) {
+            ID_TASKS -> {
+                // Clear the title and display the spinner with the task lists
+                actionBar.setDisplayShowTitleEnabled(false)
+                mainBinding.spinnerTaskLists.visibility = VISIBLE
+            }
+            ID_TASK_LISTS -> {
+                // Restore visibility of the title and remove the task list spinner
+                mainBinding.spinnerTaskLists.visibility = GONE
+                actionBar.setTitle(R.string.task_lists)
+                actionBar.setDisplayShowTitleEnabled(true)
+            }
+        }
     }
 
     internal inner class ProfileIconTarget : Target {

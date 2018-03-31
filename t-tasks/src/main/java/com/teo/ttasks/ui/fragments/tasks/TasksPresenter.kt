@@ -30,14 +30,6 @@ internal class TasksPresenter(private val tasksHelper: TasksHelper,
 
     private var sortingMode = prefHelper.sortMode
 
-    internal var showCompleted: Boolean
-        get() = prefHelper.showCompleted
-        set(showCompleted) {
-            prefHelper.showCompleted = showCompleted
-        }
-
-    private lateinit var realm: Realm
-
     private val reminderProcessor = PublishProcessor.create<TTask>()
 
     /**
@@ -49,6 +41,14 @@ internal class TasksPresenter(private val tasksHelper: TasksHelper,
     private val reminderDisposables = CompositeDisposable()
 
     private val tasks by lazy { FirebaseDatabase.getInstance().getTasksDatabase() }
+
+    private lateinit var realm: Realm
+
+    internal var showCompleted: Boolean
+        get() = prefHelper.showCompleted
+        set(showCompleted) {
+            prefHelper.showCompleted = showCompleted
+        }
 
     /**
      * Load and monitor changes to the tasks associated with the provided

@@ -3,14 +3,14 @@ ext.deps = [:]
 def ver = [:]
 ver.dagger = "2.15"
 ver.espresso = "3.0.1"
-ver.firebase = "11.8.0"
+ver.firebase = "12.0.1"
 ver.kotlin = "1.2.31"
 ver.okhttp = "3.10.0"
-ver.playServices = "11.8.0"
+ver.playServices = "12.0.1"
 ver.powermock = "1.7.4"
 ver.retrofit = "2.4.0"
 ver.rxAndroid = "2.0.2"
-ver.rxjava = "2.1.10"
+ver.rxjava = "2.1.12"
 ver.support = "27.1.0"
 ext.ver = ver
 
@@ -19,7 +19,7 @@ def deps = [:]
 deps.aboutlibraries = "com.mikepenz:aboutlibraries:6.0.6@aar"
 deps.crashlytics = "com.crashlytics.sdk.android:crashlytics:2.9.1@aar"
 deps.materialdrawer = "com.mikepenz:materialdrawer:6.0.6@aar"
-deps.timber = "com.jakewharton.timber:timber:4.6.1"
+deps.timber = "com.jakewharton.timber:timber:4.7.0"
 
 def dagger = [:]
 dagger.dagger = "com.google.dagger:dagger:$ver.dagger"
@@ -40,7 +40,7 @@ firebase.database = "com.google.firebase:firebase-database:$ver.firebase"
 deps.firebase = firebase
 
 def kotlin = [:]
-kotlin.stdlib = "org.jetbrains.kotlin:kotlin-stdlib:$ver.kotlin"
+kotlin.stdlib = "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$ver.kotlin"
 kotlin.jUnit = "org.jetbrains.kotlin:kotlin-test-junit:$ver.kotlin"
 deps.kotlin = kotlin
 

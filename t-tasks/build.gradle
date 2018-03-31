@@ -99,8 +99,7 @@ android {
 
 afterEvaluate {
     android.sourceSets.all { sourceSet ->
-        if (!sourceSet.name.startsWith("test"))
-        {
+        if (!sourceSet.name.startsWith("test")) {
             sourceSet.kotlin.setSrcDirs([])
         }
     }
@@ -146,8 +145,8 @@ dependencies {
     kapt 'dk.ilios:realmfieldnameshelper:1.1.1'
     compileOnly 'javax.annotation:jsr250-api:1.0'
 
-    debugImplementation libraries.stetho
-    debugImplementation 'com.uphyca:stetho_realm:2.1.0'
+//    debugImplementation libraries.stetho
+//    debugImplementation 'com.uphyca:stetho_realm:2.1.0'
 
     // Dependencies for local unit tests
     testImplementation libraries.junit

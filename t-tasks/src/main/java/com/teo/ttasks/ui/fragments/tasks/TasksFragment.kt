@@ -83,8 +83,8 @@ class TasksFragment : DaggerFragment(), TasksView, SwipeRefreshLayout.OnRefreshL
 
     private val taskItemClickListener = object : FlexibleAdapter.OnItemClickListener {
         // Reject quick, successive clicks because they break the app
-        private val MIN_CLICK_INTERVAL: Long = 1000
-        private var lastClickTime: Long = 0
+        private val MIN_CLICK_INTERVAL = 1000
+        private var lastClickTime = 0L
 
         override fun onItemClick(view: View, position: Int): Boolean {
             val item = adapter.getItem(position)!!
@@ -279,6 +279,7 @@ class TasksFragment : DaggerFragment(), TasksView, SwipeRefreshLayout.OnRefreshL
     override fun onTasksEmpty() {
         Timber.v("onTasksEmpty")
         adapter.updateDataSet(emptyList())
+        tasksBinding.tasksList.visibility = GONE
         tasksBinding.tasksLoading.visibility = GONE
         tasksBinding.tasksEmpty.visibility = VISIBLE
         onRefreshDone()
@@ -294,6 +295,7 @@ class TasksFragment : DaggerFragment(), TasksView, SwipeRefreshLayout.OnRefreshL
             itemList.add(completedTasksHeader)
         }
         adapter.updateDataSet(itemList.toList())
+        tasksBinding.tasksList.visibility = VISIBLE
         tasksBinding.tasksLoading.visibility = GONE
         tasksBinding.tasksEmpty.visibility = GONE
         onRefreshDone()
