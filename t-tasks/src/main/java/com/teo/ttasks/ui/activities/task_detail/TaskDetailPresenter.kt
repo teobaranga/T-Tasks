@@ -29,6 +29,7 @@ internal class TaskDetailPresenter(private val tasksHelper: TasksHelper, private
 
     private var taskSubscription: Disposable? = null
 
+    /** Un-managed task */
     private var tTask: TTask? = null
 
     internal fun getTask(taskId: String) {
@@ -68,11 +69,16 @@ internal class TaskDetailPresenter(private val tasksHelper: TasksHelper, private
      */
     internal fun updateCompletionStatus() {
         tasksHelper.updateCompletionStatus(tTask!!, realm)
-                .subscribe({ }, { throwable ->
-                    // Update unsuccessful, keep the task marked as "not synced"
-                    // The app will retry later, as soon as the user is online
-                    Timber.e(throwable.toString())
-                })
+                .subscribe(
+                        { tTask ->
+                            realm.executeTransaction { realm.copyToRealmOrUpdate(tTask) }
+                        },
+                        { throwable ->
+                            // Update unsuccessful, keep the task marked as "not synced"
+                            // The app will retry later, as soon as the user is online
+                            Timber.e(throwable, "Error while updating task completion status")
+                        }
+                )
 
         tTask?.let {
             view()?.onTaskUpdated(it)

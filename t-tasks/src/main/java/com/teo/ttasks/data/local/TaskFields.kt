@@ -5,7 +5,7 @@ import java.util.*
 
 private const val NUM_FIELDS = 5
 
-class TaskFields : HashMap<String, Any>(NUM_FIELDS) {
+class TaskFields : HashMap<String, Any?>(NUM_FIELDS) {
 
     companion object {
         private const val KEY_TITLE = "title"
@@ -45,9 +45,6 @@ class TaskFields : HashMap<String, Any>(NUM_FIELDS) {
 
     fun putCompleted(isCompleted: Boolean, completed: Date?) {
         this[KEY_STATUS] = if (isCompleted) Task.STATUS_COMPLETED else Task.STATUS_NEEDS_ACTION
-        when (completed) {
-            null -> remove(KEY_COMPLETED)
-            else -> this[KEY_COMPLETED] = completed
-        }
+        this[KEY_COMPLETED] = completed
     }
 }
