@@ -74,7 +74,7 @@
                         android:maxLines="2"
                         android:minLines="2"
                         android:text="@{task.title}"
-                        android:textAppearance="@style/TextAppearance.AppCompat.Title.Inverse"
+                        android:textAppearance="@style/TextAppearance.TaskTitle.TaskDetail"
                         android:transitionName="@string/transition_task_title"
                         tools:text="Do your laundry"/>
 
@@ -85,7 +85,7 @@
                         android:ellipsize="end"
                         android:maxLines="1"
                         android:text="@{taskList.title}"
-                        android:textAppearance="@style/TextAppearance.AppCompat.Subhead.Inverse"
+                        android:textAppearance="@style/TextAppearance.TaskListTitle.TaskDetail"
                         tools:text="House work"/>
 
                 </LinearLayout>
@@ -256,7 +256,7 @@
                             android:hint="@string/notes_missing"
                             android:text="@{task.notes}"
                             android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-                            android:textColor="@android:color/black"
+                            android:textColor="?android:textColorPrimary"
                             tools:text="Don't forget to separate the colors!"/>
 
                     </LinearLayout>

@@ -81,7 +81,7 @@ internal class EditTaskPresenter(private val tasksHelper: TasksHelper, private v
      */
     internal fun loadTaskInfo(taskId: String) {
         taskSubscription?.let { if (!it.isDisposed) it.dispose() }
-        taskSubscription = tasksHelper.getTaskAsFlowable(taskId, realm)
+        taskSubscription = tasksHelper.getTaskAsSingle(taskId, realm)
                 .subscribe { tTask ->
                     dueDate = tTask.due
                     reminder = tTask.reminder

@@ -45,32 +45,37 @@ class TaskNotificationReceiver : DaggerBroadcastReceiver() {
                     // Mark the task as completed
                     tasksHelper.updateCompletionStatus(taskId, realm)
                             .observeOn(AndroidSchedulers.mainThread())
-                            .subscribe({ tTask ->
-                                // Update successful, update sync status
-                                realm.executeTransaction { tTask.synced = true }
-                                Toast.makeText(context, "Task completed", Toast.LENGTH_SHORT).show()
-                                realm.close()
-                                notificationManager.cancel(id)
-                            }, { throwable ->
-                                Timber.e(throwable.toString())
-                                Toast.makeText(context, "Task not found. This is the case if the task was deleted.", Toast.LENGTH_SHORT).show()
-                                realm.close()
-                                notificationManager.cancel(id)
-                            })
+                            .subscribe(
+                                    { tTask ->
+                                        // Update successful, update sync status
+                                        realm.executeTransaction { tTask.synced = true }
+                                        Toast.makeText(context, "Task completed", Toast.LENGTH_SHORT).show()
+                                        realm.close()
+                                        notificationManager.cancel(id)
+                                    },
+                                    { throwable ->
+                                        Timber.e(throwable, "Error while completing %s", taskId)
+                                        Toast.makeText(context, "Task not found. This is the case if the task was deleted.", Toast.LENGTH_SHORT).show()
+                                        realm.close()
+                                        notificationManager.cancel(id)
+                                    }
+                            )
                 }
                 ACTION_DELETE -> {
                     // Mark this task's reminder as dismissed
                     val realm = Realm.getDefaultInstance()
-                    tasksHelper.getTaskAsFlowable(taskId, realm)
-                            .firstOrError()
-                            .subscribe({ tTask ->
-                                realm.executeTransaction { tTask.notificationDismissed = true }
-                                realm.close()
-                                Timber.d("task marked as dismissed")
-                            }, { throwable ->
-                                Timber.e(throwable.toString())
-                                realm.close()
-                            })
+                    tasksHelper.getTaskAsSingle(taskId, realm)
+                            .subscribe(
+                                    { tTask ->
+                                        realm.executeTransaction { tTask.notificationDismissed = true }
+                                        realm.close()
+                                        Timber.v("Dismissed task %s", taskId)
+                                    },
+                                    { throwable ->
+                                        Timber.e(throwable, "Error while dismissing notification for %s", taskId)
+                                        realm.close()
+                                    }
+                            )
                 }
                 else -> {
                     // do nothing

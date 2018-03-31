@@ -6,6 +6,7 @@ import com.teo.ttasks.data.local.TaskFields
 import com.teo.ttasks.data.local.TaskListFields
 import com.teo.ttasks.data.model.Task
 import com.teo.ttasks.data.model.TaskList
+import io.reactivex.Completable
 import io.reactivex.Flowable
 import io.reactivex.Single
 import retrofit2.Call
@@ -50,7 +51,7 @@ interface TasksApi {
      * @param taskFields map of fields to their new values
      */
     @PATCH("lists/{taskList}/tasks/{task}/")
-    fun updateTask(@Path("taskList") taskListId: String, @Path("task") taskId: String, @Body taskFields: TaskFields): Flowable<Task>
+    fun updateTask(@Path("taskList") taskListId: String, @Path("task") taskId: String, @Body taskFields: TaskFields): Single<Task>
 
     /**
      * Update the given task from the specified task list, replacing all fields with the provided ones
@@ -78,5 +79,5 @@ interface TasksApi {
      * @param taskId     task identifier
      */
     @DELETE("lists/{taskList}/tasks/{task}")
-    fun deleteTask(@Path("taskList") taskListId: String, @Path("task") taskId: String): Call<Void>
+    fun deleteTask(@Path("taskList") taskListId: String, @Path("task") taskId: String): Completable
 }

@@ -67,8 +67,17 @@ class TasksHelper(private val tasksApi: TasksApi, private val prefHelper: PrefHe
      * @param realm      a Realm instance
      * @return a Flowable containing the requested task list
      */
-    fun getTaskListAsFlowable(taskListId: String, realm: Realm): Flowable<TTaskList> =
-            getTaskList(taskListId, realm)?.asFlowable<TTaskList>() ?: Flowable.empty<TTaskList>()
+    fun getTaskListAsSingle(taskListId: String, realm: Realm): Single<TTaskList> =
+            Single.defer {
+                val taskList = getTaskList(taskListId, realm)
+                if (taskList == null) {
+                    Single.error(NullPointerException("No task list found with ID $taskListId"))
+                } else {
+                    taskList.asFlowable<TTaskList>()
+                            .filter { it.isValid && it.isLoaded }
+                            .firstOrError()
+                }
+            }
 
     fun getTaskList(taskListId: String, realm: Realm): TTaskList? {
         return realm.where(TTaskList::class.java)
@@ -185,11 +194,21 @@ class TasksHelper(private val tasksApi: TasksApi, private val prefHelper: PrefHe
         if (tasks.isEmpty()) Flowable.empty() else Flowable.fromIterable(tasks)
     }
 
-    fun getTaskAsFlowable(taskId: String, realm: Realm): Flowable<TTask> {
-        return getTask(taskId, realm)?.asFlowable<TTask>()
-                ?: return Flowable.error(NullPointerException("No task found with ID $taskId"))
-    }
+    fun getTaskAsSingle(taskId: String, realm: Realm): Single<TTask> =
+            Single.defer {
+                val task = getTask(taskId, realm)
+                if (task == null) {
+                    Single.error(NullPointerException("No task found with ID $taskId"))
+                } else {
+                    task.asFlowable<TTask>()
+                            .filter { it.isValid && it.isLoaded }
+                            .firstOrError()
+                }
+            }
 
+    /**
+     * Get the first [TTask] with the provided ID or null if the task is not found
+     */
     fun getTask(taskId: String, realm: Realm): TTask? =
             realm.where(TTask::class.java).equalTo(TTaskFields.ID, taskId).findFirst()
 
@@ -264,7 +283,7 @@ class TasksHelper(private val tasksApi: TasksApi, private val prefHelper: PrefHe
      * @param taskId     task identifier
      * @param taskFields HashMap containing the fields to be modified and their values
      */
-    fun updateTask(taskListId: String, taskId: String, taskFields: TaskFields): Flowable<Task> =
+    fun updateTask(taskListId: String, taskId: String, taskFields: TaskFields): Single<Task> =
             tasksApi.updateTask(taskListId, taskId, taskFields)
 
     /**
@@ -274,7 +293,7 @@ class TasksHelper(private val tasksApi: TasksApi, private val prefHelper: PrefHe
      * @param realm a Realm instance
      * @return a Flowable containing the updated task
      */
-    fun updateCompletionStatus(tTask: TTask, realm: Realm): Flowable<TTask> {
+    fun updateCompletionStatus(tTask: TTask, realm: Realm): Single<TTask> {
         // Update the status of the local task
         realm.executeTransaction {
             // Task is not synced at this point
@@ -293,7 +312,7 @@ class TasksHelper(private val tasksApi: TasksApi, private val prefHelper: PrefHe
         return updateTask(tTask.taskListId, tTask.id, taskFields)
                 .map { tTask }
                 .observeOn(AndroidSchedulers.mainThread())
-                .doOnComplete {
+                .doOnSuccess {
                     // Update successful, update sync status
                     realm.executeTransaction { tTask.synced = true }
                 }
@@ -306,10 +325,15 @@ class TasksHelper(private val tasksApi: TasksApi, private val prefHelper: PrefHe
      * @param realm  a Realm instance
      * @return a Flowable containing the updated task
      */
-    fun updateCompletionStatus(taskId: String, realm: Realm): Flowable<TTask> {
-        getTask(taskId, realm)?.let { task -> return updateCompletionStatus(task, realm) }
-                ?: return Flowable.error<TTask>(RuntimeException("Task not found"))
-    }
+    fun updateCompletionStatus(taskId: String, realm: Realm): Single<TTask> =
+            Single.defer {
+                val task = getTask(taskId, realm)
+                if (task == null) {
+                    Single.error(NullPointerException("No task found with ID $taskId"))
+                } else {
+                    updateCompletionStatus(task, realm)
+                }
+            }
 
     private fun getTaskListsResponse(realm: Realm): TaskListsResponse? =
             realm.where(TaskListsResponse::class.java).findFirst()

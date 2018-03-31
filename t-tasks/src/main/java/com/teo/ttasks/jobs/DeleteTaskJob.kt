@@ -41,20 +41,17 @@ class DeleteTaskJob(private val taskId: String, private val taskListId: String) 
 
         // Delete the Google task
         if (!tTask.isLocalOnly) {
-            val response = tasksApi.deleteTask(taskListId, taskId).execute()
-            response.body()
-
-            // Handle failure
-            if (!response.isSuccessful) {
-                response.errorBody()?.close()
+            val result = tasksApi.deleteTask(taskListId, taskId).blockingGet()
+            if (result != null) {
+                Timber.e(result, "Error while deleting remote task")
                 realm.close()
-                throw Exception("Failed to delete task")
+                throw result
             }
         }
 
         // Delete the Realm task
         realm.executeTransaction { tTask.delete() }
-        Timber.d("deleted task %s", taskId)
+        Timber.v("Deleted task %s", taskId)
 
         realm.close()
     }

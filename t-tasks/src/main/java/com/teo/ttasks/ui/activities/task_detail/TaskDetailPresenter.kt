@@ -34,28 +34,32 @@ internal class TaskDetailPresenter(private val tasksHelper: TasksHelper, private
     internal fun getTask(taskId: String) {
         this.taskId = taskId
         taskSubscription?.let { if (!it.isDisposed) it.dispose() }
-        taskSubscription = tasksHelper.getTaskAsFlowable(taskId, realm)
+        taskSubscription = tasksHelper.getTaskAsSingle(taskId, realm)
                 .subscribe(
                         { tTask ->
-                            if (tTask.isValid) {
-                                this.tTask = tTask
-                                view()?.onTaskLoaded(tTask)
-                            } else {
-                                view()?.onTaskLoadError()
-                            }
+                            this.tTask = realm.copyFromRealm(tTask)
+                            view()?.onTaskLoaded(this.tTask!!)
                         },
-                        { Timber.e(it, "Error while retrieving the task")})
+                        {
+                            Timber.e(it, "Error while retrieving the task")
+                            view()?.onTaskLoadError()
+                        }
+                )
+        disposeOnUnbindView(taskSubscription!!)
     }
 
     internal fun getTaskList(taskListId: String) {
-        tasksHelper.getTaskListAsFlowable(taskListId, realm)
-                .subscribe { taskList ->
-                    if (taskList.isValid) {
-                        view()?.onTaskListLoaded(taskList)
-                    } else {
-                        view()?.onTaskListLoadError()
-                    }
-                }
+        val disposable = tasksHelper.getTaskListAsSingle(taskListId, realm)
+                .subscribe(
+                        { taskList ->
+                            view()?.onTaskListLoaded(realm.copyFromRealm(taskList))
+                        },
+                        {
+                            Timber.e(it, "Error while retrieving the task list")
+                            view()?.onTaskListLoadError()
+                        }
+                )
+        disposeOnUnbindView(disposable)
     }
 
     /**

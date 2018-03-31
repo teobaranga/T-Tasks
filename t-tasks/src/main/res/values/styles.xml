@@ -16,4 +16,8 @@
         <item name="android:textSize">18sp</item>
     </style>
 
+    <style name="TextAppearance.TaskTitle.TaskDetail" parent="@style/TextAppearance.AppCompat.Title.Inverse" />
+
+    <style name="TextAppearance.TaskListTitle.TaskDetail" parent="@style/TextAppearance.AppCompat.Subhead.Inverse" />
+
 </resources>

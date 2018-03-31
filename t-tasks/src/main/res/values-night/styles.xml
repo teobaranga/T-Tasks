@@ -3,4 +3,8 @@
 
     <style name="PopupOverlay" parent="ThemeOverlay.AppCompat.Dark"/>
 
+    <style name="TextAppearance.TaskTitle.TaskDetail" parent="@style/TextAppearance.AppCompat.Title" />
+
+    <style name="TextAppearance.TaskListTitle.TaskDetail" parent="@style/TextAppearance.AppCompat.Subhead" />
+
 </resources>

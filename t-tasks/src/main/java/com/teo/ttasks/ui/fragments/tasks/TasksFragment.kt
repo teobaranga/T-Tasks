@@ -168,7 +168,7 @@ class TasksFragment : DaggerFragment(), TasksView, SwipeRefreshLayout.OnRefreshL
         completedTasksHeader = CategoryItem(getString(R.string.completed), getString(R.string.completed_count))
         completedTasksHeader.isExpanded = tasksPresenter.showCompleted
 
-        adapter = FlexibleAdapter(null, null, true)
+        adapter = FlexibleAdapter(null, null)
         adapter.isAutoScrollOnExpand = false
         adapter.addListener(taskItemClickListener)
 

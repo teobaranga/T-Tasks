@@ -45,13 +45,11 @@ class TaskDetailActivity : DaggerAppCompatActivity(), TaskDetailView {
         /**
          * Get the Intent template used to start this activity from outside the application.
          * This is part of the process used when starting this activity from the widget.
-
+         *
          * @param context    context
-         * *
          * @param taskListId task list identifier
-         * *
          * @return an incomplete Intent that needs to be completed by adding the extra
-         * * [.EXTRA_TASK_ID] before being used to start this activity
+         * [EXTRA_TASK_ID] before being used to start this activity
          */
         fun getIntentTemplate(context: Context, taskListId: String): Intent {
             val starter = Intent(context, TaskDetailActivity::class.java)
