@@ -7,6 +7,7 @@ import com.teo.ttasks.api.entities.TasksResponse
 import com.teo.ttasks.api.entities.TasksResponseFields
 import com.teo.ttasks.data.local.PrefHelper
 import com.teo.ttasks.data.local.TaskFields
+import com.teo.ttasks.data.local.TaskFields.Companion.taskFields
 import com.teo.ttasks.data.local.TaskListFields
 import com.teo.ttasks.data.model.*
 import com.teo.ttasks.data.model.Task.Companion.STATUS_COMPLETED
@@ -307,8 +308,9 @@ class TasksHelper(private val tasksApi: TasksApi, private val prefHelper: PrefHe
             }
         }
 
-        val taskFields = TaskFields()
-        taskFields.putCompleted(tTask.isCompleted, tTask.completed)
+        val taskFields = taskFields {
+            completed = tTask.completed
+        }
         return updateTask(tTask.taskListId, tTask.id, taskFields)
                 .map { tTask }
                 .observeOn(AndroidSchedulers.mainThread())

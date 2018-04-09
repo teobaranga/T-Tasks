@@ -13,6 +13,8 @@ class TaskFields : HashMap<String, Any?>(NUM_FIELDS) {
         private const val KEY_NOTES = "notes"
         private const val KEY_COMPLETED = "completed"
         private const val KEY_STATUS = "status"
+
+        fun taskFields(block: TaskFields.() -> Unit): TaskFields = TaskFields().apply(block)
     }
 
     var title: String?
@@ -43,8 +45,10 @@ class TaskFields : HashMap<String, Any?>(NUM_FIELDS) {
             }
         }
 
-    fun putCompleted(isCompleted: Boolean, completed: Date?) {
-        this[KEY_STATUS] = if (isCompleted) Task.STATUS_COMPLETED else Task.STATUS_NEEDS_ACTION
-        this[KEY_COMPLETED] = completed
-    }
+    var completed: Date?
+        get() = this[KEY_COMPLETED] as? Date
+        set(completed) {
+            this[KEY_COMPLETED] = completed
+            this[KEY_STATUS] = if (completed == null) Task.STATUS_NEEDS_ACTION else Task.STATUS_COMPLETED
+        }
 }

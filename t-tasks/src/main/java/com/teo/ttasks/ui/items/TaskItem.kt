@@ -92,12 +92,12 @@ class TaskItem(tTask: TTask,
 
         // Due date / Completed date
         if (combineDay) {
-            binding.taskDate.setDate(null)
+            binding.taskDate.date = null
         } else {
             when {
-                completed != null -> binding.taskDate.setDate(completed)
-                dueDate != null -> binding.taskDate.setDate(dueDate)
-                else -> binding.taskDate.setDate(null)
+                completed != null -> binding.taskDate.date = completed
+                dueDate != null -> binding.taskDate.date = dueDate
+                else -> binding.taskDate.date = null
             }
         }
 
