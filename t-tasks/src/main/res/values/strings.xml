@@ -37,7 +37,10 @@
     <string name="msg_task_lists_empty">No task lists</string>
     <string name="msg_task_lists_empty_extra">Start by creating a new task list!</string>
     <string name="error_task_lists_loading">Error loading task lists</string>
-    <string name="task_list_size">%d tasks</string>
+    <plurals name="task_list_size">
+        <item quantity="one">%d task</item>
+        <item quantity="other">%d tasks</item>
+    </plurals>
     <string name="empty_task_list">Empty</string>
     <string name="new_task_list">New Task List</string>
     <string name="edit_task_list">Edit Task List</string>
@@ -89,6 +92,7 @@
     <string name="description_return_to_task_list">Return to the task list</string>
     <string name="description_more">More</string>
     <string name="description_add_task">Add task</string>
+    <string name="description_section_collapse_expand">Collapse or expand the section</string>
 
     <!-- Notifications -->
     <string name="task_due">Task due: %s</string>

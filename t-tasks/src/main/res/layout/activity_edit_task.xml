@@ -1,6 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--suppress AndroidUnknownAttribute -->
-<!-- suppress the warnings caused by "unknown" attributes handled by data binding -->
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
         xmlns:tools="http://schemas.android.com/tools">
@@ -50,7 +48,6 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="@dimen/margin_edit_task"
-                    android:layout_marginRight="@dimen/margin_edit_task"
                     android:baselineAlignBottom="true"
                     app:srcCompat="@drawable/ic_label_24dp"
                     tools:ignore="ContentDescription"/>
@@ -79,8 +76,7 @@
                 <ImageView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginEnd="16dp"
-                    android:layout_marginRight="16dp"
+                    android:layout_marginEnd="@dimen/margin_edit_task"
                     android:baselineAlignBottom="true"
                     app:srcCompat="@drawable/ic_task_list_24dp"
                     tools:ignore="ContentDescription"/>
@@ -106,7 +102,6 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_vertical"
                     android:layout_marginEnd="@dimen/margin_edit_task"
-                    android:layout_marginRight="@dimen/margin_edit_task"
                     android:layout_rowSpan="2"
                     app:srcCompat="@drawable/ic_event_24dp"
                     tools:ignore="ContentDescription"/>
@@ -162,7 +157,6 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_vertical"
                     android:layout_marginEnd="@dimen/margin_edit_task"
-                    android:layout_marginRight="@dimen/margin_edit_task"
                     android:layout_rowSpan="2"
                     app:srcCompat="@drawable/ic_notifications_24dp"
                     tools:ignore="ContentDescription"/>
@@ -196,7 +190,6 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="@dimen/margin_edit_task"
-                    android:layout_marginRight="@dimen/margin_edit_task"
                     android:layout_marginTop="8dp"
                     android:baselineAlignBottom="true"
                     app:srcCompat="@drawable/ic_bookmark_24dp"

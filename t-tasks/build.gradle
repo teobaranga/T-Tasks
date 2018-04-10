@@ -17,7 +17,7 @@ android {
     buildToolsVersion '27.0.3'
     defaultConfig {
         applicationId "com.teo.ttasks"
-        minSdkVersion 26
+        minSdkVersion 21
         targetSdkVersion 27
         versionCode 1
         versionName '0.1'
@@ -106,7 +106,7 @@ afterEvaluate {
 }
 
 dependencies {
-    kapt 'com.android.databinding:compiler:3.1.0'
+    kapt 'com.android.databinding:compiler:3.1.1'
 
     implementation 'eu.davidea:flexible-adapter:5.0.3'
     implementation 'eu.davidea:flexible-adapter-databinding:1.0.0-b2'
@@ -187,6 +187,12 @@ configurations.compile.dependencies.each { compileDependency ->
     println "Excluding compile dependency: ${compileDependency.getName()}"
     configurations.androidTestCompile.dependencies.each { androidTestCompileDependency ->
         configurations.androidTestCompile.exclude module: "${compileDependency.getName()}"
+    }
+}
+
+configurations.all {
+    resolutionStrategy {
+        force "com.android.support:exifinterface:${ver.support}"
     }
 }
 

@@ -7,15 +7,14 @@ import android.support.v4.view.ViewPropertyAnimatorCompat
 import android.support.v4.view.animation.FastOutSlowInInterpolator
 import android.transition.Transition
 import android.view.View
-import android.view.animation.Interpolator
 
 object AnimUtils {
 
     object TaskDetailAnim {
 
         private val interpolator = FastOutSlowInInterpolator()
-        private val duration = 200
-        private val delay = 200
+        private const val duration = 200
+        private const val delay = 200
 
         fun animate(view: View): ViewPropertyAnimatorCompat {
             return ViewCompat.animate(view)

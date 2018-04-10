@@ -90,13 +90,12 @@ open class TTask : RealmObject {
      */
     val isLocalOnly: Boolean
         get() {
-            try {
+            return try {
                 Integer.parseInt(id)
-                return true
+                true
             } catch (e: NumberFormatException) {
-                return false
+                false
             }
-
         }
 
     constructor()

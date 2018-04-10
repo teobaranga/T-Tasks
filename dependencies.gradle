@@ -11,7 +11,7 @@ ver.powermock = "1.7.4"
 ver.retrofit = "2.4.0"
 ver.rxAndroid = "2.0.2"
 ver.rxjava = "2.1.12"
-ver.support = "27.1.0"
+ver.support = "27.1.1"
 ext.ver = ver
 
 def deps = [:]

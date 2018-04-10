@@ -58,10 +58,11 @@ class TaskDateView(context: Context, attrs: AttributeSet?) : View(context, attrs
 
     /**
      * The date shown in this view represented as a string the format specified in [datePattern].
+     * Used only for preview in Android Studio.
      */
     var dateString: String? = null
         set(value) {
-            date = dateFormat.parse(value)
+            date = if (value != null) dateFormat.parse(value) else null
         }
 
     init {
@@ -112,11 +113,13 @@ class TaskDateView(context: Context, attrs: AttributeSet?) : View(context, attrs
         dayNameBounds = Rect()
         dayNamePaint.getTextBounds(dateMonth, 0, dateMonth.length, dayNameBounds)
 
-        val a = context.theme.obtainStyledAttributes(attrs, R.styleable.TaskDateView, 0, 0)
-        try {
-            dateString = a.getString(R.styleable.TaskDateView_date)
-        } finally {
-            a.recycle()
+        if (isInEditMode) {
+            val a = context.theme.obtainStyledAttributes(attrs, R.styleable.TaskDateView, 0, 0)
+            try {
+                dateString = a.getString(R.styleable.TaskDateView_date)
+            } finally {
+                a.recycle()
+            }
         }
     }
 

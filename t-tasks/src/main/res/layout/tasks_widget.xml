@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              xmlns:tools="http://schemas.android.com/tools"
-              android:layout_width="match_parent"
-              android:layout_height="match_parent"
-              android:background="@color/background_color"
-              android:orientation="vertical"
-              android:theme="@style/Theme.Widget">
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
 
     <FrameLayout
         android:id="@+id/task_list_header"
@@ -21,8 +20,8 @@
             android:maxLines="1"
             android:paddingLeft="8dp"
             android:paddingRight="8dp"
-            android:textAppearance="@style/TextAppearance.AppCompat.Large"
-            tools:text="My Tasks"/>
+            android:textAppearance="@style/TextAppearance.AppCompat.Large.Inverse"
+            tools:text="My Tasks" />
 
         <ImageView
             android:id="@+id/add_task"
@@ -31,7 +30,7 @@
             android:layout_gravity="end|center_vertical"
             android:contentDescription="@string/description_add_task"
             android:padding="8dp"
-            tools:src="@drawable/ic_add_white_24dp"/>
+            tools:src="@drawable/ic_add_white_24dp" />
 
     </FrameLayout>
 
@@ -44,6 +43,6 @@
         android:divider="@null"
         android:paddingBottom="6dp"
         android:paddingTop="6dp"
-        tools:listitem="@layout/item_task_widget"/>
+        tools:listitem="@layout/item_task_widget" />
 
 </LinearLayout>

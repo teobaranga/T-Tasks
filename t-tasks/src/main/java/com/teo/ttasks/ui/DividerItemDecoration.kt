@@ -74,7 +74,7 @@ class DividerItemDecoration(context: Context, attrs: AttributeSet?) : RecyclerVi
             bottom = parent.height - parent.paddingBottom
         }
 
-        for (i in (if (mShowFirstDivider) 0 else 1)..childCount - 1) {
+        for (i in (if (mShowFirstDivider) 0 else 1) until childCount) {
             val child = parent.getChildAt(i)
             val params = child.layoutParams as RecyclerView.LayoutParams
 

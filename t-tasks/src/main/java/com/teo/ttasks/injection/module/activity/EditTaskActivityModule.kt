@@ -1,7 +1,6 @@
 package com.teo.ttasks.injection.module.activity
 
 import com.birbit.android.jobqueue.JobManager
-import com.teo.ttasks.data.local.PrefHelper
 import com.teo.ttasks.data.local.WidgetHelper
 import com.teo.ttasks.data.remote.TasksHelper
 import com.teo.ttasks.ui.activities.edit_task.EditTaskPresenter

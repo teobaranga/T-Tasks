@@ -78,9 +78,11 @@ class TasksWidgetProvider : AppWidgetProvider() {
 
         // Instantiate the RemoteViews object for the app widget layout.
         val views = RemoteViews(context.packageName, R.layout.tasks_widget)
+        // Set the background color programmatically
+        views.setInt(R.id.container, "setBackgroundResource", R.color.background_color)
 
         // Set up the RemoteViews object to use a RemoteViews adapter.
-        // This adapter connects to a RemoteViewsService  through the specified intent.
+        // This adapter connects to a RemoteViewsService through the specified intent.
         // This is how you populate the data.
         views.setRemoteAdapter(R.id.widget_task_list, intent)
 

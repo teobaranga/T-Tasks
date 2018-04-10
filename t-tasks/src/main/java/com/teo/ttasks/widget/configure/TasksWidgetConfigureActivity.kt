@@ -57,7 +57,7 @@ class TasksWidgetConfigureActivity : DaggerAppCompatActivity(), TasksWidgetConfi
 
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = DataBindingUtil.setContentView<ActivityWidgetConfigureBinding>(this, R.layout.activity_widget_configure)
+        binding = DataBindingUtil.setContentView(this, R.layout.activity_widget_configure)
         window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
         presenter.bindView(this)
 

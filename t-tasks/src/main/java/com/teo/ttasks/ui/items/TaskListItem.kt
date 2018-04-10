@@ -11,7 +11,8 @@ import eu.davidea.flexibleadapter.items.IFlexible
 import eu.davidea.viewholders.FlexibleViewHolder
 import timber.log.Timber
 
-class TaskListItem(private val taskList: TTaskList, private val taskCount: Long) : AbstractFlexibleItem<TaskListItem.ViewHolder>() {
+class TaskListItem(private val taskList: TTaskList,
+                   private val taskCount: Long) : AbstractFlexibleItem<TaskListItem.ViewHolder>() {
 
     init {
         Timber.d("count %d", taskCount)
@@ -27,12 +28,19 @@ class TaskListItem(private val taskList: TTaskList, private val taskCount: Long)
         return R.layout.item_task_list
     }
 
-    override fun bindViewHolder(adapter: FlexibleAdapter<IFlexible<RecyclerView.ViewHolder>>, viewHolder: ViewHolder, position: Int, payloads: MutableList<Any?>) {
+    override fun bindViewHolder(adapter: FlexibleAdapter<IFlexible<RecyclerView.ViewHolder>>,
+                                viewHolder: ViewHolder, position: Int, payloads: MutableList<Any?>) {
         val itemTaskBinding = viewHolder.itemTaskListBinding
         val context = itemTaskBinding.root.context
+        val taskCountInt = taskCount.toInt()
 
         itemTaskBinding.taskListTitle.text = taskList.title
-        itemTaskBinding.taskListSize.text = if (taskCount > 0) context.getString(R.string.task_list_size, taskCount) else context.getString(R.string.empty_task_list)
+        itemTaskBinding.taskListSize.text =
+                if (taskCountInt > 0) {
+                    context.resources.getQuantityString(R.plurals.task_list_size, taskCountInt, taskCountInt)
+                } else {
+                    context.getString(R.string.empty_task_list)
+                }
     }
 
     override fun createViewHolder(view: View, adapter: FlexibleAdapter<IFlexible<RecyclerView.ViewHolder>>): ViewHolder {
@@ -40,6 +48,12 @@ class TaskListItem(private val taskList: TTaskList, private val taskCount: Long)
     }
 
     override fun equals(other: Any?): Boolean = other is TaskListItem && id == other.id
+
+    override fun hashCode(): Int {
+        var result = taskList.hashCode()
+        result = 31 * result + taskCount.hashCode()
+        return result
+    }
 
     class ViewHolder internal constructor(view: View, adapter: FlexibleAdapter<out IFlexible<*>>) : FlexibleViewHolder(view, adapter) {
         var itemTaskListBinding = ItemTaskListBinding.bind(view)

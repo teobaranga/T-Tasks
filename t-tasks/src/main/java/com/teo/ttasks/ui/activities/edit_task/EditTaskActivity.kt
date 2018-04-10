@@ -55,7 +55,7 @@ class EditTaskActivity : DaggerAppCompatActivity(), EditTaskView {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        editTaskBinding = DataBindingUtil.setContentView<ActivityEditTaskBinding>(this, R.layout.activity_edit_task)
+        editTaskBinding = DataBindingUtil.setContentView(this, R.layout.activity_edit_task)
         editTaskBinding.view = this
         editTaskPresenter.bindView(this)
 

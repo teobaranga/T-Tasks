@@ -38,7 +38,7 @@ class TaskDetailActivity : DaggerAppCompatActivity(), TaskDetailView {
         private const val ACTION_SKIP_ANIMATION = BuildConfig.APPLICATION_ID + "SKIP_ANIMATION"
 
         fun start(context: Context, taskId: String, taskListId: String, bundle: Bundle?) {
-            val starter = getStartIntent(context, taskId, taskListId, Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP)
+            val starter = getStartIntent(context, taskId, taskListId)
             context.startActivity(starter, bundle)
         }
 
@@ -58,7 +58,7 @@ class TaskDetailActivity : DaggerAppCompatActivity(), TaskDetailView {
             return starter
         }
 
-        fun getStartIntent(context: Context, taskId: String, taskListId: String, skipAnimation: Boolean): Intent {
+        fun getStartIntent(context: Context, taskId: String, taskListId: String, skipAnimation: Boolean = false): Intent {
             val starter = Intent(context, TaskDetailActivity::class.java)
             starter.putExtra(EXTRA_TASK_ID, taskId)
             starter.putExtra(EXTRA_TASK_LIST_ID, taskListId)

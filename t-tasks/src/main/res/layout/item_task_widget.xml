@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/item_task_widget"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@color/background_color"
     android:orientation="horizontal"
     android:paddingBottom="2dp"
     android:paddingLeft="8dp"
@@ -26,7 +24,7 @@
             android:textAppearance="@style/TextAppearance.AppCompat.Headline"
             android:textColor="@android:color/black"
             android:textSize="22sp"
-            tools:text="31"/>
+            tools:text="31" />
 
         <TextView
             android:id="@+id/date_day_name"
@@ -36,14 +34,13 @@
             android:minEms="2"
             android:textAppearance="@style/TextAppearance.AppCompat.Caption"
             android:textColor="@color/material_drawer_secondary_text"
-            tools:text="Wed"/>
+            tools:text="Wed" />
 
     </LinearLayout>
 
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="8dp"
         android:layout_marginStart="8dp"
         android:background="@drawable/background_task_widget"
         android:padding="8dp">
@@ -52,11 +49,11 @@
             android:id="@+id/task_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:ellipsize="marquee"
-            android:maxLines="1"
-            android:textAppearance="@style/TextAppearance.AppCompat"
+            android:ellipsize="end"
+            android:singleLine="true"
+            android:textAppearance="@style/TextAppearance.AppCompat.Inverse"
             android:textStyle="bold"
-            tools:text="Buy groceries"/>
+            tools:text="Buy groceries" />
 
         <TextView
             android:id="@+id/task_description"
@@ -65,26 +62,25 @@
             android:layout_below="@+id/task_title"
             android:layout_marginBottom="4dp"
             android:layout_marginTop="2dp"
-            android:ellipsize="marquee"
-            android:maxLines="1"
-            android:textAppearance="@style/TextAppearance.AppCompat.Small"
+            android:ellipsize="end"
+            android:singleLine="true"
+            android:textAppearance="@style/TextAppearance.AppCompat.Small.Inverse"
             android:textStyle="italic"
             android:visibility="gone"
             tools:text="Go to the supermarket and pick them up"
-            tools:visibility="gone"/>
+            tools:visibility="visible" />
 
         <TextView
             android:id="@+id/reminder"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@+id/task_description"
-            android:drawableLeft="@drawable/ic_alarm_18dp"
             android:drawableStart="@drawable/ic_alarm_18dp"
             android:gravity="bottom"
-            android:textAppearance="@style/TextAppearance.AppCompat.Small"
+            android:textAppearance="@style/TextAppearance.AppCompat.Small.Inverse"
             android:visibility="gone"
             tools:text="5:00PM"
-            tools:visibility="gone"/>
+            tools:visibility="visible" />
 
     </RelativeLayout>
 

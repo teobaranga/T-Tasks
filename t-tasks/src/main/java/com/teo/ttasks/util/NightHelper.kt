@@ -6,9 +6,9 @@ import android.support.v7.app.AppCompatDelegate
 
 object NightHelper {
 
-    val NIGHT_AUTO = "auto"
-    val NIGHT_NEVER = "never"
-    val NIGHT_ALWAYS = "always"
+    const val NIGHT_AUTO = "auto"
+    const val NIGHT_NEVER = "never"
+    const val NIGHT_ALWAYS = "always"
 
     fun isNight(context: Context): Boolean {
         return context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES
