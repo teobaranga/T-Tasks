@@ -57,12 +57,12 @@ internal class TaskListsPresenter(private val tasksHelper: TasksHelper) : Presen
             return
 
         // Create the task list offline
-        val tTaskList = TasksHelper.createTaskList(taskListFields)
+        val tTaskList = taskListFields.toTaskList()
         Timber.d("New task list with id %s", tTaskList.id)
         realm.executeTransaction { it.insertOrUpdate(tTaskList) }
 
         // Create the task remotely
-        tasksHelper.newTaskList(taskListFields)
+        tasksHelper.createTaskList(taskListFields)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ taskList ->
                     // Update the local task with the full information and delete the old task

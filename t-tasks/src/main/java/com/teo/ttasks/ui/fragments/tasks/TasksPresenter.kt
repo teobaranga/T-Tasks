@@ -66,7 +66,7 @@ internal class TasksPresenter(private val tasksHelper: TasksHelper,
         }
 
         tasksSubscription = tasksHelper.getTasks(taskListId, realm)
-                .map { realm.copyFromRealm(it) }
+                .map { realm.copyFromRealm<TTask>(it) }
                 .observeOn(Schedulers.io())
                 .doOnNext { tTasks ->
                     val tTasksMap = tTasks.associateBy({ it.id }, { it })

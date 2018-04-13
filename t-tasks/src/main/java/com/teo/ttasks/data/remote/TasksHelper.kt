@@ -12,6 +12,9 @@ import com.teo.ttasks.data.local.TaskListFields
 import com.teo.ttasks.data.model.*
 import com.teo.ttasks.data.model.Task.Companion.STATUS_COMPLETED
 import com.teo.ttasks.data.model.Task.Companion.STATUS_NEEDS_ACTION
+import com.teo.ttasks.delete
+import com.teo.ttasks.jobs.CreateTaskJob
+import com.teo.ttasks.util.DateUtils.Companion.utcDateFormat
 import com.teo.ttasks.util.FirebaseUtil.getTasksDatabase
 import com.teo.ttasks.util.FirebaseUtil.saveReminder
 import io.reactivex.Completable
@@ -25,28 +28,18 @@ import retrofit2.HttpException
 import timber.log.Timber
 import java.util.*
 
+/**
+ * Common task operations
+ */
 class TasksHelper(private val tasksApi: TasksApi, private val prefHelper: PrefHelper) {
 
-    companion object {
-        /**
-         * Create a task list locally and mark it as not synced.
-         * This task list needs to be copied to Realm in order to make it persistent.
-         *
-         * @param taskListFields task list properties
-         * @return a local, un-managed task list
-         */
-        fun createTaskList(taskListFields: TaskListFields): TTaskList {
-            // Create the task list
-            val taskList = TaskList()
-            taskList.title = taskListFields.title!!
-
-            // Create the TTaskList
-            val tTaskList = TTaskList(taskList)
-            tTaskList.synced = false
-
-            return tTaskList
-        }
-    }
+    /**
+     * Create a new task list.
+     *
+     * @param taskListFields fields that make up the new task list
+     * @return a Flowable containing the newly created task list
+     */
+    fun createTaskList(taskListFields: TaskListFields): Flowable<TaskList> = tasksApi.createTaskList(taskListFields)
 
     /**
      * Retrieve all the valid task lists associated with the current account.
@@ -86,14 +79,6 @@ class TasksHelper(private val tasksApi: TasksApi, private val prefHelper: PrefHe
                 .equalTo(TTaskListFields.DELETED, false)
                 .findFirst()
     }
-
-    /**
-     * Create a new task list.
-     *
-     * @param taskListFields fields that make up the new task list
-     * @return a Flowable containing the newly created task list
-     */
-    fun newTaskList(taskListFields: TaskListFields): Flowable<TaskList> = tasksApi.insertTaskList(taskListFields)
 
     /**
      * Update a task list by modifying specific fields (online)
@@ -214,19 +199,51 @@ class TasksHelper(private val tasksApi: TasksApi, private val prefHelper: PrefHe
             realm.where(TTask::class.java).equalTo(TTaskFields.ID, taskId).findFirst()
 
     /**
+     * Update the given task from the provided task list to the new value
+     *
+     * @param taskListId task list ID
+     * @param tTask      local task containing the new values
+     */
+    private fun updateTask(taskListId: String, tTask: TTask): Single<TTask> {
+        Timber.d("updating task %s, %s, %s", tTask.id, tTask.synced, tTask.deleted)
+        return tasksApi.updateTask(taskListId, tTask.id, tTask.task).map { tTask }
+    }
+
+    /**
      * Sync all the tasks from the specified task list that are not currently marked as synced.
-     * Delete the tasks that are marked as deleted. TODO: is this correct?
+     * Delete the tasks that are marked as deleted.
      *
      * @param taskListId task list identifier
-     * @return a Flowable with every successfully synced task
+     * @return a Flowable with every successfully synced (updated) task
      */
     fun syncTasks(taskListId: String): Flowable<TTask> =
             getUnManagedTasks(taskListId)
                     .filter {
-                        // Handle unsynced tasks
-                        !it.synced && !it.isLocalOnly
+                        if (!it.synced) {
+                            // Take care of the deleted tasks
+                            if (it.deleted) {
+                                // Delete the un-synced local tasks
+                                if (it.isLocalOnly) {
+                                    it.delete()
+                                } else {
+                                    // TODO schedule a deletion job
+                                }
+                                return@filter false
+                            }
+                            // Handle creation
+                            if (it.isLocalOnly) {
+                                // Schedule a job creating this task remotely
+                                CreateTaskJob.schedule(it.id, taskListId)
+                                return@filter false
+                            }
+                            // The remaining un-synced tasks are updates
+                            return@filter true
+                        }
+                        return@filter false
                     }
-                    .flatMapSingle { updateTask(taskListId, it) }
+                    .flatMapSingle {
+                        updateTask(taskListId, it)
+                    }
 
     /**
      * Retrieve a fresh copy of the tasks from the given tasks list and update the local store
@@ -309,7 +326,7 @@ class TasksHelper(private val tasksApi: TasksApi, private val prefHelper: PrefHe
         }
 
         val taskFields = taskFields {
-            completed = tTask.completed
+            completed = utcDateFormat.format(tTask.completed)
         }
         return updateTask(tTask.taskListId, tTask.id, taskFields)
                 .map { tTask }
@@ -366,16 +383,5 @@ class TasksHelper(private val tasksApi: TasksApi, private val prefHelper: PrefHe
         return realm.where(TTask::class.java)
                 .equalTo(TTaskFields.TASK_LIST_ID, taskListId)
                 .equalTo(TTaskFields.DELETED, false)
-    }
-
-    /**
-     * Update the given task from the provided task list to the new value
-     *
-     * @param taskListId task list ID
-     * @param tTask      local task containing the new values
-     */
-    private fun updateTask(taskListId: String, tTask: TTask): Single<TTask> {
-        Timber.d("updating task %s, %s, %s", tTask.id, tTask.synced, tTask.deleted)
-        return tasksApi.updateTask(taskListId, tTask.id, tTask.task).map { tTask }
     }
 }

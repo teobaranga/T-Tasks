@@ -1,7 +1,6 @@
 package com.teo.ttasks.data.model
 
 import com.google.gson.annotations.Expose
-import com.teo.ttasks.data.local.TaskFields
 import io.realm.RealmObject
 import io.realm.annotations.PrimaryKey
 import java.util.*
@@ -44,20 +43,16 @@ open class Task : RealmObject {
     @Expose
     var position: String? = null
 
-    /** Notes describing the task.  */
+    /** Notes describing the task. */
     @Expose
     var notes: String? = null
 
-    /** Status of the task. This is either "needsAction" or "completed".  */
+    /** Status of the task. This is either "needsAction" or "completed". */
     @Expose
     var status: String? = null
 
     /**
-     * Due date of the task.<br></br>
-     * This is not a completely correct date, see link below.
-
-     * @see [
-     * Due date is not a calculated field](https://groups.google.com/forum/.!topic/google-tasks-api/sDJo6ohfPQU)
+     * Due date of the task
      */
     @Expose
     var due: Date? = null
@@ -78,18 +73,13 @@ open class Task : RealmObject {
     constructor()
 
     /**
-     * Create a new Task locally.<br></br>
+     * Create a new Task locally.
      * The ID needs to be unique so it doesn't conflict with other tasks.
-
-     * @param id         task identifier
-     * *
-     * @param taskFields the task information
+     *
+     * @param id task identifier
      */
-    constructor(id: String, taskFields: TaskFields) {
+    constructor(id: String) {
         this.id = id
-        title = taskFields.title
-        due = taskFields.dueDate
-        notes = taskFields.notes
     }
 
     companion object {

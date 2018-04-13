@@ -1,11 +1,13 @@
 package com.teo.ttasks.data.local
 
+import com.evernote.android.job.util.support.PersistableBundleCompat
 import com.teo.ttasks.data.model.Task
+import com.teo.ttasks.util.DateUtils.Companion.DATE_PATTERN
 import java.util.*
 
 private const val NUM_FIELDS = 5
 
-class TaskFields : HashMap<String, Any?>(NUM_FIELDS) {
+class TaskFields : HashMap<String, String?>(NUM_FIELDS) {
 
     companion object {
         private const val KEY_TITLE = "title"
@@ -15,10 +17,35 @@ class TaskFields : HashMap<String, Any?>(NUM_FIELDS) {
         private const val KEY_STATUS = "status"
 
         fun taskFields(block: TaskFields.() -> Unit): TaskFields = TaskFields().apply(block)
+
+        /**
+         * Convert bundle date to TaskFields. This is used when de-serializing task data
+         * in a job
+         */
+        fun fromBundle(bundle: PersistableBundleCompat): TaskFields? {
+            val taskFields =  taskFields {
+                if (bundle.containsKey(KEY_TITLE)) {
+                    title = bundle[KEY_TITLE] as String
+                }
+                if (bundle.containsKey(KEY_DUE)) {
+                    dueDate = bundle[KEY_DUE] as String
+                }
+                if (bundle.containsKey(KEY_NOTES)) {
+                    notes = bundle[KEY_NOTES] as String
+                }
+                if (bundle.containsKey(KEY_COMPLETED)) {
+                    completed = bundle[KEY_COMPLETED] as String
+                }
+                if (bundle.containsKey(KEY_STATUS)) {
+                    this[KEY_STATUS] = bundle[KEY_STATUS] as String
+                }
+            }
+            return if (taskFields.isNotEmpty()) taskFields else null
+        }
     }
 
-    var title: String?
-        get() = this[KEY_TITLE] as? String
+    var title
+        get() = this[KEY_TITLE]
         set(title) {
             when {
             // Disallow tasks with empty or no title
@@ -27,8 +54,11 @@ class TaskFields : HashMap<String, Any?>(NUM_FIELDS) {
             }
         }
 
-    var dueDate: Date?
-        get() = this[KEY_DUE] as? Date
+    /**
+     * The task's due date, always in UTC, in the format specified in [DATE_PATTERN]
+     */
+    var dueDate
+        get() = this[KEY_DUE]
         set(dueDate) {
             when (dueDate) {
                 null -> remove(KEY_DUE)
@@ -36,8 +66,8 @@ class TaskFields : HashMap<String, Any?>(NUM_FIELDS) {
             }
         }
 
-    var notes: String?
-        get() = this[KEY_NOTES] as? String
+    var notes
+        get() = this[KEY_NOTES]
         set(notes) {
             when {
                 notes == null || notes.isBlank() -> remove(KEY_NOTES)
@@ -45,8 +75,8 @@ class TaskFields : HashMap<String, Any?>(NUM_FIELDS) {
             }
         }
 
-    var completed: Date?
-        get() = this[KEY_COMPLETED] as? Date
+    var completed
+        get() = this[KEY_COMPLETED]
         set(completed) {
             this[KEY_COMPLETED] = completed
             this[KEY_STATUS] = if (completed == null) Task.STATUS_NEEDS_ACTION else Task.STATUS_COMPLETED

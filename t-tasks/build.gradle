@@ -133,6 +133,7 @@ dependencies {
     implementation deps.okhttp.logging_interceptor
     implementation deps.firebase.auth
     implementation deps.firebase.database
+    implementation 'com.evernote:android-job:1.2.5'
     implementation 'com.birbit:android-priority-jobqueue:2.0.1'
     implementation(deps.aboutlibraries) { transitive = true }
     implementation(deps.materialdrawer) { transitive = true }

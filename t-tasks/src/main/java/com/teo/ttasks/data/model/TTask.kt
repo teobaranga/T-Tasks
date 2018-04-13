@@ -1,6 +1,5 @@
 package com.teo.ttasks.data.model
 
-import com.teo.ttasks.data.local.TaskFields
 import io.realm.RealmObject
 import io.realm.annotations.Index
 import io.realm.annotations.PrimaryKey
@@ -69,7 +68,6 @@ open class TTask : RealmObject {
      * posting more than one notification for a task or showing the notification again after the user
      * has dismissed it.
      *
-     *
      * **Note:** This flag should be reset whenever the reminder date changes.
      */
     var notificationDismissed = false
@@ -85,17 +83,13 @@ open class TTask : RealmObject {
 
     /**
      * Check if this task is only available locally.
-
+     *
      * @return `true` if it is local, `false` if it is also available on Google's servers
      */
     val isLocalOnly: Boolean
         get() {
-            return try {
-                Integer.parseInt(id)
-                true
-            } catch (e: NumberFormatException) {
-                false
-            }
+            // If the id contains dashes, it's a UUID = local only
+            return id.contains("-")
         }
 
     constructor()
@@ -120,18 +114,6 @@ open class TTask : RealmObject {
         this.task = task
         this.id = task.id
         this.taskListId = taskListId
-    }
-
-    /**
-     * Update the task with the specified fields.
-     * Requires to executed in a Realm transaction.
-
-     * @param taskFields fields to be updated
-     */
-    fun update(taskFields: TaskFields) {
-        task.title = taskFields.title
-        task.notes = taskFields.notes
-        task.due = taskFields.dueDate
     }
 
     fun assignNotificationId() {

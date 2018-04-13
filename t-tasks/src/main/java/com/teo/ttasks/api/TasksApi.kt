@@ -9,10 +9,15 @@ import com.teo.ttasks.data.model.TaskList
 import io.reactivex.Completable
 import io.reactivex.Flowable
 import io.reactivex.Single
-import retrofit2.Call
 import retrofit2.http.*
 
 interface TasksApi {
+
+    /* Task Lists */
+
+    /** Create a new task list */
+    @POST("users/@me/lists")
+    fun createTaskList(@Body taskListFields: TaskListFields): Flowable<TaskList>
 
     /**
      * Get the user's task lists
@@ -22,10 +27,6 @@ interface TasksApi {
     @GET("users/@me/lists")
     fun getTaskLists(@Header("If-None-Match") ETag: String): Single<TaskListsResponse>
 
-    /** Create a new task list */
-    @POST("users/@me/lists")
-    fun insertTaskList(@Body taskListFields: TaskListFields): Flowable<TaskList>
-
     /** Update a task list */
     @PATCH("users/@me/lists/{taskList}")
     fun updateTaskList(@Path("taskList") taskListId: String, @Body taskListFields: TaskListFields): Flowable<TaskList>
@@ -33,6 +34,26 @@ interface TasksApi {
     /** Delete a task list */
     @DELETE("users/@me/lists/{taskList}")
     fun deleteTaskList(@Path("taskList") taskListId: String): Flowable<Void>
+
+    /* Tasks */
+
+    /**
+     * Creates a new task in the specified task list
+     *
+     * @param taskListId task list identifier
+     * @param taskFields the fields that the new task will contain
+     */
+    @POST("lists/{taskList}/tasks")
+    fun createTask(@Path("taskList") taskListId: String, @Body taskFields: TaskFields): Single<Task>
+
+    /**
+     * Creates a new task in the specified task list
+     *
+     * @param taskListId task list identifier
+     * @param task the new task
+     */
+    @POST("lists/{taskList}/tasks")
+    fun createTask(@Path("taskList") taskListId: String, @Body task: Task): Single<Task>
 
     /**
      * Get the tasks associated with a given task list
@@ -62,15 +83,6 @@ interface TasksApi {
      */
     @PUT("lists/{taskList}/tasks/{task}/")
     fun updateTask(@Path("taskList") taskListId: String, @Path("task") taskId: String, @Body task: Task): Single<Task>
-
-    /**
-     * Creates a new task in the specified task list
-     *
-     * @param taskListId task list identifier
-     * @param taskFields the new task
-     */
-    @POST("lists/{taskList}/tasks")
-    fun insertTask(@Path("taskList") taskListId: String, @Body taskFields: TaskFields): Call<Task>
 
     /**
      * Delete a task from the Google servers and then remove the local copy as well.

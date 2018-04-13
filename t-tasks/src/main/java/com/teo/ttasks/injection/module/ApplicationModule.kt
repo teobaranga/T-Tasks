@@ -7,7 +7,6 @@ import com.birbit.android.jobqueue.scheduling.FrameworkJobSchedulerService
 import com.teo.ttasks.TTasksApp
 import com.teo.ttasks.data.local.PrefHelper
 import com.teo.ttasks.data.local.WidgetHelper
-import com.teo.ttasks.jobs.CreateTaskJob
 import com.teo.ttasks.jobs.DeleteTaskJob
 import com.teo.ttasks.receivers.NetworkInfoReceiver
 import com.teo.ttasks.services.MyJobService
@@ -58,9 +57,7 @@ class ApplicationModule {
     internal fun provideJobManager(application: TTasksApp): JobManager {
         val builder = Configuration.Builder(application)
                 .injector { job ->
-                    if (job is CreateTaskJob)
-                        application.applicationComponent().inject(job)
-                    else if (job is DeleteTaskJob)
+                    if (job is DeleteTaskJob)
                         application.applicationComponent().inject(job)
                 }
                 .minConsumerCount(1)//always keep at least one consumer alive

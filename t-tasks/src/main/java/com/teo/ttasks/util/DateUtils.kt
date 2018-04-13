@@ -7,6 +7,10 @@ import java.util.*
 
 class DateUtils private constructor() : android.text.format.DateUtils() {
     companion object {
+        /** The date pattern used to parse and format dates for Google Tasks */
+        const val DATE_PATTERN: String = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
+
+        val utcDateFormat = SimpleDateFormat(DateUtils.DATE_PATTERN, Locale.getDefault())
 
         private const val dateFlags = FORMAT_SHOW_DATE or FORMAT_ABBREV_MONTH or FORMAT_SHOW_WEEKDAY or FORMAT_ABBREV_WEEKDAY or FORMAT_SHOW_YEAR
         private const val timeFlags = FORMAT_SHOW_TIME
@@ -29,6 +33,7 @@ class DateUtils private constructor() : android.text.format.DateUtils() {
             sdfMonth.timeZone = utc
             sdfDayName.timeZone = utc
             sdfDayNumber.timeZone = utc
+            utcDateFormat.timeZone = utc
         }
 
         fun formatDate(context: Context, date: Date): String {

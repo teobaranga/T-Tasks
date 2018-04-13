@@ -298,9 +298,13 @@ open class MainActivity : BaseActivity(), MainView {
             // Restore state
             updateActionBar(supportActionBar!!, drawer.currentSelection)
         }
+    }
+
+    override fun onStart() {
+        super.onStart()
 
         // TODO refresh the user picture only if necessary
-        currentUser.rxReload()
+        firebaseAuth.currentUser!!.rxReload()
                 .subscribeOn(Schedulers.io())
                 .andThen(firebaseAuth.rxGetCurrentUser())
                 .observeOn(AndroidSchedulers.mainThread())

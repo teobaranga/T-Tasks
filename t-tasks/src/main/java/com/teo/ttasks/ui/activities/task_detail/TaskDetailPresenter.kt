@@ -1,31 +1,25 @@
 package com.teo.ttasks.ui.activities.task_detail
 
-import com.birbit.android.jobqueue.Job
 import com.birbit.android.jobqueue.JobManager
-import com.birbit.android.jobqueue.callback.JobManagerCallback
-import com.birbit.android.jobqueue.callback.JobManagerCallbackAdapter
 import com.teo.ttasks.data.local.WidgetHelper
 import com.teo.ttasks.data.model.TTask
 import com.teo.ttasks.data.remote.TasksHelper
 import com.teo.ttasks.delete
-import com.teo.ttasks.jobs.CreateTaskJob
 import com.teo.ttasks.jobs.DeleteTaskJob
 import com.teo.ttasks.ui.base.Presenter
 import com.teo.ttasks.util.NotificationHelper
-import io.reactivex.Flowable
-import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.realm.Realm
 import timber.log.Timber
 
-internal class TaskDetailPresenter(private val tasksHelper: TasksHelper, private val widgetHelper: WidgetHelper,
-                                   private val notificationHelper: NotificationHelper, private val jobManager: JobManager) : Presenter<TaskDetailView>() {
+internal class TaskDetailPresenter(private val tasksHelper: TasksHelper,
+                                   private val widgetHelper: WidgetHelper,
+                                   private val notificationHelper: NotificationHelper,
+                                   private val jobManager: JobManager) : Presenter<TaskDetailView>() {
 
     private lateinit var realm: Realm
 
     private lateinit var taskId: String
-
-    private var jobManagerCallback: JobManagerCallback? = null
 
     private var taskSubscription: Disposable? = null
 
@@ -98,8 +92,10 @@ internal class TaskDetailPresenter(private val tasksHelper: TasksHelper, private
         tTask?.let {
             if (it.isLocalOnly) {
                 // Delete the task from the local database
-                realm.executeTransaction { _ -> it.delete() }
-
+                realm.executeTransaction { _ ->
+                    // Make sure we're deleting a managed task
+                    realm.copyToRealmOrUpdate(it).delete()
+                }
             } else {
                 // Mark it as deleted so it doesn't show up in the list
                 realm.executeTransaction { _ -> it.deleted = true }
@@ -122,26 +118,10 @@ internal class TaskDetailPresenter(private val tasksHelper: TasksHelper, private
     override fun bindView(view: TaskDetailView) {
         super.bindView(view)
         realm = Realm.getDefaultInstance()
-        jobManagerCallback = object : JobManagerCallbackAdapter() {
-            override fun onJobRun(job: Job, resultCode: Int) {
-                Flowable.defer {
-                    if (job is CreateTaskJob) {
-                        if (job.localTaskId == taskId && resultCode == JobManagerCallback.RESULT_SUCCEED) {
-                            // Update the task
-                            getTask(job.onlineTaskId)
-                        }
-                    }
-                    Flowable.empty<Any>()
-                }.subscribeOn(AndroidSchedulers.mainThread()).subscribe()
-            }
-        }
-        jobManager.addCallback(jobManagerCallback)
     }
 
     override fun unbindView(view: TaskDetailView) {
         super.unbindView(view)
         realm.close()
-        jobManager.removeCallback(jobManagerCallback)
-        jobManagerCallback = null
     }
 }

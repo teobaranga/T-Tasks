@@ -1,10 +1,6 @@
 package com.teo.ttasks.ui.activities.edit_task
 
 import android.support.v4.util.Pair
-import com.birbit.android.jobqueue.Job
-import com.birbit.android.jobqueue.JobManager
-import com.birbit.android.jobqueue.callback.JobManagerCallback
-import com.birbit.android.jobqueue.callback.JobManagerCallbackAdapter
 import com.google.firebase.database.FirebaseDatabase
 import com.teo.ttasks.data.local.TaskFields
 import com.teo.ttasks.data.local.WidgetHelper
@@ -14,10 +10,10 @@ import com.teo.ttasks.data.model.Task
 import com.teo.ttasks.data.remote.TasksHelper
 import com.teo.ttasks.jobs.CreateTaskJob
 import com.teo.ttasks.ui.base.Presenter
+import com.teo.ttasks.util.DateUtils.Companion.utcDateFormat
 import com.teo.ttasks.util.FirebaseUtil.getTasksDatabase
 import com.teo.ttasks.util.FirebaseUtil.saveReminder
 import com.teo.ttasks.util.NotificationHelper
-import io.reactivex.Flowable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.realm.Realm
@@ -25,46 +21,39 @@ import io.realm.RealmResults
 import timber.log.Timber
 import java.util.*
 
-internal class EditTaskPresenter(private val tasksHelper: TasksHelper, private val widgetHelper: WidgetHelper,
-                                 private val notificationHelper: NotificationHelper, private val jobManager: JobManager) : Presenter<EditTaskView>() {
+internal class EditTaskPresenter(private val tasksHelper: TasksHelper,
+                                 private val widgetHelper: WidgetHelper,
+                                 private val notificationHelper: NotificationHelper) : Presenter<EditTaskView>() {
 
     private lateinit var realm: Realm
 
-    private var jobManagerCallback: JobManagerCallback? = null
-
-    /** The due date in UTC  */
+    /** The due date */
     internal var dueDate: Date? = null
         set(value) {
             /**
              * Set the due date. If one isn't present, assign the new one. Otherwise, modify the old one.
-             * The due date needs to be in UTC because that's how Google Tasks expects it.
              */
             if (value == null) {
-                field = null
                 reminder = null
             } else {
-                // Extract the year, month and day
-                val localCal = Calendar.getInstance()
-                localCal.time = value
-                val year = localCal.get(Calendar.YEAR)
-                val month = localCal.get(Calendar.MONTH)
-                val day = localCal.get(Calendar.DAY_OF_MONTH)
-
-                // Create a new date with the info above, in UTC
-                val cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
-                cal.set(year, month, day, 0, 0, 0)
+                // Remove the time information
+                val cal = Calendar.getInstance()
+                cal.time = value
+                cal.set(Calendar.HOUR, 0)
+                cal.set(Calendar.HOUR_OF_DAY, 0)
+                cal.set(Calendar.MINUTE, 0)
+                cal.set(Calendar.SECOND, 0)
                 cal.set(Calendar.MILLISECOND, 0)
 
                 field = cal.time
 
                 // Update the reminder
                 if (reminder != null) {
-                    localCal.time = reminder
-                    localCal.set(year, month, day)
-                    reminder = localCal.time
+                    reminder = value
                 }
             }
-            editTaskFields.dueDate = dueDate
+            editTaskFields.dueDate = utcDateFormat.format(value)
+            Timber.v("Due date: %s", editTaskFields.dueDate)
         }
 
     private var reminder: Date? = null
@@ -197,8 +186,8 @@ internal class EditTaskPresenter(private val tasksHelper: TasksHelper, private v
         }
         // Create the TTask offline
         val taskId = UUID.randomUUID().toString()
-        val task = Task(taskId, editTaskFields)
-        val tTask = TTask(task, taskListId)
+        val tTask = TTask(Task(taskId), taskListId)
+        tTask.update(editTaskFields)
         tTask.synced = false
         tTask.reminder = reminder
 
@@ -215,7 +204,7 @@ internal class EditTaskPresenter(private val tasksHelper: TasksHelper, private v
         widgetHelper.updateWidgets(taskListId)
 
         // Schedule a job that saves this task on the server
-        jobManager.addJobInBackground(CreateTaskJob(taskId, taskListId, editTaskFields))
+        CreateTaskJob.schedule(taskId, taskListId, editTaskFields)
 
         view()?.onTaskSaved()
     }
@@ -224,11 +213,9 @@ internal class EditTaskPresenter(private val tasksHelper: TasksHelper, private v
      * Modify the specified task using the fields changed by the user. The task is
      * first updated locally and then, if an active network connection is available,
      * it is updated on the server.
-
+     *
      * @param taskListId task list identifier
-     * *
      * @param taskId     task identifier
-     * *
      * @param isOnline   `true` if there is an active network connection
      */
     internal fun updateTask(taskListId: String, taskId: String, isOnline: Boolean) {
@@ -281,7 +268,7 @@ internal class EditTaskPresenter(private val tasksHelper: TasksHelper, private v
 
     /**
      * Check if the due date is set.
-
+     *
      * @return `true` if the due date is set, `false` otherwise
      */
     internal fun hasDueDate(): Boolean = dueDate != null
@@ -298,26 +285,22 @@ internal class EditTaskPresenter(private val tasksHelper: TasksHelper, private v
     override fun bindView(view: EditTaskView) {
         super.bindView(view)
         realm = Realm.getDefaultInstance()
-        jobManagerCallback = object : JobManagerCallbackAdapter() {
-            override fun onJobRun(job: Job, resultCode: Int) {
-                // Execute on the main thread because this callback doesn't do it
-                Flowable.defer {
-                    if (job is CreateTaskJob) {
-                        if (resultCode != JobManagerCallback.RESULT_SUCCEED) {
-                            view()?.onTaskSaveError()
-                        }
-                    }
-                    Flowable.empty<Any>()
-                }.subscribeOn(AndroidSchedulers.mainThread()).subscribe()
-            }
-        }
-        jobManager.addCallback(jobManagerCallback)
     }
 
     override fun unbindView(view: EditTaskView) {
         super.unbindView(view)
         realm.close()
-        jobManager.removeCallback(jobManagerCallback)
-        jobManagerCallback = null
+    }
+
+    /**
+     * Update the task with the specified fields.
+     * Requires to executed in a Realm transaction.
+     *
+     * @param taskFields fields to be updated
+     */
+    fun TTask.update(taskFields: TaskFields) {
+        task.title = taskFields.title
+        task.notes = taskFields.notes
+        task.due = taskFields.dueDate?.let { utcDateFormat.parse(it) }
     }
 }

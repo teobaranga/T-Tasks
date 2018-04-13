@@ -8,6 +8,7 @@ import com.teo.ttasks.api.TasksApi
 import com.teo.ttasks.data.local.PrefHelper
 import com.teo.ttasks.data.remote.TasksHelper
 import com.teo.ttasks.data.remote.TokenHelper
+import com.teo.ttasks.util.DateUtils.Companion.utcDateFormat
 import dagger.Module
 import dagger.Provides
 import io.reactivex.schedulers.Schedulers
@@ -22,9 +23,7 @@ import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.gson.GsonConverterFactory
 import timber.log.Timber
 import java.lang.reflect.Type
-import java.text.DateFormat
 import java.text.ParseException
-import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
@@ -115,20 +114,13 @@ class TasksApiModule {
 
     private inner class GsonUTCDateAdapter internal constructor() : JsonSerializer<Date>, JsonDeserializer<Date> {
 
-        private val dateFormat: DateFormat
-
-        init {
-            dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
-            dateFormat.timeZone = TimeZone.getTimeZone("UTC")
-        }
-
         @Synchronized override fun serialize(date: Date, type: Type, jsonSerializationContext: JsonSerializationContext): JsonElement {
-            return JsonPrimitive(dateFormat.format(date))
+            return JsonPrimitive(utcDateFormat.format(date))
         }
 
         @Synchronized override fun deserialize(jsonElement: JsonElement, type: Type, jsonDeserializationContext: JsonDeserializationContext): Date {
             try {
-                return dateFormat.parse(jsonElement.asString)
+                return utcDateFormat.parse(jsonElement.asString)
             } catch (e: ParseException) {
                 throw JsonParseException(e)
             }

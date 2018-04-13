@@ -16,9 +16,9 @@ ext.ver = ver
 
 def deps = [:]
 
-deps.aboutlibraries = "com.mikepenz:aboutlibraries:6.0.6@aar"
+deps.aboutlibraries = "com.mikepenz:aboutlibraries:6.0.8@aar"
 deps.crashlytics = "com.crashlytics.sdk.android:crashlytics:2.9.1@aar"
-deps.materialdrawer = "com.mikepenz:materialdrawer:6.0.6@aar"
+deps.materialdrawer = "com.mikepenz:materialdrawer:6.0.7@aar"
 deps.timber = "com.jakewharton.timber:timber:4.7.0"
 
 def dagger = [:]
