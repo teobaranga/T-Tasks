@@ -3,8 +3,6 @@ package com.teo.ttasks.injection.module
 import com.teo.ttasks.injection.module.activity.*
 import com.teo.ttasks.injection.module.fragment.MainFragmentsModule
 import com.teo.ttasks.receivers.TaskNotificationReceiver
-import com.teo.ttasks.services.MyGcmJobService
-import com.teo.ttasks.services.MyJobService
 import com.teo.ttasks.ui.activities.edit_task.EditTaskActivity
 import com.teo.ttasks.ui.activities.main.MainActivity
 import com.teo.ttasks.ui.activities.sign_in.SignInActivity
@@ -46,12 +44,6 @@ internal abstract class InjectorsModule {
 
     @ContributesAndroidInjector
     internal abstract fun contributeTasksWidgetProviderInjector(): TasksWidgetProvider
-
-    @ContributesAndroidInjector
-    internal abstract fun contributeMyJobServiceInjector(): MyJobService
-
-    @ContributesAndroidInjector(modules = [TasksWidgetConfigureActivityModule::class])
-    internal abstract fun contributeMyGcmJobServiceInjector(): MyGcmJobService
 
     /********************************
      * BroadcastReceivers

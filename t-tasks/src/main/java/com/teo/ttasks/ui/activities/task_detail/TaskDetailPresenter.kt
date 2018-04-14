@@ -1,6 +1,5 @@
 package com.teo.ttasks.ui.activities.task_detail
 
-import com.birbit.android.jobqueue.JobManager
 import com.teo.ttasks.data.local.WidgetHelper
 import com.teo.ttasks.data.model.TTask
 import com.teo.ttasks.data.remote.TasksHelper
@@ -14,8 +13,7 @@ import timber.log.Timber
 
 internal class TaskDetailPresenter(private val tasksHelper: TasksHelper,
                                    private val widgetHelper: WidgetHelper,
-                                   private val notificationHelper: NotificationHelper,
-                                   private val jobManager: JobManager) : Presenter<TaskDetailView>() {
+                                   private val notificationHelper: NotificationHelper) : Presenter<TaskDetailView>() {
 
     private lateinit var realm: Realm
 
@@ -98,9 +96,12 @@ internal class TaskDetailPresenter(private val tasksHelper: TasksHelper,
                 }
             } else {
                 // Mark it as deleted so it doesn't show up in the list
-                realm.executeTransaction { _ -> it.deleted = true }
+                realm.executeTransaction { _ ->
+                    // Make sure we're marking a managed task as deleted
+                    realm.copyToRealmOrUpdate(it).deleted = true
+                }
 
-                jobManager.addJobInBackground(DeleteTaskJob(it.id, it.taskListId))
+                DeleteTaskJob.schedule(it.id, it.taskListId)
             }
 
             // Trigger a widget update only if the task is marked as active

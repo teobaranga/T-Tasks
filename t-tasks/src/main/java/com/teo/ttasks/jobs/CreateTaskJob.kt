@@ -25,9 +25,9 @@ import javax.inject.Inject
 class CreateTaskJob : Job() {
 
     companion object {
-        const val TAG: String = "CREATE"
-        const val EXTRA_LOCAL_ID: String = "localId"
-        const val EXTRA_TASK_LIST_ID: String = "taskListId"
+        const val TAG = "CREATE_TASK"
+        const val EXTRA_LOCAL_ID = "localId"
+        const val EXTRA_TASK_LIST_ID = "taskListId"
 
         fun schedule(localTaskId: String, taskListId: String, taskFields: TaskFields? = null) {
             JobManager.instance().getAllJobRequestsForTag(TAG)

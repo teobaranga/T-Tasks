@@ -14,6 +14,7 @@ import com.teo.ttasks.data.model.Task.Companion.STATUS_COMPLETED
 import com.teo.ttasks.data.model.Task.Companion.STATUS_NEEDS_ACTION
 import com.teo.ttasks.delete
 import com.teo.ttasks.jobs.CreateTaskJob
+import com.teo.ttasks.jobs.DeleteTaskJob
 import com.teo.ttasks.util.DateUtils.Companion.utcDateFormat
 import com.teo.ttasks.util.FirebaseUtil.getTasksDatabase
 import com.teo.ttasks.util.FirebaseUtil.saveReminder
@@ -226,7 +227,7 @@ class TasksHelper(private val tasksApi: TasksApi, private val prefHelper: PrefHe
                                 if (it.isLocalOnly) {
                                     it.delete()
                                 } else {
-                                    // TODO schedule a deletion job
+                                    DeleteTaskJob.schedule(it.id, taskListId)
                                 }
                                 return@filter false
                             }

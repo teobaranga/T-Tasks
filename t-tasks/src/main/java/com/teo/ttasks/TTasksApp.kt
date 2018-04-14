@@ -22,7 +22,6 @@ import io.realm.RealmConfiguration
 import timber.log.Timber
 import javax.inject.Inject
 
-// TODO: re-schedule the CreateTask job until necessary
 class TTasksApp : DaggerApplication() {
 
     @Inject internal lateinit var prefHelper: PrefHelper

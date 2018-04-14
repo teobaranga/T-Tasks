@@ -85,19 +85,6 @@
             android:name=".widget.TasksWidgetService"
             android:permission="android.permission.BIND_REMOTEVIEWS" />
 
-        <service
-            android:name=".services.MyJobService"
-            android:permission="android.permission.BIND_JOB_SERVICE" />
-
-        <service
-            android:name=".services.MyGcmJobService"
-            android:exported="true"
-            android:permission="com.google.android.gms.permission.BIND_NETWORK_TASK_SERVICE">
-            <intent-filter>
-                <action android:name="com.google.android.gms.gcm.ACTION_TASK_READY" />
-            </intent-filter>
-        </service>
-
         <meta-data
             android:name="io.fabric.ApiKey"
             android:value="49881be4a0f3b48a47ff8a046e4e3c45d0de363d" />

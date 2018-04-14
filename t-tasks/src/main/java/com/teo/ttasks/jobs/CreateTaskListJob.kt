@@ -1,25 +1,10 @@
 package com.teo.ttasks.jobs
 
-import com.birbit.android.jobqueue.Job
-import com.birbit.android.jobqueue.Params
-import com.birbit.android.jobqueue.RetryConstraint
+import com.evernote.android.job.Job
 
-class CreateTaskListJob(params: Params) : Job(params) {
+class CreateTaskListJob : Job() {
 
-    override fun onAdded() {
-
-    }
-
-    @Throws(Throwable::class)
-    override fun onRun() {
-
-    }
-
-    override fun onCancel(cancelReason: Int, throwable: Throwable?) {
-
-    }
-
-    override fun shouldReRunOnThrowable(throwable: Throwable, runCount: Int, maxRunCount: Int): RetryConstraint? {
-        return null
+    override fun onRunJob(params: Params): Result {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 }
