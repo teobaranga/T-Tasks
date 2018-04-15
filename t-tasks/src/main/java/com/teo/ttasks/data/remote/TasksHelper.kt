@@ -9,10 +9,12 @@ import com.teo.ttasks.data.local.PrefHelper
 import com.teo.ttasks.data.local.TaskFields
 import com.teo.ttasks.data.local.TaskFields.Companion.taskFields
 import com.teo.ttasks.data.local.TaskListFields
-import com.teo.ttasks.data.model.*
+import com.teo.ttasks.data.model.TTaskList
+import com.teo.ttasks.data.model.TTaskListFields
+import com.teo.ttasks.data.model.Task
 import com.teo.ttasks.data.model.Task.Companion.STATUS_COMPLETED
 import com.teo.ttasks.data.model.Task.Companion.STATUS_NEEDS_ACTION
-import com.teo.ttasks.delete
+import com.teo.ttasks.data.model.TaskList
 import com.teo.ttasks.jobs.CreateTaskJob
 import com.teo.ttasks.jobs.DeleteTaskJob
 import com.teo.ttasks.util.DateUtils.Companion.utcDateFormat
@@ -161,7 +163,7 @@ class TasksHelper(private val tasksApi: TasksApi, private val prefHelper: PrefHe
      * @param taskListId the ID of the task list
      * @param realm      an instance of Realm
      */
-    fun getTasks(taskListId: String, realm: Realm): Flowable<RealmResults<TTask>> =
+    fun getTasks(taskListId: String, realm: Realm): Flowable<RealmResults<Task>> =
             queryTasks(taskListId, realm)
                     .findAllAsync()
                     .asFlowable()
@@ -173,41 +175,41 @@ class TasksHelper(private val tasksApi: TasksApi, private val prefHelper: PrefHe
      * @param taskListId task list identifier
      * @return a Flowable of a list of un-managed [Task]s
      */
-    fun getUnManagedTasks(taskListId: String): Flowable<TTask> = Flowable.defer {
-        lateinit var tasks: List<TTask>
+    fun getUnManagedTasks(taskListId: String): Flowable<Task> = Flowable.defer {
+        lateinit var tasks: List<Task>
         Realm.getDefaultInstance().use {
             tasks = it.copyFromRealm(queryTasks(taskListId, it).findAll())
         }
         if (tasks.isEmpty()) Flowable.empty() else Flowable.fromIterable(tasks)
     }
 
-    fun getTaskAsSingle(taskId: String, realm: Realm): Single<TTask> =
+    fun getTaskAsSingle(taskId: String, realm: Realm): Single<Task> =
             Single.defer {
                 val task = getTask(taskId, realm)
                 if (task == null) {
                     Single.error(NullPointerException("No task found with ID $taskId"))
                 } else {
-                    task.asFlowable<TTask>()
+                    task.asFlowable<Task>()
                             .filter { it.isValid && it.isLoaded }
                             .firstOrError()
                 }
             }
 
     /**
-     * Get the first [TTask] with the provided ID or null if the task is not found
+     * Get the first [Task] with the provided ID or null if the task is not found
      */
-    fun getTask(taskId: String, realm: Realm): TTask? =
-            realm.where(TTask::class.java).equalTo(TTaskFields.ID, taskId).findFirst()
+    fun getTask(taskId: String, realm: Realm): Task? =
+            realm.where(Task::class.java).equalTo(com.teo.ttasks.data.model.TaskFields.ID, taskId).findFirst()
 
     /**
      * Update the given task from the provided task list to the new value
      *
      * @param taskListId task list ID
-     * @param tTask      local task containing the new values
+     * @param task      local task containing the new values
      */
-    private fun updateTask(taskListId: String, tTask: TTask): Single<TTask> {
-        Timber.d("updating task %s, %s, %s", tTask.id, tTask.synced, tTask.deleted)
-        return tasksApi.updateTask(taskListId, tTask.id, tTask.task).map { tTask }
+    private fun updateTask(taskListId: String, task: Task): Single<Task> {
+        Timber.d("updating task %s, %s, %s", task.id, task.synced, task.deleted)
+        return tasksApi.updateTask(taskListId, task.id, task).map { task }
     }
 
     /**
@@ -217,7 +219,7 @@ class TasksHelper(private val tasksApi: TasksApi, private val prefHelper: PrefHe
      * @param taskListId task list identifier
      * @return a Flowable with every successfully synced (updated) task
      */
-    fun syncTasks(taskListId: String): Flowable<TTask> =
+    fun syncTasks(taskListId: String): Flowable<Task> =
             getUnManagedTasks(taskListId)
                     .filter {
                         if (!it.synced) {
@@ -225,7 +227,7 @@ class TasksHelper(private val tasksApi: TasksApi, private val prefHelper: PrefHe
                             if (it.deleted) {
                                 // Delete the un-synced local tasks
                                 if (it.isLocalOnly) {
-                                    it.delete()
+                                    it.deleteFromRealm()
                                 } else {
                                     DeleteTaskJob.schedule(it.id, taskListId)
                                 }
@@ -273,18 +275,20 @@ class TasksHelper(private val tasksApi: TasksApi, private val prefHelper: PrefHe
                             tasksResponse.id = taskListId
 
                             realm.executeTransaction {
+                                // Insert the new tasks
+                                // FIXME: what happens with non-local updates?
                                 it.insertOrUpdate(tasksResponse)
-                                // Create a new TTask for each Task, if the task list isn't empty
                                 val tasksDatabase = FirebaseDatabase.getInstance().getTasksDatabase()
                                 tasksResponse.items?.forEach { task ->
-                                    val tTask = getTask(task.id, it)
-                                    if (tTask == null) {
-                                        it.insertOrUpdate(TTask(task, taskListId))
-                                    } else tTask.reminder?.let {
+                                    val localTask = getTask(task.id, it)
+                                    if (localTask == null) {
+                                        // Insert the new task into the local storage
+                                        task.taskListId = taskListId
+                                        it.insertOrUpdate(task)
+                                    } else localTask.reminder?.let {
                                         Timber.d("saving reminder")
-                                        tasksDatabase.saveReminder(tTask.id, it.time)
+                                        tasksDatabase.saveReminder(localTask.id, it.time)
                                     }
-
                                 }
                             }
                         } else {
@@ -308,33 +312,33 @@ class TasksHelper(private val tasksApi: TasksApi, private val prefHelper: PrefHe
     /**
      * Mark the task as completed if it's not and vice-versa.
      *
-     * @param tTask the task whose status will change
+     * @param task the task whose status will change
      * @param realm a Realm instance
      * @return a Flowable containing the updated task
      */
-    fun updateCompletionStatus(tTask: TTask, realm: Realm): Single<TTask> {
+    fun updateCompletionStatus(task: Task, realm: Realm): Single<Task> {
         // Update the status of the local task
         realm.executeTransaction {
             // Task is not synced at this point
-            tTask.synced = false
-            if (!tTask.isCompleted) {
-                tTask.completed = Date()
-                tTask.status = STATUS_COMPLETED
+            task.synced = false
+            if (!task.isCompleted) {
+                task.completed = Date()
+                task.status = STATUS_COMPLETED
             } else {
-                tTask.completed = null
-                tTask.status = STATUS_NEEDS_ACTION
+                task.completed = null
+                task.status = STATUS_NEEDS_ACTION
             }
         }
 
         val taskFields = taskFields {
-            completed = utcDateFormat.format(tTask.completed)
+            completed = utcDateFormat.format(task.completed)
         }
-        return updateTask(tTask.taskListId, tTask.id, taskFields)
-                .map { tTask }
+        return updateTask(task.taskListId, task.id, taskFields)
+                .map { task }
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnSuccess {
                     // Update successful, update sync status
-                    realm.executeTransaction { tTask.synced = true }
+                    realm.executeTransaction { task.synced = true }
                 }
     }
 
@@ -345,7 +349,7 @@ class TasksHelper(private val tasksApi: TasksApi, private val prefHelper: PrefHe
      * @param realm  a Realm instance
      * @return a Flowable containing the updated task
      */
-    fun updateCompletionStatus(taskId: String, realm: Realm): Single<TTask> =
+    fun updateCompletionStatus(taskId: String, realm: Realm): Single<Task> =
             Single.defer {
                 val task = getTask(taskId, realm)
                 if (task == null) {
@@ -380,9 +384,9 @@ class TasksHelper(private val tasksApi: TasksApi, private val prefHelper: PrefHe
      * @param realm      Realm instance
      * @return a RealmResults containing objects. If no objects match the condition, a list with zero objects is returned.
      */
-    private fun queryTasks(taskListId: String, realm: Realm): RealmQuery<TTask> {
-        return realm.where(TTask::class.java)
-                .equalTo(TTaskFields.TASK_LIST_ID, taskListId)
-                .equalTo(TTaskFields.DELETED, false)
+    private fun queryTasks(taskListId: String, realm: Realm): RealmQuery<Task> {
+        return realm.where(Task::class.java)
+                .equalTo(com.teo.ttasks.data.model.TaskFields.TASK_LIST_ID, taskListId)
+                .equalTo(com.teo.ttasks.data.model.TaskFields.DELETED, false)
     }
 }

@@ -7,7 +7,7 @@ import android.view.View
 import android.view.View.GONE
 import android.view.View.VISIBLE
 import com.teo.ttasks.R
-import com.teo.ttasks.data.model.TTask
+import com.teo.ttasks.data.model.Task
 import com.teo.ttasks.databinding.ItemTaskBinding
 import com.teo.ttasks.util.DateUtils
 import com.teo.ttasks.util.DateUtils.Companion.sdfDay
@@ -20,21 +20,21 @@ import eu.davidea.viewholders.FlexibleViewHolder
 import java.util.*
 
 
-class TaskItem(tTask: TTask,
+class TaskItem(task: Task,
                private val taskType: TaskType)
     : AbstractFlexibleItem<TaskItem.ViewHolder>(), Comparable<TaskItem> {
 
-    val taskId: String = tTask.id
+    val taskId: String = task.id
 
-    val title: String = tTask.title
+    val title: String = task.title!!
 
-    val notes: String? = tTask.notes
+    val notes: String? = task.notes
 
-    val dueDate: Date? = tTask.due
+    val dueDate: Date? = task.due
 
-    val completed: Date? = tTask.completed
+    val completed: Date? = task.completed
 
-    val reminder: Date? = tTask.reminder
+    val reminder: Date? = task.reminder
 
     private lateinit var viewHolder: ViewHolder
 

@@ -5,7 +5,7 @@ import com.androidhuman.rxfirebase2.database.model.DataValue
 import com.google.android.gms.auth.UserRecoverableAuthException
 import com.google.firebase.database.FirebaseDatabase
 import com.teo.ttasks.data.local.PrefHelper
-import com.teo.ttasks.data.model.TTask
+import com.teo.ttasks.data.model.Task
 import com.teo.ttasks.data.remote.TasksHelper
 import com.teo.ttasks.ui.base.Presenter
 import com.teo.ttasks.util.FirebaseUtil.getTasksDatabase
@@ -30,7 +30,7 @@ internal class TasksPresenter(private val tasksHelper: TasksHelper,
 
     private var sortingMode = prefHelper.sortMode
 
-    private val reminderProcessor = PublishProcessor.create<TTask>()
+    private val reminderProcessor = PublishProcessor.create<Task>()
 
     /**
      * Map of task IDs to their respective reminder disposable.
@@ -66,13 +66,13 @@ internal class TasksPresenter(private val tasksHelper: TasksHelper,
         }
 
         tasksSubscription = tasksHelper.getTasks(taskListId, realm)
-                .map { realm.copyFromRealm<TTask>(it) }
+                .map { realm.copyFromRealm<Task>(it) }
                 .observeOn(Schedulers.io())
-                .doOnNext { tTasks ->
-                    val tTasksMap = tTasks.associateBy({ it.id }, { it })
+                .doOnNext { tasks ->
+                    val taskMap = tasks.associateBy({ it.id }, { it })
 
                     // Dispose reminders for deleted tasks
-                    val deletedTaskIds = reminderMap.keys - tTasksMap.keys
+                    val deletedTaskIds = reminderMap.keys - taskMap.keys
                     deletedTaskIds.forEach { id ->
                         // Remove and dispose
                         reminderDisposables.remove(reminderMap.getValue(id))
@@ -81,9 +81,9 @@ internal class TasksPresenter(private val tasksHelper: TasksHelper,
                     }
 
                     // Add reminder listeners for new tasks
-                    val newTaskIds = tTasksMap.keys - reminderMap.keys
+                    val newTaskIds = taskMap.keys - reminderMap.keys
                     newTaskIds.forEach { id ->
-                        val reminderDisposable = tasks.reminder(id)!!.dataChangesOf<Long>()
+                        val reminderDisposable = this.tasks.reminder(id)!!.dataChangesOf<Long>()
                                 .observeOn(AndroidSchedulers.mainThread())
                                 .subscribeOn(Schedulers.io())
                                 .subscribe(
@@ -94,10 +94,10 @@ internal class TasksPresenter(private val tasksHelper: TasksHelper,
                                                 val dateInMillis = t.value()
 //                                                Timber.v("Reminder for $id: $dateInMillis")
                                                 val reminder = Date(dateInMillis)
-                                                val tTask = tTasksMap[id]!!
-                                                if (tTask.reminder != reminder) {
-                                                    tTask.reminder = reminder
-                                                    reminderProcessor.onNext(tTask)
+                                                val task = taskMap[id]!!
+                                                if (task.reminder != reminder) {
+                                                    task.reminder = reminder
+                                                    reminderProcessor.onNext(task)
                                                 }
                                             }
                                         }

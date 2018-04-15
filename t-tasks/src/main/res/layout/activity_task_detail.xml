@@ -9,7 +9,7 @@
 
         <variable
             name="task"
-            type="com.teo.ttasks.data.model.TTask" />
+            type="com.teo.ttasks.data.model.Task" />
 
         <variable
             name="taskList"

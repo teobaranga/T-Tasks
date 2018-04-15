@@ -19,8 +19,8 @@ import android.view.animation.OvershootInterpolator
 import android.widget.Toast
 import com.teo.ttasks.BuildConfig
 import com.teo.ttasks.R
-import com.teo.ttasks.data.model.TTask
 import com.teo.ttasks.data.model.TTaskList
+import com.teo.ttasks.data.model.Task
 import com.teo.ttasks.databinding.ActivityTaskDetailBinding
 import com.teo.ttasks.ui.activities.edit_task.EditTaskActivity
 import com.teo.ttasks.util.AnimUtils
@@ -143,11 +143,11 @@ class TaskDetailActivity : DaggerAppCompatActivity(), TaskDetailView {
         taskDetailPresenter.getTaskList(taskListId)
     }
 
-    override fun onTaskLoaded(task: TTask) {
+    override fun onTaskLoaded(task: Task) {
         taskDetailBinding.task = task
 
         // Create the share Intent for this task
-        var extraText: String = task.title
+        var extraText: String = task.title!!
         task.due?.let { extraText += String.format(getString(R.string.extra_due_date), DateUtils.formatDate(this, it)) }
         if (task.hasNotes) extraText += String.format(getString(R.string.extra_notes), task.notes)
 
@@ -170,7 +170,7 @@ class TaskDetailActivity : DaggerAppCompatActivity(), TaskDetailView {
         // TODO: 2016-07-24 implement
     }
 
-    override fun onTaskUpdated(task: TTask) = onBackPressed()
+    override fun onTaskUpdated(task: Task) = onBackPressed()
 
     override fun onTaskDeleted() {
         Toast.makeText(this, R.string.task_deleted, Toast.LENGTH_SHORT).show()

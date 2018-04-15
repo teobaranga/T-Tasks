@@ -8,7 +8,6 @@ import com.google.firebase.database.FirebaseDatabase
 import com.teo.ttasks.TTasksApp
 import com.teo.ttasks.api.TasksApi
 import com.teo.ttasks.data.remote.TasksHelper
-import com.teo.ttasks.delete
 import com.teo.ttasks.util.FirebaseUtil.getTasksDatabase
 import com.teo.ttasks.util.FirebaseUtil.saveReminder
 import io.realm.Realm
@@ -65,16 +64,16 @@ class DeleteTaskJob : Job() {
         tasksDatabase.saveReminder(taskId, null)
 
         val realm = Realm.getDefaultInstance()
-        val tTask = tasksHelper.getTask(taskId, realm)
+        val task = tasksHelper.getTask(taskId, realm)
 
         // Task not found, nothing to do here
-        if (tTask == null) {
+        if (task == null) {
             realm.close()
             return Job.Result.SUCCESS
         }
 
         // Delete the Google task
-        if (!tTask.isLocalOnly) {
+        if (!task.isLocalOnly) {
             val result = tasksApi.deleteTask(taskListId, taskId).blockingGet()
             if (result != null) {
                 Timber.e(result, "Error while deleting remote task")
@@ -84,7 +83,7 @@ class DeleteTaskJob : Job() {
         }
 
         // Delete the Realm task
-        realm.executeTransaction { tTask.delete() }
+        realm.executeTransaction { task.deleteFromRealm() }
         Timber.v("Deleted task %s", taskId)
 
         realm.close()

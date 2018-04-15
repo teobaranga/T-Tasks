@@ -12,12 +12,10 @@ import android.preference.PreferenceManager
 import android.support.v4.app.NotificationCompat
 import android.support.v4.app.TaskStackBuilder
 import android.support.v4.content.res.ResourcesCompat
-
 import com.teo.ttasks.R
-import com.teo.ttasks.data.model.TTask
+import com.teo.ttasks.data.model.Task
 import com.teo.ttasks.receivers.TaskNotificationReceiver
 import com.teo.ttasks.ui.activities.task_detail.TaskDetailActivity
-
 import timber.log.Timber
 
 class NotificationHelper(private val context: Context) {
@@ -31,7 +29,7 @@ class NotificationHelper(private val context: Context) {
      * @param id   notification ID
      */
     @JvmOverloads
-    fun scheduleTaskNotification(task: TTask, id: Int = task.notificationId) {
+    fun scheduleTaskNotification(task: Task, id: Int = task.notificationId) {
         if (!task.isCompleted && task.reminder != null) {
             val notificationId = if (id != 0) id else task.notificationId
 

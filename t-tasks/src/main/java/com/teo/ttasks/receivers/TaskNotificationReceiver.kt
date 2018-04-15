@@ -46,9 +46,9 @@ class TaskNotificationReceiver : DaggerBroadcastReceiver() {
                     tasksHelper.updateCompletionStatus(taskId, realm)
                             .observeOn(AndroidSchedulers.mainThread())
                             .subscribe(
-                                    { tTask ->
+                                    { task ->
                                         // Update successful, update sync status
-                                        realm.executeTransaction { tTask.synced = true }
+                                        realm.executeTransaction { task.synced = true }
                                         Toast.makeText(context, "Task completed", Toast.LENGTH_SHORT).show()
                                         realm.close()
                                         notificationManager.cancel(id)
@@ -66,8 +66,8 @@ class TaskNotificationReceiver : DaggerBroadcastReceiver() {
                     val realm = Realm.getDefaultInstance()
                     tasksHelper.getTaskAsSingle(taskId, realm)
                             .subscribe(
-                                    { tTask ->
-                                        realm.executeTransaction { tTask.notificationDismissed = true }
+                                    { task ->
+                                        realm.executeTransaction { task.notificationDismissed = true }
                                         realm.close()
                                         Timber.v("Dismissed task %s", taskId)
                                     },

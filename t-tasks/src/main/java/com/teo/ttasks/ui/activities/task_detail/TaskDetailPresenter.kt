@@ -1,9 +1,8 @@
 package com.teo.ttasks.ui.activities.task_detail
 
 import com.teo.ttasks.data.local.WidgetHelper
-import com.teo.ttasks.data.model.TTask
+import com.teo.ttasks.data.model.Task
 import com.teo.ttasks.data.remote.TasksHelper
-import com.teo.ttasks.delete
 import com.teo.ttasks.jobs.DeleteTaskJob
 import com.teo.ttasks.ui.base.Presenter
 import com.teo.ttasks.util.NotificationHelper
@@ -22,16 +21,16 @@ internal class TaskDetailPresenter(private val tasksHelper: TasksHelper,
     private var taskSubscription: Disposable? = null
 
     /** Un-managed task */
-    private var tTask: TTask? = null
+    private var task: Task? = null
 
     internal fun getTask(taskId: String) {
         this.taskId = taskId
         taskSubscription?.let { if (!it.isDisposed) it.dispose() }
         taskSubscription = tasksHelper.getTaskAsSingle(taskId, realm)
                 .subscribe(
-                        { tTask ->
-                            this.tTask = realm.copyFromRealm(tTask)
-                            view()?.onTaskLoaded(this.tTask!!)
+                        { task ->
+                            this.task = realm.copyFromRealm(task)
+                            view()?.onTaskLoaded(this.task!!)
                         },
                         {
                             Timber.e(it, "Error while retrieving the task")
@@ -60,10 +59,10 @@ internal class TaskDetailPresenter(private val tasksHelper: TasksHelper,
      * If the task is completed, the completion date is set to the current date.
      */
     internal fun updateCompletionStatus() {
-        tasksHelper.updateCompletionStatus(tTask!!, realm)
+        tasksHelper.updateCompletionStatus(task!!, realm)
                 .subscribe(
-                        { tTask ->
-                            realm.executeTransaction { realm.copyToRealmOrUpdate(tTask) }
+                        { task ->
+                            realm.executeTransaction { realm.copyToRealmOrUpdate(task) }
                         },
                         { throwable ->
                             // Update unsuccessful, keep the task marked as "not synced"
@@ -72,7 +71,7 @@ internal class TaskDetailPresenter(private val tasksHelper: TasksHelper,
                         }
                 )
 
-        tTask?.let {
+        task?.let {
             view()?.onTaskUpdated(it)
 
             if (!it.isCompleted) {
@@ -87,12 +86,12 @@ internal class TaskDetailPresenter(private val tasksHelper: TasksHelper,
      * Delete the task
      */
     internal fun deleteTask() {
-        tTask?.let {
+        task?.let {
             if (it.isLocalOnly) {
                 // Delete the task from the local database
                 realm.executeTransaction { _ ->
                     // Make sure we're deleting a managed task
-                    realm.copyToRealmOrUpdate(it).delete()
+                    realm.copyToRealmOrUpdate(it).deleteFromRealm()
                 }
             } else {
                 // Mark it as deleted so it doesn't show up in the list

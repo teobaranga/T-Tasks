@@ -1,6 +1,5 @@
 package com.teo.ttasks.util
 
-import com.teo.ttasks.data.model.TTask
 import com.teo.ttasks.data.model.Task
 import com.teo.ttasks.ui.items.TaskItem
 import io.reactivex.Flowable
@@ -16,7 +15,7 @@ object RxUtils {
      * 2. Groups them by completion status (not completed or no due date first followed by completed ones)<br></br>
      * 3. Sorts the first group by due date and the second group by completion date
      */
-    fun getTaskItems(hideCompleted: Boolean): SingleTransformer<List<TTask>, List<TaskItem>> {
+    fun getTaskItems(hideCompleted: Boolean): SingleTransformer<List<Task>, List<TaskItem>> {
         return SingleTransformer { observable ->
             observable
                     .map({ tasks ->
@@ -50,7 +49,7 @@ object RxUtils {
         }
     }
 
-    fun getTaskItems(sortingMode: SortType): FlowableTransformer<List<TTask>, Pair<TaskType, List<TaskItem>>> {
+    fun getTaskItems(sortingMode: SortType): FlowableTransformer<List<Task>, Pair<TaskType, List<TaskItem>>> {
         return FlowableTransformer { observable ->
             observable
                     .flatMap { tTasks ->

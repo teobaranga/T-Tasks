@@ -7,6 +7,7 @@ import java.util.*
 
 private const val NUM_FIELDS = 5
 
+// TODO: remove this, it's unnecessary
 class TaskFields : HashMap<String, String?>(NUM_FIELDS) {
 
     companion object {

@@ -10,10 +10,8 @@ import com.teo.ttasks.api.TasksApi
 import com.teo.ttasks.data.local.PrefHelper
 import com.teo.ttasks.data.local.TaskFields
 import com.teo.ttasks.data.local.WidgetHelper
-import com.teo.ttasks.data.model.TTask
 import com.teo.ttasks.data.model.Task
 import com.teo.ttasks.data.remote.TasksHelper
-import com.teo.ttasks.delete
 import com.teo.ttasks.util.FirebaseUtil.getTasksDatabase
 import com.teo.ttasks.util.FirebaseUtil.saveReminder
 import com.teo.ttasks.util.NotificationHelper
@@ -81,13 +79,13 @@ class CreateTaskJob : Job() {
             return Job.Result.SUCCESS
         }
 
-        val savedTask: Task
+        val onlineTask: Task
         try {
-            savedTask =
+            onlineTask =
                     if (taskFields != null) {
                         tasksApi.createTask(taskListId, taskFields).blockingGet()
                     } else {
-                        tasksApi.createTask(taskListId, localTask.task).blockingGet()
+                        tasksApi.createTask(taskListId, localTask).blockingGet()
                     }
         } catch (ex: Exception) {
             // Handle failure
@@ -95,13 +93,14 @@ class CreateTaskJob : Job() {
             return Job.Result.RESCHEDULE
         }
 
-        // Create the task that will be saved online
-        val onlineTask = TTask(localTask, savedTask)
+        // Copy the custom attributes, since they might have changed in the meantime
+        onlineTask.copyCustomAttributes(localTask)
+        onlineTask.taskListId = taskListId
         onlineTask.synced = true
         // Update the local task with the full information and delete the old task
         realm.executeTransaction {
             it.insertOrUpdate(onlineTask)
-            localTask.delete()
+            localTask.deleteFromRealm()
         }
         realm.close()
 

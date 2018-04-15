@@ -4,7 +4,6 @@ import android.support.v4.util.Pair
 import com.google.firebase.database.FirebaseDatabase
 import com.teo.ttasks.data.local.TaskFields
 import com.teo.ttasks.data.local.WidgetHelper
-import com.teo.ttasks.data.model.TTask
 import com.teo.ttasks.data.model.TTaskList
 import com.teo.ttasks.data.model.Task
 import com.teo.ttasks.data.remote.TasksHelper
@@ -71,10 +70,10 @@ internal class EditTaskPresenter(private val tasksHelper: TasksHelper,
     internal fun loadTaskInfo(taskId: String) {
         taskSubscription?.let { if (!it.isDisposed) it.dispose() }
         taskSubscription = tasksHelper.getTaskAsSingle(taskId, realm)
-                .subscribe { tTask ->
-                    dueDate = tTask.due
-                    reminder = tTask.reminder
-                    view()?.onTaskLoaded(tTask)
+                .subscribe { task ->
+                    dueDate = task.due
+                    reminder = task.reminder
+                    view()?.onTaskLoaded(task)
                 }
     }
 
@@ -184,21 +183,21 @@ internal class EditTaskPresenter(private val tasksHelper: TasksHelper,
             view()?.onTaskSaved()
             return
         }
-        // Create the TTask offline
+        // Create the Task offline
         val taskId = UUID.randomUUID().toString()
-        val tTask = TTask(Task(taskId), taskListId)
-        tTask.update(editTaskFields)
-        tTask.synced = false
-        tTask.reminder = reminder
+        val task = Task(taskId, taskListId)
+        task.update(editTaskFields)
+        task.synced = false
+        task.reminder = reminder
 
         // Schedule the notification
         reminder?.let {
-            tTask.assignNotificationId()
-            notificationHelper.scheduleTaskNotification(tTask)
+            task.assignNotificationId()
+            notificationHelper.scheduleTaskNotification(task)
         }
 
         // Save the task locally
-        realm.executeTransaction { it.copyToRealm(tTask) }
+        realm.executeTransaction { it.copyToRealm(task) }
 
         // Update the widget
         widgetHelper.updateWidgets(taskListId)
@@ -298,9 +297,9 @@ internal class EditTaskPresenter(private val tasksHelper: TasksHelper,
      *
      * @param taskFields fields to be updated
      */
-    fun TTask.update(taskFields: TaskFields) {
-        task.title = taskFields.title
-        task.notes = taskFields.notes
-        task.due = taskFields.dueDate?.let { utcDateFormat.parse(it) }
+    fun Task.update(taskFields: TaskFields) {
+        title = taskFields.title
+        notes = taskFields.notes
+        due = taskFields.dueDate?.let { utcDateFormat.parse(it) }
     }
 }
