@@ -37,7 +37,7 @@ import com.squareup.picasso.Picasso
 import com.squareup.picasso.Target
 import com.teo.ttasks.R
 import com.teo.ttasks.data.TaskListsAdapter
-import com.teo.ttasks.data.model.TTaskList
+import com.teo.ttasks.data.model.TaskList
 import com.teo.ttasks.databinding.ActivityMainBinding
 import com.teo.ttasks.receivers.NetworkInfoReceiver
 import com.teo.ttasks.ui.activities.AboutActivity
@@ -144,7 +144,7 @@ open class MainActivity : BaseActivity(), MainView {
         mainBinding.spinnerTaskLists.adapter = taskListsAdapter
         mainBinding.spinnerTaskLists.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(adapterView: AdapterView<*>, view: View, position: Int, id: Long) {
-                val taskList = adapterView.getItemAtPosition(position) as TTaskList
+                val taskList = adapterView.getItemAtPosition(position) as TaskList
                 val taskListId = taskList.id
                 mainActivityPresenter.setLastAccessedTaskList(taskListId)
                 tasksFragment.updateTaskListId(taskListId)
@@ -383,7 +383,7 @@ open class MainActivity : BaseActivity(), MainView {
      * Load the task lists and prepare them to be displayed.
      * Select the last accessed task list.
      */
-    override fun onTaskListsLoaded(taskLists: List<TTaskList>, currentTaskListIndex: Int) {
+    override fun onTaskListsLoaded(taskLists: List<TaskList>, currentTaskListIndex: Int) {
         taskListsAdapter.clear()
         taskListsAdapter.addAll(taskLists)
         // Restore previously selected task list

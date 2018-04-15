@@ -1,6 +1,5 @@
 package com.teo.ttasks.data.local
 
-import com.teo.ttasks.data.model.TTaskList
 import com.teo.ttasks.data.model.TaskList
 import java.util.*
 
@@ -20,15 +19,12 @@ class TaskListFields : HashMap<String, Any>() {
      *
      * @return a local, un-managed task list
      */
-    fun toTaskList(): TTaskList {
+    fun toTaskList(): TaskList {
         // Create the task list
         val taskList = TaskList()
         taskList.title = this.title!!
+        taskList.synced = false
 
-        // Create the TTaskList
-        val tTaskList = TTaskList(taskList)
-        tTaskList.synced = false
-
-        return tTaskList
+        return taskList
     }
 }

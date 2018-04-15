@@ -1,7 +1,7 @@
 package com.teo.ttasks.ui.activities.task_detail
 
-import com.teo.ttasks.data.model.TTaskList
 import com.teo.ttasks.data.model.Task
+import com.teo.ttasks.data.model.TaskList
 import com.teo.ttasks.ui.base.MvpView
 
 internal interface TaskDetailView : MvpView {
@@ -10,7 +10,7 @@ internal interface TaskDetailView : MvpView {
 
     fun onTaskLoadError()
 
-    fun onTaskListLoaded(taskList: TTaskList)
+    fun onTaskListLoaded(taskList: TaskList)
 
     fun onTaskListLoadError()
 

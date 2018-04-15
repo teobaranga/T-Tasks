@@ -22,8 +22,8 @@ import android.widget.Toast
 import com.mikepenz.materialdrawer.util.KeyboardUtil
 import com.teo.ttasks.R
 import com.teo.ttasks.data.TaskListsAdapter
-import com.teo.ttasks.data.model.TTaskList
 import com.teo.ttasks.data.model.Task
+import com.teo.ttasks.data.model.TaskList
 import com.teo.ttasks.databinding.ActivityEditTaskBinding
 import com.teo.ttasks.receivers.NetworkInfoReceiver
 import com.teo.ttasks.util.DateUtils
@@ -94,7 +94,7 @@ class EditTaskActivity : DaggerAppCompatActivity(), EditTaskView {
         editTaskBinding.task = task
     }
 
-    override fun onTaskListsLoaded(taskLists: List<TTaskList>, selectedPosition: Int) {
+    override fun onTaskListsLoaded(taskLists: List<TaskList>, selectedPosition: Int) {
         taskListsAdapter.addAll(taskLists)
         editTaskBinding.taskLists.setSelection(selectedPosition)
     }

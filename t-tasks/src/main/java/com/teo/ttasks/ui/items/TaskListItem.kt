@@ -3,7 +3,7 @@ package com.teo.ttasks.ui.items
 import android.support.v7.widget.RecyclerView
 import android.view.View
 import com.teo.ttasks.R
-import com.teo.ttasks.data.model.TTaskList
+import com.teo.ttasks.data.model.TaskList
 import com.teo.ttasks.databinding.ItemTaskListBinding
 import eu.davidea.flexibleadapter.FlexibleAdapter
 import eu.davidea.flexibleadapter.items.AbstractFlexibleItem
@@ -11,7 +11,7 @@ import eu.davidea.flexibleadapter.items.IFlexible
 import eu.davidea.viewholders.FlexibleViewHolder
 import timber.log.Timber
 
-class TaskListItem(private val taskList: TTaskList,
+class TaskListItem(private val taskList: TaskList,
                    private val taskCount: Long) : AbstractFlexibleItem<TaskListItem.ViewHolder>() {
 
     init {

@@ -19,8 +19,8 @@ import android.view.animation.OvershootInterpolator
 import android.widget.Toast
 import com.teo.ttasks.BuildConfig
 import com.teo.ttasks.R
-import com.teo.ttasks.data.model.TTaskList
 import com.teo.ttasks.data.model.Task
+import com.teo.ttasks.data.model.TaskList
 import com.teo.ttasks.databinding.ActivityTaskDetailBinding
 import com.teo.ttasks.ui.activities.edit_task.EditTaskActivity
 import com.teo.ttasks.util.AnimUtils
@@ -162,7 +162,7 @@ class TaskDetailActivity : DaggerAppCompatActivity(), TaskDetailView {
         finish()
     }
 
-    override fun onTaskListLoaded(taskList: TTaskList) {
+    override fun onTaskListLoaded(taskList: TaskList) {
         taskDetailBinding.taskList = taskList
     }
 

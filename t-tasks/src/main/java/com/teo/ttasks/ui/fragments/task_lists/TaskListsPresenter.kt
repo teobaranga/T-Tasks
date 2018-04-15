@@ -1,7 +1,6 @@
 package com.teo.ttasks.ui.fragments.task_lists
 
 import com.teo.ttasks.data.local.TaskListFields
-import com.teo.ttasks.data.model.TaskList
 import com.teo.ttasks.data.remote.TasksHelper
 import com.teo.ttasks.ui.base.Presenter
 import com.teo.ttasks.ui.items.TaskListItem
@@ -57,25 +56,27 @@ internal class TaskListsPresenter(private val tasksHelper: TasksHelper) : Presen
             return
 
         // Create the task list offline
-        val tTaskList = taskListFields.toTaskList()
-        Timber.d("New task list with id %s", tTaskList.id)
-        realm.executeTransaction { it.insertOrUpdate(tTaskList) }
+        val localTaskList = taskListFields.toTaskList()
+        Timber.d("New task list with id %s", localTaskList.id)
+        realm.executeTransaction { it.insertOrUpdate(localTaskList) }
 
         // Create the task remotely
+        // TODO schedule job for this
         tasksHelper.createTaskList(taskListFields)
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({ taskList ->
-                    // Update the local task with the full information and delete the old task
-                    val managedTaskList = tasksHelper.getTaskList(tTaskList.id, realm)!!
-                    realm.executeTransaction { realm ->
-                        managedTaskList.taskList.deleteFromRealm()
-                        managedTaskList.switchTaskList(realm.copyToRealm<TaskList>(taskList))
-                        managedTaskList.synced = true
-                    }
-                    Timber.d("Task list id updated to %s", managedTaskList.id)
-                }, { throwable ->
-                    Timber.e(throwable.toString())
-                })
+                .subscribe(
+                        { taskList ->
+                            // Delete the old task list and insert the new one
+                            val managedTaskList = tasksHelper.getTaskList(localTaskList.id, realm)!!
+                            realm.executeTransaction {
+                                managedTaskList.deleteFromRealm()
+                                taskList.synced = true
+                                it.insertOrUpdate(taskList)
+                            }
+                            Timber.d("Task list id updated to %s", managedTaskList.id)
+                        },
+                        { Timber.e(it, "Error while creating a new task list") }
+                )
     }
 
     /**
@@ -101,15 +102,18 @@ internal class TaskListsPresenter(private val tasksHelper: TasksHelper) : Presen
         if (isOnline) {
             tasksHelper.updateTaskList(taskListId, taskListFields)
                     .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe({ taskList ->
-                        realm.executeTransaction {
-                            it.insertOrUpdate(taskList)
-                            managedTaskList.synced = true
-                        }
-                    }, { throwable ->
-                        Timber.e(throwable.toString())
-                        view()?.onTaskListUpdateError()
-                    })
+                    .subscribe(
+                            { taskList ->
+                                realm.executeTransaction {
+                                    it.insertOrUpdate(taskList)
+                                    managedTaskList.synced = true
+                                }
+                            },
+                            {
+                                Timber.e(it, "Error while updating task list %s", taskListId)
+                                view()?.onTaskListUpdateError()
+                            }
+                    )
         }
     }
 

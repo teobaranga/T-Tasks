@@ -13,7 +13,7 @@
 
         <variable
             name="taskList"
-            type="com.teo.ttasks.data.model.TTaskList" />
+            type="com.teo.ttasks.data.model.TaskList" />
     </data>
 
     <android.support.design.widget.CoordinatorLayout

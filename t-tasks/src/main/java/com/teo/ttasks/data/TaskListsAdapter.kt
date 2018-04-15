@@ -7,11 +7,10 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.TextView
-
 import com.teo.ttasks.R
-import com.teo.ttasks.data.model.TTaskList
+import com.teo.ttasks.data.model.TaskList
 
-class TaskListsAdapter(context: Context) : ArrayAdapter<TTaskList>(context, layoutResId) {
+class TaskListsAdapter(context: Context) : ArrayAdapter<TaskList>(context, layoutResId) {
 
     companion object {
         private const val layoutResId = R.layout.spinner_item_task_list

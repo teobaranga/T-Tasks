@@ -61,9 +61,10 @@ class MainActivityPresenter(private val tasksHelper: TasksHelper,
                 .map { taskLists ->
                     val currentTaskListId = prefHelper.currentTaskListId
                     // Find the index of the current task list
-                    taskLists.forEachIndexed { index, tTaskList ->
-                        if (tTaskList.id == currentTaskListId)
+                    taskLists.forEachIndexed { index, taskList ->
+                        if (taskList.id == currentTaskListId) {
                             Pair.create(taskLists, index)
+                        }
                     }
                     Pair(taskLists, 0)
                 }

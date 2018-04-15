@@ -9,7 +9,7 @@ import android.view.View
 import android.view.ViewGroup
 import com.teo.ttasks.R
 import com.teo.ttasks.data.TaskListsAdapter
-import com.teo.ttasks.data.model.TTaskList
+import com.teo.ttasks.data.model.TaskList
 import com.teo.ttasks.databinding.ActivityWidgetConfigureBinding
 import com.teo.ttasks.widget.TasksWidgetProvider
 import dagger.android.support.DaggerAppCompatActivity
@@ -85,7 +85,7 @@ class TasksWidgetConfigureActivity : DaggerAppCompatActivity(), TasksWidgetConfi
         presenter.loadTaskLists()
     }
 
-    override fun onTaskListsLoaded(taskLists: List<TTaskList>) {
+    override fun onTaskListsLoaded(taskLists: List<TaskList>) {
         taskListsAdapter.addAll(taskLists)
     }
 

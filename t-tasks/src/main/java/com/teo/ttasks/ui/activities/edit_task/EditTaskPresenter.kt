@@ -4,8 +4,8 @@ import android.support.v4.util.Pair
 import com.google.firebase.database.FirebaseDatabase
 import com.teo.ttasks.data.local.TaskFields
 import com.teo.ttasks.data.local.WidgetHelper
-import com.teo.ttasks.data.model.TTaskList
 import com.teo.ttasks.data.model.Task
+import com.teo.ttasks.data.model.TaskList
 import com.teo.ttasks.data.remote.TasksHelper
 import com.teo.ttasks.jobs.CreateTaskJob
 import com.teo.ttasks.ui.base.Presenter
@@ -85,11 +85,12 @@ internal class EditTaskPresenter(private val tasksHelper: TasksHelper,
      */
     internal fun loadTaskLists(currentTaskListId: String) {
         tasksHelper.getTaskLists(realm)
-                .map<Pair<RealmResults<TTaskList>, Int>> { taskLists ->
+                .map<Pair<RealmResults<TaskList>, Int>> { taskLists ->
                     // Find the index of the current task list
-                    taskLists.forEachIndexed { i, tTaskList ->
-                        if (tTaskList.id == currentTaskListId)
+                    taskLists.forEachIndexed { i, taskList ->
+                        if (taskList.id == currentTaskListId) {
                             return@map Pair(taskLists, i)
+                        }
                     }
 
                     // Index not found, select the first task list

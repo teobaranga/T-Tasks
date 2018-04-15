@@ -9,8 +9,6 @@ import com.teo.ttasks.data.local.PrefHelper
 import com.teo.ttasks.data.local.TaskFields
 import com.teo.ttasks.data.local.TaskFields.Companion.taskFields
 import com.teo.ttasks.data.local.TaskListFields
-import com.teo.ttasks.data.model.TTaskList
-import com.teo.ttasks.data.model.TTaskListFields
 import com.teo.ttasks.data.model.Task
 import com.teo.ttasks.data.model.Task.Companion.STATUS_COMPLETED
 import com.teo.ttasks.data.model.Task.Companion.STATUS_NEEDS_ACTION
@@ -50,9 +48,9 @@ class TasksHelper(private val tasksApi: TasksApi, private val prefHelper: PrefHe
      * @param realm a Realm instance
      * @return a Flowable containing the list of task lists
      */
-    fun getTaskLists(realm: Realm): Flowable<RealmResults<TTaskList>> {
-        return realm.where(TTaskList::class.java)
-                .equalTo(TTaskListFields.DELETED, false)
+    fun getTaskLists(realm: Realm): Flowable<RealmResults<TaskList>> {
+        return realm.where(TaskList::class.java)
+                .equalTo(com.teo.ttasks.data.model.TaskListFields.DELETED, false)
                 .findAllAsync()
                 .asFlowable()
     }
@@ -64,22 +62,22 @@ class TasksHelper(private val tasksApi: TasksApi, private val prefHelper: PrefHe
      * @param realm      a Realm instance
      * @return a Flowable containing the requested task list
      */
-    fun getTaskListAsSingle(taskListId: String, realm: Realm): Single<TTaskList> =
+    fun getTaskListAsSingle(taskListId: String, realm: Realm): Single<TaskList> =
             Single.defer {
                 val taskList = getTaskList(taskListId, realm)
                 if (taskList == null) {
                     Single.error(NullPointerException("No task list found with ID $taskListId"))
                 } else {
-                    taskList.asFlowable<TTaskList>()
+                    taskList.asFlowable<TaskList>()
                             .filter { it.isValid && it.isLoaded }
                             .firstOrError()
                 }
             }
 
-    fun getTaskList(taskListId: String, realm: Realm): TTaskList? {
-        return realm.where(TTaskList::class.java)
-                .equalTo(TTaskListFields.ID, taskListId)
-                .equalTo(TTaskListFields.DELETED, false)
+    fun getTaskList(taskListId: String, realm: Realm): TaskList? {
+        return realm.where(TaskList::class.java)
+                .equalTo(com.teo.ttasks.data.model.TaskListFields.ID, taskListId)
+                .equalTo(com.teo.ttasks.data.model.TaskListFields.DELETED, false)
                 .findFirst()
     }
 
@@ -142,9 +140,9 @@ class TasksHelper(private val tasksApi: TasksApi, private val prefHelper: PrefHe
                             taskListsResponse.id = prefHelper.userEmail!!
                             realm.executeTransaction {
                                 it.insertOrUpdate(taskListsResponse)
-                                // Create a new TTaskList for each TaskList, if available
+                                // Insert the new task lists
                                 taskListsResponse.items?.forEach { taskList ->
-                                    getTaskList(taskList.id, it) ?: it.insertOrUpdate(TTaskList(taskList))
+                                    getTaskList(taskList.id, it) ?: it.insertOrUpdate(taskList)
                                 }
                             }
                         } else {

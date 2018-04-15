@@ -3,16 +3,15 @@ package com.teo.ttasks.ui.activities.edit_task
 import android.app.DatePickerDialog.OnDateSetListener
 import android.app.TimePickerDialog.OnTimeSetListener
 import android.view.View
-
-import com.teo.ttasks.data.model.TTaskList
 import com.teo.ttasks.data.model.Task
+import com.teo.ttasks.data.model.TaskList
 import com.teo.ttasks.ui.base.MvpView
 
 internal interface EditTaskView : MvpView, OnDateSetListener, OnTimeSetListener {
 
     fun onTaskLoaded(task: Task)
 
-    fun onTaskListsLoaded(taskLists: List<TTaskList>, selectedPosition: Int)
+    fun onTaskListsLoaded(taskLists: List<TaskList>, selectedPosition: Int)
 
     fun onTaskLoadError()
 
