@@ -150,11 +150,8 @@ dependencies {
 
     // Dependencies for local unit tests
     testImplementation libraries.junit
-    testImplementation "org.mockito:mockito-all:${mockitoVersion}"
-    testImplementation "org.hamcrest:hamcrest-all:${hamcrestVersion}"
-    testImplementation deps.powermock.jUnit4
-    testImplementation deps.powermock.mockito
     testImplementation deps.kotlin.jUnit
+    testImplementation "io.mockk:mockk:1.7.15"
 
     androidTestImplementation deps.support.recyclerview
 
