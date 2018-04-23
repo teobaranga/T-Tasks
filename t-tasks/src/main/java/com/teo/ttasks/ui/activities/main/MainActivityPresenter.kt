@@ -39,15 +39,18 @@ class MainActivityPresenter(private val tasksHelper: TasksHelper,
     internal fun loadCurrentUser() {
         val subscription = peopleApi.getCurrentPersonCoverPhotos()
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({ coverPhotosResponse ->
-                    Timber.v("Found %d cover photo(s)", coverPhotosResponse.coverPhotos.size)
-                    coverPhotosResponse.coverPhotos.forEachIndexed({ index, coverPhotos ->
-                        Timber.v("Cover photo %d: %s", index, coverPhotos.url)
-                        if (index == 0) {
-                            view()?.onUserCover(coverPhotos.url)
-                        }
-                    })
-                }, { Timber.e(it.toString()) })
+                .subscribe(
+                        { coverPhotosResponse ->
+                            Timber.v("Found %d cover photo(s)", coverPhotosResponse.coverPhotos.size)
+                            coverPhotosResponse.coverPhotos.forEachIndexed({ index, coverPhotos ->
+                                Timber.v("Cover photo %d: %s", index, coverPhotos.url)
+                                if (index == 0) {
+                                    view()?.onUserCover(coverPhotos.url)
+                                }
+                            })
+                        },
+                        { Timber.e(it, "Error while loading cover photos") }
+                )
         disposeOnUnbindView(subscription)
     }
 
