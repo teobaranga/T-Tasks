@@ -11,7 +11,6 @@ import io.mockk.impl.annotations.MockK
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.verify
 import io.reactivex.Single
-import io.reactivex.schedulers.TestScheduler
 import org.junit.Before
 import org.junit.Test
 
@@ -39,16 +38,13 @@ class MainActivityPresenterTest : BasePresenterTest() {
     @Test
     fun `Load Cover Photo - 0 results - Success`() {
         // arrange
-        val testScheduler = TestScheduler()
-
         every {
             peopleApi.getCurrentPersonCoverPhotos()
-        } returns Single.just(coverPhotosResponseEmpty).subscribeOn(testScheduler)
+        } returns Single.just(coverPhotosResponseEmpty)
 
         // act
         mainActivityPresenter.bindView(mainView)
         mainActivityPresenter.loadCurrentUser()
-        testScheduler.triggerActions()
 
         // assert
         verify(exactly = 1) { peopleApi.getCurrentPersonCoverPhotos() }

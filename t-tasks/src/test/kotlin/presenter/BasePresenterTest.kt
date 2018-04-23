@@ -6,6 +6,7 @@ import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.staticMockk
 import io.reactivex.android.plugins.RxAndroidPlugins
+import io.reactivex.plugins.RxJavaPlugins
 import io.reactivex.schedulers.Schedulers
 import io.realm.Realm
 import org.junit.After
@@ -20,10 +21,12 @@ abstract class BasePresenterTest {
     @CallSuper
     open fun setup() {
         MockKAnnotations.init(this)
-        // Make sure tests use a mocked version of realm since we're not testing it in this context
+        // Make sure tests use a mocked version of Realm since we're not testing it in this context
         staticMockk<Realm>().mock()
         every { Realm.getDefaultInstance() } returns realm
-        // Use the trampoline schedule to replace the Android main thread
+        // Use the trampoline scheduler to replace Schedulers.io()
+        RxJavaPlugins.setIoSchedulerHandler { Schedulers.trampoline() }
+        // Use the trampoline scheduler to replace the Android main thread
         RxAndroidPlugins.setInitMainThreadSchedulerHandler { Schedulers.trampoline() }
     }
 

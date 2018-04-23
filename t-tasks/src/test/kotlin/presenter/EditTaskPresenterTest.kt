@@ -11,7 +11,6 @@ import io.mockk.impl.annotations.MockK
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.verify
 import io.reactivex.Single
-import io.reactivex.schedulers.TestScheduler
 import org.junit.Before
 import org.junit.Test
 import java.util.*
@@ -44,18 +43,15 @@ class EditTaskPresenterTest : BasePresenterTest() {
     @Test
     fun `Load Task Info - Valid Task - Success`() {
         // arrange
-        val testScheduler = TestScheduler()
-
         every {
             tasksHelper.getTaskAsSingle(
                     taskId = validTaskId,
                     realm = any())
-        } returns Single.just(validTask).subscribeOn(testScheduler)
+        } returns Single.just(validTask)
 
         // act
         editTaskPresenter.bindView(editTaskView)
         editTaskPresenter.loadTaskInfo(validTaskId)
-        testScheduler.triggerActions()
 
         // assert
         verify(exactly = 1) { tasksHelper.getTaskAsSingle(validTaskId, any()) }
