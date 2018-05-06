@@ -1,11 +1,13 @@
-apply plugin: 'com.android.application'
-apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-android-extensions'
-apply plugin: 'kotlin-kapt'
-apply plugin: 'io.fabric'
-apply plugin: 'realm-android'
+plugins {
+    id 'com.android.application'
+    id 'kotlin-android'
+    id 'kotlin-android-extensions'
+    id 'kotlin-kapt'
+    id 'io.fabric'
+    id 'realm-android'
+//    id 'com.getkeepsafe.dexcount'
+}
 apply from: "../dependencies.gradle"
-//apply plugin: 'com.getkeepsafe.dexcount'
 //apply from: '../config/quality/quality.gradle'
 
 repositories {
@@ -108,7 +110,7 @@ afterEvaluate {
 dependencies {
     kapt 'com.android.databinding:compiler:3.1.2'
 
-    implementation 'eu.davidea:flexible-adapter:5.0.3'
+    implementation 'eu.davidea:flexible-adapter:5.0.4'
     implementation 'eu.davidea:flexible-adapter-databinding:1.0.0-b2'
 
     implementation deps.kotlin.stdlib
@@ -131,6 +133,7 @@ dependencies {
     implementation deps.retrofit.converter.gson
     implementation deps.retrofit.adapter.rxjava
     implementation deps.okhttp.logging_interceptor
+    implementation deps.firebase.core
     implementation deps.firebase.auth
     implementation deps.firebase.database
     implementation 'com.evernote:android-job:1.2.5'

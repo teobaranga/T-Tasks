@@ -61,22 +61,25 @@ class MainActivityPresenter(private val tasksHelper: TasksHelper,
 
     internal fun getTaskLists() {
         val disposable = tasksHelper.getTaskLists(realm)
+                .filter { it.isNotEmpty() }
                 .map { taskLists ->
                     val currentTaskListId = prefHelper.currentTaskListId
                     // Find the index of the current task list
                     taskLists.forEachIndexed { index, taskList ->
                         if (taskList.id == currentTaskListId) {
-                            Pair.create(taskLists, index)
+                            return@map Pair.create(taskLists, index)
                         }
                     }
-                    Pair(taskLists, 0)
+                    return@map Pair(taskLists, 0)
                 }
-                .subscribe({ taskListsIndexPair ->
-                    view()?.onTaskListsLoaded(taskListsIndexPair.first!!, taskListsIndexPair.second!!)
-                }, {
-                    Timber.e(it.toString())
-                    view()?.onTaskListsLoadError()
-                })
+                .subscribe(
+                        { taskListsIndexPair ->
+                            view()?.onTaskListsLoaded(taskListsIndexPair.first!!, taskListsIndexPair.second!!)
+                        },
+                        {
+                            Timber.e(it, "Error while loading task lists")
+                            view()?.onTaskListsLoadError()
+                        })
         disposeOnUnbindView(disposable)
     }
 

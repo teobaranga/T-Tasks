@@ -53,6 +53,7 @@ class TasksHelper(private val tasksApi: TasksApi, private val prefHelper: PrefHe
                 .equalTo(com.teo.ttasks.data.model.TaskListFields.DELETED, false)
                 .findAllAsync()
                 .asFlowable()
+                .filter { it.isLoaded }
     }
 
     /**

@@ -384,10 +384,13 @@ open class MainActivity : BaseActivity(), MainView {
      * Select the last accessed task list.
      */
     override fun onTaskListsLoaded(taskLists: List<TaskList>, currentTaskListIndex: Int) {
-        taskListsAdapter.clear()
-        taskListsAdapter.addAll(taskLists)
-        // Restore previously selected task list
-        mainBinding.spinnerTaskLists.setSelection(currentTaskListIndex)
+        // Set the task list only if it's different than the currently selected one
+        if (mainBinding.spinnerTaskLists.selectedItemPosition != currentTaskListIndex) {
+            taskListsAdapter.clear()
+            taskListsAdapter.addAll(taskLists)
+            // Restore previously selected task list
+            mainBinding.spinnerTaskLists.setSelection(currentTaskListIndex)
+        }
     }
 
     override fun onTaskListsLoadError() {
