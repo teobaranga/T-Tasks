@@ -21,7 +21,7 @@ class TaskListItem(private val taskList: TaskList,
     val title: String
         get() = taskList.title
 
-    val id: String?
+    val id: String
         get() = taskList.id
 
     override fun getLayoutRes(): Int {
@@ -41,6 +41,7 @@ class TaskListItem(private val taskList: TaskList,
                 } else {
                     context.getString(R.string.empty_task_list)
                 }
+        itemTaskBinding.deleteTaskList.setOnClickListener(viewHolder)
     }
 
     override fun createViewHolder(view: View, adapter: FlexibleAdapter<IFlexible<RecyclerView.ViewHolder>>): ViewHolder {

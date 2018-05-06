@@ -131,7 +131,10 @@ internal class TaskListsPresenter(private val tasksHelper: TasksHelper) : Presen
 
         // Delete the task list
         tasksHelper.deleteTaskList(taskListId)
-                .subscribe({ /* Do nothing */ }, { throwable -> Timber.e(throwable.toString()) })
+                .subscribe(
+                        { /* Do nothing */ },
+                        { Timber.e(it, "Error while deleting task list") }
+                )
     }
 
     override fun bindView(view: TaskListsView) {

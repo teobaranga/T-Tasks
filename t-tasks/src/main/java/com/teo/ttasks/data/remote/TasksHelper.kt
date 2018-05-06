@@ -53,7 +53,7 @@ class TasksHelper(private val tasksApi: TasksApi, private val prefHelper: PrefHe
                 .equalTo(com.teo.ttasks.data.model.TaskListFields.DELETED, false)
                 .findAllAsync()
                 .asFlowable()
-                .filter { it.isLoaded }
+                .filter { it.isLoaded && it.isValid }
     }
 
     /**
@@ -78,7 +78,6 @@ class TasksHelper(private val tasksApi: TasksApi, private val prefHelper: PrefHe
     fun getTaskList(taskListId: String, realm: Realm): TaskList? {
         return realm.where(TaskList::class.java)
                 .equalTo(com.teo.ttasks.data.model.TaskListFields.ID, taskListId)
-                .equalTo(com.teo.ttasks.data.model.TaskListFields.DELETED, false)
                 .findFirst()
     }
 
@@ -97,9 +96,8 @@ class TasksHelper(private val tasksApi: TasksApi, private val prefHelper: PrefHe
      *
      * @param taskListId task list identifier
      */
-    fun deleteTaskList(taskListId: String): Flowable<Void> {
+    fun deleteTaskList(taskListId: String): Completable {
         return tasksApi.deleteTaskList(taskListId)
-                .observeOn(AndroidSchedulers.mainThread())
                 .doOnComplete {
                     Realm.getDefaultInstance().use {
                         it.executeTransaction {
@@ -151,7 +149,7 @@ class TasksHelper(private val tasksApi: TasksApi, private val prefHelper: PrefHe
                         }
                     }
                 })
-                .toCompletable()
+                .ignoreElement()
     }
 
     /**
@@ -198,7 +196,9 @@ class TasksHelper(private val tasksApi: TasksApi, private val prefHelper: PrefHe
      * Get the first [Task] with the provided ID or null if the task is not found
      */
     fun getTask(taskId: String, realm: Realm): Task? =
-            realm.where(Task::class.java).equalTo(com.teo.ttasks.data.model.TaskFields.ID, taskId).findFirst()
+            realm.where(Task::class.java)
+                    .equalTo(com.teo.ttasks.data.model.TaskFields.ID, taskId)
+                    .findFirst()
 
     /**
      * Update the given task from the provided task list to the new value
@@ -295,7 +295,7 @@ class TasksHelper(private val tasksApi: TasksApi, private val prefHelper: PrefHe
                         }
                     }
                 }
-                .toCompletable()
+                .ignoreElement()
     }
 
     /**

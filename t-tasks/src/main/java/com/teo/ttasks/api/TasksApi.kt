@@ -33,7 +33,7 @@ interface TasksApi {
 
     /** Delete a task list */
     @DELETE("users/@me/lists/{taskList}")
-    fun deleteTaskList(@Path("taskList") taskListId: String): Flowable<Void>
+    fun deleteTaskList(@Path("taskList") taskListId: String): Completable
 
     /* Tasks */
 

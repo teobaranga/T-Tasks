@@ -35,7 +35,7 @@ class TaskListsFragment : DaggerFragment(), TaskListsView, SwipeRefreshLayout.On
 
     private lateinit var taskListsBinding: FragmentTaskListsBinding
 
-    internal fun showDeleteTaskListDialog(taskListId: String) {
+    private fun showDeleteTaskListDialog(taskListId: String) {
         AlertDialog.Builder(activity!!)
                 .setTitle(R.string.delete_task_list)
                 .setMessage(R.string.delete_task_list_message)
@@ -61,12 +61,13 @@ class TaskListsFragment : DaggerFragment(), TaskListsView, SwipeRefreshLayout.On
             val title = editDialog.findViewById<EditText>(R.id.task_list_title)!!
             val taskListTitle = title.text.toString()
             val context = context
+            // TODO allow offline task creation
             if (!networkInfoReceiver.isOnline(context)) {
                 Toast.makeText(context, "You must be online to be able to create a task list", Toast.LENGTH_SHORT).show()
             } else if (!taskListTitle.isEmpty()) {
                 taskListsPresenter.setTaskListTitle(taskListTitle)
                 if (taskListItem != null) {
-                    taskListsPresenter.updateTaskList(taskListItem.id!!, networkInfoReceiver.isOnline(context))
+                    taskListsPresenter.updateTaskList(taskListItem.id, networkInfoReceiver.isOnline(context))
                 } else {
                     taskListsPresenter.createTaskList()
                 }
@@ -77,12 +78,11 @@ class TaskListsFragment : DaggerFragment(), TaskListsView, SwipeRefreshLayout.On
         }
 
         // Set the task list title
-        if (!newTaskList)
-
+        if (!newTaskList) {
             editDialog.findViewById<EditText>(R.id.task_list_title)!!.setText(taskListItem!!.title)
+        }
 
         // Make sure the soft keyboard is displayed at the same time as the dialog
-
         editDialog.window!!.clearFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM)
         editDialog.window!!.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE)
     }
@@ -91,26 +91,14 @@ class TaskListsFragment : DaggerFragment(), TaskListsView, SwipeRefreshLayout.On
         super.onCreate(savedInstanceState)
         retainInstance = true
         adapter = FlexibleAdapter(null)
-        adapter.addListener(FlexibleAdapter.OnItemClickListener { _, position ->
-            val item = adapter.getItem(position)
-            showEditTaskListDialog(item)
-            true
+        adapter.addListener(FlexibleAdapter.OnItemClickListener { view, position ->
+            val item = adapter.getItem(position)!!
+            when (view.id) {
+                R.id.delete_task_list -> showDeleteTaskListDialog(item.id)
+                else -> showEditTaskListDialog(item)
+            }
+            return@OnItemClickListener true
         })
-
-        // Handle delete button click
-//        fastAdapter.withEventHook(object : ClickEventHook<TaskListItem>() {
-//            override fun onBind(viewHolder: RecyclerView.ViewHolder): View? {
-//                //return the views on which you want to bind this event
-//                if (viewHolder is TaskListItem.ViewHolder) {
-//                    return viewHolder.itemTaskListBinding.deleteTaskList
-//                }
-//                return null
-//            }
-//
-//            override fun onClick(v: View, position: Int, fastAdapter: FastAdapter<TaskListItem>, item: TaskListItem) {
-//                showDeleteTaskListDialog(item.id!!)
-//            }
-//        })
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -141,7 +129,11 @@ class TaskListsFragment : DaggerFragment(), TaskListsView, SwipeRefreshLayout.On
 
     override fun onRefresh() {
         // TODO: 2016-08-16 implement
-        taskListsBinding.swipeRefreshLayout.isRefreshing = false
+        if (!networkInfoReceiver.isOnline(context)) {
+            onRefreshDone()
+        } else {
+            taskListsPresenter.getTaskLists()
+        }
     }
 
     override fun onTaskListsLoading() {
@@ -149,17 +141,17 @@ class TaskListsFragment : DaggerFragment(), TaskListsView, SwipeRefreshLayout.On
     }
 
     override fun onTaskListsEmpty() {
-
+        onRefreshDone()
     }
 
     override fun onTaskListsError() {
-
+        onRefreshDone()
     }
 
     override fun onTaskListsLoaded(taskListItems: List<TaskListItem>) {
         Timber.d("Loaded ${taskListItems.size} task lists")
-        adapter.clear()
-        adapter.addItems(0, taskListItems)
+        onRefreshDone()
+        adapter.updateDataSet(taskListItems)
         taskListsBinding.taskListsLoading.visibility = GONE
         taskListsBinding.taskListsLoadingError.visibility = GONE
         taskListsBinding.taskListsEmpty.visibility = GONE
@@ -179,6 +171,10 @@ class TaskListsFragment : DaggerFragment(), TaskListsView, SwipeRefreshLayout.On
 
     override fun onTaskListUpdateError() {
 
+    }
+
+    fun onRefreshDone() {
+        taskListsBinding.swipeRefreshLayout.isRefreshing = false
     }
 
     companion object {
