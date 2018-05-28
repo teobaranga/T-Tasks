@@ -7,20 +7,23 @@ import android.view.View.VISIBLE
 import android.widget.RemoteViews
 import android.widget.RemoteViewsService
 import com.teo.ttasks.R
+import com.teo.ttasks.data.model.Task
 import com.teo.ttasks.data.remote.TasksHelper
 import com.teo.ttasks.ui.activities.task_detail.TaskDetailActivity
 import com.teo.ttasks.ui.activities.task_detail.TaskDetailActivity.Companion.EXTRA_TASK_ID
-import com.teo.ttasks.ui.items.TaskItem
-import com.teo.ttasks.util.RxUtils
+import com.teo.ttasks.util.DateUtils
+import com.teo.ttasks.util.DateUtils.Companion.sdfDayName
+import com.teo.ttasks.util.DateUtils.Companion.sdfDayNumber
 import timber.log.Timber
-import java.text.SimpleDateFormat
-import java.util.*
 
-class TasksRemoteViewsFactory internal constructor(context: Context, intent: Intent, private val tasksHelper: TasksHelper) : RemoteViewsService.RemoteViewsFactory {
+class TasksRemoteViewsFactory
+internal constructor(private val context: Context,
+                     intent: Intent,
+                     private val tasksHelper: TasksHelper) : RemoteViewsService.RemoteViewsFactory {
 
     private val taskListId: String = intent.getStringExtra(TaskDetailActivity.EXTRA_TASK_LIST_ID)
     private val packageName: String = context.packageName
-    private var taskItems: List<TaskItem>? = null
+    private var tasks: List<Task>? = null
 
     override fun onCreate() {
         // In onCreate() you setup any connections / cursors to your data source. Heavy lifting,
@@ -30,24 +33,24 @@ class TasksRemoteViewsFactory internal constructor(context: Context, intent: Int
 
     override fun onDataSetChanged() {
         tasksHelper.getUnManagedTasks(taskListId)
+                .filter { it.completed == null } // only active tasks
                 .toList()
-                .compose(RxUtils.getTaskItems(true))
                 .subscribe(
-                        { taskItems -> this.taskItems = taskItems },
+                        { taskItems -> this.tasks = taskItems },
                         { Timber.e(it, "Error while retrieving widget data") })
-        Timber.d("Widget taskItems count %d", taskItems?.size ?: 0)
+        Timber.d("Widget tasks count %d", tasks?.size ?: 0)
     }
 
     override fun onDestroy() {
-        taskItems = null
+        tasks = null
     }
 
     override fun getCount(): Int {
-        return taskItems?.size ?: 0
+        return tasks?.size ?: 0
     }
 
     override fun getViewAt(position: Int): RemoteViews {
-        val task = taskItems!![position]
+        val task = tasks!![position]
 
         val rv = RemoteViews(packageName, R.layout.item_task_widget)
 
@@ -56,7 +59,7 @@ class TasksRemoteViewsFactory internal constructor(context: Context, intent: Int
 
         // Set the click action
         val intent = Intent()
-        intent.putExtra(EXTRA_TASK_ID, task.taskId)
+        intent.putExtra(EXTRA_TASK_ID, task.id)
         rv.setOnClickFillInIntent(R.id.item_task_widget, intent)
 
         // Task description
@@ -69,21 +72,18 @@ class TasksRemoteViewsFactory internal constructor(context: Context, intent: Int
         }
 
         // Due date
-        val dueDate = task.dueDate
+        val dueDate = task.due
         if (dueDate != null) {
-            simpleDateFormat.applyLocalizedPattern("EEE")
-            rv.setTextViewText(R.id.date_day_name, simpleDateFormat.format(dueDate))
-            simpleDateFormat.applyLocalizedPattern("d")
-            rv.setTextViewText(R.id.date_day_number, simpleDateFormat.format(dueDate))
+            rv.setTextViewText(R.id.date_day_name, sdfDayName.format(dueDate))
+            rv.setTextViewText(R.id.date_day_number, sdfDayNumber.format(dueDate))
 
             // Reminder
             val reminder = task.reminder
-            if (reminder != null) {
-                simpleDateFormat.applyLocalizedPattern("hh:mma")
-                rv.setTextViewText(R.id.reminder, simpleDateFormat.format(reminder))
-                rv.setViewVisibility(R.id.reminder, VISIBLE)
-            } else {
+            if (reminder == null) {
                 rv.setViewVisibility(R.id.reminder, GONE)
+            } else {
+                rv.setTextViewText(R.id.reminder, DateUtils.formatTime(context, reminder))
+                rv.setViewVisibility(R.id.reminder, VISIBLE)
             }
         } else {
             rv.setTextViewText(R.id.date_day_name, null)
@@ -103,19 +103,10 @@ class TasksRemoteViewsFactory internal constructor(context: Context, intent: Int
     }
 
     override fun getItemId(position: Int): Long {
-        return taskItems!![position].taskId.hashCode().toLong()
+        return tasks!![position].id.hashCode().toLong()
     }
 
     override fun hasStableIds(): Boolean {
         return true
-    }
-
-    companion object {
-
-        private val simpleDateFormat = SimpleDateFormat("EEE", Locale.getDefault())
-
-        init {
-            simpleDateFormat.timeZone = TimeZone.getTimeZone("UTC")
-        }
     }
 }

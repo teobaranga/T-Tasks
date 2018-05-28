@@ -13,15 +13,15 @@ import com.teo.ttasks.data.model.Task
 import com.teo.ttasks.data.model.Task.Companion.STATUS_COMPLETED
 import com.teo.ttasks.data.model.Task.Companion.STATUS_NEEDS_ACTION
 import com.teo.ttasks.data.model.TaskList
-import com.teo.ttasks.jobs.CreateTaskJob
 import com.teo.ttasks.jobs.DeleteTaskJob
+import com.teo.ttasks.jobs.TaskCreateJob
+import com.teo.ttasks.jobs.TaskUpdateJob
 import com.teo.ttasks.util.DateUtils.Companion.utcDateFormat
 import com.teo.ttasks.util.FirebaseUtil.getTasksDatabase
 import com.teo.ttasks.util.FirebaseUtil.saveReminder
 import io.reactivex.Completable
 import io.reactivex.Flowable
 import io.reactivex.Single
-import io.reactivex.android.schedulers.AndroidSchedulers
 import io.realm.Realm
 import io.realm.RealmQuery
 import io.realm.RealmResults
@@ -235,7 +235,7 @@ class TasksHelper(private val tasksApi: TasksApi, private val prefHelper: PrefHe
                             // Handle creation
                             if (it.isLocalOnly) {
                                 // Schedule a job creating this task remotely
-                                CreateTaskJob.schedule(it.id, taskListId)
+                                TaskCreateJob.schedule(it.id, taskListId)
                                 return@filter false
                             }
                             // The remaining un-synced tasks are updates
@@ -315,7 +315,7 @@ class TasksHelper(private val tasksApi: TasksApi, private val prefHelper: PrefHe
      * @param realm a Realm instance
      * @return a Flowable containing the updated task
      */
-    fun updateCompletionStatus(task: Task, realm: Realm): Single<Task> {
+    fun updateCompletionStatus(task: Task, realm: Realm) {
         // Update the status of the local task
         realm.executeTransaction {
             // Task is not synced at this point
@@ -330,15 +330,10 @@ class TasksHelper(private val tasksApi: TasksApi, private val prefHelper: PrefHe
         }
 
         val taskFields = taskFields {
-            completed = utcDateFormat.format(task.completed)
+            completed = task.completed?.let { utcDateFormat.format(it) }
         }
-        return updateTask(task.taskListId, task.id, taskFields)
-                .map { task }
-                .observeOn(AndroidSchedulers.mainThread())
-                .doOnSuccess {
-                    // Update successful, update sync status
-                    realm.executeTransaction { task.synced = true }
-                }
+
+        TaskUpdateJob.schedule(task.id, task.taskListId, taskFields)
     }
 
     /**
@@ -348,15 +343,16 @@ class TasksHelper(private val tasksApi: TasksApi, private val prefHelper: PrefHe
      * @param realm  a Realm instance
      * @return a Flowable containing the updated task
      */
-    fun updateCompletionStatus(taskId: String, realm: Realm): Single<Task> =
-            Single.defer {
-                val task = getTask(taskId, realm)
-                if (task == null) {
-                    Single.error(NullPointerException("No task found with ID $taskId"))
-                } else {
-                    updateCompletionStatus(task, realm)
-                }
-            }
+    fun updateCompletionStatus(taskId: String, realm: Realm): Boolean {
+        val task = getTask(taskId, realm)
+        return if (task == null) {
+            Timber.e("No task found with ID $taskId")
+            false
+        } else {
+            updateCompletionStatus(task, realm)
+            true
+        }
+    }
 
     private fun getTaskListsResponse(realm: Realm): TaskListsResponse? =
             realm.where(TaskListsResponse::class.java).findFirst()

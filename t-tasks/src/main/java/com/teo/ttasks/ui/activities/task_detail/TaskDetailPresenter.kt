@@ -59,24 +59,17 @@ internal class TaskDetailPresenter(private val tasksHelper: TasksHelper,
      * If the task is completed, the completion date is set to the current date.
      */
     internal fun updateCompletionStatus() {
-        tasksHelper.updateCompletionStatus(task!!, realm)
-                .subscribe(
-                        { task ->
-                            realm.executeTransaction { realm.copyToRealmOrUpdate(task) }
-                        },
-                        { throwable ->
-                            // Update unsuccessful, keep the task marked as "not synced"
-                            // The app will retry later, as soon as the user is online
-                            Timber.e(throwable, "Error while updating task completion status")
-                        }
-                )
+        task!!.let {
+            tasksHelper.updateCompletionStatus(it, realm)
+            realm.executeTransaction { _ -> realm.copyToRealmOrUpdate(it) }
 
-        task?.let {
             view()?.onTaskUpdated(it)
 
+            // Trigger a widget update
+            widgetHelper.updateWidgets(it.taskListId)
+
+            // Reschedule the reminder if going from completed -> active
             if (!it.isCompleted) {
-                // Trigger a widget update only if the task is marked as active
-                widgetHelper.updateWidgets(it.taskListId)
                 notificationHelper.scheduleTaskNotification(it)
             }
         }

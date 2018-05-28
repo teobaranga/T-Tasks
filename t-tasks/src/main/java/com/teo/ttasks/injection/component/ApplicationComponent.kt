@@ -4,8 +4,9 @@ import com.teo.ttasks.TTasksApp
 import com.teo.ttasks.injection.module.ApplicationModule
 import com.teo.ttasks.injection.module.InjectorsModule
 import com.teo.ttasks.injection.module.TasksApiModule
-import com.teo.ttasks.jobs.CreateTaskJob
 import com.teo.ttasks.jobs.DeleteTaskJob
+import com.teo.ttasks.jobs.TaskCreateJob
+import com.teo.ttasks.jobs.TaskUpdateJob
 import dagger.Component
 import dagger.android.AndroidInjector
 import dagger.android.support.AndroidSupportInjectionModule
@@ -25,7 +26,9 @@ interface ApplicationComponent : AndroidInjector<TTasksApp> {
         abstract override fun build(): ApplicationComponent
     }
 
-    fun inject(createTaskJob: CreateTaskJob)
+    fun inject(taskCreateJob: TaskCreateJob)
+
+    fun inject(taskUpdateJob: TaskUpdateJob)
 
     fun inject(deleteTaskJob: DeleteTaskJob)
 }

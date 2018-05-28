@@ -35,15 +35,15 @@ class TasksWidgetProvider : AppWidgetProvider() {
 
     override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
         Timber.d("onUpdate with ids %s", Arrays.toString(appWidgetIds))
-        val realm = Realm.getDefaultInstance()
-        // There may be multiple widgets active, so update all of them
-        for (appWidgetId in appWidgetIds) {
-            if (prefHelper.getWidgetTaskListId(appWidgetId) != null)
-                updateAppWidget(context, appWidgetManager, appWidgetId, realm)
-            else
-                Timber.d("widget id %d not found", appWidgetId)
+        Realm.getDefaultInstance().use { realm ->
+            // There may be multiple widgets active, so update all of them
+            for (appWidgetId in appWidgetIds) {
+                if (prefHelper.getWidgetTaskListId(appWidgetId) != null)
+                    updateAppWidget(context, appWidgetManager, appWidgetId, realm)
+                else
+                    Timber.d("widget id %d not found", appWidgetId)
+            }
         }
-        realm.close()
     }
 
     override fun onDeleted(context: Context, appWidgetIds: IntArray) {

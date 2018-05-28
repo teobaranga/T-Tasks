@@ -11,7 +11,7 @@ class WidgetHelper(private val context: Context, private val prefHelper: PrefHel
 
     /**
      * Update all the widgets
-
+     *
      * @param taskListId task list identifier
      */
     fun updateWidgets(taskListId: String) {

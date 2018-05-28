@@ -18,7 +18,7 @@
             android:textColor="?android:textColorSecondary"
             android:textStyle="italic"
             android:visibility="gone"
-            app:layout_constraintStart_toStartOf="@id/layout_task"
+            app:layout_constraintStart_toEndOf="@id/task_date"
             tools:text="August, 2016"
             tools:visibility="visible" />
 
@@ -27,8 +27,6 @@
             android:layout_width="56dp"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
-            app:layout_constraintBottom_toBottomOf="@id/layout_task"
-            app:layout_constraintTop_toBottomOf="@id/month"
             app:layout_constraintTop_toTopOf="@id/layout_task"
             tools:date="2018-04-08T00:00:00.000Z" />
 

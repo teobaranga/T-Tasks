@@ -7,7 +7,6 @@ import android.content.Intent
 import android.widget.Toast
 import com.teo.ttasks.data.remote.TasksHelper
 import dagger.android.DaggerBroadcastReceiver
-import io.reactivex.android.schedulers.AndroidSchedulers
 import io.realm.Realm
 import timber.log.Timber
 import javax.inject.Inject
@@ -43,23 +42,14 @@ class TaskNotificationReceiver : DaggerBroadcastReceiver() {
                 ACTION_COMPLETE -> {
                     val realm = Realm.getDefaultInstance()
                     // Mark the task as completed
-                    tasksHelper.updateCompletionStatus(taskId, realm)
-                            .observeOn(AndroidSchedulers.mainThread())
-                            .subscribe(
-                                    { task ->
-                                        // Update successful, update sync status
-                                        realm.executeTransaction { task.synced = true }
-                                        Toast.makeText(context, "Task completed", Toast.LENGTH_SHORT).show()
-                                        realm.close()
-                                        notificationManager.cancel(id)
-                                    },
-                                    { throwable ->
-                                        Timber.e(throwable, "Error while completing %s", taskId)
-                                        Toast.makeText(context, "Task not found. This is the case if the task was deleted.", Toast.LENGTH_SHORT).show()
-                                        realm.close()
-                                        notificationManager.cancel(id)
-                                    }
-                            )
+                    if (tasksHelper.updateCompletionStatus(taskId, realm)) {
+                        Toast.makeText(context, "Task completed", Toast.LENGTH_SHORT).show()
+                        notificationManager.cancel(id)
+                    } else {
+                        Toast.makeText(context, "Task not found. This is the case if the task was deleted.", Toast.LENGTH_SHORT).show()
+                    }
+                    notificationManager.cancel(id)
+                    realm.close()
                 }
                 ACTION_DELETE -> {
                     // Mark this task's reminder as dismissed

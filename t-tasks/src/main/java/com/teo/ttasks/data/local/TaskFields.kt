@@ -35,7 +35,7 @@ class TaskFields : HashMap<String, String?>(NUM_FIELDS) {
                     notes = bundle[KEY_NOTES] as String
                 }
                 if (bundle.containsKey(KEY_COMPLETED)) {
-                    completed = bundle[KEY_COMPLETED] as String
+                    completed = bundle[KEY_COMPLETED] as String?
                 }
                 if (bundle.containsKey(KEY_STATUS)) {
                     this[KEY_STATUS] = bundle[KEY_STATUS] as String

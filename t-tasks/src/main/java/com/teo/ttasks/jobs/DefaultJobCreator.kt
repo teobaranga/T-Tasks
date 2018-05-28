@@ -7,7 +7,8 @@ class DefaultJobCreator : JobCreator {
 
     override fun create(tag: String): Job? {
         return when (tag) {
-            CreateTaskJob.TAG -> CreateTaskJob()
+            TaskCreateJob.TAG -> TaskCreateJob()
+            TaskUpdateJob.TAG -> TaskUpdateJob()
             DeleteTaskJob.TAG -> DeleteTaskJob()
             else -> null
         }

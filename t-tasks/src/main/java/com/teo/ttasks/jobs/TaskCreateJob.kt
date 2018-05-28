@@ -20,7 +20,7 @@ import timber.log.Timber
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
-class CreateTaskJob : Job() {
+class TaskCreateJob : Job() {
 
     companion object {
         const val TAG = "CREATE_TASK"

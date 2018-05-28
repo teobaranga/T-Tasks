@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <FrameLayout
+    <LinearLayout
         android:id="@+id/task_list_header"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -14,12 +14,12 @@
 
         <TextView
             android:id="@+id/task_list_title"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
+            android:layout_marginStart="8dp"
+            android:layout_weight="1"
             android:maxLines="1"
-            android:paddingLeft="8dp"
-            android:paddingRight="8dp"
             android:textAppearance="@style/TextAppearance.AppCompat.Large.Inverse"
             tools:text="My Tasks" />
 
@@ -32,7 +32,7 @@
             android:padding="8dp"
             tools:src="@drawable/ic_add_white_24dp" />
 
-    </FrameLayout>
+    </LinearLayout>
 
     <ListView
         android:id="@+id/widget_task_list"

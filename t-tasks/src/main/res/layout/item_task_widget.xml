@@ -38,11 +38,12 @@
 
     </LinearLayout>
 
-    <RelativeLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:background="@drawable/background_task_widget"
+        android:orientation="vertical"
         android:padding="8dp">
 
         <TextView
@@ -59,7 +60,6 @@
             android:id="@+id/task_description"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/task_title"
             android:layout_marginBottom="4dp"
             android:layout_marginTop="2dp"
             android:ellipsize="end"
@@ -74,14 +74,14 @@
             android:id="@+id/reminder"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/task_description"
             android:drawableStart="@drawable/ic_alarm_18dp"
+            android:drawablePadding="4dp"
             android:gravity="bottom"
             android:textAppearance="@style/TextAppearance.AppCompat.Small.Inverse"
             android:visibility="gone"
             tools:text="5:00PM"
             tools:visibility="visible" />
 
-    </RelativeLayout>
+    </LinearLayout>
 
 </LinearLayout>

@@ -7,7 +7,7 @@ import com.teo.ttasks.data.local.WidgetHelper
 import com.teo.ttasks.data.model.Task
 import com.teo.ttasks.data.model.TaskList
 import com.teo.ttasks.data.remote.TasksHelper
-import com.teo.ttasks.jobs.CreateTaskJob
+import com.teo.ttasks.jobs.TaskCreateJob
 import com.teo.ttasks.ui.base.Presenter
 import com.teo.ttasks.util.DateUtils.Companion.utcDateFormat
 import com.teo.ttasks.util.FirebaseUtil.getTasksDatabase
@@ -204,7 +204,7 @@ internal class EditTaskPresenter(private val tasksHelper: TasksHelper,
         widgetHelper.updateWidgets(taskListId)
 
         // Schedule a job that saves this task on the server
-        CreateTaskJob.schedule(taskId, taskListId, editTaskFields)
+        TaskCreateJob.schedule(taskId, taskListId, editTaskFields)
 
         view()?.onTaskSaved()
     }
