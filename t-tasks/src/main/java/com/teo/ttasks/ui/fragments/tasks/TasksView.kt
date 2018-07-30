@@ -25,5 +25,5 @@ internal interface TasksView : MvpView {
 
     fun onRefreshDone()
 
-    fun onSyncDone(taskSyncCount: Int)
+    fun onSyncDone(taskSyncCount: Long)
 }

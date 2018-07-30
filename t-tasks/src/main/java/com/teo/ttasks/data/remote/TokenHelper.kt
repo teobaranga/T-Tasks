@@ -40,7 +40,7 @@ class TokenHelper(private val prefHelper: PrefHelper, private val tTasksApp: TTa
                     // Clear the old token if it exists
                     prefHelper.accessToken?.let { GoogleAuthUtil.clearToken(tTasksApp, it) }
                     // Return a new token
-                    token
+                    return@fromCallable token
                 }
                 .doOnSuccess {
                     // Save the token to the preferences

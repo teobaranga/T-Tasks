@@ -44,12 +44,13 @@ open class SignInActivity : DaggerAppCompatActivity(), SignInView, GoogleApiClie
                 .requestScopes(Scope(SCOPE_TASKS), Scope(Scopes.PLUS_ME))
                 .build()
 
-        GoogleApiClient.Builder(this)
+        return@lazy GoogleApiClient.Builder(this)
                 .enableAutoManage(this, this)
                 .addConnectionCallbacks(this)
                 .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
                 .build()
     }
+
     private lateinit var signInBinding: ActivitySignInBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -113,8 +114,8 @@ open class SignInActivity : DaggerAppCompatActivity(), SignInView, GoogleApiClie
         }
     }
 
-    override fun onLoadingTaskLists() {
-        signInBinding.loadingText.setText(R.string.loading_task_lists)
+    override fun onLoadingTasks() {
+        signInBinding.loadingText.setText(R.string.loading_tasks)
     }
 
     override fun onSignInSuccess() {
@@ -165,9 +166,9 @@ open class SignInActivity : DaggerAppCompatActivity(), SignInView, GoogleApiClie
     /**
      * Display an error dialog showing that Google Play Services is missing
      * or out of date.
-
+     *
      * @param connectionStatusCode code describing the presence (or lack of)
-     * *                             Google Play Services on this device.
+     *                             Google Play Services on this device.
      */
     private fun showGooglePlayServicesAvailabilityErrorDialog(connectionStatusCode: Int) {
         val googleAPI = GoogleApiAvailability.getInstance()

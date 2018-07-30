@@ -9,8 +9,11 @@ import com.teo.ttasks.data.local.PrefHelper
 import com.teo.ttasks.data.remote.TasksHelper
 import com.teo.ttasks.data.remote.TokenHelper
 import com.teo.ttasks.ui.base.Presenter
+import io.reactivex.Flowable
+import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
+import io.realm.Realm
 import timber.log.Timber
 
 internal class SignInPresenter(private val tokenHelper: TokenHelper,
@@ -19,7 +22,7 @@ internal class SignInPresenter(private val tokenHelper: TokenHelper,
 
     /**
      * Save some user info. Useful to detect when a user is signed in.
-
+     *
      * @param account the current user's account
      */
     internal fun saveUser(account: GoogleSignInAccount) {
@@ -27,30 +30,47 @@ internal class SignInPresenter(private val tokenHelper: TokenHelper,
     }
 
     internal fun signIn(firebaseAuth: FirebaseAuth) {
+        // First, refresh the access token
         val disposable = tokenHelper.refreshAccessToken()
+                .observeOn(Schedulers.io())
                 .flatMap { accessToken ->
                     // Sign in using the acquired token
                     val credential = GoogleAuthProvider.getCredential(null, accessToken)
-                    firebaseAuth.rxSignInWithCredential(credential)
-                }
-                .doOnSuccess { firebaseUser ->
-                    prefHelper.userPhoto = firebaseUser.photoUrl.toString()
-                    Timber.v("%s %s", firebaseUser.displayName, firebaseUser.email)
-                    Timber.v("Photo URL: %s", prefHelper.userPhoto)
+                    return@flatMap firebaseAuth.rxSignInWithCredential(credential)
+                            .doOnSuccess { firebaseUser ->
+                                prefHelper.userPhoto = firebaseUser.photoUrl.toString()
+                                Timber.v("%s %s", firebaseUser.displayName, firebaseUser.email)
+                                Timber.v("Photo URL: %s", prefHelper.userPhoto)
+                            }
                 }
                 .observeOn(AndroidSchedulers.mainThread())
-                .doOnSuccess {
-                    // Indicate that we're loading the task lists next
-                    view()?.onLoadingTaskLists()
+                .doAfterSuccess {
+                    // Indicate that we're loading the task lists + tasks next
+                    view()?.onLoadingTasks()
                 }
                 .observeOn(Schedulers.io())
-                .flatMapCompletable { tasksHelper.refreshTaskLists() }
-                .subscribeOn(Schedulers.io())
+                .flatMapPublisher {
+                    // Refresh the task lists
+                    return@flatMapPublisher tasksHelper.refreshTaskLists()
+                            .andThen(Flowable.defer {
+                                // For each task list, get its ID
+                                val realm = Realm.getDefaultInstance()
+                                return@defer Single.just(tasksHelper.queryTaskLists(realm).findAll())
+                                        .flattenAsFlowable { it }
+                                        .map { it.id }
+                                        .doFinally { realm.close() }
+                            })
+                }
+                .flatMapCompletable { taskListId ->
+                    // Refresh each task list
+                    return@flatMapCompletable tasksHelper.refreshTasks(taskListId)
+                }
                 .observeOn(AndroidSchedulers.mainThread())
+                .subscribeOn(Schedulers.io())
                 .subscribe(
                         { view()?.onSignInSuccess() },
                         { throwable ->
-                            Timber.e("Error signing in: %s", throwable.toString())
+                            Timber.e(throwable, "Error signing in")
                             val exception = throwable.cause
                             when (exception) {
                                 is UserRecoverableAuthException -> view()?.onSignInError(exception.intent)

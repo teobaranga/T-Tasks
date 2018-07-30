@@ -319,8 +319,8 @@ class TasksFragment : DaggerFragment(), TasksView, SwipeRefreshLayout.OnRefreshL
         tasksBinding.swipeRefreshLayout.isRefreshing = false
     }
 
-    override fun onSyncDone(taskSyncCount: Int) {
-        if (taskSyncCount != 0) {
+    override fun onSyncDone(taskSyncCount: Long) {
+        if (taskSyncCount != 0L) {
             Toast.makeText(context, "Synchronized $taskSyncCount tasks", Toast.LENGTH_SHORT).show()
         }
         tasksPresenter.refreshTasks(taskListId)

@@ -10,7 +10,7 @@
     <string name="error_sign_in_offline">Please make sure you\'re online before signing in for the first time</string>
     <string name="error_google_permissions_denied">This app needs permission to access your Google Tasks</string>
     <string name="signing_in">Signing in…</string>
-    <string name="loading_task_lists">Loading task lists…</string>
+    <string name="loading_tasks">Loading your tasks…</string>
 
     <!-- Drawer items -->
     <string name="drawer_settings">Settings</string>

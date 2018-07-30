@@ -6,7 +6,7 @@ import com.teo.ttasks.ui.base.MvpView
 
 internal interface SignInView : MvpView {
 
-    fun onLoadingTaskLists()
+    fun onLoadingTasks()
 
     fun onSignInSuccess()
 
