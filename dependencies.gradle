@@ -1,7 +1,7 @@
 ext.deps = [:]
 
 def ver = [:]
-ver.dagger = "2.16"
+ver.dagger = "2.17"
 ver.espresso = "3.0.2"
 ver.kotlin = "1.2.60"
 ver.okhttp = "3.10.0"
@@ -9,7 +9,7 @@ ver.playServices = "15.0.1"
 ver.powermock = "1.7.4"
 ver.retrofit = "2.4.0"
 ver.rxAndroid = "2.0.2"
-ver.rxjava = "2.1.17"
+ver.rxjava = "2.2.0"
 ver.support = "27.1.1"
 ext.ver = ver
 
