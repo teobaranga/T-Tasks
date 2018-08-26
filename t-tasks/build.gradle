@@ -15,16 +15,16 @@ repositories {
 }
 
 android {
-    compileSdkVersion 27
-    buildToolsVersion '27.0.3'
+    compileSdkVersion 28
+    buildToolsVersion '28.0.2'
     defaultConfig {
         applicationId "com.teo.ttasks"
         minSdkVersion 21
-        targetSdkVersion 27
+        targetSdkVersion 28
         versionCode 1
         versionName '0.1'
-        vectorDrawables.useSupportLibrary = true
-        testInstrumentationRunner 'android.support.test.runner.AndroidJUnitRunner'
+//        vectorDrawables.useSupportLibrary = true
+        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
         multiDexEnabled true
     }
     signingConfigs {
@@ -108,8 +108,9 @@ afterEvaluate {
 }
 
 dependencies {
-    implementation 'eu.davidea:flexible-adapter:5.0.5'
-    implementation 'eu.davidea:flexible-adapter-databinding:1.0.0-b3'
+    implementation fileTree(dir: "libs", include: ['flexible-adapter-debug.aar', 'flexible-adapter-databinding-debug.aar'])
+//    implementation 'eu.davidea:flexible-adapter:5.0.5'
+//    implementation 'eu.davidea:flexible-adapter-databinding:1.0.0-b3'
 
     implementation deps.kotlin.stdlib
 
@@ -119,9 +120,9 @@ dependencies {
     implementation deps.dagger.android.support
     implementation deps.rx.java
     implementation deps.rx.android
-    implementation deps.support.cardview
-    implementation deps.support.design
-    implementation deps.support.fragment
+    implementation "androidx.cardview:cardview:1.0.0-rc01"
+    implementation "com.google.android.material:material:1.0.0-rc01"
+    implementation "androidx.fragment:fragment:1.0.0-rc01"
     implementation deps.timber
     implementation deps.playServices.auth
     implementation deps.playServices.gcm
@@ -145,7 +146,7 @@ dependencies {
     implementation 'com.artemzin.rxjava:proguard-rules:1.3.3.0'
     implementation 'com.github.strooooke:appbarsyncedfab:v0.4'
     implementation(deps.crashlytics) { transitive = true }
-    implementation 'com.android.support.constraint:constraint-layout:1.1.2'
+    implementation 'androidx.constraintlayout:constraintlayout:2.0.0-alpha2'
     kapt 'dk.ilios:realmfieldnameshelper:1.1.1'
     compileOnly 'javax.annotation:jsr250-api:1.0'
 
@@ -157,21 +158,26 @@ dependencies {
     testImplementation deps.kotlin.jUnit
     testImplementation "io.mockk:mockk:1.8.6"
 
-    androidTestImplementation deps.support.recyclerview
+    androidTestImplementation "androidx.recyclerview:recyclerview:1.0.0-rc01"
 
     // Android Testing Support Library's runner and rules
-    androidTestImplementation libraries.supportTestRunner
-    androidTestImplementation libraries.supportTestRules
+    androidTestImplementation 'androidx.test:runner:1.1.0-alpha4'
+    androidTestImplementation 'androidx.test:rules:1.1.0-alpha4'
     // Espresso UI Testing dependencies.
-    androidTestImplementation(deps.espresso.core, {
-        exclude group: 'com.android.support', module: 'support-annotations'
-        exclude group: 'com.google.code.findbugs', module: 'jsr305'
-    })
-    androidTestImplementation(deps.espresso.contrib, {
-        exclude group: 'com.android.support', module: 'support-annotations'
-        exclude group: 'com.google.code.findbugs', module: 'jsr305'
-    })
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.0-alpha4'
+    androidTestImplementation 'androidx.test.espresso:espresso-contrib:3.1.0-alpha4'
 }
+
+kapt {
+    javacOptions {
+        // Increase the max count of errors from annotation processors.
+        // Default is 100.
+        option("-Xmaxerrs", 500)
+    }
+}
+
+gradle.projectsEvaluated { tasks.withType(JavaCompile) { options.compilerArgs << "-Xmaxerrs" << "500" // or whatever number you want
+} }
 
 // Log out test results to console
 tasks.matching { it instanceof Test }.all {

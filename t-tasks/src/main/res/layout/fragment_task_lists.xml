@@ -48,12 +48,12 @@
             android:text="@string/error_task_lists_loading"
             android:visibility="gone"/>
 
-        <android.support.v4.widget.SwipeRefreshLayout
+        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
             android:id="@+id/swipe_refresh_layout"
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
-            <android.support.v7.widget.RecyclerView
+            <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/task_lists"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
@@ -62,7 +62,7 @@
                 android:scrollbars="vertical"
                 tools:listitem="@layout/item_task_list"/>
 
-        </android.support.v4.widget.SwipeRefreshLayout>
+        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
     </FrameLayout>
 

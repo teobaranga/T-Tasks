@@ -18,13 +18,13 @@ package com.teo.ttasks.ui
 
 import android.animation.ValueAnimator
 import android.content.Context
-import android.support.design.widget.AppBarLayout
-import android.support.design.widget.CoordinatorLayout
-import android.support.design.widget.FloatingActionButton
-import android.support.design.widget.Snackbar
-import android.support.v4.view.animation.FastOutSlowInInterpolator
 import android.util.AttributeSet
 import android.view.View
+import androidx.coordinatorlayout.widget.CoordinatorLayout
+import androidx.interpolator.view.animation.FastOutSlowInInterpolator
+import com.google.android.material.appbar.AppBarLayout
+import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.android.material.snackbar.Snackbar
 
 import com.lambdasoup.appbarsyncedfab.FabOffsetter
 
@@ -54,7 +54,7 @@ class AppBarBoundFabBehavior(context: Context, attrs: AttributeSet) : FloatingAc
 
     private var offsetChangedListener: AppBarLayout.OnOffsetChangedListener? = null
 
-    override fun layoutDependsOn(parent: CoordinatorLayout?, child: FloatingActionButton?, dependency: View?): Boolean {
+    override fun layoutDependsOn(parent: CoordinatorLayout, child: FloatingActionButton, dependency: View): Boolean {
         if (dependency is AppBarLayout) {
 
             val appBarLayout = dependency as AppBarLayout?
@@ -88,7 +88,7 @@ class AppBarBoundFabBehavior(context: Context, attrs: AttributeSet) : FloatingAc
         return super.onDependentViewChanged(parent, fab, dependency)
     }
 
-    override fun onDependentViewRemoved(parent: CoordinatorLayout, child: FloatingActionButton, dependency: View?) {
+    override fun onDependentViewRemoved(parent: CoordinatorLayout, child: FloatingActionButton, dependency: View) {
         if (dependency is Snackbar.SnackbarLayout) {
             updateFabTranslationForSnackbar(parent, child, dependency)
         }

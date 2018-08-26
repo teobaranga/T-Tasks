@@ -195,7 +195,7 @@
                     app:srcCompat="@drawable/ic_bookmark_24dp"
                     tools:ignore="ContentDescription"/>
 
-                <android.support.design.widget.TextInputEditText
+                <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/notes"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"

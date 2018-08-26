@@ -9,9 +9,9 @@ import android.content.Intent
 import android.graphics.Color
 import android.net.Uri
 import android.preference.PreferenceManager
-import android.support.v4.app.NotificationCompat
-import android.support.v4.app.TaskStackBuilder
-import android.support.v4.content.res.ResourcesCompat
+import androidx.core.app.NotificationCompat
+import androidx.core.app.TaskStackBuilder
+import androidx.core.content.res.ResourcesCompat
 import com.teo.ttasks.R
 import com.teo.ttasks.data.model.Task
 import com.teo.ttasks.receivers.TaskNotificationReceiver

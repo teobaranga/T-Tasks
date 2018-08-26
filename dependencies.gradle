@@ -1,9 +1,9 @@
 ext.deps = [:]
 
 def ver = [:]
-ver.dagger = "2.17"
+ver.dagger = "2.16"
 ver.espresso = "3.0.2"
-ver.kotlin = "1.2.60"
+ver.kotlin = "1.2.61"
 ver.okhttp = "3.10.0"
 ver.playServices = "15.0.1"
 ver.powermock = "1.7.4"
@@ -16,7 +16,7 @@ ext.ver = ver
 def deps = [:]
 
 deps.aboutlibraries = "com.mikepenz:aboutlibraries:6.1.1@aar"
-deps.crashlytics = "com.crashlytics.sdk.android:crashlytics:2.9.4@aar"
+deps.crashlytics = "com.crashlytics.sdk.android:crashlytics:2.9.5@aar"
 deps.materialdrawer = "com.mikepenz:materialdrawer:6.0.9@aar"
 deps.timber = "com.jakewharton.timber:timber:4.7.1"
 
@@ -34,8 +34,8 @@ espresso.contrib = "com.android.support.test.espresso:espresso-contrib:$ver.espr
 deps.espresso = espresso
 
 def firebase = [:]
-firebase.core = "com.google.firebase:firebase-core:16.0.1"
-firebase.auth = "com.google.firebase:firebase-auth:16.0.2"
+firebase.core = "com.google.firebase:firebase-core:16.0.3"
+firebase.auth = "com.google.firebase:firebase-auth:16.0.3"
 firebase.database = "com.google.firebase:firebase-database:16.0.1"
 deps.firebase = firebase
 
@@ -50,7 +50,7 @@ okhttp.logging_interceptor = "com.squareup.okhttp3:logging-interceptor:$ver.okht
 deps.okhttp = okhttp
 
 def playServices = [:]
-playServices.auth = "com.google.android.gms:play-services-auth:$ver.playServices"
+playServices.auth = "com.google.android.gms:play-services-auth:16.0.0"
 playServices.gcm = "com.google.android.gms:play-services-gcm:$ver.playServices"
 deps.playServices = playServices
 
@@ -72,12 +72,11 @@ rx.java = "io.reactivex.rxjava2:rxjava:$ver.rxjava"
 rx.android = "io.reactivex.rxjava2:rxandroid:$ver.rxAndroid"
 deps.rx = rx
 
-def support = [:]
-support.cardview = "com.android.support:cardview-v7:$ver.support"
-support.design = "com.android.support:design:$ver.support"
-support.fragment = "com.android.support:support-fragment:$ver.support"
-support.recyclerview = "com.android.support:recyclerview-v7:$ver.support"
-deps.support = support
+def androidx = [:]
+androidx.design = "com.google.android.material:material:1.0.0-rc01"
+androidx.fragment = "com.android.support:support-fragment:$ver.support"
+androidx.recyclerview = "com.android.support:recyclerview-v7:$ver.support"
+deps.androidx = androidx
 
 ext.deps = deps
 

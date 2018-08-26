@@ -2,11 +2,11 @@ package com.teo.ttasks.util
 
 import android.annotation.TargetApi
 import android.os.Build
-import android.support.v4.view.ViewCompat
-import android.support.v4.view.ViewPropertyAnimatorCompat
-import android.support.v4.view.animation.FastOutSlowInInterpolator
+import androidx.core.view.ViewCompat
+import androidx.core.view.ViewPropertyAnimatorCompat
 import android.transition.Transition
 import android.view.View
+import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 
 object AnimUtils {
 

@@ -49,7 +49,7 @@ internal class SignInPresenter(private val tokenHelper: TokenHelper,
                     view()?.onLoadingTasks()
                 }
                 .observeOn(Schedulers.io())
-                .flatMapPublisher {
+                .flatMapPublisher { _ ->
                     // Refresh the task lists
                     return@flatMapPublisher tasksHelper.refreshTaskLists()
                             .andThen(Flowable.defer {

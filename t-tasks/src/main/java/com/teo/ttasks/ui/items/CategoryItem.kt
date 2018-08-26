@@ -1,11 +1,11 @@
 package com.teo.ttasks.ui.items
 
 import android.content.Context
-import android.support.graphics.drawable.AnimatedVectorDrawableCompat
-import android.support.v4.content.res.ResourcesCompat
-import android.support.v7.widget.RecyclerView
 import android.util.TypedValue
 import android.view.View
+import androidx.core.content.res.ResourcesCompat
+import androidx.recyclerview.widget.RecyclerView
+import androidx.vectordrawable.graphics.drawable.AnimatedVectorDrawableCompat
 import com.teo.ttasks.R
 import com.teo.ttasks.databinding.ItemCategoryBinding
 import eu.davidea.flexibleadapter.FlexibleAdapter

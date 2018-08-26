@@ -3,10 +3,10 @@ package com.teo.ttasks.widget.configure
 import android.app.Activity
 import android.appwidget.AppWidgetManager
 import android.content.Intent
-import android.databinding.DataBindingUtil
 import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
+import androidx.databinding.DataBindingUtil
 import com.teo.ttasks.R
 import com.teo.ttasks.data.TaskListsAdapter
 import com.teo.ttasks.data.model.TaskList

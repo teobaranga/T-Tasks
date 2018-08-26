@@ -5,11 +5,7 @@ import android.app.Dialog
 import android.app.TimePickerDialog
 import android.content.Context
 import android.content.Intent
-import android.databinding.DataBindingUtil
 import android.os.Bundle
-import android.support.v4.app.DialogFragment
-import android.support.v4.app.Fragment
-import android.support.v7.app.AlertDialog
 import android.text.format.DateFormat
 import android.view.Menu
 import android.view.MenuItem
@@ -19,6 +15,10 @@ import android.widget.DatePicker
 import android.widget.LinearLayout
 import android.widget.TimePicker
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
+import androidx.databinding.DataBindingUtil
+import androidx.fragment.app.DialogFragment
+import androidx.fragment.app.Fragment
 import com.mikepenz.materialdrawer.util.KeyboardUtil
 import com.teo.ttasks.R
 import com.teo.ttasks.data.TaskListsAdapter

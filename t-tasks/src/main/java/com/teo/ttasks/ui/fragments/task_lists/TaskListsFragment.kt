@@ -1,12 +1,7 @@
 package com.teo.ttasks.ui.fragments.task_lists
 
 import android.content.DialogInterface
-import android.databinding.DataBindingUtil
 import android.os.Bundle
-import android.support.v4.widget.SwipeRefreshLayout
-import android.support.v7.app.AlertDialog
-import android.support.v7.widget.LinearLayoutManager
-import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.View.GONE
@@ -14,6 +9,11 @@ import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.EditText
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
+import androidx.databinding.DataBindingUtil
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.teo.ttasks.R
 import com.teo.ttasks.databinding.FragmentTaskListsBinding
 import com.teo.ttasks.receivers.NetworkInfoReceiver

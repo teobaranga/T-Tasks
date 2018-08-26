@@ -1,9 +1,9 @@
 package com.teo.ttasks.util
 
-import android.databinding.BindingAdapter
-import android.support.annotation.DrawableRes
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.annotation.DrawableRes
+import androidx.databinding.BindingAdapter
 import com.teo.ttasks.R
 import java.util.*
 

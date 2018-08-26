@@ -37,13 +37,13 @@ class PrefHelper(context: Context) {
     }
 
     val nightMode: String
-        get() = sharedPreferences.getString(PREF_NIGHT_MODE, NIGHT_AUTO)
+        get() = sharedPreferences.getString(PREF_NIGHT_MODE, NIGHT_AUTO)!!
 
     val userEmail: String?
         get() = sharedPreferences.getString(PREF_USER_EMAIL, null)
 
     val userName: String
-        get() = sharedPreferences.getString(PREF_USER_NAME, "")
+        get() = sharedPreferences.getString(PREF_USER_NAME, "")!!
 
     var userPhoto: String?
         get() = sharedPreferences.getString(PREF_USER_PHOTO, null)
@@ -58,7 +58,7 @@ class PrefHelper(context: Context) {
         set(accessToken) = sharedPreferences.edit().putString(PREF_ACCESS_TOKEN, accessToken).apply()
 
     var taskListsResponseEtag: String
-        get() = sharedPreferences.getString(PREF_TASK_LISTS_RESPONSE_ETAG, "")
+        get() = sharedPreferences.getString(PREF_TASK_LISTS_RESPONSE_ETAG, "")!!
         set(etag) = sharedPreferences.edit().putString(PREF_TASK_LISTS_RESPONSE_ETAG, etag).apply()
 
     /** Return the ID of the most recently accessed task list */
@@ -90,7 +90,7 @@ class PrefHelper(context: Context) {
     }
 
     fun getTasksResponseEtag(taskListId: String): String {
-        return sharedPreferences.getString(PREF_TASKS_RESPONSE_ETAG_PREFIX + taskListId, "")
+        return sharedPreferences.getString(PREF_TASKS_RESPONSE_ETAG_PREFIX + taskListId, "")!!
     }
 
     fun deleteAllEtags() {

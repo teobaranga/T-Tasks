@@ -4,9 +4,9 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.IntentSender
-import android.databinding.DataBindingUtil
 import android.os.Bundle
 import android.widget.Toast
+import androidx.databinding.DataBindingUtil
 import com.google.android.gms.auth.api.Auth
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.auth.api.signin.GoogleSignInStatusCodes
@@ -74,7 +74,7 @@ open class SignInActivity : DaggerAppCompatActivity(), SignInView, GoogleApiClie
         super.onDestroy()
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         // Result returned from launching the Intent from GoogleSignInApi.getSignInIntent(...);
         when (requestCode) {
@@ -100,7 +100,6 @@ open class SignInActivity : DaggerAppCompatActivity(), SignInView, GoogleApiClie
                         Timber.e(result.status.toString())
                         Toast.makeText(this, R.string.error_sign_in, Toast.LENGTH_SHORT).show()
                     }
-                    signInBinding.viewSwitcher.showPrevious()
                 }
                 return
             }
@@ -130,6 +129,7 @@ open class SignInActivity : DaggerAppCompatActivity(), SignInView, GoogleApiClie
         } else {
             Toast.makeText(this, R.string.error_sign_in, Toast.LENGTH_SHORT).show()
         }
+        signInBinding.viewSwitcher.showPrevious()
     }
 
     override fun onConnected(bundle: Bundle?) {

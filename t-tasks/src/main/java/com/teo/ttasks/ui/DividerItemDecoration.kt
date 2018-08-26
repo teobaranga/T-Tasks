@@ -4,11 +4,11 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Rect
 import android.graphics.drawable.Drawable
-import android.support.v7.widget.LinearLayoutManager
-import android.support.v7.widget.RecyclerView
 import android.util.AttributeSet
 import android.util.TypedValue
 import android.view.View
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 
 class DividerItemDecoration(context: Context, attrs: AttributeSet?) : RecyclerView.ItemDecoration() {
 
@@ -25,7 +25,7 @@ class DividerItemDecoration(context: Context, attrs: AttributeSet?) : RecyclerVi
         mDividerWidth = convertDpToPixel(0.5f, context)
     }
 
-    override fun getItemOffsets(outRect: Rect, view: View, parent: RecyclerView, state: RecyclerView.State?) {
+    override fun getItemOffsets(outRect: Rect, view: View, parent: RecyclerView, state: RecyclerView.State) {
         super.getItemOffsets(outRect, view, parent, state)
         if (mDivider == null) {
             return
@@ -41,18 +41,18 @@ class DividerItemDecoration(context: Context, attrs: AttributeSet?) : RecyclerVi
 
         if (mOrientation == LinearLayoutManager.VERTICAL) {
             outRect.top = mDividerWidth
-            if (mShowLastDivider && position == state!!.itemCount - 1) {
+            if (mShowLastDivider && position == state.itemCount - 1) {
                 outRect.bottom = outRect.top
             }
         } else {
             outRect.left = mDividerWidth
-            if (mShowLastDivider && position == state!!.itemCount - 1) {
+            if (mShowLastDivider && position == state.itemCount - 1) {
                 outRect.right = outRect.left
             }
         }
     }
 
-    override fun onDrawOver(c: Canvas, parent: RecyclerView, state: RecyclerView.State?) {
+    override fun onDrawOver(c: Canvas, parent: RecyclerView, state: RecyclerView.State) {
         if (mDivider == null) {
             super.onDrawOver(c, parent, state)
             return
@@ -92,7 +92,7 @@ class DividerItemDecoration(context: Context, attrs: AttributeSet?) : RecyclerVi
         // show last divider
         if (mShowLastDivider && childCount > 0) {
             val child = parent.getChildAt(childCount - 1)
-            if (parent.getChildAdapterPosition(child) == state!!.itemCount - 1) {
+            if (parent.getChildAdapterPosition(child) == state.itemCount - 1) {
                 val params = child.layoutParams as RecyclerView.LayoutParams
                 if (orientation == LinearLayoutManager.VERTICAL) {
                     top = child.bottom + params.bottomMargin

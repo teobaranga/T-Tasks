@@ -3,9 +3,10 @@ package com.teo.ttasks.ui.activities
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
-import android.support.v7.widget.Toolbar
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.widget.Toolbar
+import androidx.core.app.ActivityCompat.startActivityForResult
 import com.google.android.gms.auth.UserRecoverableAuthException
 import com.teo.ttasks.R
 import com.teo.ttasks.data.remote.TokenHelper

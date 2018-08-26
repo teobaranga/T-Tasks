@@ -1,6 +1,6 @@
 package com.teo.ttasks.ui.activities.main
 
-import android.support.v4.util.Pair
+import androidx.core.util.Pair
 import com.teo.ttasks.api.PeopleApi
 import com.teo.ttasks.data.local.PrefHelper
 import com.teo.ttasks.data.remote.TasksHelper

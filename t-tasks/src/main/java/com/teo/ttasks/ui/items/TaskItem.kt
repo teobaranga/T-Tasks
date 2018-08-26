@@ -1,11 +1,11 @@
 package com.teo.ttasks.ui.items
 
-import android.support.graphics.drawable.VectorDrawableCompat
-import android.support.v7.widget.RecyclerView
 import android.util.TypedValue
 import android.view.View
 import android.view.View.GONE
 import android.view.View.VISIBLE
+import androidx.recyclerview.widget.RecyclerView
+import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat
 import com.teo.ttasks.R
 import com.teo.ttasks.data.model.Task
 import com.teo.ttasks.databinding.ItemTaskBinding

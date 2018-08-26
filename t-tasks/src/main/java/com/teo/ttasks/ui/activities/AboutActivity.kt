@@ -3,7 +3,7 @@ package com.teo.ttasks.ui.activities
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.support.v4.content.res.ResourcesCompat
+import androidx.core.content.res.ResourcesCompat
 
 import com.mikepenz.aboutlibraries.Libs
 import com.mikepenz.aboutlibraries.LibsBuilder

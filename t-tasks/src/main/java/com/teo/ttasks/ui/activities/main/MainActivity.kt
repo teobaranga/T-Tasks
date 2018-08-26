@@ -3,23 +3,23 @@ package com.teo.ttasks.ui.activities.main
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
-import android.databinding.DataBindingUtil
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.os.Handler
-import android.support.design.widget.AppBarLayout
-import android.support.design.widget.FloatingActionButton
-import android.support.v4.app.Fragment
-import android.support.v7.app.ActionBar
 import android.view.View
 import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.widget.AdapterView
+import androidx.appcompat.app.ActionBar
+import androidx.databinding.DataBindingUtil
+import androidx.fragment.app.Fragment
 import com.androidhuman.rxfirebase2.auth.rxGetCurrentUser
 import com.androidhuman.rxfirebase2.auth.rxReload
+import com.google.android.material.appbar.AppBarLayout
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.firebase.auth.FirebaseAuth
 import com.mikepenz.google_material_typeface_library.GoogleMaterial
 import com.mikepenz.materialdrawer.AccountHeader
@@ -308,10 +308,9 @@ open class MainActivity : BaseActivity(), MainView {
                 .subscribeOn(Schedulers.io())
                 .andThen(firebaseAuth.rxGetCurrentUser())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(
-                        { firebaseUser ->
-                            onUserPicture(firebaseUser.photoUrl.toString())
-                        })
+                .subscribe { firebaseUser ->
+                    onUserPicture(firebaseUser.photoUrl.toString())
+                }
 
         mainActivityPresenter.getTaskLists()
         mainActivityPresenter.loadUserPictures()

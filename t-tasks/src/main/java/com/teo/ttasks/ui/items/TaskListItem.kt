@@ -1,7 +1,7 @@
 package com.teo.ttasks.ui.items
 
-import android.support.v7.widget.RecyclerView
 import android.view.View
+import androidx.recyclerview.widget.RecyclerView
 import com.teo.ttasks.R
 import com.teo.ttasks.data.model.TaskList
 import com.teo.ttasks.databinding.ItemTaskListBinding

@@ -53,7 +53,7 @@
     <!-- Task Detail -->
     <style name="Base.Theme.TaskDetail" parent="Base.Theme.NoActionBar">
         <item name="popupMenuStyle">@style/PopupMenu</item>
-        <item name="coordinatorLayoutStyle">@style/Widget.Design.CoordinatorLayout</item>
+        <item name="coordinatorLayoutStyle">@style/Widget.Support.CoordinatorLayout</item>
     </style>
 
     <!-- Task Detail theme -->

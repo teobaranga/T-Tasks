@@ -1,6 +1,6 @@
 package presenter
 
-import android.support.annotation.CallSuper
+import androidx.annotation.CallSuper
 import io.mockk.MockKAnnotations
 import io.mockk.every
 import io.mockk.impl.annotations.MockK

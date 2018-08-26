@@ -9,7 +9,7 @@ import android.os.Bundle
 import android.preference.ListPreference
 import android.preference.PreferenceFragment
 import android.preference.RingtonePreference
-import android.support.v7.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatActivity
 import com.teo.ttasks.R
 import com.teo.ttasks.util.NightHelper
 import timber.log.Timber

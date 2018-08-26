@@ -1,6 +1,6 @@
 package com.teo.ttasks.ui.activities.edit_task
 
-import android.support.v4.util.Pair
+import androidx.core.util.Pair
 import com.google.firebase.database.FirebaseDatabase
 import com.teo.ttasks.data.local.TaskFields
 import com.teo.ttasks.data.local.WidgetHelper
