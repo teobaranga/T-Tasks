@@ -3,7 +3,7 @@ ext.deps = [:]
 def ver = [:]
 ver.dagger = "2.16"
 ver.espresso = "3.0.2"
-ver.kotlin = "1.2.61"
+ver.kotlin = "1.2.70"
 ver.okhttp = "3.10.0"
 ver.playServices = "15.0.1"
 ver.powermock = "1.7.4"
@@ -36,7 +36,7 @@ deps.espresso = espresso
 def firebase = [:]
 firebase.core = "com.google.firebase:firebase-core:16.0.3"
 firebase.auth = "com.google.firebase:firebase-auth:16.0.3"
-firebase.database = "com.google.firebase:firebase-database:16.0.1"
+firebase.database = "com.google.firebase:firebase-database:16.0.2"
 deps.firebase = firebase
 
 def kotlin = [:]
@@ -46,7 +46,6 @@ deps.kotlin = kotlin
 
 def okhttp = [:]
 okhttp.core = "com.squareup.okhttp3:okhttp:$ver.okhttp"
-okhttp.logging_interceptor = "com.squareup.okhttp3:logging-interceptor:$ver.okhttp"
 deps.okhttp = okhttp
 
 def playServices = [:]
@@ -66,11 +65,6 @@ retrofit.converter.gson = "com.squareup.retrofit2:converter-gson:$ver.retrofit"
 retrofit.adapter = [:]
 retrofit.adapter.rxjava = "com.squareup.retrofit2:adapter-rxjava2:$ver.retrofit"
 deps.retrofit = retrofit
-
-def rx = [:]
-rx.java = "io.reactivex.rxjava2:rxjava:$ver.rxjava"
-rx.android = "io.reactivex.rxjava2:rxandroid:$ver.rxAndroid"
-deps.rx = rx
 
 def androidx = [:]
 androidx.design = "com.google.android.material:material:1.0.0-rc01"
