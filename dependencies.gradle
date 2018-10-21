@@ -1,11 +1,9 @@
 ext.deps = [:]
 
 def ver = [:]
-ver.dagger = "2.16"
 ver.espresso = "3.0.2"
-ver.kotlin = "1.2.70"
+ver.kotlin = "1.2.71"
 ver.okhttp = "3.10.0"
-ver.playServices = "15.0.1"
 ver.powermock = "1.7.4"
 ver.retrofit = "2.4.0"
 ver.rxAndroid = "2.0.2"
@@ -15,29 +13,13 @@ ext.ver = ver
 
 def deps = [:]
 
-deps.aboutlibraries = "com.mikepenz:aboutlibraries:6.1.1@aar"
 deps.crashlytics = "com.crashlytics.sdk.android:crashlytics:2.9.5@aar"
-deps.materialdrawer = "com.mikepenz:materialdrawer:6.0.9@aar"
 deps.timber = "com.jakewharton.timber:timber:4.7.1"
-
-def dagger = [:]
-dagger.dagger = "com.google.dagger:dagger:$ver.dagger"
-dagger.compiler = "com.google.dagger:dagger-compiler:$ver.dagger"
-dagger.android = [:]
-dagger.android.processor = "com.google.dagger:dagger-android-processor:$ver.dagger"
-dagger.android.support = "com.google.dagger:dagger-android-support:$ver.dagger"
-deps.dagger = dagger
 
 def espresso = [:]
 espresso.core = "com.android.support.test.espresso:espresso-core:$ver.espresso"
 espresso.contrib = "com.android.support.test.espresso:espresso-contrib:$ver.espresso"
 deps.espresso = espresso
-
-def firebase = [:]
-firebase.core = "com.google.firebase:firebase-core:16.0.3"
-firebase.auth = "com.google.firebase:firebase-auth:16.0.3"
-firebase.database = "com.google.firebase:firebase-database:16.0.2"
-deps.firebase = firebase
 
 def kotlin = [:]
 kotlin.stdlib = "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$ver.kotlin"
@@ -47,11 +29,6 @@ deps.kotlin = kotlin
 def okhttp = [:]
 okhttp.core = "com.squareup.okhttp3:okhttp:$ver.okhttp"
 deps.okhttp = okhttp
-
-def playServices = [:]
-playServices.auth = "com.google.android.gms:play-services-auth:16.0.0"
-playServices.gcm = "com.google.android.gms:play-services-gcm:$ver.playServices"
-deps.playServices = playServices
 
 def powermock = [:]
 powermock.jUnit4 = "org.powermock:powermock-module-junit4:$ver.powermock"

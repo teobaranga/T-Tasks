@@ -43,9 +43,28 @@ class EditTaskActivity : DaggerAppCompatActivity(), EditTaskView {
     private lateinit var taskListId: String
 
     private var datePickerFragment: DatePickerFragment? = null
-    private var timePickerFragment: TimePickerFragment? = null
 
     private var taskId: String? = null
+
+    /** Listener invoked when the reminder time has been selected */
+    private val reminderTimeSetListener: TimePickerDialog.OnTimeSetListener =
+            TimePickerDialog.OnTimeSetListener { _, hourOfDay, minute ->
+                val time = Calendar.getInstance()
+                        .apply {
+                            set(Calendar.HOUR_OF_DAY, hourOfDay)
+                            set(Calendar.MINUTE, minute)
+                        }
+                        .time
+                if (reminderTimeClicked) {
+                    editTaskBinding.reminder.text = DateUtils.formatTime(this, time)
+                    editTaskPresenter.setReminderTime(time)
+                    reminderTimeClicked = false
+                } else {
+                    editTaskBinding.dueDate.text = DateUtils.formatDate(this, time)
+                    editTaskBinding.dueTime.text = DateUtils.formatTime(this, time)
+                    editTaskPresenter.setDueTime(time)
+                }
+            }
 
     /**
      * Flag indicating that the reminder time has been clicked.
@@ -142,22 +161,6 @@ class EditTaskActivity : DaggerAppCompatActivity(), EditTaskView {
         editTaskBinding.dueDate.text = DateUtils.formatDate(this, time)
     }
 
-    override fun onTimeSet(view: TimePicker, hourOfDay: Int, minute: Int) {
-        val c = Calendar.getInstance()
-        c.set(Calendar.HOUR_OF_DAY, hourOfDay)
-        c.set(Calendar.MINUTE, minute)
-        val time = c.time
-        if (reminderTimeClicked) {
-            editTaskBinding.reminder.text = DateUtils.formatTime(this, time)
-            editTaskPresenter.setReminderTime(time)
-            reminderTimeClicked = false
-        } else {
-            editTaskBinding.dueDate.text = DateUtils.formatDate(this, time)
-            editTaskBinding.dueTime.text = DateUtils.formatTime(this, time)
-            editTaskPresenter.setDueTime(time)
-        }
-    }
-
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.menu_edit_task, menu)
         return true
@@ -220,8 +223,7 @@ class EditTaskActivity : DaggerAppCompatActivity(), EditTaskView {
     @Suppress("UNUSED_PARAMETER")
     fun onDueTimeClicked(v: View) {
         KeyboardUtil.hideKeyboard(this)
-        timePickerFragment = timePickerFragment ?: TimePickerFragment()
-        timePickerFragment!!.show(supportFragmentManager, "timePicker")
+        showReminderTimePickerDialog()
     }
 
     @Suppress("UNUSED_PARAMETER")
@@ -244,14 +246,12 @@ class EditTaskActivity : DaggerAppCompatActivity(), EditTaskView {
 
             dialog.findViewById<LinearLayout>(R.id.change)!!.setOnClickListener {
                 reminderTimeClicked = true
-                timePickerFragment = timePickerFragment ?: TimePickerFragment()
-                timePickerFragment!!.show(supportFragmentManager, "timePicker")
+                showReminderTimePickerDialog()
                 dialog.dismiss()
             }
         } else {
             reminderTimeClicked = true
-            timePickerFragment = timePickerFragment ?: TimePickerFragment()
-            timePickerFragment!!.show(supportFragmentManager, "timePicker")
+            showReminderTimePickerDialog()
         }
     }
 
@@ -268,16 +268,18 @@ class EditTaskActivity : DaggerAppCompatActivity(), EditTaskView {
         }
     }
 
-    class TimePickerFragment : DialogFragment() {
-        override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-            // Use the current time as the default values for the picker
-            val c = Calendar.getInstance()
-            val hour = c.get(Calendar.HOUR_OF_DAY)
-            val minute = c.get(Calendar.MINUTE)
+    /**
+     * Show the picker for the task reminder time
+     */
+    private fun showReminderTimePickerDialog() {
+        // Use the current time as the default values for the picker
+        val c = Calendar.getInstance()
+        val hour = c.get(Calendar.HOUR_OF_DAY)
+        val minute = c.get(Calendar.MINUTE)
 
-            // Create a new instance of TimePickerDialog and return it
-            return TimePickerDialog(context, activity as EditTaskActivity, hour, minute, DateFormat.is24HourFormat(context))
-        }
+        // Create a new instance of TimePickerDialog and return it
+        val timePickerDialog =  TimePickerDialog(this, reminderTimeSetListener, hour, minute, DateFormat.is24HourFormat(this))
+        timePickerDialog.show()
     }
 
     companion object {

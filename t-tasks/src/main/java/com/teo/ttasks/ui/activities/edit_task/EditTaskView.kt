@@ -7,7 +7,7 @@ import com.teo.ttasks.data.model.Task
 import com.teo.ttasks.data.model.TaskList
 import com.teo.ttasks.ui.base.MvpView
 
-internal interface EditTaskView : MvpView, OnDateSetListener, OnTimeSetListener {
+internal interface EditTaskView : MvpView, OnDateSetListener {
 
     fun onTaskLoaded(task: Task)
 

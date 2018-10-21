@@ -60,6 +60,7 @@ internal class TasksPresenter(private val tasksHelper: TasksHelper,
 
         // Since Realm observables do not complete, this subscription must be recreated every time
         tasksSubscription?.let { if (!it.isDisposed) it.dispose() }
+
         if (!resubscribe) {
             view()?.onTasksLoading()
         }

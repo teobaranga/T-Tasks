@@ -21,12 +21,18 @@ import io.realm.Realm
 import io.realm.RealmConfiguration
 import timber.log.Timber
 import javax.inject.Inject
+import android.app.NotificationManager
+import android.app.NotificationChannel
+import android.os.Build
+import com.teo.ttasks.util.NotificationHelper
 
 class TTasksApp : DaggerApplication() {
 
     @Inject internal lateinit var prefHelper: PrefHelper
 
     private lateinit var applicationComponent: ApplicationComponent
+
+    fun applicationComponent(): ApplicationComponent = applicationComponent
 
     override fun onCreate() {
         super.onCreate()
@@ -63,6 +69,8 @@ class TTasksApp : DaggerApplication() {
                 imageView?.let { Picasso.get().cancelRequest(it) }
             }
         })
+
+        createNotificationChannel()
     }
 
     override fun applicationInjector(): AndroidInjector<out TTasksApp> {
@@ -75,18 +83,34 @@ class TTasksApp : DaggerApplication() {
 
     private fun initRealmConfiguration() {
         Realm.init(this)
-        val realmConfiguration = RealmConfiguration.Builder()
-                .deleteRealmIfMigrationNeeded()
-                .initialData {
-                    // Reset the ETags saved, even though this has nothing to do with Realm
-                    // This is needed so that the app doesn't stop working on a schema change
-                    prefHelper.deleteAllEtags()
-                }
-                .build()
-        Realm.setDefaultConfiguration(realmConfiguration)
+        Realm.setDefaultConfiguration(
+                RealmConfiguration.Builder()
+                        .deleteRealmIfMigrationNeeded()
+                        .initialData {
+                            // Reset the ETags saved, even though this has nothing to do with Realm
+                            // This is needed so that the app doesn't stop working on a schema change
+                            prefHelper.deleteAllEtags()
+                        }
+                        .build())
     }
 
-    fun applicationComponent(): ApplicationComponent = applicationComponent
+    private fun createNotificationChannel() {
+        // Create the NotificationChannel, but only on API 26+ because
+        // the NotificationChannel class is new and not in the support library
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val name = getString(R.string.channel_reminders)
+            val description = getString(R.string.channel_reminders_description)
+            val importance = NotificationManager.IMPORTANCE_HIGH
+            val channel = NotificationChannel(NotificationHelper.CHANNEL_REMINDERS, name, importance)
+                    .apply {
+                        this.description = description
+                    }
+            // Register the channel with the system; you can't change the importance
+            // or other notification behaviors after this
+            val notificationManager = getSystemService(NotificationManager::class.java)
+            notificationManager!!.createNotificationChannel(channel)
+        }
+    }
 
     companion object {
 
