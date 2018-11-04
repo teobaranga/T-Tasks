@@ -17,7 +17,7 @@ import io.reactivex.Completable
  *
  * @param context the application context
  */
-class UserManager(val context: Context) {
+class UserManager(private val context: Context) {
 
     val signInIntent: Intent
         get() = googleSignInClient.signInIntent

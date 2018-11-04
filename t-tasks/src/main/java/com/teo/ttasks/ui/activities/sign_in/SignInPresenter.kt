@@ -9,11 +9,8 @@ import com.teo.ttasks.data.local.PrefHelper
 import com.teo.ttasks.data.remote.TasksHelper
 import com.teo.ttasks.data.remote.TokenHelper
 import com.teo.ttasks.ui.base.Presenter
-import io.reactivex.Flowable
-import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
-import io.realm.Realm
 import timber.log.Timber
 
 internal class SignInPresenter(private val tokenHelper: TokenHelper,
@@ -25,7 +22,7 @@ internal class SignInPresenter(private val tokenHelper: TokenHelper,
      *
      * @param account the current user's account
      */
-    internal fun signIn(account: GoogleSignInAccount, firebaseAuth: FirebaseAuth) {
+    internal fun signIn(account: GoogleSignInAccount) {
 
         prefHelper.setUser(account.email!!, account.displayName!!)
 
@@ -35,7 +32,7 @@ internal class SignInPresenter(private val tokenHelper: TokenHelper,
                 .flatMap { accessToken ->
                     // Sign in using the acquired token
                     val credential = GoogleAuthProvider.getCredential(null, accessToken)
-                    return@flatMap firebaseAuth.rxSignInWithCredential(credential)
+                    return@flatMap FirebaseAuth.getInstance().rxSignInWithCredential(credential)
                             .doOnSuccess { firebaseUser ->
                                 prefHelper.userPhoto = firebaseUser.photoUrl.toString()
                                 Timber.v("%s %s", firebaseUser.displayName, firebaseUser.email)
@@ -43,27 +40,13 @@ internal class SignInPresenter(private val tokenHelper: TokenHelper,
                             }
                 }
                 .observeOn(AndroidSchedulers.mainThread())
-                .doAfterSuccess {
-                    // Indicate that we're loading the task lists + tasks next
-                    view()?.onLoadingTasks()
-                }
+                // Indicate that we're loading the task lists + tasks next
+                .doAfterSuccess { view()?.onLoadingTasks() }
+                // Refresh the task lists
                 .observeOn(Schedulers.io())
-                .flatMapPublisher { _ ->
-                    // Refresh the task lists
-                    return@flatMapPublisher tasksHelper.refreshTaskLists()
-                            .andThen(Flowable.defer {
-                                // For each task list, get its ID
-                                val realm = Realm.getDefaultInstance()
-                                return@defer Single.just(tasksHelper.queryTaskLists(realm).findAll())
-                                        .flattenAsFlowable { it }
-                                        .map { it.id }
-                                        .doFinally { realm.close() }
-                            })
-                }
-                .flatMapCompletable { taskListId ->
-                    // Refresh each task list
-                    return@flatMapCompletable tasksHelper.refreshTasks(taskListId)
-                }
+                .flatMapPublisher { tasksHelper.refreshTaskLists().map { taskList -> taskList.id } }
+                // Refresh each task list
+                .flatMapCompletable { taskListId -> tasksHelper.refreshTasks(taskListId) }
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeOn(Schedulers.io())
                 .subscribe(

@@ -10,7 +10,8 @@ import com.teo.ttasks.injection.module.ApplicationModule.Companion.SCOPE_TASKS
 import io.reactivex.Single
 import timber.log.Timber
 
-class TokenHelper(private val prefHelper: PrefHelper, private val tTasksApp: TTasksApp) {
+class TokenHelper(private val prefHelper: PrefHelper,
+                  private val tTasksApp: TTasksApp) {
 
     companion object {
         private const val APP_SCOPES = "oauth2:" + SCOPE_TASKS + " " + Scopes.PLUS_ME

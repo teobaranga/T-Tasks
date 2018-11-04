@@ -85,6 +85,7 @@ class MainActivityPresenter(private val tasksHelper: TasksHelper,
 
     internal fun refreshTaskLists() {
         val subscription = tasksHelper.refreshTaskLists()
+                .ignoreElements()
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ /* do nothing */ }) { Timber.e(it, "Error refreshing task lists") }
         disposeOnUnbindView(subscription)

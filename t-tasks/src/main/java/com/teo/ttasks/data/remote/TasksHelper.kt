@@ -23,6 +23,7 @@ import io.reactivex.Completable
 import io.reactivex.Flowable
 import io.reactivex.Single
 import io.realm.Realm
+import io.realm.RealmList
 import io.realm.RealmQuery
 import io.realm.RealmResults
 import retrofit2.HttpException
@@ -127,7 +128,7 @@ class TasksHelper(private val tasksApi: TasksApi, private val prefHelper: PrefHe
      */
     fun getTaskListSize(taskListId: String, realm: Realm): Long = queryTasks(taskListId, realm).count()
 
-    fun refreshTaskLists(): Completable {
+    fun refreshTaskLists(): Flowable<TaskList> {
         return tasksApi.getTaskLists(prefHelper.taskListsResponseEtag)
                 .onErrorResumeNext { throwable ->
                     if (handleResourceNotModified(throwable)) {
@@ -161,7 +162,7 @@ class TasksHelper(private val tasksApi: TasksApi, private val prefHelper: PrefHe
                         }
                     }
                 }
-                .ignoreElement()
+                .flattenAsFlowable { it.items ?: RealmList() }
     }
 
     /**

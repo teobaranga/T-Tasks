@@ -27,10 +27,6 @@ open class SignInActivity : DaggerAppCompatActivity(), SignInView {
     @Inject
     internal lateinit var userManager: UserManager
 
-    private val firebaseAuth by lazy {
-        FirebaseAuth.getInstance()
-    }
-
     private lateinit var signInBinding: ActivitySignInBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -64,7 +60,7 @@ open class SignInActivity : DaggerAppCompatActivity(), SignInView {
             RC_SIGN_IN -> {
                 try {
                     val account = userManager.getSignedInAccountFromIntent(data)
-                    signInPresenter.signIn(account, firebaseAuth)
+                    signInPresenter.signIn(account)
                 } catch (e: ApiException) {
                     Timber.e(e, "Error signing in")
                     Toast.makeText(this, R.string.error_sign_in, Toast.LENGTH_SHORT).show()
