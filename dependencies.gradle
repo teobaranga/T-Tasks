@@ -2,7 +2,7 @@ ext.deps = [:]
 
 def ver = [:]
 ver.espresso = "3.0.2"
-ver.kotlin = "1.2.71"
+ver.kotlin = "1.3.0"
 ver.okhttp = "3.10.0"
 ver.powermock = "1.7.4"
 ver.retrofit = "2.4.0"

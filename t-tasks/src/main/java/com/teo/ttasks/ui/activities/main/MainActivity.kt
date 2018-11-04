@@ -18,6 +18,7 @@ import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import com.androidhuman.rxfirebase2.auth.rxGetCurrentUser
 import com.androidhuman.rxfirebase2.auth.rxReload
+import com.androidhuman.rxfirebase2.auth.rxSignOut
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.firebase.auth.FirebaseAuth
@@ -36,6 +37,7 @@ import com.mikepenz.materialdrawer.util.DrawerUIUtils
 import com.squareup.picasso.Picasso
 import com.squareup.picasso.Target
 import com.teo.ttasks.R
+import com.teo.ttasks.UserManager
 import com.teo.ttasks.data.TaskListsAdapter
 import com.teo.ttasks.data.model.TaskList
 import com.teo.ttasks.databinding.ActivityMainBinding
@@ -77,8 +79,14 @@ open class MainActivity : BaseActivity(), MainView {
         }
     }
 
-    @Inject internal lateinit var mainActivityPresenter: MainActivityPresenter
-    @Inject internal lateinit var networkInfoReceiver: NetworkInfoReceiver
+    @Inject
+    internal lateinit var mainActivityPresenter: MainActivityPresenter
+
+    @Inject
+    internal lateinit var networkInfoReceiver: NetworkInfoReceiver
+
+    @Inject
+    internal lateinit var userManager: UserManager
 
     internal lateinit var profile: ProfileDrawerItem
     internal lateinit var accountHeader: AccountHeader
@@ -254,7 +262,23 @@ open class MainActivity : BaseActivity(), MainView {
                         }
                         ID_SETTINGS -> SettingsActivity.startForResult(this, RC_NIGHT_MODE)
                         ID_ABOUT -> AboutActivity.start(this)
-                        ID_SIGN_OUT -> firebaseAuth.signOut()
+                        ID_SIGN_OUT -> {
+                            firebaseAuth.rxSignOut()
+                                    .onErrorComplete {
+                                        Timber.e(it, "There was an error signing out from Firebase, ignoring")
+                                        return@onErrorComplete true
+                                    }
+                                    .andThen(userManager.signOut())
+                                    .onErrorComplete {
+                                        Timber.e(it, "There was an error signing out from Google, ignoring")
+                                        return@onErrorComplete true
+                                    }
+                                    .subscribe({
+                                        Timber.d("Signed out")
+                                    }, {
+                                        Timber.e(it, "Could not sign out")
+                                    })
+                        }
                         else -> {
                             // If we're being restored from a previous state,
                             // then we don't need to do anything and should return or else

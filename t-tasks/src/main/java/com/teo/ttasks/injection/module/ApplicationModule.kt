@@ -2,6 +2,7 @@ package com.teo.ttasks.injection.module
 
 import android.content.Context
 import com.teo.ttasks.TTasksApp
+import com.teo.ttasks.UserManager
 import com.teo.ttasks.data.local.PrefHelper
 import com.teo.ttasks.data.local.WidgetHelper
 import com.teo.ttasks.receivers.NetworkInfoReceiver
@@ -45,5 +46,11 @@ class ApplicationModule {
     @Singleton
     internal fun provideNetworkInfoReceiver(): NetworkInfoReceiver {
         return NetworkInfoReceiver()
+    }
+
+    @Provides
+    @Singleton
+    internal fun provideUserManager(context: Context): UserManager {
+        return UserManager(context)
     }
 }

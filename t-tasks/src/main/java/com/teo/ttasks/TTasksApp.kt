@@ -1,8 +1,11 @@
 package com.teo.ttasks
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.Context
 import android.graphics.drawable.Drawable
 import android.net.Uri
+import android.os.Build
 import android.widget.ImageView
 import com.crashlytics.android.Crashlytics
 import com.evernote.android.job.JobManager
@@ -14,6 +17,7 @@ import com.teo.ttasks.injection.component.ApplicationComponent
 import com.teo.ttasks.injection.component.DaggerApplicationComponent
 import com.teo.ttasks.jobs.DefaultJobCreator
 import com.teo.ttasks.util.NightHelper
+import com.teo.ttasks.util.NotificationHelper
 import dagger.android.AndroidInjector
 import dagger.android.support.DaggerApplication
 import io.fabric.sdk.android.Fabric
@@ -21,18 +25,15 @@ import io.realm.Realm
 import io.realm.RealmConfiguration
 import timber.log.Timber
 import javax.inject.Inject
-import android.app.NotificationManager
-import android.app.NotificationChannel
-import android.os.Build
-import com.teo.ttasks.util.NotificationHelper
 
 class TTasksApp : DaggerApplication() {
 
-    @Inject internal lateinit var prefHelper: PrefHelper
+    @Inject
+    internal lateinit var prefHelper: PrefHelper
 
     private lateinit var applicationComponent: ApplicationComponent
 
-    fun applicationComponent(): ApplicationComponent = applicationComponent
+    fun applicationComponent() = applicationComponent
 
     override fun onCreate() {
         super.onCreate()
@@ -45,7 +46,14 @@ class TTasksApp : DaggerApplication() {
 
         // Enable Timber
         if (BuildConfig.DEBUG) {
-            Timber.plant(Timber.DebugTree())
+            Timber.plant(object : Timber.DebugTree() {
+                override fun createStackElementTag(element: StackTraceElement): String? {
+                    return String.format("%s::%s:%s",
+                            super.createStackElementTag(element),
+                            element.methodName,
+                            element.lineNumber)
+                }
+            })
 
 //            Stetho.initialize(Stetho.newInitializerBuilder(this)
 //                    .enableDumpapp(Stetho.defaultDumperPluginsProvider(this))

@@ -25,11 +25,10 @@ internal class SignInPresenter(private val tokenHelper: TokenHelper,
      *
      * @param account the current user's account
      */
-    internal fun saveUser(account: GoogleSignInAccount) {
-        prefHelper.setUser(account.email!!, account.displayName!!)
-    }
+    internal fun signIn(account: GoogleSignInAccount, firebaseAuth: FirebaseAuth) {
 
-    internal fun signIn(firebaseAuth: FirebaseAuth) {
+        prefHelper.setUser(account.email!!, account.displayName!!)
+
         // First, refresh the access token
         val disposable = tokenHelper.refreshAccessToken()
                 .observeOn(Schedulers.io())
