@@ -13,9 +13,10 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import timber.log.Timber
 
-internal class SignInPresenter(private val tokenHelper: TokenHelper,
-                               private val tasksHelper: TasksHelper,
-                               private val prefHelper: PrefHelper) : Presenter<SignInView>() {
+internal class SignInPresenter(
+        private val tokenHelper: TokenHelper,
+        private val tasksHelper: TasksHelper,
+        private val prefHelper: PrefHelper) : Presenter<SignInView>() {
 
     /**
      * Save some user info. Useful to detect when a user is signed in.

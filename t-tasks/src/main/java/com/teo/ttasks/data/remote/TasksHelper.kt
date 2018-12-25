@@ -33,7 +33,9 @@ import java.util.*
 /**
  * Common task operations
  */
-class TasksHelper(private val tasksApi: TasksApi, private val prefHelper: PrefHelper) {
+class TasksHelper(
+        private val tasksApi: TasksApi,
+        private val prefHelper: PrefHelper) {
 
     /**
      * Create a new task list.
@@ -41,7 +43,8 @@ class TasksHelper(private val tasksApi: TasksApi, private val prefHelper: PrefHe
      * @param taskListFields fields that make up the new task list
      * @return a Flowable containing the newly created task list
      */
-    fun createTaskList(taskListFields: TaskListFields): Flowable<TaskList> = tasksApi.createTaskList(taskListFields)
+    fun createTaskList(taskListFields: TaskListFields): Flowable<TaskList> =
+            tasksApi.createTaskList(taskListFields)
 
     /**
      * Retrieve all the valid task lists associated with the current account.
@@ -63,10 +66,9 @@ class TasksHelper(private val tasksApi: TasksApi, private val prefHelper: PrefHe
                 .filter { it.isLoaded && it.isValid }
     }
 
-    fun queryTaskLists(realm: Realm): RealmQuery<TaskList> {
-        return realm.where(TaskList::class.java)
-                .equalTo(com.teo.ttasks.data.model.TaskListFields.DELETED, false)
-    }
+    fun queryTaskLists(realm: Realm): RealmQuery<TaskList> =
+            realm.where(TaskList::class.java)
+                    .equalTo(com.teo.ttasks.data.model.TaskListFields.DELETED, false)
 
     /**
      * Retrieve a specific task list from the local database. The requested task must be valid (not marked for deletion).
@@ -79,7 +81,7 @@ class TasksHelper(private val tasksApi: TasksApi, private val prefHelper: PrefHe
             Single.defer {
                 val taskList = getTaskList(taskListId, realm)
                 if (taskList == null) {
-                    Single.error(NullPointerException("No task list found with ID $taskListId"))
+                    Single.error<TaskList>(NullPointerException("No task list found with ID $taskListId"))
                 } else {
                     taskList.asFlowable<TaskList>()
                             .filter { it.isValid && it.isLoaded }
@@ -87,11 +89,10 @@ class TasksHelper(private val tasksApi: TasksApi, private val prefHelper: PrefHe
                 }
             }
 
-    fun getTaskList(taskListId: String, realm: Realm): TaskList? {
-        return realm.where(TaskList::class.java)
-                .equalTo(com.teo.ttasks.data.model.TaskListFields.ID, taskListId)
-                .findFirst()
-    }
+    fun getTaskList(taskListId: String, realm: Realm): TaskList? =
+            realm.where(TaskList::class.java)
+                    .equalTo(com.teo.ttasks.data.model.TaskListFields.ID, taskListId)
+                    .findFirst()
 
     /**
      * Update a task list by modifying specific fields (online)
@@ -108,16 +109,15 @@ class TasksHelper(private val tasksApi: TasksApi, private val prefHelper: PrefHe
      *
      * @param taskListId task list identifier
      */
-    fun deleteTaskList(taskListId: String): Completable {
-        return tasksApi.deleteTaskList(taskListId)
-                .doOnComplete {
-                    Realm.getDefaultInstance().use {
-                        it.executeTransaction {
-                            getTaskList(taskListId, it)?.deleteFromRealm()
+    fun deleteTaskList(taskListId: String): Completable =
+            tasksApi.deleteTaskList(taskListId)
+                    .doOnComplete {
+                        Realm.getDefaultInstance().use {
+                            it.executeTransaction {
+                                getTaskList(taskListId, it)?.deleteFromRealm()
+                            }
                         }
                     }
-                }
-    }
 
     /**
      * Get the size of a specific task list.
@@ -128,42 +128,41 @@ class TasksHelper(private val tasksApi: TasksApi, private val prefHelper: PrefHe
      */
     fun getTaskListSize(taskListId: String, realm: Realm): Long = queryTasks(taskListId, realm).count()
 
-    fun refreshTaskLists(): Flowable<TaskList> {
-        return tasksApi.getTaskLists(prefHelper.taskListsResponseEtag)
-                .onErrorResumeNext { throwable ->
-                    if (handleResourceNotModified(throwable)) {
-                        // Short circuit if the task lists have not been modified
-                        return@onErrorResumeNext Single.just(TaskListsResponse.EMPTY)
+    fun refreshTaskLists(): Flowable<TaskList> =
+            tasksApi.getTaskLists(prefHelper.taskListsResponseEtag)
+                    .onErrorResumeNext { throwable ->
+                        if (handleResourceNotModified(throwable)) {
+                            // Short circuit if the task lists have not been modified
+                            return@onErrorResumeNext Single.just(TaskListsResponse.EMPTY)
+                        }
+                        return@onErrorResumeNext Single.error(throwable)
                     }
-                    return@onErrorResumeNext Single.error(throwable)
-                }
-                .doOnSuccess { taskListsResponse ->
-                    if (taskListsResponse == TaskListsResponse.EMPTY) {
-                        return@doOnSuccess
-                    }
-                    Timber.d("Fetching a new task list response")
-                    // Save the task lists
-                    Realm.getDefaultInstance().use { realm ->
-                        val oldTaskListResponse = getTaskListsResponse(realm)
-                        if (oldTaskListResponse == null || taskListsResponse.etag != oldTaskListResponse.etag) {
-                            // Task lists have changed
-                            Timber.d("Task lists have changed")
-                            prefHelper.taskListsResponseEtag = taskListsResponse.etag
-                            taskListsResponse.id = prefHelper.userEmail!!
-                            realm.executeTransaction {
-                                it.insertOrUpdate(taskListsResponse)
-                                // Insert the new task lists
-                                taskListsResponse.items?.forEach { taskList ->
-                                    getTaskList(taskList.id, it) ?: it.insertOrUpdate(taskList)
+                    .doOnSuccess { taskListsResponse ->
+                        if (taskListsResponse == TaskListsResponse.EMPTY) {
+                            return@doOnSuccess
+                        }
+                        Timber.d("Fetching a new task list response")
+                        // Save the task lists
+                        Realm.getDefaultInstance().use { realm ->
+                            val oldTaskListResponse = getTaskListsResponse(realm)
+                            if (oldTaskListResponse == null || taskListsResponse.etag != oldTaskListResponse.etag) {
+                                // Task lists have changed
+                                Timber.d("Task lists have changed")
+                                prefHelper.taskListsResponseEtag = taskListsResponse.etag
+                                taskListsResponse.id = prefHelper.userEmail!!
+                                realm.executeTransaction {
+                                    it.insertOrUpdate(taskListsResponse)
+                                    // Insert the new task lists
+                                    taskListsResponse.items?.forEach { taskList ->
+                                        getTaskList(taskList.id, it) ?: it.insertOrUpdate(taskList)
+                                    }
                                 }
+                            } else {
+                                Timber.d("Task lists are up-to-date")
                             }
-                        } else {
-                            Timber.d("Task lists are up-to-date")
                         }
                     }
-                }
-                .flattenAsFlowable { it.items ?: RealmList() }
-    }
+                    .flattenAsFlowable { it.items ?: RealmList() }
 
     /**
      * Get the Realm-managed tasks associated with a given task list from the local database.
@@ -265,52 +264,52 @@ class TasksHelper(private val tasksApi: TasksApi, private val prefHelper: PrefHe
      * Retrieve a fresh copy of the tasks from the given tasks list and update the local store
      * with the new and updated tasks
      */
-    fun refreshTasks(taskListId: String): Completable {
-        return tasksApi.getTasks(taskListId, prefHelper.getTasksResponseEtag(taskListId))
-                .onErrorResumeNext { throwable ->
-                    if (handleResourceNotModified(throwable)) {
-                        return@onErrorResumeNext Single.just(TasksResponse.EMPTY)
-                    }
-                    return@onErrorResumeNext Single.error(throwable)
-                }
-                .doOnSuccess { tasksResponse ->
-                    if (tasksResponse == TasksResponse.EMPTY) {
-                        return@doOnSuccess
-                    }
-                    // Save the tasks if required
-                    Realm.getDefaultInstance().use { realm ->
-                        // Check if the task list was changed
-                        val oldTaskResponse = getTasksResponse(taskListId, realm)
-                        if (oldTaskResponse == null || tasksResponse.etag != oldTaskResponse.etag) {
-                            // The old task list doesn't exist or it has outdated data
-                            Timber.v("Tasks have changed for %s", taskListId)
-                            prefHelper.setTasksResponseEtag(taskListId, tasksResponse.etag!!)
-                            tasksResponse.id = taskListId
-
-                            realm.executeTransaction {
-                                // Insert the new tasks
-                                // FIXME: what happens with non-local updates?
-                                it.insertOrUpdate(tasksResponse)
-                                val tasksDatabase = FirebaseDatabase.getInstance().getTasksDatabase()
-                                tasksResponse.items?.forEach { task ->
-                                    val localTask = getTask(task.id, it)
-                                    if (localTask == null) {
-                                        // Insert the new task into the local storage
-                                        task.taskListId = taskListId
-                                        it.insertOrUpdate(task)
-                                    } else localTask.reminder?.let {
-                                        Timber.d("saving reminder")
-                                        tasksDatabase.saveReminder(localTask.id, it.time)
-                                    }
-                                }
-                            }
+    fun refreshTasks(taskListId: String): Completable =
+            tasksApi.getTasks(taskListId, prefHelper.getTasksResponseEtag(taskListId))
+                    .onErrorResumeNext { throwable ->
+                        return@onErrorResumeNext if (handleResourceNotModified(throwable)) {
+                            Single.just(TasksResponse.EMPTY)
                         } else {
-                            Timber.v("Tasks are up-to-date for %s", taskListId)
+                            Single.error(throwable)
                         }
                     }
-                }
-                .ignoreElement()
-    }
+                    .doOnSuccess { tasksResponse ->
+                        if (tasksResponse == TasksResponse.EMPTY) {
+                            return@doOnSuccess
+                        }
+                        // Save the tasks if required
+                        Realm.getDefaultInstance().use { realm ->
+                            // Check if the task list was changed
+                            val oldTaskResponse = getTasksResponse(taskListId, realm)
+                            if (oldTaskResponse == null || tasksResponse.etag != oldTaskResponse.etag) {
+                                // The old task list doesn't exist or it has outdated data
+                                Timber.v("Tasks have changed for %s", taskListId)
+                                prefHelper.setTasksResponseEtag(taskListId, tasksResponse.etag!!)
+                                tasksResponse.id = taskListId
+
+                                realm.executeTransaction {
+                                    // Insert the new tasks
+                                    // FIXME: what happens with non-local updates?
+                                    it.insertOrUpdate(tasksResponse)
+                                    val tasksDatabase = FirebaseDatabase.getInstance().getTasksDatabase()
+                                    tasksResponse.items?.forEach { task ->
+                                        val localTask = getTask(task.id, it)
+                                        if (localTask == null) {
+                                            // Insert the new task into the local storage
+                                            task.taskListId = taskListId
+                                            it.insertOrUpdate(task)
+                                        } else localTask.reminder?.let {
+                                            Timber.d("saving reminder")
+                                            tasksDatabase.saveReminder(localTask.id, it.time)
+                                        }
+                                    }
+                                }
+                            } else {
+                                Timber.v("Tasks are up-to-date for %s", taskListId)
+                            }
+                        }
+                    }
+                    .ignoreElement()
 
     /**
      * Update the task, changing only the specified fields
@@ -377,7 +376,10 @@ class TasksHelper(private val tasksApi: TasksApi, private val prefHelper: PrefHe
     private fun handleResourceNotModified(throwable: Throwable): Boolean {
         // End the stream if the status code is 304 - Not Modified
         if (throwable is HttpException) {
-            throwable.response().errorBody()?.let { it.close(); Timber.v("closed error body") }
+            throwable.response().errorBody()?.let {
+                it.close()
+                Timber.v("closed error body")
+            }
 
             if (throwable.code() == 304) {
                 return true

@@ -2,10 +2,9 @@ ext.deps = [:]
 
 def ver = [:]
 ver.espresso = "3.0.2"
-ver.kotlin = "1.3.0"
+ver.kotlin = "1.3.11"
 ver.okhttp = "3.10.0"
 ver.powermock = "1.7.4"
-ver.retrofit = "2.4.0"
 ver.rxAndroid = "2.0.2"
 ver.rxjava = "2.2.0"
 ver.support = "27.1.1"
@@ -13,7 +12,6 @@ ext.ver = ver
 
 def deps = [:]
 
-deps.crashlytics = "com.crashlytics.sdk.android:crashlytics:2.9.5@aar"
 deps.timber = "com.jakewharton.timber:timber:4.7.1"
 
 def espresso = [:]
@@ -34,14 +32,6 @@ def powermock = [:]
 powermock.jUnit4 = "org.powermock:powermock-module-junit4:$ver.powermock"
 powermock.mockito = "org.powermock:powermock-api-mockito:$ver.powermock"
 deps.powermock = powermock
-
-def retrofit = [:]
-retrofit.retrofit = "com.squareup.retrofit2:retrofit:$ver.retrofit"
-retrofit.converter = [:]
-retrofit.converter.gson = "com.squareup.retrofit2:converter-gson:$ver.retrofit"
-retrofit.adapter = [:]
-retrofit.adapter.rxjava = "com.squareup.retrofit2:adapter-rxjava2:$ver.retrofit"
-deps.retrofit = retrofit
 
 def androidx = [:]
 androidx.design = "com.google.android.material:material:1.0.0-rc01"
