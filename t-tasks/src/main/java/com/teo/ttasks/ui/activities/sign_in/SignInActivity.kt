@@ -1,12 +1,12 @@
 package com.teo.ttasks.ui.activities.sign_in
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import com.google.android.gms.common.api.ApiException
-import com.google.firebase.auth.FirebaseAuth
 import com.teo.ttasks.R
 import com.teo.ttasks.UserManager
 import com.teo.ttasks.databinding.ActivitySignInBinding
@@ -58,12 +58,18 @@ open class SignInActivity : DaggerAppCompatActivity(), SignInView {
         when (requestCode) {
             // Result returned from launching the Intent from GoogleSignInApi.getSignInIntent(...);
             RC_SIGN_IN -> {
-                try {
-                    val account = userManager.getSignedInAccountFromIntent(data)
-                    signInPresenter.signIn(account)
-                } catch (e: ApiException) {
-                    Timber.e(e, "Error signing in")
-                    Toast.makeText(this, R.string.error_sign_in, Toast.LENGTH_SHORT).show()
+                if (resultCode == Activity.RESULT_OK) {
+                    try {
+                        val account = userManager.getSignedInAccountFromIntent(data)
+                        signInPresenter.signIn(account)
+                    } catch (e: ApiException) {
+                        Timber.e(e, "Error signing in")
+                        Toast.makeText(this, R.string.error_sign_in, Toast.LENGTH_SHORT).show()
+                        signInBinding.viewSwitcher.showPrevious()
+                    }
+                } else {
+                    // Google Sign In cancelled
+                    signInBinding.viewSwitcher.showPrevious()
                 }
             }
         }

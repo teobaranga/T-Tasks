@@ -62,7 +62,7 @@ class TaskCreateJob : Job() {
 
     override fun onRunJob(params: Params): Result {
         // Inject dependencies
-        (context.applicationContext as TTasksApp).applicationComponent().inject(this)
+        (context.applicationContext as TTasksApp).applicationComponent.inject(this)
 
         // Extract params
         val extras = params.extras

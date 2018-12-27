@@ -17,6 +17,7 @@ import io.reactivex.Completable
  *
  * @param context the application context
  */
+@OpenClassOnDebug
 class UserManager(private val context: Context) {
 
     val signInIntent: Intent

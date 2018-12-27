@@ -1,7 +1,6 @@
 package com.teo.ttasks.injection.module
 
 import android.content.Context
-import com.teo.ttasks.OpenClassOnDebug
 import com.teo.ttasks.TTasksApp
 import com.teo.ttasks.UserManager
 import com.teo.ttasks.data.local.PrefHelper
@@ -10,16 +9,11 @@ import com.teo.ttasks.receivers.NetworkInfoReceiver
 import com.teo.ttasks.util.NotificationHelper
 import dagger.Module
 import dagger.Provides
+import io.mockk.mockk
 import javax.inject.Singleton
 
-/** It's a Dagger module that provides application level dependencies.  */
-@OpenClassOnDebug
 @Module
-class ApplicationModule {
-
-    companion object {
-        const val SCOPE_TASKS = "https://www.googleapis.com/auth/tasks"
-    }
+class TestApplicationModule {
 
     @Provides
     internal fun provideContext(application: TTasksApp): Context = application.applicationContext
@@ -30,19 +24,17 @@ class ApplicationModule {
 
     @Provides
     @Singleton
-    internal fun provideWidgetHelper(context: Context, prefHelper: PrefHelper): WidgetHelper =
-        WidgetHelper(context, prefHelper)
+    internal fun provideWidgetHelper(): WidgetHelper = mockk()
 
     @Provides
     @Singleton
-    internal fun provideNotificationHelper(context: Context): NotificationHelper =
-        NotificationHelper(context)
+    internal fun provideNotificationHelper(): NotificationHelper = mockk()
 
     @Provides
     @Singleton
-    internal fun provideNetworkInfoReceiver(): NetworkInfoReceiver = NetworkInfoReceiver()
+    internal fun provideNetworkInfoReceiver(): NetworkInfoReceiver = mockk()
 
     @Provides
     @Singleton
-    internal fun provideUserManager(context: Context): UserManager = UserManager(context)
+    fun provideUserManager(): UserManager = mockk()
 }

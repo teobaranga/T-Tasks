@@ -31,9 +31,16 @@ class TTasksApp : DaggerApplication() {
     @Inject
     internal lateinit var prefHelper: PrefHelper
 
-    private lateinit var applicationComponent: ApplicationComponent
-
-    fun applicationComponent() = applicationComponent
+    var applicationComponent: ApplicationComponent by LateInit(
+        getter = {
+            if (!isInitialized()) {
+                field = DaggerApplicationComponent
+                            .builder()
+                            .create(this@TTasksApp) as ApplicationComponent
+            }
+            return@LateInit field
+        }
+    )
 
     override fun onCreate() {
         super.onCreate()
@@ -81,13 +88,7 @@ class TTasksApp : DaggerApplication() {
         createNotificationChannel()
     }
 
-    override fun applicationInjector(): AndroidInjector<out TTasksApp> {
-        val injector = DaggerApplicationComponent
-                .builder()
-                .create(this)
-        applicationComponent = injector as ApplicationComponent
-        return injector
-    }
+    override fun applicationInjector(): AndroidInjector<out TTasksApp> = applicationComponent
 
     private fun initRealmConfiguration() {
         Realm.init(this)
