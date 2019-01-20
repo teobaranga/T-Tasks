@@ -5,8 +5,9 @@ import android.content.SharedPreferences
 import android.preference.PreferenceManager
 import com.teo.ttasks.util.NightHelper.NIGHT_AUTO
 import com.teo.ttasks.util.SortType
+import timber.log.Timber
 
-class PrefHelper(context: Context) {
+class PrefHelper(private val context: Context) {
 
     companion object {
 
@@ -32,9 +33,7 @@ class PrefHelper(context: Context) {
         private const val PREF_NIGHT_MODE = "night_mode"
     }
 
-    private val sharedPreferences: SharedPreferences by lazy {
-        PreferenceManager.getDefaultSharedPreferences(context)
-    }
+    private val sharedPreferences: SharedPreferences by lazy { PreferenceManager.getDefaultSharedPreferences(context) }
 
     val nightMode: String
         get() = sharedPreferences.getString(PREF_NIGHT_MODE, NIGHT_AUTO)!!
@@ -55,7 +54,10 @@ class PrefHelper(context: Context) {
 
     var accessToken: String?
         get() = sharedPreferences.getString(PREF_ACCESS_TOKEN, null)
-        set(accessToken) = sharedPreferences.edit().putString(PREF_ACCESS_TOKEN, accessToken).apply()
+        set(accessToken) {
+            sharedPreferences.edit().putString(PREF_ACCESS_TOKEN, accessToken).apply()
+            Timber.d("Access token changed: %s", accessToken)
+        }
 
     var taskListsResponseEtag: String
         get() = sharedPreferences.getString(PREF_TASK_LISTS_RESPONSE_ETAG, "")!!
@@ -64,7 +66,8 @@ class PrefHelper(context: Context) {
     /** Return the ID of the most recently accessed task list */
     var currentTaskListId: String?
         get() = sharedPreferences.getString(PREF_CURRENT_TASK_LIST_ID, null)
-        set(currentTaskListId) = sharedPreferences.edit().putString(PREF_CURRENT_TASK_LIST_ID, currentTaskListId).apply()
+        set(currentTaskListId) = sharedPreferences.edit()
+            .putString(PREF_CURRENT_TASK_LIST_ID, currentTaskListId).apply()
 
     /** Flag indicating whether to show completed tasks as expanded at startup */
     var showCompleted: Boolean
@@ -75,28 +78,23 @@ class PrefHelper(context: Context) {
         get() = SortType.valueOf(sharedPreferences.getString(PREF_SORT_MODE, null) ?: SortType.SORT_DATE.name)
         set(sortMode) = sharedPreferences.edit().putString(PREF_SORT_MODE, sortMode.name).apply()
 
-    fun setUser(email: String, displayName: String) {
-        sharedPreferences.edit().putString(PREF_USER_EMAIL, email)
-                .putString(PREF_USER_NAME, displayName)
-                .apply()
-    }
+    fun setUser(email: String, displayName: String) = sharedPreferences.edit()
+        .putString(PREF_USER_EMAIL, email)
+        .putString(PREF_USER_NAME, displayName)
+        .apply()
 
-    fun clearUser() {
-        sharedPreferences.edit().clear().apply()
-    }
+    fun clearUser() = sharedPreferences.edit().clear().apply()
 
-    fun setTasksResponseEtag(taskListId: String, etag: String) {
-        sharedPreferences.edit().putString(PREF_TASKS_RESPONSE_ETAG_PREFIX + taskListId, etag).apply()
-    }
+    fun setTasksResponseEtag(taskListId: String, etag: String) = sharedPreferences.edit()
+        .putString("$PREF_TASKS_RESPONSE_ETAG_PREFIX$taskListId", etag).apply()
 
-    fun getTasksResponseEtag(taskListId: String): String {
-        return sharedPreferences.getString(PREF_TASKS_RESPONSE_ETAG_PREFIX + taskListId, "")!!
-    }
+    fun getTasksResponseEtag(taskListId: String): String =
+        sharedPreferences.getString("$PREF_TASKS_RESPONSE_ETAG_PREFIX$taskListId", "")!!
 
     fun deleteAllEtags() {
         sharedPreferences.all.keys
-                .filter { it.startsWith(PREF_TASKS_RESPONSE_ETAG_PREFIX) }
-                .forEach { key -> sharedPreferences.edit().remove(key).apply() }
+            .filter { it.startsWith(PREF_TASKS_RESPONSE_ETAG_PREFIX) }
+            .forEach { key -> sharedPreferences.edit().remove(key).apply() }
 
         sharedPreferences.edit().remove(PREF_TASK_LISTS_RESPONSE_ETAG).apply()
     }
@@ -106,20 +104,17 @@ class PrefHelper(context: Context) {
      * @param appWidgetId tasks widget identifier
      * @param taskListId  task list identifier
      */
-    fun setWidgetTaskListId(appWidgetId: Int, taskListId: String) {
-        sharedPreferences.edit().putString(PREF_WIDGET_PREFIX + appWidgetId, taskListId).apply()
-    }
+    fun setWidgetTaskListId(appWidgetId: Int, taskListId: String) = sharedPreferences.edit()
+        .putString("$PREF_WIDGET_PREFIX$appWidgetId", taskListId).apply()
 
     /**
      * Retrieve the task list ID associated with a given tasks widget
      * @param appWidgetId task widget identifier
      * @return the task list identifier
      */
-    fun getWidgetTaskListId(appWidgetId: Int): String? {
-        return sharedPreferences.getString(PREF_WIDGET_PREFIX + appWidgetId, null)
-    }
+    fun getWidgetTaskListId(appWidgetId: Int): String? =
+        sharedPreferences.getString("$PREF_WIDGET_PREFIX$appWidgetId", null)
 
-    fun deleteWidgetTaskId(appWidgetId: Int) {
-        sharedPreferences.edit().remove(PREF_WIDGET_PREFIX + appWidgetId).apply()
-    }
+    fun deleteWidgetTaskId(appWidgetId: Int) =
+        sharedPreferences.edit().remove("$PREF_WIDGET_PREFIX$appWidgetId").apply()
 }

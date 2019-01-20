@@ -1,5 +1,6 @@
 package com.teo.ttasks.injection.module
 
+import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.gson.*
 import com.teo.ttasks.BuildConfig
 import com.teo.ttasks.TTasksApp
@@ -36,96 +37,103 @@ class TasksApiModule {
 
     @Provides
     @Singleton
-    internal fun provideTokenHelper(prefHelper: PrefHelper, tTasksApp: TTasksApp): TokenHelper =
-            TokenHelper(prefHelper, tTasksApp)
+    internal fun provideTokenHelper(prefHelper: PrefHelper, tTasksApp: TTasksApp) = TokenHelper(prefHelper, tTasksApp)
 
     @Provides
     @Singleton
-    internal fun provideTasksHelper(tasksApi: TasksApi, prefHelper: PrefHelper): TasksHelper =
-            TasksHelper(tasksApi, prefHelper)
+    internal fun provideTasksHelper(tasksApi: TasksApi, prefHelper: PrefHelper) = TasksHelper(tasksApi, prefHelper)
 
     @Provides
     @Singleton
-    internal fun provideTasksApi(retrofitBuilder: Retrofit.Builder): TasksApi =
-            retrofitBuilder.baseUrl(TASKS_BASE_URL).build().create(TasksApi::class.java)
+    internal fun provideTasksApi(retrofitBuilder: Retrofit.Builder) =
+        retrofitBuilder.baseUrl(TASKS_BASE_URL).build().create(TasksApi::class.java)
 
     @Provides
     @Singleton
-    internal fun providePeopleApi(retrofitBuilder: Retrofit.Builder): PeopleApi =
-            retrofitBuilder.baseUrl(PEOPLE_BASE_URL).build().create(PeopleApi::class.java)
+    internal fun providePeopleApi(retrofitBuilder: Retrofit.Builder) =
+        retrofitBuilder.baseUrl(PEOPLE_BASE_URL).build().create(PeopleApi::class.java)
 
     @Provides
     @Singleton
-    internal fun provideOkHttpClient(tokenHelper: TokenHelper, prefHelper: PrefHelper): OkHttpClient {
-        val protocols = ArrayList<Protocol>()
-        protocols.add(Protocol.HTTP_1_1)
-        return OkHttpClient.Builder()
-                .protocols(protocols)
-                .connectionPool(ConnectionPool(0, 5L, TimeUnit.MINUTES))
-                .connectTimeout(1, TimeUnit.MINUTES)
-                .readTimeout(1, TimeUnit.MINUTES)
-                .writeTimeout(1, TimeUnit.MINUTES)
-                .addInterceptor(HttpLoggingInterceptor().setLevel(if (BuildConfig.DEBUG) BASIC else NONE))
-                .addInterceptor { chain ->
-                    // Use the access token to access the Tasks API
-                    val request = chain.request()
-                    val accessToken = prefHelper.accessToken
-                    if (accessToken != null) {
-                        Timber.d("authorizing with %s", accessToken)
-                        // Add the authorization header
-                        return@addInterceptor chain.proceed(request.newBuilder()
-                                .header(HEADER_AUTHORIZATION, String.format(VALUE_BEARER, accessToken))
-                                .build())
+    internal fun provideOkHttpClient(tTasksApp: TTasksApp, tokenHelper: TokenHelper, prefHelper: PrefHelper) =
+        OkHttpClient.Builder()
+            .protocols(arrayListOf(Protocol.HTTP_1_1))
+            .connectionPool(ConnectionPool(0, 5L, TimeUnit.MINUTES))
+            .connectTimeout(1, TimeUnit.MINUTES)
+            .readTimeout(1, TimeUnit.MINUTES)
+            .writeTimeout(1, TimeUnit.MINUTES)
+            .addInterceptor(HttpLoggingInterceptor().setLevel(if (BuildConfig.DEBUG) BASIC else NONE))
+            .addInterceptor { chain ->
+                // Use the access token to access the Tasks API
+                val request = chain.request()
+                return@addInterceptor when (val accessToken = prefHelper.accessToken) {
+                    null -> {
+                        Timber.d("Access token not available, will try to request a new token")
+                        chain.proceed(request)
                     }
-                    Timber.d("access token not available, will try to request a new token")
-                    chain.proceed(request)
-                }
-                .authenticator { _, response ->
-                    // Refresh the access token when it expires
-                    Timber.d("requesting new access token")
-                    try {
-                        val accessToken = tokenHelper.refreshAccessToken().blockingGet()
-                        prefHelper.accessToken = accessToken
-                        Timber.d("saved new access token %s", accessToken)
-                        return@authenticator response.request().newBuilder()
+                    else -> {
+                        Timber.v("Authorizing with %s", accessToken)
+                        // Add the authorization header
+                        chain.proceed(
+                            request.newBuilder()
                                 .header(HEADER_AUTHORIZATION, String.format(VALUE_BEARER, accessToken))
                                 .build()
-                    } catch (e: Exception) {
-                        Timber.e("could not get new access token")
+                        )
                     }
-                    null
                 }
-                .build()
-    }
+            }
+            .authenticator { _, response ->
+                // Refresh the access token when it expires
+                Timber.d("Unauthorized, requesting new access token")
+                return@authenticator when (val account = GoogleSignIn.getLastSignedInAccount(tTasksApp)?.account) {
+                    null -> {
+                        Timber.e("User is null, should be signed out")
+                        null
+                    }
+                    else -> {
+                        try {
+                            val accessToken = tokenHelper.refreshAccessToken(account).blockingGet()
+                            response.request().newBuilder()
+                                .header(HEADER_AUTHORIZATION, String.format(VALUE_BEARER, accessToken))
+                                .build()
+                        } catch (e: Exception) {
+                            Timber.e(e, "Could not get new access token")
+                            null
+                        }
+                    }
+                }
+            }
+            .build()
 
     @Provides
     @Singleton
-    internal fun provideRetrofitBuilder(okHttpClient: OkHttpClient): Retrofit.Builder {
-        val gson = GsonBuilder()
-                .registerTypeAdapter(Date::class.java, GsonUTCDateAdapter())
-                .excludeFieldsWithoutExposeAnnotation()
-                .serializeNulls()
-                .create()
-        return Retrofit.Builder()
-                .client(okHttpClient)
-                .addConverterFactory(GsonConverterFactory.create(gson))
-                .addCallAdapterFactory(RxJava2CallAdapterFactory.createWithScheduler(Schedulers.io()))
-    }
+    internal fun provideRetrofitBuilder(okHttpClient: OkHttpClient) =
+        Retrofit.Builder()
+            .client(okHttpClient)
+            .addConverterFactory(
+                GsonConverterFactory.create(
+                    GsonBuilder()
+                        .registerTypeAdapter(Date::class.java, GsonUTCDateAdapter())
+                        .excludeFieldsWithoutExposeAnnotation()
+                        .serializeNulls()
+                        .create()
+                )
+            )
+            .addCallAdapterFactory(RxJava2CallAdapterFactory.createWithScheduler(Schedulers.io()))
 
     private inner class GsonUTCDateAdapter internal constructor() : JsonSerializer<Date>, JsonDeserializer<Date> {
 
-        @Synchronized override fun serialize(date: Date, type: Type, jsonSerializationContext: JsonSerializationContext): JsonElement {
-            return JsonPrimitive(utcDateFormat.format(date))
-        }
+        @Synchronized
+        override fun serialize(date: Date, type: Type, context: JsonSerializationContext) =
+            JsonPrimitive(utcDateFormat.format(date))
 
-        @Synchronized override fun deserialize(jsonElement: JsonElement, type: Type, jsonDeserializationContext: JsonDeserializationContext): Date {
+        @Synchronized
+        override fun deserialize(jsonElement: JsonElement, type: Type, context: JsonDeserializationContext) =
             try {
-                return utcDateFormat.parse(jsonElement.asString)
+                utcDateFormat.parse(jsonElement.asString)
             } catch (e: ParseException) {
                 throw JsonParseException(e)
-            }
-
-        }
+            }!!
     }
 
     companion object {

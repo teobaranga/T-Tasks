@@ -22,8 +22,10 @@ import timber.log.Timber
 import java.util.*
 import java.util.concurrent.TimeUnit
 
-internal class TasksPresenter(private val tasksHelper: TasksHelper,
-                              private val prefHelper: PrefHelper) : Presenter<TasksView>() {
+internal class TasksPresenter(
+    private val tasksHelper: TasksHelper,
+    private val prefHelper: PrefHelper
+) : Presenter<TasksView>() {
 
     private var tasksSubscription: Disposable? = null
 
@@ -68,68 +70,68 @@ internal class TasksPresenter(private val tasksHelper: TasksHelper,
         tasksSubscription = tasksHelper.getTasks(taskListId, realm)
 //                .map { realm.copyFromRealm<Task>(it) }
 //                .observeOn(Schedulers.io())
-                .doOnNext { tasks ->
-                    val taskMap = tasks.associateBy({ it.id }, { it })
+            .doOnNext { tasks ->
+                val taskMap = tasks.associateBy({ it.id }, { it })
 
-                    // Dispose reminders for deleted tasks
-                    val deletedTaskIds = reminderMap.keys - taskMap.keys
-                    deletedTaskIds.forEach { id ->
-                        // Remove and dispose
-                        reminderDisposables.remove(reminderMap.getValue(id))
-                        reminderMap.remove(id)
+                // Dispose reminders for deleted tasks
+                val deletedTaskIds = reminderMap.keys - taskMap.keys
+                deletedTaskIds.forEach { id ->
+                    // Remove and dispose
+                    reminderDisposables.remove(reminderMap.getValue(id))
+                    reminderMap.remove(id)
 //                        Timber.v("Removed listener for task $id")
-                    }
-
-                    // Add reminder listeners for new tasks
-                    val newTaskIds = taskMap.keys - reminderMap.keys
-                    for (id in newTaskIds) {
-                        val reminderDisposable = this.tasks.reminder(id)!!.dataChanges()
-                                .observeOn(AndroidSchedulers.mainThread())
-                                .subscribeOn(Schedulers.io())
-                                .subscribe { dataSnapshot ->
-                                    dataSnapshot?.getValue(Long::class.java)?.let { dateInMillis ->
-                                        // Timber.v("Reminder for $id: $dateInMillis")
-                                        val reminder = Date(dateInMillis)
-                                        val task = taskMap[id]!!
-                                        if (task.reminder != reminder) {
-                                            reminderProcessor.onNext(Pair(task, reminder))
-                                        }
-                                    }
-                                }
-                        reminderDisposables.add(reminderDisposable)
-                        reminderMap[id] = reminderDisposable
-//                        Timber.v("Added listener for task $id")
-                    }
                 }
-                .compose(RxUtils.getTaskItems(sortingMode))
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(
-                        { (taskType, taskItems) ->
-                            taskCount += taskItems.size
-                            when (taskType) {
-                                TaskType.ACTIVE -> {
-                                    // Show active tasks
-                                    view()?.onActiveTasksLoaded(taskItems)
-                                }
-                                TaskType.COMPLETED -> {
-                                    // Show completed tasks
-                                    view()?.onCompletedTasksLoaded(taskItems)
-                                }
-                                // End of tasks - all the previous task types have been processed
-                                TaskType.EOT -> {
-                                    view()?.let {
-                                        if (taskCount == 0) {
-                                            it.onTasksEmpty()
-                                        } else {
-                                            it.onTasksLoaded()
-                                            taskCount = 0
-                                        }
-                                    }
+
+                // Add reminder listeners for new tasks
+                val newTaskIds = taskMap.keys - reminderMap.keys
+                for (id in newTaskIds) {
+                    val reminderDisposable = this.tasks.reminder(id)!!.dataChanges()
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribeOn(Schedulers.io())
+                        .subscribe { dataSnapshot ->
+                            dataSnapshot?.getValue(Long::class.java)?.let { dateInMillis ->
+                                // Timber.v("Reminder for $id: $dateInMillis")
+                                val reminder = Date(dateInMillis)
+                                val task = taskMap[id]!!
+                                if (task.reminder != reminder) {
+                                    reminderProcessor.onNext(Pair(task, reminder))
                                 }
                             }
-                        },
-                        { Timber.e(it, "Error when subscribing to tasks")}
-                )
+                        }
+                    reminderDisposables.add(reminderDisposable)
+                    reminderMap[id] = reminderDisposable
+//                        Timber.v("Added listener for task $id")
+                }
+            }
+            .compose(RxUtils.getTaskItems(sortingMode))
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(
+                { (taskType, taskItems) ->
+                    taskCount += taskItems.size
+                    when (taskType) {
+                        TaskType.ACTIVE -> {
+                            // Show active tasks
+                            view()?.onActiveTasksLoaded(taskItems)
+                        }
+                        TaskType.COMPLETED -> {
+                            // Show completed tasks
+                            view()?.onCompletedTasksLoaded(taskItems)
+                        }
+                        // End of tasks - all the previous task types have been processed
+                        TaskType.EOT -> {
+                            view()?.let {
+                                if (taskCount == 0) {
+                                    it.onTasksEmpty()
+                                } else {
+                                    it.onTasksLoaded()
+                                    taskCount = 0
+                                }
+                            }
+                        }
+                    }
+                },
+                { Timber.e(it, "Error when subscribing to tasks") }
+            )
         disposeOnUnbindView(tasksSubscription!!)
     }
 
@@ -137,19 +139,19 @@ internal class TasksPresenter(private val tasksHelper: TasksHelper,
         if (taskListId == null)
             return
         val subscription = tasksHelper.refreshTasks(taskListId)
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(
-                        { view()?.onRefreshDone() },
-                        { throwable ->
-                            Timber.e(throwable, "Error refreshing tasks")
-                            view()?.let {
-                                val cause = throwable.cause
-                                when (cause) {
-                                    is UserRecoverableAuthException -> it.onTasksLoadError(cause.intent)
-                                    else -> it.onTasksLoadError(null)
-                                }
-                            }
-                        })
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(
+                { view()?.onRefreshDone() },
+                { throwable ->
+                    Timber.e(throwable, "Error refreshing tasks")
+                    view()?.let {
+                        val cause = throwable.cause
+                        when (cause) {
+                            is UserRecoverableAuthException -> it.onTasksLoadError(cause.intent)
+                            else -> it.onTasksLoadError(null)
+                        }
+                    }
+                })
         disposeOnUnbindView(subscription)
     }
 
@@ -164,18 +166,18 @@ internal class TasksPresenter(private val tasksHelper: TasksHelper,
             return
         // Keep track of the number of synced tasks
         val subscription = tasksHelper.syncTasks(taskListId)
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(
-                        {
-                            // Syncing done
-                            view()?.onSyncDone(it)
-                        },
-                        {
-                            // Sync failed for at least one task, will retry on next refresh
-                            Timber.e(it, "Error synchronizing tasks")
-                            view()?.onSyncDone(0)
-                        }
-                )
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(
+                {
+                    // Syncing done
+                    view()?.onSyncDone(it)
+                },
+                {
+                    // Sync failed for at least one task, will retry on next refresh
+                    Timber.e(it, "Error synchronizing tasks")
+                    view()?.onSyncDone(0)
+                }
+            )
         disposeOnUnbindView(subscription)
     }
 
@@ -200,20 +202,20 @@ internal class TasksPresenter(private val tasksHelper: TasksHelper,
         realm = Realm.getDefaultInstance()
         // TODO: optimize this since it still runs in the background...
         reminderProcessor
-                .buffer(1, TimeUnit.SECONDS)
-                .filter { tTasks -> tTasks.size != 0 }
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(
-                        { taskReminderPairs ->
-                            realm.executeTransaction {
-                                for ((task, reminder) in taskReminderPairs) {
-                                    task.reminder = reminder
-                                }
-                            }
-                            Timber.v("Processed reminders for %d tasks", taskReminderPairs.size)
-                        },
-                        { Timber.e(it, "Error while processing the reminders") }
-                )
+            .buffer(1, TimeUnit.SECONDS)
+            .filter { tTasks -> tTasks.size != 0 }
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(
+                { taskReminderPairs ->
+                    realm.executeTransaction {
+                        for ((task, reminder) in taskReminderPairs) {
+                            task.reminder = reminder
+                        }
+                    }
+                    Timber.v("Processed reminders for %d tasks", taskReminderPairs.size)
+                },
+                { Timber.e(it, "Error while processing the reminders") }
+            )
     }
 
     override fun unbindView(view: TasksView) {

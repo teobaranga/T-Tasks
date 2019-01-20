@@ -21,6 +21,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.teo.ttasks.R
 import com.teo.ttasks.databinding.FragmentTasksBinding
 import com.teo.ttasks.receivers.NetworkInfoReceiver
+import com.teo.ttasks.receivers.NetworkInfoReceiver.Companion.isOnline
 import com.teo.ttasks.ui.activities.edit_task.EditTaskActivity
 import com.teo.ttasks.ui.activities.main.MainActivity
 import com.teo.ttasks.ui.activities.task_detail.TaskDetailActivity
@@ -337,7 +338,7 @@ class TasksFragment : DaggerFragment(), TasksView, SwipeRefreshLayout.OnRefreshL
      * Trigger the refresh process if an active network connection is available.
      */
     private fun refreshTasks() {
-        if (!networkInfoReceiver.isOnline(context)) {
+        if (!context.isOnline()) {
             onRefreshDone()
         } else {
             tasksPresenter.syncTasks(taskListId)

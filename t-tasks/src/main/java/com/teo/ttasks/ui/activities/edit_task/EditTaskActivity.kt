@@ -26,6 +26,7 @@ import com.teo.ttasks.data.model.Task
 import com.teo.ttasks.data.model.TaskList
 import com.teo.ttasks.databinding.ActivityEditTaskBinding
 import com.teo.ttasks.receivers.NetworkInfoReceiver
+import com.teo.ttasks.receivers.NetworkInfoReceiver.Companion.isOnline
 import com.teo.ttasks.util.DateUtils
 import dagger.android.support.DaggerAppCompatActivity
 import java.util.*
@@ -183,7 +184,7 @@ class EditTaskActivity : DaggerAppCompatActivity(), EditTaskView {
                 if (taskId.isNullOrBlank()) {
                     editTaskPresenter.newTask(taskListId)
                 } else {
-                    editTaskPresenter.updateTask(taskListId, taskId!!, networkInfoReceiver.isOnline(this))
+                    editTaskPresenter.updateTask(taskListId, taskId!!, isOnline())
                 }
                 return true
             }

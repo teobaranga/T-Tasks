@@ -17,10 +17,12 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.teo.ttasks.R
 import com.teo.ttasks.databinding.FragmentTaskListsBinding
 import com.teo.ttasks.receivers.NetworkInfoReceiver
+import com.teo.ttasks.receivers.NetworkInfoReceiver.Companion.isOnline
 import com.teo.ttasks.ui.DividerItemDecoration
 import com.teo.ttasks.ui.activities.main.MainActivity
 import com.teo.ttasks.ui.items.TaskListItem
 import com.teo.ttasks.util.NightHelper
+import com.teo.ttasks.util.toastShort
 import dagger.android.support.DaggerFragment
 import eu.davidea.flexibleadapter.FlexibleAdapter
 import timber.log.Timber
@@ -60,20 +62,20 @@ class TaskListsFragment : DaggerFragment(), TaskListsView, SwipeRefreshLayout.On
         editDialog.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener {
             val title = editDialog.findViewById<EditText>(R.id.task_list_title)!!
             val taskListTitle = title.text.toString()
-            val context = context
+            val context = context!!
             // TODO allow offline task creation
-            if (!networkInfoReceiver.isOnline(context)) {
+            if (!context.isOnline()) {
                 Toast.makeText(context, "You must be online to be able to create a task list", Toast.LENGTH_SHORT).show()
             } else if (!taskListTitle.isEmpty()) {
                 taskListsPresenter.setTaskListTitle(taskListTitle)
                 if (taskListItem != null) {
-                    taskListsPresenter.updateTaskList(taskListItem.id, networkInfoReceiver.isOnline(context))
+                    taskListsPresenter.updateTaskList(taskListItem.id, context.isOnline())
                 } else {
                     taskListsPresenter.createTaskList()
                 }
                 editDialog.dismiss()
             } else {
-                Toast.makeText(context, R.string.error_task_list_title_missing, Toast.LENGTH_SHORT).show()
+                context.toastShort(R.string.error_task_list_title_missing)
             }
         }
 
@@ -129,7 +131,7 @@ class TaskListsFragment : DaggerFragment(), TaskListsView, SwipeRefreshLayout.On
 
     override fun onRefresh() {
         // TODO: 2016-08-16 implement
-        if (!networkInfoReceiver.isOnline(context)) {
+        if (!context.isOnline()) {
             onRefreshDone()
         } else {
             taskListsPresenter.getTaskLists()

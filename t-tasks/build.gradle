@@ -123,7 +123,7 @@ dependencies {
     kapt 'dk.ilios:realmfieldnameshelper:1.1.1'
 
     implementation deps.kotlin.stdlib
-    implementation "io.reactivex.rxjava2:rxjava:2.2.4"
+    implementation "io.reactivex.rxjava2:rxjava:2.2.5"
     implementation "io.reactivex.rxjava2:rxandroid:2.1.0"
     implementation "androidx.cardview:cardview:1.0.0"
     implementation 'androidx.core:core-ktx:1.0.1'
@@ -165,7 +165,7 @@ dependencies {
     // Dependencies for local unit tests
     testImplementation libraries.junit
     testImplementation deps.kotlin.jUnit
-    testImplementation "io.mockk:mockk:1.8.13.kotlin13"
+    testImplementation "io.mockk:mockk:1.9"
 
     androidTestImplementation "androidx.recyclerview:recyclerview:1.0.0"
 
@@ -177,7 +177,7 @@ dependencies {
     androidTestImplementation "androidx.test.espresso:espresso-core:${ver.espresso}"
     androidTestImplementation "androidx.test.espresso:espresso-contrib:${ver.espresso}"
     androidTestImplementation "androidx.test.espresso:espresso-intents:${ver.espresso}"
-    androidTestImplementation "io.mockk:mockk-android:1.8.13.kotlin13"
+    androidTestImplementation "io.mockk:mockk-android:1.9"
 }
 
 kapt {

@@ -11,9 +11,11 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.realm.Realm
 import timber.log.Timber
 
-class MainActivityPresenter(private val tasksHelper: TasksHelper,
-                            private val prefHelper: PrefHelper,
-                            private val peopleApi: PeopleApi) : Presenter<MainView>() {
+class MainActivityPresenter(
+    private val tasksHelper: TasksHelper,
+    private val prefHelper: PrefHelper,
+    private val peopleApi: PeopleApi
+) : Presenter<MainView>() {
 
     private lateinit var realm: Realm
 
@@ -38,19 +40,19 @@ class MainActivityPresenter(private val tasksHelper: TasksHelper,
      */
     internal fun loadCurrentUser() {
         val subscription = peopleApi.getCurrentPersonCoverPhotos()
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(
-                        { coverPhotosResponse ->
-                            Timber.v("Found %d cover photo(s)", coverPhotosResponse.coverPhotos.size)
-                            coverPhotosResponse.coverPhotos.forEachIndexed({ index, coverPhotos ->
-                                Timber.v("Cover photo %d: %s", index, coverPhotos.url)
-                                if (index == 0) {
-                                    view()?.onUserCover(coverPhotos.url)
-                                }
-                            })
-                        },
-                        { Timber.e(it, "Error while loading cover photos") }
-                )
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(
+                { coverPhotosResponse ->
+                    Timber.v("Found %d cover photo(s)", coverPhotosResponse.coverPhotos.size)
+                    coverPhotosResponse.coverPhotos.forEachIndexed { index, coverPhotos ->
+                        Timber.v("Cover photo %d: %s", index, coverPhotos.url)
+                        if (index == 0) {
+                            view()?.onUserCover(coverPhotos.url)
+                        }
+                    }
+                },
+                { Timber.e(it, "Error while loading cover photos") }
+            )
         disposeOnUnbindView(subscription)
     }
 
@@ -61,33 +63,33 @@ class MainActivityPresenter(private val tasksHelper: TasksHelper,
 
     internal fun getTaskLists() {
         val disposable = tasksHelper.getTaskLists(realm)
-                .filter { it.isNotEmpty() }
-                .map { taskLists ->
-                    val currentTaskListId = prefHelper.currentTaskListId
-                    // Find the index of the current task list
-                    taskLists.forEachIndexed { index, taskList ->
-                        if (taskList.id == currentTaskListId) {
-                            return@map Pair.create(taskLists, index)
-                        }
+            .filter { it.isNotEmpty() }
+            .map { taskLists ->
+                val currentTaskListId = prefHelper.currentTaskListId
+                // Find the index of the current task list
+                taskLists.forEachIndexed { index, taskList ->
+                    if (taskList.id == currentTaskListId) {
+                        return@map Pair.create(taskLists, index)
                     }
-                    return@map Pair(taskLists, 0)
                 }
-                .subscribe(
-                        { taskListsIndexPair ->
-                            view()?.onTaskListsLoaded(taskListsIndexPair.first!!, taskListsIndexPair.second!!)
-                        },
-                        {
-                            Timber.e(it, "Error while loading task lists")
-                            view()?.onTaskListsLoadError()
-                        })
+                return@map Pair(taskLists, 0)
+            }
+            .subscribe(
+                { taskListsIndexPair ->
+                    view()?.onTaskListsLoaded(taskListsIndexPair.first!!, taskListsIndexPair.second!!)
+                },
+                {
+                    Timber.e(it, "Error while loading task lists")
+                    view()?.onTaskListsLoadError()
+                })
         disposeOnUnbindView(disposable)
     }
 
     internal fun refreshTaskLists() {
         val subscription = tasksHelper.refreshTaskLists()
-                .ignoreElements()
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({ /* do nothing */ }) { Timber.e(it, "Error refreshing task lists") }
+            .ignoreElements()
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({ /* do nothing */ }) { Timber.e(it, "Error refreshing task lists") }
         disposeOnUnbindView(subscription)
     }
 
