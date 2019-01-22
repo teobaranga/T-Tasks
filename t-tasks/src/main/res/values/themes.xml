@@ -80,7 +80,7 @@
     <style name="Theme.Settings" parent="Base.Theme" />
 
     <!-- About -->
-    <style name="Theme.About" parent="Base.Theme" />
+    <style name="Theme.About" parent="AboutLibrariesTheme.Light.DarkToolbar" />
 
     <!-- Widget configure -->
     <style name="Theme.TasksWidgetConfigure" parent="Theme.AppCompat.Light.Dialog" />
