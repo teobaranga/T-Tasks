@@ -16,19 +16,14 @@
     </style>
 
     <!-- Main -->
-    <style name="Base.Theme.Main" parent="Theme.AppCompat.Light.NoActionBar">
-        <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
-        <item name="colorAccent">@color/colorAccent</item>
-
+    <style name="Base.Theme.Main" parent="Base.Theme.NoActionBar">
         <!-- CAB -->
         <item name="windowActionModeOverlay">true</item>
 
-        <!-- Here we setting appcompat’s actionBarStyle -->
-        <item name="drawerArrowStyle">@style/MaterialDrawer.DrawerArrowStyle</item>
-
         <!-- MaterialDrawer specific values -->
-        <item name="material_drawer_background">@color/md_light_background</item>
+        <item name="material_drawer_background">@color/material_drawer_background</item>
+        <item name="material_drawer_header_selection_text">@color/material_drawer_dark_primary_text</item>
+        <item name="material_drawer_header_selection_subtext">@color/md_dark_secondary</item>
         <item name="material_drawer_primary_text">@color/material_drawer_primary_text</item>
         <item name="material_drawer_primary_icon">@color/material_drawer_primary_icon</item>
         <item name="material_drawer_secondary_text">@color/material_drawer_secondary_text</item>
@@ -37,9 +32,6 @@
         <item name="material_drawer_divider">@color/material_drawer_divider</item>
         <item name="material_drawer_selected">@color/material_drawer_selected</item>
         <item name="material_drawer_selected_text">@color/material_drawer_selected_text</item>
-        <item name="material_drawer_header_selection_text">
-            @color/material_drawer_header_selection_text
-        </item>
     </style>
 
     <!-- Main theme -->

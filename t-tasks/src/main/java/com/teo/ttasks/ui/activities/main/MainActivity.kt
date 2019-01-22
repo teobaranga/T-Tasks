@@ -147,16 +147,18 @@ open class MainActivity : BaseActivity(), MainView {
         }
 
         taskListsAdapter = TaskListsAdapter(supportActionBar!!.themedContext)
-        mainBinding.spinnerTaskLists.adapter = taskListsAdapter
-        mainBinding.spinnerTaskLists.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(adapterView: AdapterView<*>, view: View, position: Int, id: Long) {
-                val taskList = adapterView.getItemAtPosition(position) as TaskList
-                val taskListId = taskList.id
-                mainActivityPresenter.setLastAccessedTaskList(taskListId)
-                tasksFragment.updateTaskListId(taskListId)
-            }
+        mainBinding.spinnerTaskLists.apply {
+            adapter = taskListsAdapter
+            onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+                override fun onItemSelected(adapterView: AdapterView<*>, view: View, position: Int, id: Long) {
+                    val taskList = adapterView.getItemAtPosition(position) as TaskList
+                    val taskListId = taskList.id
+                    mainActivityPresenter.setLastAccessedTaskList(taskListId)
+                    tasksFragment.updateTaskListId(taskListId)
+                }
 
-            override fun onNothingSelected(adapterView: AdapterView<*>) {}
+                override fun onNothingSelected(adapterView: AdapterView<*>) {}
+            }
         }
 
         profile = ProfileDrawerItem()
@@ -326,16 +328,19 @@ open class MainActivity : BaseActivity(), MainView {
         super.onStart()
 
         // TODO refresh the user picture only if necessary
-        firebaseAuth.currentUser!!.rxReload()
-            .subscribeOn(Schedulers.io())
-            .andThen(firebaseAuth.rxGetCurrentUser())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe { firebaseUser ->
-                onUserPicture(firebaseUser.photoUrl.toString())
-            }
+        val currentUser = firebaseAuth.currentUser
+        if (currentUser != null) {
+            currentUser.rxReload()
+                .subscribeOn(Schedulers.io())
+                .andThen(firebaseAuth.rxGetCurrentUser())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe { firebaseUser ->
+                    onUserPicture(firebaseUser.photoUrl.toString())
+                }
 
-        mainActivityPresenter.getTaskLists()
-        mainActivityPresenter.loadUserPictures()
+            mainActivityPresenter.loadCurrentUser()
+            mainActivityPresenter.getTaskLists()
+        }
     }
 
     override fun onPostResume() {
@@ -355,12 +360,8 @@ open class MainActivity : BaseActivity(), MainView {
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
-        var outStateVar = outState
-        // add the values which need to be saved from the drawer to the bundle
-        outStateVar = drawer.saveInstanceState(outStateVar)
-        // add the values which need to be saved from the accountHeader to the bundle
-        outStateVar = accountHeader.saveInstanceState(outStateVar)
-        super.onSaveInstanceState(outStateVar)
+        // Add the values which need to be saved from the drawer and account header to the bundle
+        super.onSaveInstanceState(accountHeader.saveInstanceState(drawer.saveInstanceState(outState)))
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
