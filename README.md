@@ -28,7 +28,7 @@ More features are planned and will be added in the future.
 
 
 - **Android Support Library**
-- **Google Tasks API**: https://developers.google.com/google-apps/tasks/
+- **Google Tasks API**: https://developers.google.com/tasks/
 - **Google Sign In**: https://developers.google.com/identity/sign-in/android/
 - **FlexibleAdapter**: https://github.com/davideas/FlexibleAdapter
 - **Firebase**: https://firebase.google.com
@@ -49,7 +49,7 @@ More features are planned and will be added in the future.
 
 
 ```
-Copyright 2018, Teo Baranga
+Copyright 2018-19, Teo Baranga
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
