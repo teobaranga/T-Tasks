@@ -12,14 +12,14 @@ import com.teo.ttasks.data.remote.TasksHelper
 import com.teo.ttasks.ui.activities.task_detail.TaskDetailActivity
 import com.teo.ttasks.ui.activities.task_detail.TaskDetailActivity.Companion.EXTRA_TASK_ID
 import com.teo.ttasks.util.DateUtils
-import com.teo.ttasks.util.DateUtils.Companion.sdfDayName
-import com.teo.ttasks.util.DateUtils.Companion.sdfDayNumber
 import timber.log.Timber
 
 class TasksRemoteViewsFactory
-internal constructor(private val context: Context,
-                     intent: Intent,
-                     private val tasksHelper: TasksHelper) : RemoteViewsService.RemoteViewsFactory {
+internal constructor(
+    private val context: Context,
+    intent: Intent,
+    private val tasksHelper: TasksHelper
+) : RemoteViewsService.RemoteViewsFactory {
 
     private val taskListId: String = intent.getStringExtra(TaskDetailActivity.EXTRA_TASK_LIST_ID)
     private val packageName: String = context.packageName
@@ -33,11 +33,11 @@ internal constructor(private val context: Context,
 
     override fun onDataSetChanged() {
         tasksHelper.getUnManagedTasks(taskListId)
-                .filter { it.completed == null } // only active tasks
-                .toList()
-                .subscribe(
-                        { taskItems -> this.tasks = taskItems },
-                        { Timber.e(it, "Error while retrieving widget data") })
+            .filter { it.completed == null } // only active tasks
+            .toList()
+            .subscribe(
+                { taskItems -> this.tasks = taskItems },
+                { Timber.e(it, "Error while retrieving widget data") })
         Timber.d("Widget tasks count %d", tasks?.size ?: 0)
     }
 
@@ -72,10 +72,10 @@ internal constructor(private val context: Context,
         }
 
         // Due date
-        val dueDate = task.due
+        val dueDate = task.dueDate
         if (dueDate != null) {
-            rv.setTextViewText(R.id.date_day_name, sdfDayName.format(dueDate))
-            rv.setTextViewText(R.id.date_day_number, sdfDayNumber.format(dueDate))
+            rv.setTextViewText(R.id.date_day_name, dueDate.format(DateUtils.formatterDayName))
+            rv.setTextViewText(R.id.date_day_number, dueDate.format(DateUtils.formatterDayNumber))
 
             // Reminder
             val reminder = task.reminder

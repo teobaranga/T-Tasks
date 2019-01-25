@@ -6,8 +6,8 @@ import android.util.AttributeSet
 import android.util.TypedValue
 import android.view.View
 import com.teo.ttasks.R
-import com.teo.ttasks.util.DateUtils.Companion.sdfDayName
-import com.teo.ttasks.util.DateUtils.Companion.sdfDayNumber
+import com.teo.ttasks.util.DateUtils
+import org.threeten.bp.ZonedDateTime
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.*
@@ -43,14 +43,14 @@ class TaskDateView(context: Context, attrs: AttributeSet?) : View(context, attrs
     /**
      * The date shown in this view. Can be a due date or a completion date.
      */
-    var date: Date? = null
+    var date: ZonedDateTime? = null
         set(value) {
             if (value == null) {
                 dayName = null
                 dayNumber = null
             } else {
-                dayName = sdfDayName.format(value)
-                dayNumber = sdfDayNumber.format(value)
+                dayName = value.format(DateUtils.formatterDayName)
+                dayNumber = value.format(DateUtils.formatterDayNumber)
             }
             invalidate()
             requestLayout()
@@ -62,7 +62,7 @@ class TaskDateView(context: Context, attrs: AttributeSet?) : View(context, attrs
      */
     var dateString: String? = null
         set(value) {
-            date = if (value != null) dateFormat.parse(value) else null
+            date = if (value != null) ZonedDateTime.parse(value) else null
         }
 
     init {
@@ -84,7 +84,10 @@ class TaskDateView(context: Context, attrs: AttributeSet?) : View(context, attrs
 
     private fun init(context: Context, attrs: AttributeSet?) {
         val typedValue = TypedValue()
-        val typedArray = context.theme.obtainStyledAttributes(typedValue.data, intArrayOf(android.R.attr.textColorPrimary, android.R.attr.textColorTertiary))
+        val typedArray = context.theme.obtainStyledAttributes(
+            typedValue.data,
+            intArrayOf(android.R.attr.textColorPrimary, android.R.attr.textColorTertiary)
+        )
         val primaryColor = typedArray.getColor(0, Color.BLACK)
         val tertiaryColor = typedArray.getColor(1, Color.BLACK)
         typedArray.recycle()

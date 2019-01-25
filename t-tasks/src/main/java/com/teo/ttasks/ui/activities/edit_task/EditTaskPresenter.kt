@@ -17,45 +17,44 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.realm.Realm
 import io.realm.RealmResults
+import org.threeten.bp.LocalDate
+import org.threeten.bp.LocalTime
+import org.threeten.bp.ZoneId
+import org.threeten.bp.ZonedDateTime
+import org.threeten.bp.format.DateTimeFormatter
 import timber.log.Timber
 import java.util.*
 
-internal class EditTaskPresenter(private val tasksHelper: TasksHelper,
-                                 private val widgetHelper: WidgetHelper,
-                                 private val notificationHelper: NotificationHelper) : Presenter<EditTaskView>() {
+internal class EditTaskPresenter(
+    private val tasksHelper: TasksHelper,
+    private val widgetHelper: WidgetHelper,
+    private val notificationHelper: NotificationHelper
+) : Presenter<EditTaskView>() {
 
     private lateinit var realm: Realm
 
     /** The due date */
-    internal var dueDate: Date? = null
+    internal var dueDate: ZonedDateTime? = null
+        /**
+         * Set the due date. If one isn't present, assign the new one. Otherwise, modify the old one.
+         */
         set(value) {
-            /**
-             * Set the due date. If one isn't present, assign the new one. Otherwise, modify the old one.
-             */
             if (value == null) {
                 reminder = null
+                field = null
             } else {
-                // Remove the time information
-                val cal = Calendar.getInstance()
-                cal.time = value
-                cal.set(Calendar.HOUR, 0)
-                cal.set(Calendar.HOUR_OF_DAY, 0)
-                cal.set(Calendar.MINUTE, 0)
-                cal.set(Calendar.SECOND, 0)
-                cal.set(Calendar.MILLISECOND, 0)
-
-                field = cal.time
+                field = value
 
                 // Update the reminder
                 if (reminder != null) {
                     reminder = value
                 }
             }
-            editTaskFields.dueDate = utcDateFormat.format(value)
+            editTaskFields.dueDate = value?.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
             Timber.v("Due date: %s", editTaskFields.dueDate)
         }
 
-    private var reminder: Date? = null
+    private var reminder: ZonedDateTime? = null
 
     /** Object containing the task fields that have been modified. */
     private val editTaskFields: TaskFields = TaskFields()
@@ -70,11 +69,11 @@ internal class EditTaskPresenter(private val tasksHelper: TasksHelper,
     internal fun loadTaskInfo(taskId: String) {
         taskSubscription?.let { if (!it.isDisposed) it.dispose() }
         taskSubscription = tasksHelper.getTaskAsSingle(taskId, realm)
-                .subscribe { task ->
-                    dueDate = task.due
-                    reminder = task.reminder
-                    view()?.onTaskLoaded(task)
-                }
+            .subscribe { task ->
+                dueDate = task.dueDate
+                reminder = task.reminderDate
+                view()?.onTaskLoaded(task)
+            }
     }
 
     /**
@@ -85,40 +84,32 @@ internal class EditTaskPresenter(private val tasksHelper: TasksHelper,
      */
     internal fun loadTaskLists(currentTaskListId: String) {
         tasksHelper.getTaskLists(realm)
-                .map<Pair<RealmResults<TaskList>, Int>> { taskLists ->
-                    // Find the index of the current task list
-                    taskLists.forEachIndexed { i, taskList ->
-                        if (taskList.id == currentTaskListId) {
-                            return@map Pair(taskLists, i)
-                        }
+            .map<Pair<RealmResults<TaskList>, Int>> { taskLists ->
+                // Find the index of the current task list
+                taskLists.forEachIndexed { i, taskList ->
+                    if (taskList.id == currentTaskListId) {
+                        return@map Pair(taskLists, i)
                     }
-
-                    // Index not found, select the first task list
-                    Pair(taskLists, 0)
                 }
-                .subscribe({ taskListsIndexPair ->
-                    view()?.onTaskListsLoaded(taskListsIndexPair.first!!, taskListsIndexPair.second!!)
-                }, { throwable ->
-                    Timber.e(throwable.toString())
-                    view()?.onTaskLoadError()
-                })
+
+                // Index not found, select the first task list
+                Pair(taskLists, 0)
+            }
+            .subscribe({ taskListsIndexPair ->
+                view()?.onTaskListsLoaded(taskListsIndexPair.first!!, taskListsIndexPair.second!!)
+            }, { throwable ->
+                Timber.e(throwable.toString())
+                view()?.onTaskLoadError()
+            })
     }
 
     // TODO: 2016-08-19 implement this using Firebase
-    internal fun setDueTime(date: Date) {
+    internal fun setDueTime(time: LocalTime) {
         if (dueDate == null) {
-            dueDate = date
+            dueDate = time.atDate(LocalDate.now()).atZone(ZoneId.systemDefault())
         } else {
             Timber.d("old date %s", dueDate!!.toString())
-            val oldCal = Calendar.getInstance()
-            oldCal.time = dueDate
-
-            val newCal = Calendar.getInstance()
-            newCal.time = date
-
-            oldCal.set(Calendar.HOUR_OF_DAY, newCal.get(Calendar.HOUR_OF_DAY))
-            oldCal.set(Calendar.MINUTE, newCal.get(Calendar.MINUTE))
-            dueDate = oldCal.time
+            dueDate = time.atDate(dueDate!!.toLocalDate()).atZone(ZoneId.systemDefault())
             Timber.d("new date %s", dueDate!!.toString())
         }
     }
@@ -126,24 +117,11 @@ internal class EditTaskPresenter(private val tasksHelper: TasksHelper,
     /**
      * Set the reminder time. This requires that the due date is already set.
      *
-     * @param date the reminder time
+     * @param time the reminder time
      */
-    internal fun setReminderTime(date: Date) {
+    internal fun setReminderTime(time: LocalTime) {
         dueDate?.let { dueDate ->
-            // Get the year, month, and day in the user's timezone
-            val utcCal = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
-            utcCal.time = dueDate
-            val year = utcCal.get(Calendar.YEAR)
-            val month = utcCal.get(Calendar.MONTH)
-            val day = utcCal.get(Calendar.DAY_OF_MONTH)
-
-            val cal = Calendar.getInstance()
-            // Set the reminder time
-            cal.time = date
-            // Correct the date
-            cal.set(year, month, day)
-
-            reminder = cal.time
+            reminder = time.atDate(dueDate.toLocalDate()).atZone(ZoneId.systemDefault())
         }
     }
 
@@ -189,7 +167,7 @@ internal class EditTaskPresenter(private val tasksHelper: TasksHelper,
         val task = Task(taskId, taskListId)
         task.update(editTaskFields)
         task.synced = false
-        task.reminder = reminder
+        task.reminder = reminder?.let { Date(it.toInstant().toEpochMilli()) }
 
         // Schedule the notification
         reminder?.let {
@@ -230,7 +208,7 @@ internal class EditTaskPresenter(private val tasksHelper: TasksHelper,
         val notificationId = managedTask.notificationId
         realm.executeTransaction {
             managedTask.update(editTaskFields)
-            managedTask.reminder = reminder
+            managedTask.reminder = reminder?.let { Date(it.toInstant().toEpochMilli()) }
             managedTask.synced = false
         }
 
@@ -246,22 +224,22 @@ internal class EditTaskPresenter(private val tasksHelper: TasksHelper,
 
         // Update or clear the reminder
         val tasksDatabase = FirebaseDatabase.getInstance().getTasksDatabase()
-        tasksDatabase.saveReminder(managedTask.id, reminder?.time)
+        tasksDatabase.saveReminder(managedTask.id, reminder?.toInstant()?.toEpochMilli())
 
         // Update the task on an active network connection
         if (isOnline) {
             tasksHelper.updateTask(taskListId, taskId, editTaskFields)
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe({ task ->
-                        realm.executeTransaction { realm ->
-                            realm.insertOrUpdate(task)
-                            managedTask.synced = true
-                        }
-                        widgetHelper.updateWidgets(taskListId)
-                    }, { throwable ->
-                        Timber.e(throwable.toString())
-                        view()?.onTaskSaveError()
-                    })
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({ task ->
+                    realm.executeTransaction { realm ->
+                        realm.insertOrUpdate(task)
+                        managedTask.synced = true
+                    }
+                    widgetHelper.updateWidgets(taskListId)
+                }, { throwable ->
+                    Timber.e(throwable.toString())
+                    view()?.onTaskSaveError()
+                })
         }
         view()?.onTaskSaved()
     }

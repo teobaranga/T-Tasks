@@ -2,8 +2,10 @@ package com.teo.ttasks.data.model
 
 import com.google.gson.annotations.Expose
 import io.realm.RealmObject
+import io.realm.annotations.Ignore
 import io.realm.annotations.Index
 import io.realm.annotations.PrimaryKey
+import org.threeten.bp.*
 import java.util.*
 
 open class Task : RealmObject {
@@ -26,7 +28,7 @@ open class Task : RealmObject {
     var title: String? = null
 
     @Expose
-    var updated: Date? = null
+    var updated: String? = null
 
     /**
      * Parent task identifier. This field is omitted if it is a top-level task.
@@ -61,6 +63,9 @@ open class Task : RealmObject {
     @Expose
     var due: Date? = null
 
+    @delegate:Ignore
+    val dueDate: ZonedDateTime? by lazy { due?.let { Instant.ofEpochMilli(it.time).atZone(ZoneId.systemDefault()) } }
+
     /**
      * Completion date of the task. This field is omitted if the task has not
      * been completed.
@@ -68,12 +73,18 @@ open class Task : RealmObject {
     @Expose
     var completed: Date? = null
 
+    @delegate:Ignore
+    val completedDate: ZonedDateTime? by lazy { completed?.let { Instant.ofEpochMilli(it.time).atZone(ZoneId.systemDefault()) } }
+
     @Expose
     var hidden: Boolean = false
 
     /***** Custom fields *****/
 
     var reminder: Date? = null
+
+    @delegate:Ignore
+    val reminderDate: ZonedDateTime? by lazy { reminder?.let { Instant.ofEpochMilli(it.time).atZone(ZoneId.systemDefault()) } }
 
     /**
      * Field indicating whether the task is synced and up-to-date with the server.

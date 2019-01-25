@@ -6,10 +6,10 @@ import android.content.SharedPreferences
 import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Bundle
-import android.preference.ListPreference
-import android.preference.PreferenceFragment
 import android.preference.RingtonePreference
+import androidx.preference.ListPreference
 import androidx.appcompat.app.AppCompatActivity
+import androidx.preference.PreferenceFragmentCompat
 import com.teo.ttasks.R
 import com.teo.ttasks.util.NightHelper
 import timber.log.Timber
@@ -23,7 +23,7 @@ class SettingsActivity : AppCompatActivity() {
         setContentView(R.layout.activity_settings)
 
         // Display the fragment as the main content.
-        fragmentManager.beginTransaction()
+        supportFragmentManager.beginTransaction()
                 .replace(android.R.id.content, SettingsFragment())
                 .commit()
 
@@ -45,10 +45,14 @@ class SettingsActivity : AppCompatActivity() {
         this.nightModeChanged = nightModeChanged
     }
 
-    class SettingsFragment : PreferenceFragment(), SharedPreferences.OnSharedPreferenceChangeListener {
+    class SettingsFragment : PreferenceFragmentCompat(), SharedPreferences.OnSharedPreferenceChangeListener {
 
         override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String) {
             // do nothing yet
+        }
+
+        override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
+            TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
         }
 
         override fun onCreate(savedInstanceState: Bundle?) {
@@ -79,7 +83,6 @@ class SettingsActivity : AppCompatActivity() {
                     activity.recreate()
                 true
             }
-
 
             val reminderSound = findPreference(REMINDER_SOUND) as RingtonePreference
             val initialSound = sharedPreferences.getString(REMINDER_SOUND, getString(R.string.default_reminder_sound))

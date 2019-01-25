@@ -10,3 +10,10 @@ import androidx.annotation.StringRes
 fun Context.toastShort(@StringRes resId: Int) {
     Toast.makeText(this, resId, Toast.LENGTH_SHORT).show()
 }
+
+/**
+ * Display a short-lived Toast message.
+ */
+fun Context.toastShort(message: String) {
+    Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+}

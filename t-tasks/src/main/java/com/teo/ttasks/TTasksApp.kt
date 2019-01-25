@@ -9,6 +9,7 @@ import android.os.Build
 import android.widget.ImageView
 import com.crashlytics.android.Crashlytics
 import com.evernote.android.job.JobManager
+import com.jakewharton.threetenabp.AndroidThreeTen
 import com.mikepenz.materialdrawer.util.AbstractDrawerImageLoader
 import com.mikepenz.materialdrawer.util.DrawerImageLoader
 import com.squareup.picasso.Picasso
@@ -16,6 +17,7 @@ import com.teo.ttasks.data.local.PrefHelper
 import com.teo.ttasks.injection.component.ApplicationComponent
 import com.teo.ttasks.injection.component.DaggerApplicationComponent
 import com.teo.ttasks.jobs.DefaultJobCreator
+import com.teo.ttasks.util.DateUtils
 import com.teo.ttasks.util.NightHelper
 import com.teo.ttasks.util.NotificationHelper
 import dagger.android.AndroidInjector
@@ -44,6 +46,10 @@ class TTasksApp : DaggerApplication() {
 
     override fun onCreate() {
         super.onCreate()
+
+        DateUtils.init(this)
+
+        AndroidThreeTen.init(this)
 
         // Apply night mode
         val nightMode = prefHelper.nightMode

@@ -8,7 +8,8 @@ import javax.inject.Inject
 
 class TasksWidgetService : RemoteViewsService() {
 
-    @Inject lateinit var tasksHelper: TasksHelper
+    @Inject
+    lateinit var tasksHelper: TasksHelper
 
     override fun onGetViewFactory(intent: Intent): RemoteViewsService.RemoteViewsFactory {
         AndroidInjection.inject(this)

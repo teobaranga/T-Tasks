@@ -65,7 +65,7 @@ open class MainActivity : BaseActivity(), MainView {
 
         private const val ID_TASKS: Long = 0x01
         private const val ID_TASK_LISTS: Long = 0x02
-        //        private const val ID_ADD_ACCOUNT = 0x01
+//        private const val ID_ADD_ACCOUNT = 0x01
 //        private const val ID_MANAGE_ACCOUNT = 0x02
         private const val ID_SETTINGS: Long = 0xF0
         private const val ID_HELP_AND_FEEDBACK: Long = 0xF1

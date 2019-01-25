@@ -24,7 +24,7 @@ class TaskFields : HashMap<String, String?>(NUM_FIELDS) {
          * in a job
          */
         fun fromBundle(bundle: PersistableBundleCompat): TaskFields? {
-            val taskFields =  taskFields {
+            val taskFields = taskFields {
                 if (bundle.containsKey(KEY_TITLE)) {
                     title = bundle[KEY_TITLE] as String
                 }
@@ -49,7 +49,7 @@ class TaskFields : HashMap<String, String?>(NUM_FIELDS) {
         get() = this[KEY_TITLE]
         set(title) {
             when {
-            // Disallow tasks with empty or no title
+                // Disallow tasks with empty or no title
                 title == null || title.isBlank() -> remove(KEY_TITLE)
                 else -> this[KEY_TITLE] = title
             }

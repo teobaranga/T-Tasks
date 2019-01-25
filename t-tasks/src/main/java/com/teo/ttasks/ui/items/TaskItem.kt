@@ -10,19 +10,18 @@ import com.teo.ttasks.R
 import com.teo.ttasks.data.model.Task
 import com.teo.ttasks.databinding.ItemTaskBinding
 import com.teo.ttasks.util.DateUtils
-import com.teo.ttasks.util.DateUtils.Companion.sdfDay
-import com.teo.ttasks.util.DateUtils.Companion.sdfMonth
 import com.teo.ttasks.util.TaskType
 import eu.davidea.flexibleadapter.FlexibleAdapter
 import eu.davidea.flexibleadapter.items.AbstractFlexibleItem
 import eu.davidea.flexibleadapter.items.IFlexible
 import eu.davidea.viewholders.FlexibleViewHolder
+import org.threeten.bp.ZonedDateTime
 import java.util.*
 
-
-class TaskItem(task: Task,
-               private val taskType: TaskType)
-    : AbstractFlexibleItem<TaskItem.ViewHolder>(), Comparable<TaskItem> {
+class TaskItem(
+    task: Task,
+    private val taskType: TaskType
+) : AbstractFlexibleItem<TaskItem.ViewHolder>(), Comparable<TaskItem> {
 
     val taskId: String = task.id
 
@@ -30,11 +29,11 @@ class TaskItem(task: Task,
 
     val notes: String? = task.notes
 
-    val dueDate: Date? = task.due
+    val dueDate: ZonedDateTime? = task.dueDate
 
-    val completed: Date? = task.completed
+    val completed: ZonedDateTime? = task.completedDate
 
-    val reminder: Date? = task.reminder
+    val reminder: ZonedDateTime? = task.reminderDate
 
     private lateinit var viewHolder: ViewHolder
 
@@ -55,21 +54,28 @@ class TaskItem(task: Task,
 
     override fun shouldNotifyChange(newItem: IFlexible<*>?): Boolean =
     // Should be bound again if ID is different
-            taskId != (newItem as TaskItem).taskId
+        taskId != (newItem as TaskItem).taskId
 
     override fun getItemViewType(): Int = taskType.id
 
     override fun getLayoutRes(): Int = R.layout.item_task
 
-    override fun bindViewHolder(adapter: FlexibleAdapter<IFlexible<RecyclerView.ViewHolder>>, viewHolder: ViewHolder, position: Int, payloads: MutableList<Any?>) {
+    override fun bindViewHolder(
+        adapter: FlexibleAdapter<IFlexible<RecyclerView.ViewHolder>>,
+        viewHolder: ViewHolder,
+        position: Int,
+        payloads: MutableList<Any?>
+    ) {
         this.viewHolder = viewHolder
         val binding = viewHolder.binding
 
         // Add the top padding for items that aren't combined
-        binding.layoutTaskBody.setPadding(viewHolder.left,
-                viewHolder.top + if (!combineDay) viewHolder.topMargin else 0,
-                viewHolder.right,
-                viewHolder.bottom)
+        binding.layoutTaskBody.setPadding(
+            viewHolder.left,
+            viewHolder.top + if (!combineDay) viewHolder.topMargin else 0,
+            viewHolder.right,
+            viewHolder.bottom
+        )
 
         // Title
         binding.taskTitle.text = title
@@ -86,7 +92,7 @@ class TaskItem(task: Task,
         if (reminder == null) {
             binding.reminder.visibility = GONE
         } else {
-            binding.reminder.text = DateUtils.formatTime(binding.root.context, reminder)
+            binding.reminder.text = reminder.format(DateUtils.formatterTime)
             binding.reminder.visibility = VISIBLE
         }
 
@@ -106,15 +112,18 @@ class TaskItem(task: Task,
             binding.month.visibility = GONE
         } else {
             when {
-                completed != null -> binding.month.text = DateUtils.getMonthAndYear(completed)
-                dueDate != null -> binding.month.text = DateUtils.getMonthAndYear(dueDate)
+                completed != null -> binding.month.text = completed.format(DateUtils.formatterMonthYear)
+                dueDate != null -> binding.month.text = dueDate.format(DateUtils.formatterMonthYear)
                 else -> binding.month.setText(R.string.due_date_not_set)
             }
             binding.month.visibility = VISIBLE
         }
     }
 
-    override fun createViewHolder(view: View, adapter: FlexibleAdapter<IFlexible<RecyclerView.ViewHolder>>): ViewHolder {
+    override fun createViewHolder(
+        view: View,
+        adapter: FlexibleAdapter<IFlexible<RecyclerView.ViewHolder>>
+    ): ViewHolder {
         return ViewHolder(view, adapter)
     }
 
@@ -125,13 +134,13 @@ class TaskItem(task: Task,
     override fun compareTo(other: TaskItem): Int = dueDateComparator.compare(this, other)
 
     override fun equals(other: Any?): Boolean =
-            other is TaskItem &&
-                    taskId == other.taskId &&
-                    title == other.title &&
-                    notes == other.notes &&
-                    dueDate == other.dueDate &&
-                    completed == other.completed &&
-                    reminder == other.reminder
+        other is TaskItem &&
+                taskId == other.taskId &&
+                title == other.title &&
+                notes == other.notes &&
+                dueDate == other.dueDate &&
+                completed == other.completed &&
+                reminder == other.reminder
 
     override fun hashCode(): Int {
         var result = taskId.hashCode()
@@ -162,7 +171,8 @@ class TaskItem(task: Task,
 
             // Calculate the top margin in px
             val displayMetrics = view.context.resources.displayMetrics
-            topMargin = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, TOP_MARGIN_DP.toFloat(), displayMetrics).toInt()
+            topMargin = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, TOP_MARGIN_DP.toFloat(), displayMetrics)
+                .toInt()
 
             // Cache the padding
             left = binding.layoutTaskBody.paddingLeft
@@ -183,20 +193,24 @@ class TaskItem(task: Task,
          */
         var completionDateComparator = Comparator<TaskItem> { lhs, rhs ->
 
-            val sameDay = sdfDay.format(lhs.completed) == sdfDay.format(rhs.completed)
-            val sameMonth = sdfMonth.format(lhs.completed) == sdfMonth.format(rhs.completed)
+            // TODO: fix this - accessed too frequently
+            val formatterDay = DateUtils.formatterDay
+            val formatterMonth = DateUtils.formatterMonth
+
+            val sameDay = lhs.completed?.format(formatterDay) == rhs.completed?.format(formatterDay)
+            val sameMonth = lhs.completed?.format(formatterMonth) == rhs.completed?.format(formatterMonth)
 
             // Check the completed date
             val returnCode =
-                    if (lhs.completed == null && rhs.completed == null) {
-                        0
-                    } else if (lhs.completed == null) {
-                        1
-                    } else if (rhs.completed == null) {
-                        -1
-                    } else {
-                        rhs.completed.compareTo(lhs.completed)
-                    }
+                if (lhs.completed == null && rhs.completed == null) {
+                    0
+                } else if (lhs.completed == null) {
+                    1
+                } else if (rhs.completed == null) {
+                    -1
+                } else {
+                    rhs.completed.compareTo(lhs.completed)
+                }
 
             // Decide whether the day number and name will be shown i.e. whether the task item will be combined or not
             if (sameDay) {
@@ -241,27 +255,30 @@ class TaskItem(task: Task,
          */
         private val dueDateComparator = Comparator<TaskItem> { lhs, rhs ->
 
+            // TODO: fix this - accessed too frequently
+            val formatterDay = DateUtils.formatterDay
+
             val sameDay = lhs.dueDate != null && rhs.dueDate != null &&
-                    sdfDay.format(lhs.dueDate) == sdfDay.format(rhs.dueDate)
+                    lhs.dueDate.format(formatterDay) == rhs.dueDate.format(formatterDay)
             val sameMonth = lhs.dueDate != null && rhs.dueDate != null &&
-                    sdfDay.format(lhs.dueDate).substring(4, 6) == sdfDay.format(rhs.dueDate).substring(4, 6)
+                    lhs.dueDate.format(formatterDay).substring(4, 6) == rhs.dueDate.format(formatterDay).substring(4, 6)
 
             val returnCode =
-                    if (lhs.dueDate != null) {
-                        // Compare non-null due dates, most recent ones at the top
-                        if (rhs.dueDate != null) {
-                            lhs.dueDate.compareTo(rhs.dueDate)
-                        } else {
-                            // This task comes after the other task
-                            1
-                        }
-                    } else if (rhs.dueDate != null) {
-                        // This task comes before the other task
-                        -1
+                if (lhs.dueDate != null) {
+                    // Compare non-null due dates, most recent ones at the top
+                    if (rhs.dueDate != null) {
+                        lhs.dueDate.compareTo(rhs.dueDate)
                     } else {
-                        // Both tasks have missing due dates, they are considered equal
-                        0
+                        // This task comes after the other task
+                        1
                     }
+                } else if (rhs.dueDate != null) {
+                    // This task comes before the other task
+                    -1
+                } else {
+                    // Both tasks have missing due dates, they are considered equal
+                    0
+                }
 
             if (sameDay) {
                 if (returnCode == 0 || returnCode == -1)

@@ -9,27 +9,35 @@ import java.util.*
 
 object BindingAdapters {
 
-    @BindingAdapter("dueDate") @JvmStatic
+    @BindingAdapter("dueDate")
+    @JvmStatic
     fun bindDueDate(view: TextView, date: Date?) {
         view.text = if (date != null) DateUtils.formatDate(view.context, date) else null
     }
 
-    @BindingAdapter("dueTime") @JvmStatic
+    @BindingAdapter("dueTime")
+    @JvmStatic
     fun bindDueTime(view: TextView, date: Date?) {
-        view.text = if (date != null) DateUtils.formatTime(view.context, date) else view.resources.getString(R.string.due_time_all_day)
+        view.text = if (date != null) DateUtils.formatTime(
+            view.context,
+            date
+        ) else view.resources.getString(R.string.due_time_all_day)
     }
 
-    @BindingAdapter("reminder") @JvmStatic
+    @BindingAdapter("reminder")
+    @JvmStatic
     fun bindReminder(view: TextView, date: Date?) {
         view.text = if (date != null) DateUtils.formatTime(view.context, date) else null
     }
 
-    @BindingAdapter("srcCompat") @JvmStatic
+    @BindingAdapter("srcCompat")
+    @JvmStatic
     fun bindSrcCompat(view: ImageView, @DrawableRes resId: Int) {
         view.setImageResource(resId)
     }
 
-    @BindingAdapter("completed") @JvmStatic
+    @BindingAdapter("completed")
+    @JvmStatic
     fun bindCompleted(view: TextView, date: Date?) {
         if (date != null) {
             val res = view.resources

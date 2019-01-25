@@ -27,14 +27,21 @@ import com.teo.ttasks.databinding.ActivityEditTaskBinding
 import com.teo.ttasks.receivers.NetworkInfoReceiver
 import com.teo.ttasks.receivers.NetworkInfoReceiver.Companion.isOnline
 import com.teo.ttasks.util.DateUtils
+import com.teo.ttasks.util.toastShort
 import dagger.android.support.DaggerAppCompatActivity
+import org.threeten.bp.LocalDateTime
+import org.threeten.bp.LocalTime
+import org.threeten.bp.ZoneId
 import java.util.*
 import javax.inject.Inject
 
 class EditTaskActivity : DaggerAppCompatActivity(), EditTaskView {
 
-    @Inject internal lateinit var editTaskPresenter: EditTaskPresenter
-    @Inject internal lateinit var networkInfoReceiver: NetworkInfoReceiver
+    @Inject
+    internal lateinit var editTaskPresenter: EditTaskPresenter
+
+    @Inject
+    internal lateinit var networkInfoReceiver: NetworkInfoReceiver
 
     private lateinit var editTaskBinding: ActivityEditTaskBinding
 
@@ -48,23 +55,22 @@ class EditTaskActivity : DaggerAppCompatActivity(), EditTaskView {
 
     /** Listener invoked when the reminder time has been selected */
     private val reminderTimeSetListener: TimePickerDialog.OnTimeSetListener =
-            TimePickerDialog.OnTimeSetListener { _, hourOfDay, minute ->
-                val time = Calendar.getInstance()
-                        .apply {
-                            set(Calendar.HOUR_OF_DAY, hourOfDay)
-                            set(Calendar.MINUTE, minute)
-                        }
-                        .time
-                if (reminderTimeClicked) {
-                    editTaskBinding.reminder.text = DateUtils.formatTime(this, time)
-                    editTaskPresenter.setReminderTime(time)
-                    reminderTimeClicked = false
-                } else {
-                    editTaskBinding.dueDate.text = DateUtils.formatDate(this, time)
-                    editTaskBinding.dueTime.text = DateUtils.formatTime(this, time)
-                    editTaskPresenter.setDueTime(time)
-                }
+        TimePickerDialog.OnTimeSetListener { _, hourOfDay, minute ->
+
+            val localTime = LocalTime.of(hourOfDay, minute)
+
+            val formattedTime = localTime.format(DateUtils.formatterTime)
+
+            if (reminderTimeClicked) {
+                editTaskBinding.reminder.text = formattedTime
+                editTaskPresenter.setReminderTime(localTime)
+                reminderTimeClicked = false
+            } else {
+//                editTaskBinding.dueDate.text = DateUtils.formatDate(this, time)
+                editTaskBinding.dueTime.text = formattedTime
+                editTaskPresenter.setDueTime(localTime)
             }
+        }
 
     /**
      * Flag indicating that the reminder time has been clicked.
@@ -133,7 +139,7 @@ class EditTaskActivity : DaggerAppCompatActivity(), EditTaskView {
 
     /**
      * Reset the due time
-
+     *
      * @return true if the due time was reset, false otherwise
      */
     override fun onDueTimeLongClicked(v: View): Boolean {
@@ -153,12 +159,11 @@ class EditTaskActivity : DaggerAppCompatActivity(), EditTaskView {
     }
 
     override fun onDateSet(view: DatePicker, year: Int, monthOfYear: Int, dayOfMonth: Int) {
-        val c = Calendar.getInstance()
-        c.set(year, monthOfYear, dayOfMonth)
-        val time = c.time
-        editTaskPresenter.dueDate = time
+        val dateTime = LocalDateTime.of(year, monthOfYear + 1, dayOfMonth, 0, 0)
+            .atZone(ZoneId.systemDefault())
+        editTaskPresenter.dueDate = dateTime
         // Display the date after being processed by the presenter
-        editTaskBinding.dueDate.text = DateUtils.formatDate(this, time)
+        editTaskBinding.dueDate.text = dateTime.format(DateUtils.formatterDate)
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -196,8 +201,8 @@ class EditTaskActivity : DaggerAppCompatActivity(), EditTaskView {
         KeyboardUtil.hideKeyboard(this)
         if (editTaskPresenter.hasDueDate()) {
             val dialog = AlertDialog.Builder(this)
-                    .setView(R.layout.dialog_remove_change)
-                    .show()
+                .setView(R.layout.dialog_remove_change)
+                .show()
 
 
             dialog.findViewById<LinearLayout>(R.id.remove)!!.setOnClickListener {
@@ -229,13 +234,13 @@ class EditTaskActivity : DaggerAppCompatActivity(), EditTaskView {
     @Suppress("UNUSED_PARAMETER")
     fun onReminderClicked(v: View) {
         if (!editTaskPresenter.hasDueDate()) {
-            Toast.makeText(this, "You need to set a due date before adding a reminder", Toast.LENGTH_SHORT).show()
+            toastShort("You need to set a due date before adding a reminder")
             return
         }
         if (editTaskPresenter.hasReminder()) {
             val dialog = AlertDialog.Builder(this)
-                    .setView(R.layout.dialog_remove_change)
-                    .show()
+                .setView(R.layout.dialog_remove_change)
+                .show()
 
 
             dialog.findViewById<LinearLayout>(R.id.remove)!!.setOnClickListener {
@@ -264,7 +269,7 @@ class EditTaskActivity : DaggerAppCompatActivity(), EditTaskView {
             val day = c.get(Calendar.DAY_OF_MONTH)
 
             // Create a new instance of DatePickerDialog and return it
-            return DatePickerDialog(context, activity as EditTaskActivity, year, month, day)
+            return DatePickerDialog(context!!, activity as EditTaskActivity, year, month, day)
         }
     }
 
@@ -278,7 +283,13 @@ class EditTaskActivity : DaggerAppCompatActivity(), EditTaskView {
         val minute = c.get(Calendar.MINUTE)
 
         // Create a new instance of TimePickerDialog and return it
-        val timePickerDialog =  TimePickerDialog(this, reminderTimeSetListener, hour, minute, DateFormat.is24HourFormat(this))
+        val timePickerDialog = TimePickerDialog(
+            this,
+            reminderTimeSetListener,
+            hour,
+            minute,
+            DateFormat.is24HourFormat(this)
+        )
         timePickerDialog.show()
     }
 
