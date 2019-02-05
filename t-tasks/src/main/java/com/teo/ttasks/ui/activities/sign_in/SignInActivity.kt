@@ -11,7 +11,7 @@ import com.teo.ttasks.UserManager
 import com.teo.ttasks.databinding.ActivitySignInBinding
 import com.teo.ttasks.receivers.NetworkInfoReceiver
 import com.teo.ttasks.receivers.NetworkInfoReceiver.Companion.isOnline
-import com.teo.ttasks.ui.activities.main.MainActivity
+import com.teo.ttasks.ui.activities.main.MainActivity.Companion.startMainActivity
 import com.teo.ttasks.util.toastShort
 import dagger.android.support.DaggerAppCompatActivity
 import timber.log.Timber
@@ -25,11 +25,8 @@ open class SignInActivity : DaggerAppCompatActivity(), SignInView {
 
         private const val ARG_SIGN_OUT = "signOut"
 
-        fun start(context: Context, signOut: Boolean) {
-            val starter = Intent(context, SignInActivity::class.java)
-            starter.putExtra(ARG_SIGN_OUT, signOut)
-            context.startActivity(starter)
-        }
+        fun Context.startSignInActivity(signOut: Boolean) =
+            startActivity(Intent(this, SignInActivity::class.java).apply { putExtra(ARG_SIGN_OUT, signOut) })
     }
 
     @Inject
@@ -94,7 +91,7 @@ open class SignInActivity : DaggerAppCompatActivity(), SignInView {
     }
 
     override fun onSignInSuccess() {
-        MainActivity.start(this)
+        startMainActivity()
         finish()
     }
 

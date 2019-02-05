@@ -14,9 +14,7 @@ class AboutActivity : LibsActivity() {
 
     companion object {
 
-        fun start(context: Context) {
-            context.startActivity(Intent(context, AboutActivity::class.java))
-        }
+        fun Context.startAboutActivity() = startActivity(Intent(this, AboutActivity::class.java))
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

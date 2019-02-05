@@ -35,10 +35,10 @@ import com.teo.ttasks.R
 import com.teo.ttasks.data.TaskListsAdapter
 import com.teo.ttasks.data.model.TaskList
 import com.teo.ttasks.databinding.ActivityMainBinding
-import com.teo.ttasks.ui.activities.AboutActivity
+import com.teo.ttasks.ui.activities.AboutActivity.Companion.startAboutActivity
 import com.teo.ttasks.ui.activities.BaseActivity
 import com.teo.ttasks.ui.activities.SettingsActivity
-import com.teo.ttasks.ui.activities.sign_in.SignInActivity
+import com.teo.ttasks.ui.activities.sign_in.SignInActivity.Companion.startSignInActivity
 import com.teo.ttasks.ui.fragments.task_lists.TaskListsFragment
 import com.teo.ttasks.ui.fragments.tasks.TasksFragment
 import timber.log.Timber
@@ -63,10 +63,7 @@ open class MainActivity : BaseActivity(), MainView {
         private const val ID_ABOUT: Long = 0xF2
         private const val ID_SIGN_OUT: Long = 0xF3
 
-        fun start(context: Context) {
-            val starter = Intent(context, MainActivity::class.java)
-            context.startActivity(starter)
-        }
+        fun Context.startMainActivity() = startActivity(Intent(this, MainActivity::class.java))
     }
 
     @Inject
@@ -215,10 +212,8 @@ open class MainActivity : BaseActivity(), MainView {
                         tag = TAG_TASK_LISTS
                     }
                     ID_SETTINGS -> SettingsActivity.startForResult(this, RC_NIGHT_MODE)
-                    ID_ABOUT -> AboutActivity.start(this)
-                    ID_SIGN_OUT -> {
-                        mainActivityPresenter.signOut()
-                    }
+                    ID_ABOUT -> startAboutActivity()
+                    ID_SIGN_OUT -> mainActivityPresenter.signOut()
                     else -> {
                         // If we're being restored from a previous state,
                         // then we don't need to do anything and should return or else
@@ -296,16 +291,12 @@ open class MainActivity : BaseActivity(), MainView {
      * Load the profile picture into the current profile
      * and display it in the Navigation drawer header.
      */
-    override fun onUserPicture(pictureUrl: String) {
-        Picasso.get()
-            .load(pictureUrl)
-            .placeholder(DrawerUIUtils.getPlaceHolder(this))
-            .into(profile.tag as Target)
-    }
+    override fun onUserPicture(pictureUrl: String) = Picasso.get()
+        .load(pictureUrl)
+        .placeholder(DrawerUIUtils.getPlaceHolder(this))
+        .into(profile.tag as Target)
 
-    override fun onUserCover(coverUrl: String) {
-        accountHeader.setHeaderBackground(ImageHolder(coverUrl))
-    }
+    override fun onUserCover(coverUrl: String) = accountHeader.setHeaderBackground(ImageHolder(coverUrl))
 
     /**
      * Load the task lists and prepare them to be displayed.
@@ -327,7 +318,7 @@ open class MainActivity : BaseActivity(), MainView {
 
     override fun onSignedOut() {
         // Return to the sign in activity
-        SignInActivity.start(this, true)
+        startSignInActivity(true)
         finish()
     }
 
