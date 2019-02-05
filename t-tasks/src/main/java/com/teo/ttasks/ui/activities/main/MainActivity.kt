@@ -16,12 +16,8 @@ import android.widget.AdapterView
 import androidx.appcompat.app.ActionBar
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
-import com.androidhuman.rxfirebase2.auth.rxGetCurrentUser
-import com.androidhuman.rxfirebase2.auth.rxReload
-import com.androidhuman.rxfirebase2.auth.rxSignOut
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.floatingactionbutton.FloatingActionButton
-import com.google.firebase.auth.FirebaseAuth
 import com.mikepenz.google_material_typeface_library.GoogleMaterial
 import com.mikepenz.materialdrawer.AccountHeader
 import com.mikepenz.materialdrawer.AccountHeaderBuilder
@@ -32,24 +28,19 @@ import com.mikepenz.materialdrawer.model.DividerDrawerItem
 import com.mikepenz.materialdrawer.model.PrimaryDrawerItem
 import com.mikepenz.materialdrawer.model.ProfileDrawerItem
 import com.mikepenz.materialdrawer.model.SecondaryDrawerItem
-import com.mikepenz.materialdrawer.model.interfaces.IProfile
 import com.mikepenz.materialdrawer.util.DrawerUIUtils
 import com.squareup.picasso.Picasso
 import com.squareup.picasso.Target
 import com.teo.ttasks.R
-import com.teo.ttasks.UserManager
 import com.teo.ttasks.data.TaskListsAdapter
 import com.teo.ttasks.data.model.TaskList
 import com.teo.ttasks.databinding.ActivityMainBinding
-import com.teo.ttasks.receivers.NetworkInfoReceiver
 import com.teo.ttasks.ui.activities.AboutActivity
 import com.teo.ttasks.ui.activities.BaseActivity
 import com.teo.ttasks.ui.activities.SettingsActivity
 import com.teo.ttasks.ui.activities.sign_in.SignInActivity
 import com.teo.ttasks.ui.fragments.task_lists.TaskListsFragment
 import com.teo.ttasks.ui.fragments.tasks.TasksFragment
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.schedulers.Schedulers
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -81,13 +72,9 @@ open class MainActivity : BaseActivity(), MainView {
     @Inject
     internal lateinit var mainActivityPresenter: MainActivityPresenter
 
-    @Inject
-    internal lateinit var networkInfoReceiver: NetworkInfoReceiver
-
-    @Inject
-    internal lateinit var userManager: UserManager
-
+    /** The profile of the currently logged in user  */
     internal lateinit var profile: ProfileDrawerItem
+
     internal lateinit var accountHeader: AccountHeader
     internal lateinit var tasksFragment: TasksFragment
     internal lateinit var taskListsFragment: TaskListsFragment
@@ -96,20 +83,6 @@ open class MainActivity : BaseActivity(), MainView {
 
     private lateinit var taskListsAdapter: TaskListsAdapter
 
-    private lateinit var firebaseAuth: FirebaseAuth
-
-    /** Listener handling the sign out event */
-    private val authStateListener = FirebaseAuth.AuthStateListener { firebaseAuth ->
-        if (firebaseAuth.currentUser == null) {
-            // The user has signed out
-            // TODO Unregister all task listeners
-            mainActivityPresenter.clearUser()
-            SignInActivity.start(this, true)
-            finish()
-        }
-    }
-
-    /** The profile of the currently logged in user  */
     private lateinit var drawer: Drawer
 
     /** Recreate the activity after a night mode setting change */
@@ -120,16 +93,10 @@ open class MainActivity : BaseActivity(), MainView {
         mainActivityPresenter.bindView(this)
 
         // Show the SignIn activity if there's no user connected
-        firebaseAuth = FirebaseAuth.getInstance()
-
-        if (firebaseAuth.currentUser == null) {
-            // Return to the sign in activity
-            SignInActivity.start(this, false)
-            finish()
+        if (!mainActivityPresenter.isSignedIn()) {
+            onSignedOut()
             return
         }
-
-        firebaseAuth.addAuthStateListener(authStateListener)
 
         mainBinding = DataBindingUtil.setContentView(this, R.layout.activity_main)
 
@@ -151,8 +118,7 @@ open class MainActivity : BaseActivity(), MainView {
             adapter = taskListsAdapter
             onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
                 override fun onItemSelected(adapterView: AdapterView<*>, view: View, position: Int, id: Long) {
-                    val taskList = adapterView.getItemAtPosition(position) as TaskList
-                    val taskListId = taskList.id
+                    val taskListId = (adapterView.getItemAtPosition(position) as TaskList).id
                     mainActivityPresenter.setLastAccessedTaskList(taskListId)
                     tasksFragment.updateTaskListId(taskListId)
                 }
@@ -185,10 +151,6 @@ open class MainActivity : BaseActivity(), MainView {
 //                                .withIcon(GoogleMaterial.Icon.gmd_settings)
 //                                .withIdentifier(ID_MANAGE_ACCOUNT)
             )
-            .withOnAccountHeaderListener { _: View, profile: IProfile<*>, _: Boolean ->
-                Timber.d(profile.toString())
-                true
-            }
             .withSavedInstance(savedInstanceState)
             .build()
 
@@ -263,21 +225,7 @@ open class MainActivity : BaseActivity(), MainView {
                     ID_SETTINGS -> SettingsActivity.startForResult(this, RC_NIGHT_MODE)
                     ID_ABOUT -> AboutActivity.start(this)
                     ID_SIGN_OUT -> {
-                        firebaseAuth.rxSignOut()
-                            .onErrorComplete {
-                                Timber.e(it, "There was an error signing out from Firebase, ignoring")
-                                return@onErrorComplete true
-                            }
-                            .andThen(userManager.signOut())
-                            .onErrorComplete {
-                                Timber.e(it, "There was an error signing out from Google, ignoring")
-                                return@onErrorComplete true
-                            }
-                            .subscribe({
-                                Timber.d("Signed out")
-                            }, {
-                                Timber.e(it, "Could not sign out")
-                            })
+                        mainActivityPresenter.signOut()
                     }
                     else -> {
                         // If we're being restored from a previous state,
@@ -326,21 +274,8 @@ open class MainActivity : BaseActivity(), MainView {
 
     override fun onStart() {
         super.onStart()
-
-        // TODO refresh the user picture only if necessary
-        val currentUser = firebaseAuth.currentUser
-        if (currentUser != null) {
-            currentUser.rxReload()
-                .subscribeOn(Schedulers.io())
-                .andThen(firebaseAuth.rxGetCurrentUser())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe { firebaseUser ->
-                    onUserPicture(firebaseUser.photoUrl.toString())
-                }
-
-            mainActivityPresenter.loadCurrentUser()
-            mainActivityPresenter.getTaskLists()
-        }
+        mainActivityPresenter.loadCurrentUser()
+        mainActivityPresenter.getTaskLists()
     }
 
     override fun onPostResume() {
@@ -354,9 +289,8 @@ open class MainActivity : BaseActivity(), MainView {
     }
 
     override fun onDestroy() {
-        super.onDestroy()
         mainActivityPresenter.unbindView(this)
-        firebaseAuth.removeAuthStateListener(authStateListener)
+        super.onDestroy()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -419,12 +353,15 @@ open class MainActivity : BaseActivity(), MainView {
         // TODO: 2016-07-24 implement
     }
 
-    override fun onBackPressed() {
-        if (drawer.isDrawerOpen) {
-            drawer.closeDrawer()
-        } else {
-            super.onBackPressed()
-        }
+    override fun onSignedOut() {
+        // Return to the sign in activity
+        SignInActivity.start(this, true)
+        finish()
+    }
+
+    override fun onBackPressed() = when {
+        drawer.isDrawerOpen -> drawer.closeDrawer()
+        else -> super.onBackPressed()
     }
 
     /**
@@ -456,9 +393,7 @@ open class MainActivity : BaseActivity(), MainView {
         }, if (delay) 300L else 0L)
     }
 
-    fun fab(): FloatingActionButton {
-        return mainBinding.fab
-    }
+    fun fab(): FloatingActionButton = mainBinding.fab
 
     /**
      * Update the action bar layout based on the currently selected drawer item
@@ -479,7 +414,7 @@ open class MainActivity : BaseActivity(), MainView {
         }
     }
 
-    internal inner class ProfileIconTarget : Target {
+    private inner class ProfileIconTarget : Target {
         override fun onBitmapLoaded(bitmap: Bitmap, from: Picasso.LoadedFrom) {
             // Create another image the same size
             val padding = 48

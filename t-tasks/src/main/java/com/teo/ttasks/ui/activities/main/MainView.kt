@@ -14,4 +14,6 @@ interface MainView : MvpView {
     fun onTaskListsLoaded(taskLists: List<TaskList>, currentTaskListIndex: Int)
 
     fun onTaskListsLoadError()
+
+    fun onSignedOut()
 }

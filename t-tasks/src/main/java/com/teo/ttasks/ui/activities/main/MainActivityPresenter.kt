@@ -1,6 +1,9 @@
 package com.teo.ttasks.ui.activities.main
 
 import androidx.core.util.Pair
+import com.androidhuman.rxfirebase2.auth.rxSignOut
+import com.google.firebase.auth.FirebaseAuth
+import com.teo.ttasks.UserManager
 import com.teo.ttasks.api.PeopleApi
 import com.teo.ttasks.data.local.PrefHelper
 import com.teo.ttasks.data.remote.TasksHelper
@@ -14,7 +17,8 @@ import timber.log.Timber
 class MainActivityPresenter(
     private val tasksHelper: TasksHelper,
     private val prefHelper: PrefHelper,
-    private val peopleApi: PeopleApi
+    private val peopleApi: PeopleApi,
+    private val userManager: UserManager
 ) : Presenter<MainView>() {
 
     private lateinit var realm: Realm
@@ -24,6 +28,20 @@ class MainActivityPresenter(
 
     internal val userEmail: String?
         get() = prefHelper.userEmail
+
+    private val firebaseAuth = FirebaseAuth.getInstance()
+
+    /** Listener handling the sign out event */
+    private val firebaseAuthStateListener = FirebaseAuth.AuthStateListener { firebaseAuth ->
+        if (firebaseAuth.currentUser == null) {
+            // The user has signed out
+            // TODO Unregister all task listeners
+            clearUser()
+            view()?.onSignedOut()
+        }
+    }
+
+    internal fun isSignedIn() = firebaseAuth.currentUser != null
 
     /**
      * Save the ID of the last accessed task list so that it can be displayed the next time the user opens the app
@@ -39,21 +57,23 @@ class MainActivityPresenter(
      * Must be called after onConnected
      */
     internal fun loadCurrentUser() {
-        val subscription = peopleApi.getCurrentPersonCoverPhotos()
+        // Load the current user's profile picture
+        firebaseAuth.currentUser?.photoUrl.apply { view()?.onUserPicture(toString()) }
+
+        // Load the current user's cover photo
+        val coverPhotoDisposable = peopleApi.getCurrentPersonCoverPhotos()
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(
                 { coverPhotosResponse ->
-                    Timber.v("Found %d cover photo(s)", coverPhotosResponse.coverPhotos.size)
-                    coverPhotosResponse.coverPhotos.forEachIndexed { index, coverPhotos ->
-                        Timber.v("Cover photo %d: %s", index, coverPhotos.url)
-                        if (index == 0) {
-                            view()?.onUserCover(coverPhotos.url)
-                        }
+                    val coverPhotos = coverPhotosResponse.coverPhotos
+                    Timber.v("Found %d cover photo(s)", coverPhotos.size)
+                    coverPhotos.getOrNull(0)?.apply {
+                        Timber.v("Cover photo: %s", url)
+                        view()?.onUserCover(url)
                     }
                 },
-                { Timber.e(it, "Error while loading cover photos") }
-            )
-        disposeOnUnbindView(subscription)
+                { Timber.e(it, "Error while loading cover photos") })
+        disposeOnUnbindView(coverPhotoDisposable)
     }
 
     internal fun loadUserPictures() {
@@ -93,7 +113,25 @@ class MainActivityPresenter(
         disposeOnUnbindView(subscription)
     }
 
-    internal fun clearUser() {
+    internal fun signOut() {
+        firebaseAuth.rxSignOut()
+            .onErrorComplete {
+                Timber.e(it, "There was an error signing out from Firebase, ignoring")
+                return@onErrorComplete true
+            }
+            .andThen(userManager.signOut())
+            .onErrorComplete {
+                Timber.e(it, "There was an error signing out from Google, ignoring")
+                return@onErrorComplete true
+            }
+            .subscribe({
+                Timber.d("Signed out")
+            }, {
+                Timber.e(it, "Could not sign out")
+            })
+    }
+
+    private fun clearUser() {
         // Clear the user's preferences
         prefHelper.clearUser()
         // Clear the database
@@ -105,10 +143,12 @@ class MainActivityPresenter(
     override fun bindView(view: MainView) {
         super.bindView(view)
         realm = Realm.getDefaultInstance()
+        firebaseAuth.addAuthStateListener(firebaseAuthStateListener)
     }
 
     override fun unbindView(view: MainView) {
-        super.unbindView(view)
+        firebaseAuth.removeAuthStateListener(firebaseAuthStateListener)
         realm.close()
+        super.unbindView(view)
     }
 }

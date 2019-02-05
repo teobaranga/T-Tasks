@@ -35,9 +35,7 @@ internal class SignInPresenter(
             .flatMap { FirebaseAuth.getInstance().rxSignInWithCredential(GoogleAuthProvider.getCredential(null, it)) }
             // Cache the user's photo URL
             .doOnSuccess { firebaseUser ->
-                prefHelper.userPhoto = firebaseUser.photoUrl.toString()
                 Timber.v("%s %s", firebaseUser.displayName, firebaseUser.email)
-                Timber.v("Photo URL: %s", prefHelper.userPhoto)
             }
             // Indicate that we're loading the task lists + tasks next
             .observeOn(AndroidSchedulers.mainThread())
