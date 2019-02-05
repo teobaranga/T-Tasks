@@ -76,8 +76,10 @@ open class MainActivity : BaseActivity(), MainView {
     internal lateinit var profile: ProfileDrawerItem
 
     internal lateinit var accountHeader: AccountHeader
-    internal lateinit var tasksFragment: TasksFragment
-    internal lateinit var taskListsFragment: TaskListsFragment
+
+    private var tasksFragment: TasksFragment? = null
+
+    private var taskListsFragment: TaskListsFragment? = null
 
     private lateinit var mainBinding: ActivityMainBinding
 
@@ -100,19 +102,6 @@ open class MainActivity : BaseActivity(), MainView {
 
         mainBinding = DataBindingUtil.setContentView(this, R.layout.activity_main)
 
-        if (savedInstanceState == null) {
-            // Create the tasks fragment
-            tasksFragment = TasksFragment.newInstance()
-            taskListsFragment = TaskListsFragment.newInstance()
-        } else {
-            // Get the tasks fragment
-            val fragment = supportFragmentManager.findFragmentByTag(TAG_TASKS)
-            tasksFragment = fragment as? TasksFragment ?: TasksFragment.newInstance()
-            // Get the task lists fragment
-            val fragmentTaskLists = supportFragmentManager.findFragmentByTag(TAG_TASK_LISTS)
-            taskListsFragment = fragmentTaskLists as? TaskListsFragment ?: TaskListsFragment.newInstance()
-        }
-
         taskListsAdapter = TaskListsAdapter(supportActionBar!!.themedContext)
         mainBinding.spinnerTaskLists.apply {
             adapter = taskListsAdapter
@@ -120,7 +109,7 @@ open class MainActivity : BaseActivity(), MainView {
                 override fun onItemSelected(adapterView: AdapterView<*>, view: View, position: Int, id: Long) {
                     val taskListId = (adapterView.getItemAtPosition(position) as TaskList).id
                     mainActivityPresenter.setLastAccessedTaskList(taskListId)
-                    tasksFragment.updateTaskListId(taskListId)
+                    tasksFragment?.updateTaskListId(taskListId)
                 }
 
                 override fun onNothingSelected(adapterView: AdapterView<*>) {}
@@ -199,26 +188,29 @@ open class MainActivity : BaseActivity(), MainView {
                     return@withOnDrawerItemClickListener false
                 }
 
-                val currentFragment = supportFragmentManager.findFragmentById(R.id.fragment_container)
-                val supportActionBar = supportActionBar!!
                 var fragment: Fragment? = null
                 var tag: String? = null
 
                 when (drawerItem.identifier) {
                     ID_TASKS -> {
-                        if (currentFragment is TasksFragment) {
+                        if (supportFragmentManager.findFragmentById(R.id.fragment_container) is TasksFragment) {
                             return@withOnDrawerItemClickListener false
                         }
+                        // Get the tasks fragment
+                        tasksFragment = tasksFragment
+                            ?: (supportFragmentManager.findFragmentByTag(TAG_TASKS) as? TasksFragment
+                                ?: TasksFragment.newInstance())
                         fragment = tasksFragment
                         tag = TAG_TASKS
                     }
                     ID_TASK_LISTS -> {
-                        if (currentFragment is TaskListsFragment) {
+                        if (supportFragmentManager.findFragmentById(R.id.fragment_container) is TaskListsFragment) {
                             return@withOnDrawerItemClickListener false
                         }
-                        supportActionBar.setTitle(R.string.task_lists)
-                        supportActionBar.setDisplayShowTitleEnabled(true)
-                        mainBinding.spinnerTaskLists.visibility = GONE
+                        // Get the task lists fragment
+                        taskListsFragment = taskListsFragment
+                            ?: (supportFragmentManager.findFragmentByTag(TAG_TASK_LISTS) as? TaskListsFragment
+                                ?: TaskListsFragment.newInstance())
                         fragment = taskListsFragment
                         tag = TAG_TASK_LISTS
                     }
@@ -234,26 +226,13 @@ open class MainActivity : BaseActivity(), MainView {
                     }
                 }
                 if (fragment != null) {
-                    Timber.d("New fragment %s", fragment)
-                    updateActionBar(supportActionBar, drawerItem.identifier)
+                    Timber.v("Switching to fragment %s", tag)
+                    supportFragmentManager
+                        .beginTransaction()
+                        .replace(R.id.fragment_container, fragment, tag)
+                        .commit()
+                    updateActionBar(supportActionBar!!, drawerItem.identifier)
                     mainBinding.appbar.setExpanded(true)
-                    currentFragment?.let {
-                        Timber.v("Detaching current fragment %s", it)
-                        supportFragmentManager.beginTransaction().detach(it).commit()
-                    }
-                    when (supportFragmentManager.findFragmentByTag(tag)) {
-                        null -> {
-                            Timber.v("Adding new fragment with tag %s", tag)
-                            supportFragmentManager
-                                .beginTransaction()
-                                .add(R.id.fragment_container, fragment, tag)
-                                .commit()
-                        }
-                        else -> {
-                            Timber.v("Re-attaching fragment with tag %s", tag)
-                            supportFragmentManager.beginTransaction().attach(fragment).commit()
-                        }
-                    }
                 }
                 return@withOnDrawerItemClickListener false
             }
@@ -312,13 +291,6 @@ open class MainActivity : BaseActivity(), MainView {
 //            }
         }
     }
-
-//    override fun onApiReady() {
-//        if (isOnline()) {
-//            mainActivityPresenter.refreshTaskLists()
-//            mainActivityPresenter.loadCurrentUser()
-//        }
-//    }
 
     /**
      * Load the profile picture into the current profile
