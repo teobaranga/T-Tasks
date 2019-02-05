@@ -58,6 +58,9 @@ class TasksFragment : DaggerFragment(), TasksView, SwipeRefreshLayout.OnRefreshL
     @Inject
     internal lateinit var tasksPresenter: TasksPresenter
 
+    @Inject
+    internal lateinit var networkInfoReceiver: NetworkInfoReceiver
+
     /** ID of the current task list */
     internal var taskListId: String? = null
 
@@ -139,7 +142,6 @@ class TasksFragment : DaggerFragment(), TasksView, SwipeRefreshLayout.OnRefreshL
             return true
         }
     }
-    private lateinit var networkInfoReceiver: NetworkInfoReceiver
 
     private lateinit var tasksBinding: FragmentTasksBinding
 
@@ -175,7 +177,6 @@ class TasksFragment : DaggerFragment(), TasksView, SwipeRefreshLayout.OnRefreshL
 
         createNavBarPair()
 
-        networkInfoReceiver = NetworkInfoReceiver()
         networkInfoReceiver.setOnConnectionChangedListener { isOnline ->
             if (isOnline) {
                 Timber.d("isOnline")

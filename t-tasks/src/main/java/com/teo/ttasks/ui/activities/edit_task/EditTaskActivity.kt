@@ -24,7 +24,6 @@ import com.teo.ttasks.data.TaskListsAdapter
 import com.teo.ttasks.data.model.Task
 import com.teo.ttasks.data.model.TaskList
 import com.teo.ttasks.databinding.ActivityEditTaskBinding
-import com.teo.ttasks.receivers.NetworkInfoReceiver
 import com.teo.ttasks.receivers.NetworkInfoReceiver.Companion.isOnline
 import com.teo.ttasks.util.DateUtils
 import com.teo.ttasks.util.toastShort
@@ -39,9 +38,6 @@ class EditTaskActivity : DaggerAppCompatActivity(), EditTaskView {
 
     @Inject
     internal lateinit var editTaskPresenter: EditTaskPresenter
-
-    @Inject
-    internal lateinit var networkInfoReceiver: NetworkInfoReceiver
 
     private lateinit var editTaskBinding: ActivityEditTaskBinding
 

@@ -9,7 +9,6 @@ import com.google.android.gms.common.api.ApiException
 import com.teo.ttasks.R
 import com.teo.ttasks.UserManager
 import com.teo.ttasks.databinding.ActivitySignInBinding
-import com.teo.ttasks.receivers.NetworkInfoReceiver
 import com.teo.ttasks.receivers.NetworkInfoReceiver.Companion.isOnline
 import com.teo.ttasks.ui.activities.main.MainActivity.Companion.startMainActivity
 import com.teo.ttasks.util.toastShort
@@ -31,9 +30,6 @@ open class SignInActivity : DaggerAppCompatActivity(), SignInView {
 
     @Inject
     internal lateinit var signInPresenter: SignInPresenter
-
-    @Inject
-    internal lateinit var networkInfoReceiver: NetworkInfoReceiver
 
     @Inject
     internal lateinit var userManager: UserManager

@@ -16,7 +16,6 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.teo.ttasks.R
 import com.teo.ttasks.databinding.FragmentTaskListsBinding
-import com.teo.ttasks.receivers.NetworkInfoReceiver
 import com.teo.ttasks.receivers.NetworkInfoReceiver.Companion.isOnline
 import com.teo.ttasks.ui.DividerItemDecoration
 import com.teo.ttasks.ui.activities.main.MainActivity
@@ -30,7 +29,6 @@ import javax.inject.Inject
 
 class TaskListsFragment : DaggerFragment(), TaskListsView, SwipeRefreshLayout.OnRefreshListener {
 
-    @Inject internal lateinit var networkInfoReceiver: NetworkInfoReceiver
     @Inject internal lateinit var taskListsPresenter: TaskListsPresenter
 
     private lateinit var adapter: FlexibleAdapter<TaskListItem>
