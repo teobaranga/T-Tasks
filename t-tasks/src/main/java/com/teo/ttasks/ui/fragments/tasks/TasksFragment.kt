@@ -28,6 +28,7 @@ import com.teo.ttasks.ui.activities.task_detail.TaskDetailActivity
 import com.teo.ttasks.ui.items.CategoryItem
 import com.teo.ttasks.ui.items.TaskItem
 import com.teo.ttasks.util.SortType
+import com.teo.ttasks.util.toastShort
 import dagger.android.support.DaggerFragment
 import eu.davidea.flexibleadapter.FlexibleAdapter
 import eu.davidea.flexibleadapter.items.IFlexible
@@ -166,14 +167,15 @@ class TasksFragment : DaggerFragment(), TasksView, SwipeRefreshLayout.OnRefreshL
 
         savedInstanceState?.let { taskListId = it.getString(ARG_TASK_LIST_ID) }
 
-        activeTasksHeader = CategoryItem(getString(R.string.active))
-        activeTasksHeader.isExpanded = true
-        completedTasksHeader = CategoryItem(getString(R.string.completed), getString(R.string.completed_count))
-        completedTasksHeader.isExpanded = tasksPresenter.showCompleted
+        activeTasksHeader = CategoryItem(getString(R.string.active)).apply { isExpanded = true }
+        completedTasksHeader = CategoryItem(getString(R.string.completed), getString(R.string.completed_count)).apply {
+            isExpanded = tasksPresenter.showCompleted
+        }
 
-        adapter = FlexibleAdapter(null, null)
-        adapter.isAutoScrollOnExpand = false
-        adapter.addListener(taskItemClickListener)
+        adapter = FlexibleAdapter<IFlexible<*>>(null, null).apply {
+            isAutoScrollOnExpand = false
+            addListener(taskItemClickListener)
+        }
 
         createNavBarPair()
 
@@ -196,9 +198,11 @@ class TasksFragment : DaggerFragment(), TasksView, SwipeRefreshLayout.OnRefreshL
         super.onViewCreated(view, savedInstanceState)
         tasksPresenter.bindView(this)
 
-        tasksBinding.tasksList.layoutManager = LinearLayoutManager(context)
-        tasksBinding.tasksList.adapter = adapter
-        tasksBinding.tasksList.setHasFixedSize(true)
+        tasksBinding.tasksList.apply {
+            layoutManager = LinearLayoutManager(context)
+            adapter = this@TasksFragment.adapter
+            setHasFixedSize(true)
+        }
 
         tasksBinding.swipeRefreshLayout.setOnRefreshListener(this)
 
@@ -218,14 +222,13 @@ class TasksFragment : DaggerFragment(), TasksView, SwipeRefreshLayout.OnRefreshL
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        outState.putString(ARG_TASK_LIST_ID, taskListId)
+        super.onSaveInstanceState(outState.apply { putString(ARG_TASK_LIST_ID, taskListId) })
     }
 
     override fun onDestroyView() {
-        super.onDestroyView()
-        tasksPresenter.unbindView(this)
         context!!.unregisterReceiver(networkInfoReceiver)
+        tasksPresenter.unbindView(this)
+        super.onDestroyView()
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -273,7 +276,7 @@ class TasksFragment : DaggerFragment(), TasksView, SwipeRefreshLayout.OnRefreshL
         if (resolveIntent != null) {
             startActivityForResult(resolveIntent, RC_USER_RECOVERABLE)
         } else {
-            Toast.makeText(context, R.string.error_tasks_loading, Toast.LENGTH_SHORT).show()
+            context?.toastShort(R.string.error_tasks_loading)
         }
         onRefreshDone()
     }
@@ -323,7 +326,7 @@ class TasksFragment : DaggerFragment(), TasksView, SwipeRefreshLayout.OnRefreshL
 
     override fun onSyncDone(taskSyncCount: Long) {
         if (taskSyncCount != 0L) {
-            Toast.makeText(context, "Synchronized $taskSyncCount tasks", Toast.LENGTH_SHORT).show()
+            context?.toastShort("Synchronized $taskSyncCount tasks")
         }
         tasksPresenter.refreshTasks(taskListId)
     }
