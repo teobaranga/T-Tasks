@@ -1,7 +1,6 @@
 package com.teo.ttasks.ui.fragments.tasks
 
 import com.androidhuman.rxfirebase2.database.dataChanges
-import com.google.android.gms.auth.UserRecoverableAuthException
 import com.google.firebase.database.FirebaseDatabase
 import com.teo.ttasks.data.local.PrefHelper
 import com.teo.ttasks.data.model.Task
@@ -20,7 +19,6 @@ import io.reactivex.schedulers.Schedulers
 import io.realm.Realm
 import timber.log.Timber
 import java.util.*
-import java.util.concurrent.TimeUnit
 
 internal class TasksPresenter(
     private val tasksHelper: TasksHelper,
@@ -41,7 +39,7 @@ internal class TasksPresenter(
 
     private val reminderDisposables = CompositeDisposable()
 
-    private val tasks by lazy { FirebaseDatabase.getInstance().getTasksDatabase() }
+    private val tasksDatabase by lazy { FirebaseDatabase.getInstance().getTasksDatabase() }
 
     private lateinit var realm: Realm
 
@@ -75,32 +73,36 @@ internal class TasksPresenter(
 
                 // Dispose reminders for deleted tasks
                 val deletedTaskIds = reminderMap.keys - taskMap.keys
-                deletedTaskIds.forEach { id ->
+                for (id in deletedTaskIds) {
                     // Remove and dispose
-                    reminderDisposables.remove(reminderMap.getValue(id))
-                    reminderMap.remove(id)
-//                        Timber.v("Removed listener for task $id")
+                    reminderMap.remove(id)?.let { reminderDisposables.remove(it) }
+//                    Timber.v("Removed listener for task $id")
                 }
 
                 // Add reminder listeners for new tasks
                 val newTaskIds = taskMap.keys - reminderMap.keys
                 for (id in newTaskIds) {
-                    val reminderDisposable = this.tasks.reminder(id)!!.dataChanges()
-                        .observeOn(AndroidSchedulers.mainThread())
+                    val reminderDisposable = tasksDatabase.reminder(id)!!.dataChanges()
+                        .retry { retryCount, throwable ->
+                            Timber.e(throwable, "Error while processing reminder for $id")
+                            return@retry retryCount <= 10
+                        }
                         .subscribeOn(Schedulers.io())
-                        .subscribe { dataSnapshot ->
+                        .subscribe({ dataSnapshot ->
                             dataSnapshot?.getValue(Long::class.java)?.let { dateInMillis ->
                                 // Timber.v("Reminder for $id: $dateInMillis")
                                 val reminder = Date(dateInMillis)
-                                val task = taskMap[id]!!
+                                val task = taskMap.getValue(id)
                                 if (task.reminder != reminder) {
                                     reminderProcessor.onNext(Pair(task, reminder))
                                 }
                             }
-                        }
+                        }, { throwable ->
+                            Timber.e(throwable, "Fatal error while processing reminder for $id")
+                        })
                     reminderDisposables.add(reminderDisposable)
                     reminderMap[id] = reminderDisposable
-//                        Timber.v("Added listener for task $id")
+//                    Timber.v("Added listener for task $id")
                 }
             }
             .compose(RxUtils.getTaskItems(sortingMode))
@@ -130,7 +132,10 @@ internal class TasksPresenter(
                         }
                     }
                 },
-                { Timber.e(it, "Error when subscribing to tasks") }
+                {
+                    Timber.e(it, "Error when subscribing to tasks")
+                    view()?.onTasksLoadError()
+                }
             )
         disposeOnUnbindView(tasksSubscription!!)
     }
@@ -144,13 +149,7 @@ internal class TasksPresenter(
                 { view()?.onRefreshDone() },
                 { throwable ->
                     Timber.e(throwable, "Error refreshing tasks")
-                    view()?.let {
-                        val cause = throwable.cause
-                        when (cause) {
-                            is UserRecoverableAuthException -> it.onTasksLoadError(cause.intent)
-                            else -> it.onTasksLoadError(null)
-                        }
-                    }
+                    view()?.onTasksLoadError()
                 })
         disposeOnUnbindView(subscription)
     }
@@ -201,27 +200,24 @@ internal class TasksPresenter(
         super.bindView(view)
         realm = Realm.getDefaultInstance()
         // TODO: optimize this since it still runs in the background...
-        reminderProcessor
-            .buffer(1, TimeUnit.SECONDS)
-            .filter { tTasks -> tTasks.size != 0 }
+        val disposable = reminderProcessor
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(
                 { taskReminderPairs ->
                     realm.executeTransaction {
-                        for ((task, reminder) in taskReminderPairs) {
-                            task.reminder = reminder
-                        }
+                        val (task, reminder) = taskReminderPairs
+                        task.reminder = reminder
                     }
-                    Timber.v("Processed reminders for %d tasks", taskReminderPairs.size)
                 },
                 { Timber.e(it, "Error while processing the reminders") }
             )
+        disposeOnUnbindView(disposable)
     }
 
     override fun unbindView(view: TasksView) {
-        super.unbindView(view)
         reminderDisposables.clear()
         reminderMap.clear()
         realm.close()
+        super.unbindView(view)
     }
 }

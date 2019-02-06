@@ -66,7 +66,7 @@ class TasksHelper(
             .filter { it.isLoaded && it.isValid }
     }
 
-    fun queryTaskLists(realm: Realm): RealmQuery<TaskList> =
+    private fun queryTaskLists(realm: Realm): RealmQuery<TaskList> =
         realm.where(TaskList::class.java)
             .equalTo(com.teo.ttasks.data.model.TaskListFields.DELETED, false)
 
@@ -174,11 +174,7 @@ class TasksHelper(
      * @param realm          an instance of Realm
      * @param excludeDeleted (optional) whether to exclude locally deleted tasks - true by default
      */
-    fun getTasks(
-        taskListId: String,
-        realm: Realm,
-        excludeDeleted: Boolean = true
-    ): Flowable<RealmResults<Task>> =
+    fun getTasks(taskListId: String, realm: Realm, excludeDeleted: Boolean = true): Flowable<RealmResults<Task>> =
         queryTasks(taskListId, realm, excludeDeleted)
             .findAllAsync()
             .asFlowable()
@@ -376,10 +372,7 @@ class TasksHelper(
         realm.where(TaskListsResponse::class.java).findFirst()
 
     private fun getTasksResponse(taskListId: String, realm: Realm): TasksResponse? =
-        realm.where(TasksResponse::class.java).equalTo(
-            TasksResponseFields.ID,
-            taskListId
-        ).findFirst()
+        realm.where(TasksResponse::class.java).equalTo(TasksResponseFields.ID, taskListId).findFirst()
 
     private fun handleResourceNotModified(throwable: Throwable): Boolean {
         // End the stream if the status code is 304 - Not Modified
@@ -404,16 +397,11 @@ class TasksHelper(
      * @param excludeDeleted (optional) whether to exclude locally deleted tasks or not - true by default
      * @return a RealmResults containing objects. If no objects match the condition, a list with zero objects is returned.
      */
-    private fun queryTasks(
-        taskListId: String,
-        realm: Realm,
-        excludeDeleted: Boolean = true
-    ): RealmQuery<Task> {
-        var tasks = realm.where(Task::class.java)
-            .equalTo(com.teo.ttasks.data.model.TaskFields.TASK_LIST_ID, taskListId)
-        if (excludeDeleted) {
-            tasks = tasks.equalTo(com.teo.ttasks.data.model.TaskFields.DELETED, false)
-        }
-        return tasks
-    }
+    private fun queryTasks(taskListId: String, realm: Realm, excludeDeleted: Boolean = true) =
+        realm.where(Task::class.java)
+            .equalTo(com.teo.ttasks.data.model.TaskFields.TASK_LIST_ID, taskListId).apply {
+                if (excludeDeleted) {
+                    equalTo(com.teo.ttasks.data.model.TaskFields.DELETED, false)
+                }
+            }
 }

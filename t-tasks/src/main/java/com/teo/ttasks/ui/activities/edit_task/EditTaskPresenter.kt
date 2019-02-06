@@ -5,18 +5,15 @@ import com.google.firebase.database.FirebaseDatabase
 import com.teo.ttasks.data.local.TaskFields
 import com.teo.ttasks.data.local.WidgetHelper
 import com.teo.ttasks.data.model.Task
-import com.teo.ttasks.data.model.TaskList
 import com.teo.ttasks.data.remote.TasksHelper
 import com.teo.ttasks.jobs.TaskCreateJob
 import com.teo.ttasks.ui.base.Presenter
-import com.teo.ttasks.util.DateUtils.Companion.utcDateFormat
 import com.teo.ttasks.util.FirebaseUtil.getTasksDatabase
 import com.teo.ttasks.util.FirebaseUtil.saveReminder
 import com.teo.ttasks.util.NotificationHelper
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.realm.Realm
-import io.realm.RealmResults
 import org.threeten.bp.LocalDate
 import org.threeten.bp.LocalTime
 import org.threeten.bp.ZoneId
@@ -69,11 +66,14 @@ internal class EditTaskPresenter(
     internal fun loadTaskInfo(taskId: String) {
         taskSubscription?.let { if (!it.isDisposed) it.dispose() }
         taskSubscription = tasksHelper.getTaskAsSingle(taskId, realm)
-            .subscribe { task ->
+            .subscribe({ task ->
                 dueDate = task.dueDate
                 reminder = task.reminderDate
                 view()?.onTaskLoaded(task)
-            }
+            }, {
+                Timber.e(it, "Error while loading the task info")
+                view()?.onTaskLoadError()
+            })
     }
 
     /**
@@ -83,8 +83,8 @@ internal class EditTaskPresenter(
      * @param currentTaskListId task list identifier
      */
     internal fun loadTaskLists(currentTaskListId: String) {
-        tasksHelper.getTaskLists(realm)
-            .map<Pair<RealmResults<TaskList>, Int>> { taskLists ->
+        val disposable = tasksHelper.getTaskLists(realm)
+            .map { taskLists ->
                 // Find the index of the current task list
                 taskLists.forEachIndexed { i, taskList ->
                     if (taskList.id == currentTaskListId) {
@@ -93,7 +93,7 @@ internal class EditTaskPresenter(
                 }
 
                 // Index not found, select the first task list
-                Pair(taskLists, 0)
+                return@map Pair(taskLists, 0)
             }
             .subscribe({ taskListsIndexPair ->
                 view()?.onTaskListsLoaded(taskListsIndexPair.first!!, taskListsIndexPair.second!!)
@@ -101,6 +101,7 @@ internal class EditTaskPresenter(
                 Timber.e(throwable.toString())
                 view()?.onTaskLoadError()
             })
+        disposeOnUnbindView(disposable)
     }
 
     // TODO: 2016-08-19 implement this using Firebase
@@ -266,8 +267,8 @@ internal class EditTaskPresenter(
     }
 
     override fun unbindView(view: EditTaskView) {
-        super.unbindView(view)
         realm.close()
+        super.unbindView(view)
     }
 
     /**
@@ -279,6 +280,6 @@ internal class EditTaskPresenter(
     fun Task.update(taskFields: TaskFields) {
         title = taskFields.title
         notes = taskFields.notes
-        due = taskFields.dueDate?.let { utcDateFormat.parse(it) }
+        due = taskFields.dueDate?.let { Date(ZonedDateTime.parse(it).toInstant().toEpochMilli()) }
     }
 }

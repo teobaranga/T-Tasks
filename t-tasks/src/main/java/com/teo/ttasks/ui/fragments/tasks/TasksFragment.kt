@@ -62,8 +62,14 @@ class TasksFragment : DaggerFragment(), TasksView, SwipeRefreshLayout.OnRefreshL
     @Inject
     internal lateinit var networkInfoReceiver: NetworkInfoReceiver
 
-    /** ID of the current task list */
+    /** ID of the current task list. Its value is either null or a non-empty string. */
     internal var taskListId: String? = null
+        set(value) {
+            field = value?.trim()
+            if (field?.isEmpty() == true) {
+                field = null
+            }
+        }
 
     /**
      * The navigation bar view along with its associated transition name, used as a shared
@@ -84,7 +90,10 @@ class TasksFragment : DaggerFragment(), TasksView, SwipeRefreshLayout.OnRefreshL
     internal lateinit var adapter: FlexibleAdapter<IFlexible<*>>
 
     private lateinit var activeTasksHeader: CategoryItem
+
     private lateinit var completedTasksHeader: CategoryItem
+
+    private lateinit var tasksBinding: FragmentTasksBinding
 
     private val taskItemClickListener = object : FlexibleAdapter.OnItemClickListener {
         // Reject quick, successive clicks because they break the app
@@ -107,10 +116,12 @@ class TasksFragment : DaggerFragment(), TasksView, SwipeRefreshLayout.OnRefreshL
                         lastClickTime = currentTime
 
                         // Make sure the navigation bar view isn't null
-                        if (navBar.first == null)
+                        if (navBar.first == null) {
                             createNavBarPair()
+                        }
 
                         // Add the task header layout to the shared elements
+
                         pairs[0] = Pair.create(item.binding.layoutTask, getString(R.string.transition_task_header))
 
                         // Find the shared elements to be used in the transition
@@ -143,8 +154,6 @@ class TasksFragment : DaggerFragment(), TasksView, SwipeRefreshLayout.OnRefreshL
             return true
         }
     }
-
-    private lateinit var tasksBinding: FragmentTasksBinding
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
@@ -206,9 +215,7 @@ class TasksFragment : DaggerFragment(), TasksView, SwipeRefreshLayout.OnRefreshL
 
         tasksBinding.swipeRefreshLayout.setOnRefreshListener(this)
 
-        if (!taskListId.isNullOrBlank()) {
-            tasksPresenter.subscribeToTasks(taskListId!!, savedInstanceState != null)
-        }
+        taskListId?.let { tasksPresenter.subscribeToTasks(it, savedInstanceState != null) }
 
         // Synchronize tasks and then refresh this task list
         refreshTasks()
@@ -272,12 +279,8 @@ class TasksFragment : DaggerFragment(), TasksView, SwipeRefreshLayout.OnRefreshL
         Timber.v("loaded %d completed tasks", completedTasks.size)
     }
 
-    override fun onTasksLoadError(resolveIntent: Intent?) {
-        if (resolveIntent != null) {
-            startActivityForResult(resolveIntent, RC_USER_RECOVERABLE)
-        } else {
-            context?.toastShort(R.string.error_tasks_loading)
-        }
+    override fun onTasksLoadError() {
+        context?.toastShort(R.string.error_tasks_loading)
         onRefreshDone()
     }
 

@@ -154,7 +154,7 @@ class TaskItem(
 
     class ViewHolder internal constructor(view: View, adapter: FlexibleAdapter<*>) : FlexibleViewHolder(view, adapter) {
 
-        val binding = ItemTaskBinding.bind(view)
+        val binding: ItemTaskBinding = ItemTaskBinding.bind(view)
 
         internal val topMargin: Int
 
