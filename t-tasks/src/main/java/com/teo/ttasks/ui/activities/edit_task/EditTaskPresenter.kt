@@ -56,43 +56,43 @@ internal class EditTaskPresenter(
     /** Object containing the task fields that have been modified. */
     private val editTaskFields: TaskFields = TaskFields()
 
-    private var taskSubscription: Disposable? = null
+    private var taskDisposable: Disposable? = null
 
-    /**
-     * Load the task and display its information into the view.
-     *
-     * @param taskId task list identifier
-     */
-    internal fun loadTaskInfo(taskId: String) {
-        taskSubscription?.let { if (!it.isDisposed) it.dispose() }
-        taskSubscription = tasksHelper.getTaskAsSingle(taskId, realm)
-            .subscribe({ task ->
-                dueDate = task.dueDate
-                reminder = task.reminderDate
-                view()?.onTaskLoaded(task)
-            }, {
-                Timber.e(it, "Error while loading the task info")
-                view()?.onTaskLoadError()
-            })
-    }
+    /** ID of the current task. Its value is either null or a non-empty string. */
+    private var taskId: String? = null
+        set(value) {
+            field = value?.trim()
+            if (field?.isEmpty() == true) {
+                field = null
+            }
+        }
+
+    private lateinit var taskListId: String
 
     /**
      * Load the task lists and find the index of the provided task list in it.
      * This is used to automatically select the task list to which the current task belongs.
      *
-     * @param currentTaskListId task list identifier
+     * Load the task and display its information into the view.
+     *
+     * @param taskListId task list identifier
+     * @param taskId task list identifier
      */
-    internal fun loadTaskLists(currentTaskListId: String) {
-        val disposable = tasksHelper.getTaskLists(realm)
+    internal fun loadTask(taskListId: String, taskId: String? = null) {
+        this.taskListId = taskListId
+        this.taskId = taskId
+
+        val taskListDisposable = tasksHelper.getTaskLists(realm)
             .map { taskLists ->
                 // Find the index of the current task list
                 taskLists.forEachIndexed { i, taskList ->
-                    if (taskList.id == currentTaskListId) {
+                    if (taskList.id == this.taskListId) {
                         return@map Pair(taskLists, i)
                     }
                 }
 
                 // Index not found, select the first task list
+                Timber.w("Task list not found, selecting first task list")
                 return@map Pair(taskLists, 0)
             }
             .subscribe({ taskListsIndexPair ->
@@ -101,7 +101,24 @@ internal class EditTaskPresenter(
                 Timber.e(throwable.toString())
                 view()?.onTaskLoadError()
             })
-        disposeOnUnbindView(disposable)
+        disposeOnUnbindView(taskListDisposable)
+
+        this.taskId?.let { taskIdValid ->
+
+            taskDisposable?.let { if (!it.isDisposed) it.dispose() }
+
+            taskDisposable = tasksHelper.getTaskAsSingle(taskIdValid, realm)
+                .subscribe({ task ->
+                    dueDate = task.dueDate
+                    reminder = task.reminderDate
+                    view()?.onTaskLoaded(task)
+                }, {
+                    Timber.e(it, "Error while loading the task info")
+                    view()?.onTaskLoadError()
+                })
+
+            disposeOnUnbindView(taskDisposable!!)
+        }
     }
 
     // TODO: 2016-08-19 implement this using Firebase
@@ -148,6 +165,10 @@ internal class EditTaskPresenter(
      */
     internal fun setTaskNotes(taskNotes: String) {
         editTaskFields.notes = taskNotes.trim { it <= ' ' }
+    }
+
+    internal fun finishTask() {
+        taskId?.let { updateTask(taskListId, it) } ?: newTask(taskListId)
     }
 
     /**
@@ -197,7 +218,7 @@ internal class EditTaskPresenter(
      * @param taskId     task identifier
      * @param isOnline   `true` if there is an active network connection
      */
-    internal fun updateTask(taskListId: String, taskId: String, isOnline: Boolean) {
+    internal fun updateTask(taskListId: String, taskId: String, isOnline: Boolean = true) {
         // No changes, return
         if (editTaskFields.isEmpty()) {
             view()?.onTaskSaved()
@@ -229,7 +250,7 @@ internal class EditTaskPresenter(
 
         // Update the task on an active network connection
         if (isOnline) {
-            tasksHelper.updateTask(taskListId, taskId, editTaskFields)
+            val disposable = tasksHelper.updateTask(taskListId, taskId, editTaskFields)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ task ->
                     realm.executeTransaction { realm ->
@@ -241,6 +262,8 @@ internal class EditTaskPresenter(
                     Timber.e(throwable.toString())
                     view()?.onTaskSaveError()
                 })
+            // This is wrong
+            disposeOnUnbindView(disposable)
         }
         view()?.onTaskSaved()
     }

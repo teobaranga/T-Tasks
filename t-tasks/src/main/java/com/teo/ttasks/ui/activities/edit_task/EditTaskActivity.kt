@@ -13,18 +13,14 @@ import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.DatePicker
 import android.widget.LinearLayout
-import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.DialogFragment
-import androidx.fragment.app.Fragment
-import com.mikepenz.materialdrawer.util.KeyboardUtil
 import com.teo.ttasks.R
 import com.teo.ttasks.data.TaskListsAdapter
 import com.teo.ttasks.data.model.Task
 import com.teo.ttasks.data.model.TaskList
 import com.teo.ttasks.databinding.ActivityEditTaskBinding
-import com.teo.ttasks.receivers.NetworkInfoReceiver.Companion.isOnline
 import com.teo.ttasks.util.DateUtils
 import com.teo.ttasks.util.toastShort
 import dagger.android.support.DaggerAppCompatActivity
@@ -36,6 +32,19 @@ import javax.inject.Inject
 
 class EditTaskActivity : DaggerAppCompatActivity(), EditTaskView {
 
+    class DatePickerFragment : DialogFragment() {
+        override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+            // Use the current date as the default date in the picker
+            val c = Calendar.getInstance()
+            val year = c.get(Calendar.YEAR)
+            val month = c.get(Calendar.MONTH)
+            val day = c.get(Calendar.DAY_OF_MONTH)
+
+            // Create a new instance of DatePickerDialog and return it
+            return DatePickerDialog(requireContext(), activity as EditTaskActivity, year, month, day)
+        }
+    }
+
     @Inject
     internal lateinit var editTaskPresenter: EditTaskPresenter
 
@@ -43,11 +52,15 @@ class EditTaskActivity : DaggerAppCompatActivity(), EditTaskView {
 
     private lateinit var taskListsAdapter: TaskListsAdapter
 
-    private lateinit var taskListId: String
+    private lateinit var inputMethodManager: InputMethodManager
 
     private var datePickerFragment: DatePickerFragment? = null
 
-    private var taskId: String? = null
+    /**
+     * Flag indicating that the reminder time has been clicked.
+     * Used to differentiate between the reminder time and the due time.
+     */
+    private var reminderTimeClicked: Boolean = false
 
     /** Listener invoked when the reminder time has been selected */
     private val reminderTimeSetListener: TimePickerDialog.OnTimeSetListener =
@@ -68,47 +81,41 @@ class EditTaskActivity : DaggerAppCompatActivity(), EditTaskView {
             }
         }
 
-    /**
-     * Flag indicating that the reminder time has been clicked.
-     * Used to differentiate between the reminder time and the due time.
-     */
-    private var reminderTimeClicked: Boolean = false
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        inputMethodManager = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+
         editTaskBinding = DataBindingUtil.setContentView(this, R.layout.activity_edit_task)
         editTaskBinding.view = this
         editTaskPresenter.bindView(this)
 
-        taskId = intent.getStringExtra(EXTRA_TASK_ID)
-        taskListId = intent.getStringExtra(EXTRA_TASK_LIST_ID)
+        val taskId = intent.getStringExtra(EXTRA_TASK_ID)?.trim()
+        val taskListId = checkNotNull(intent.getStringExtra(EXTRA_TASK_LIST_ID)?.trim())
 
         supportActionBar!!.setDisplayHomeAsUpEnabled(true)
 
-        taskListsAdapter = TaskListsAdapter(this)
-        taskListsAdapter.setDropDownViewResource(R.layout.spinner_item_task_list_edit_dropdown)
-        editTaskBinding.taskLists.adapter = taskListsAdapter
+        taskListsAdapter = TaskListsAdapter(this).apply {
+            setDropDownViewResource(R.layout.spinner_item_task_list_edit_dropdown)
+            editTaskBinding.taskLists.adapter = this
+        }
 
-        // Handle a new task or an existing task
         if (taskId.isNullOrBlank()) {
             // Update the toolbar title
             supportActionBar!!.setTitle(R.string.title_activity_new_task)
 
             // Show the keyboard
             editTaskBinding.taskTitle.requestFocus()
-            val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-            imm.showSoftInput(editTaskBinding.taskTitle, InputMethodManager.SHOW_IMPLICIT)
-        } else {
-            editTaskPresenter.loadTaskInfo(taskId!!)
+            inputMethodManager.showSoftInput(editTaskBinding.taskTitle, InputMethodManager.SHOW_IMPLICIT)
         }
 
-        // Load the available task lists
-        editTaskPresenter.loadTaskLists(taskListId)
+        // Load the available task lists and the task, if available
+        editTaskPresenter.loadTask(taskListId, taskId)
     }
 
     override fun onDestroy() {
-        super.onDestroy()
         editTaskPresenter.unbindView(this)
+        super.onDestroy()
     }
 
     override fun onTaskLoaded(task: Task) {
@@ -121,7 +128,7 @@ class EditTaskActivity : DaggerAppCompatActivity(), EditTaskView {
     }
 
     override fun onTaskLoadError() {
-        Toast.makeText(this, R.string.error_task_loading, Toast.LENGTH_SHORT).show()
+        toastShort(R.string.error_task_loading)
         finish()
     }
 
@@ -181,11 +188,7 @@ class EditTaskActivity : DaggerAppCompatActivity(), EditTaskView {
                     imm.showSoftInput(editTaskBinding.taskTitle, InputMethodManager.SHOW_IMPLICIT)
                     return true
                 }
-                if (taskId.isNullOrBlank()) {
-                    editTaskPresenter.newTask(taskListId)
-                } else {
-                    editTaskPresenter.updateTask(taskListId, taskId!!, isOnline())
-                }
+                editTaskPresenter.finishTask()
                 return true
             }
         }
@@ -194,12 +197,13 @@ class EditTaskActivity : DaggerAppCompatActivity(), EditTaskView {
 
     @Suppress("UNUSED_PARAMETER")
     fun onDueDateClicked(v: View) {
-        KeyboardUtil.hideKeyboard(this)
+        // Hide the keyboard
+        currentFocus?.let { inputMethodManager.hideSoftInputFromWindow(it.windowToken, 0) }
+
         if (editTaskPresenter.hasDueDate()) {
             val dialog = AlertDialog.Builder(this)
                 .setView(R.layout.dialog_remove_change)
                 .show()
-
 
             dialog.findViewById<LinearLayout>(R.id.remove)!!.setOnClickListener {
                 // Reset the due date & reminder
@@ -211,19 +215,21 @@ class EditTaskActivity : DaggerAppCompatActivity(), EditTaskView {
             }
 
             dialog.findViewById<LinearLayout>(R.id.change)!!.setOnClickListener {
-                datePickerFragment = datePickerFragment ?: DatePickerFragment()
-                datePickerFragment!!.show(supportFragmentManager, "datePicker")
+                datePickerFragment = (datePickerFragment ?: DatePickerFragment()).apply {
+                    show(supportFragmentManager, "datePicker")
+                }
                 dialog.dismiss()
             }
         } else {
-            datePickerFragment = datePickerFragment ?: DatePickerFragment()
-            datePickerFragment!!.show(supportFragmentManager, "datePicker")
+            datePickerFragment = (datePickerFragment ?: DatePickerFragment()).apply {
+                show(supportFragmentManager, "datePicker")
+            }
         }
     }
 
     @Suppress("UNUSED_PARAMETER")
     fun onDueTimeClicked(v: View) {
-        KeyboardUtil.hideKeyboard(this)
+        currentFocus?.let { inputMethodManager.hideSoftInputFromWindow(it.windowToken, 0) }
         showReminderTimePickerDialog()
     }
 
@@ -237,7 +243,6 @@ class EditTaskActivity : DaggerAppCompatActivity(), EditTaskView {
             val dialog = AlertDialog.Builder(this)
                 .setView(R.layout.dialog_remove_change)
                 .show()
-
 
             dialog.findViewById<LinearLayout>(R.id.remove)!!.setOnClickListener {
                 editTaskPresenter.removeReminder()
@@ -256,19 +261,6 @@ class EditTaskActivity : DaggerAppCompatActivity(), EditTaskView {
         }
     }
 
-    class DatePickerFragment : DialogFragment() {
-        override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-            // Use the current date as the default date in the picker
-            val c = Calendar.getInstance()
-            val year = c.get(Calendar.YEAR)
-            val month = c.get(Calendar.MONTH)
-            val day = c.get(Calendar.DAY_OF_MONTH)
-
-            // Create a new instance of DatePickerDialog and return it
-            return DatePickerDialog(context!!, activity as EditTaskActivity, year, month, day)
-        }
-    }
-
     /**
      * Show the picker for the task reminder time
      */
@@ -279,41 +271,35 @@ class EditTaskActivity : DaggerAppCompatActivity(), EditTaskView {
         val minute = c.get(Calendar.MINUTE)
 
         // Create a new instance of TimePickerDialog and return it
-        val timePickerDialog = TimePickerDialog(
+        TimePickerDialog(
             this,
             reminderTimeSetListener,
             hour,
             minute,
             DateFormat.is24HourFormat(this)
-        )
-        timePickerDialog.show()
+        ).show()
     }
 
     companion object {
 
         private const val EXTRA_TASK_ID = "taskId"
+
         private const val EXTRA_TASK_LIST_ID = "taskListId"
 
-        fun startEdit(context: Context, taskId: String, taskListId: String, bundle: Bundle?) {
-            val starter = Intent(context, EditTaskActivity::class.java)
-            starter.putExtra(EXTRA_TASK_ID, taskId)
-            starter.putExtra(EXTRA_TASK_LIST_ID, taskListId)
-            context.startActivity(starter, bundle)
-        }
+        fun startEdit(context: Context, taskId: String, taskListId: String, bundle: Bundle?) =
+            context.startActivity(getTaskCreateIntent(context, taskListId).apply {
+                putExtra(EXTRA_TASK_ID, taskId)
+            }, bundle)
 
-        fun startCreate(fragment: Fragment, taskListId: String, bundle: Bundle?) {
-            val starter = Intent(fragment.context, EditTaskActivity::class.java)
-            starter.putExtra(EXTRA_TASK_LIST_ID, taskListId)
-            fragment.startActivity(starter, bundle)
-        }
+        fun startCreate(context: Context, taskListId: String, bundle: Bundle?) =
+            context.startActivity(getTaskCreateIntent(context, taskListId), bundle)
 
         /**
          * Used when starting this activity from the widget
          */
-        fun getTaskCreateIntent(context: Context, taskListId: String): Intent {
-            val starter = Intent(context, EditTaskActivity::class.java)
-            starter.putExtra(EXTRA_TASK_LIST_ID, taskListId)
-            return starter
-        }
+        fun getTaskCreateIntent(context: Context, taskListId: String) =
+            Intent(context, EditTaskActivity::class.java).apply {
+                putExtra(EXTRA_TASK_LIST_ID, taskListId)
+            }
     }
 }

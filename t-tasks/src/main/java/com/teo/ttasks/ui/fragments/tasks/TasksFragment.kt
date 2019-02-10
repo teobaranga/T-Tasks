@@ -223,8 +223,12 @@ class TasksFragment : DaggerFragment(), TasksView, SwipeRefreshLayout.OnRefreshL
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        fab = (activity as MainActivity).fab()
-        fab.setOnClickListener { EditTaskActivity.startCreate(this, taskListId!!, null) }
+        val mainActivity = activity as MainActivity
+        fab = mainActivity.fab().apply {
+            setOnClickListener {
+                EditTaskActivity.startCreate(mainActivity, taskListId!!, null)
+            }
+        }
         pairs[2] = Pair.create<View, String>(fab, getString(R.string.transition_fab))
     }
 
