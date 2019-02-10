@@ -68,7 +68,7 @@ class AppBarBoundFabBehavior(context: Context, attrs: AttributeSet) : FloatingAc
             } else if (!listenerRegistered) {
                 Timber.d("adding offset listener")
                 if (offsetChangedListener == null)
-                    offsetChangedListener = FabOffsetter(parent!!, child!!)
+                    offsetChangedListener = FabOffsetter(parent, child)
                 appBarLayout.addOnOffsetChangedListener(offsetChangedListener)
                 listenerRegistered = true
             }

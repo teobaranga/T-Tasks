@@ -25,10 +25,10 @@ class UserManager(private val context: Context) {
 
     private val googleSignInClient by lazy {
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestEmail()
-                .requestIdToken(context.getString(R.string.default_web_client_id))
-                .requestScopes(Scope(ApplicationModule.SCOPE_TASKS), Scope(Scopes.PLUS_ME))
-                .build()
+            .requestEmail()
+            .requestIdToken(context.getString(R.string.default_web_client_id))
+            .requestScopes(Scope(ApplicationModule.SCOPE_TASKS), Scope(Scopes.PLUS_ME))
+            .build()
 
         return@lazy GoogleSignIn.getClient(context, gso)
     }
@@ -47,12 +47,12 @@ class UserManager(private val context: Context) {
 
     fun signOut() = Completable.create { emitter ->
         googleSignInClient.signOut()
-                .addOnCompleteListener { task: Task<Void> ->
-                    if (task.isSuccessful) {
-                        emitter.onComplete()
-                    } else {
-                        emitter.onError(task.exception!!)
-                    }
+            .addOnCompleteListener { task: Task<Void> ->
+                if (task.isSuccessful) {
+                    emitter.onComplete()
+                } else {
+                    emitter.onError(task.exception!!)
                 }
-    }!!
+            }
+    }
 }
