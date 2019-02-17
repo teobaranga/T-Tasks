@@ -18,7 +18,8 @@ class MainActivityPresenter(
     private val tasksHelper: TasksHelper,
     private val prefHelper: PrefHelper,
     private val peopleApi: PeopleApi,
-    private val userManager: UserManager
+    private val userManager: UserManager,
+    private val firebaseAuth: FirebaseAuth
 ) : Presenter<MainView>() {
 
     private lateinit var realm: Realm
@@ -28,8 +29,6 @@ class MainActivityPresenter(
 
     internal val userEmail: String?
         get() = prefHelper.userEmail
-
-    private val firebaseAuth = FirebaseAuth.getInstance()
 
     /** Listener handling the sign out event */
     private val firebaseAuthStateListener = FirebaseAuth.AuthStateListener { firebaseAuth ->

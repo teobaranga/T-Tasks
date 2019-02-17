@@ -1,5 +1,6 @@
 package com.teo.ttasks.injection.module.activity
 
+import com.google.firebase.auth.FirebaseAuth
 import com.teo.ttasks.UserManager
 import com.teo.ttasks.api.PeopleApi
 import com.teo.ttasks.data.local.PrefHelper
@@ -18,6 +19,6 @@ class MainActivityModule {
         peopleApi: PeopleApi,
         userManager: UserManager
     ): MainActivityPresenter {
-        return MainActivityPresenter(tasksHelper, prefHelper, peopleApi, userManager)
+        return MainActivityPresenter(tasksHelper, prefHelper, peopleApi, userManager, FirebaseAuth.getInstance())
     }
 }
