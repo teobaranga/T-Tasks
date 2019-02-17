@@ -12,8 +12,7 @@ open class LateInit<T : Any>(
 
     override fun getValue(thisRef: Any?, property: KProperty<*>) = fieldHolder.getter()
 
-    override fun setValue(thisRef: Any?, property: KProperty<*>, value: T) =
-        fieldHolder.setter(value)
+    override fun setValue(thisRef: Any?, property: KProperty<*>, value: T) = fieldHolder.setter(value)
 
     class FieldHolder<T : Any> {
         lateinit var field: T

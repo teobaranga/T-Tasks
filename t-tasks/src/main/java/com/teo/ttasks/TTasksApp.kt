@@ -33,16 +33,11 @@ class TTasksApp : DaggerApplication() {
     @Inject
     internal lateinit var prefHelper: PrefHelper
 
-    var applicationComponent: ApplicationComponent by LateInit(
-        getter = {
-            if (!isInitialized()) {
-                field = DaggerApplicationComponent
-                            .builder()
-                            .create(this@TTasksApp) as ApplicationComponent
-            }
-            return@LateInit field
-        }
-    )
+    var applicationComponent: ApplicationComponent by LazyInit {
+        DaggerApplicationComponent
+            .builder()
+            .create(this@TTasksApp) as ApplicationComponent
+    }
 
     override fun onCreate() {
         super.onCreate()
@@ -61,10 +56,12 @@ class TTasksApp : DaggerApplication() {
         if (BuildConfig.DEBUG) {
             Timber.plant(object : Timber.DebugTree() {
                 override fun createStackElementTag(element: StackTraceElement): String? {
-                    return String.format("%s::%s:%s",
-                            super.createStackElementTag(element),
-                            element.methodName,
-                            element.lineNumber)
+                    return String.format(
+                        "%s::%s:%s",
+                        super.createStackElementTag(element),
+                        element.methodName,
+                        element.lineNumber
+                    )
                 }
             })
 
@@ -99,14 +96,14 @@ class TTasksApp : DaggerApplication() {
     private fun initRealmConfiguration() {
         Realm.init(this)
         Realm.setDefaultConfiguration(
-                RealmConfiguration.Builder()
-                        .deleteRealmIfMigrationNeeded()
-                        .initialData {
-                            // Reset the ETags saved, even though this has nothing to do with Realm
-                            // This is needed so that the app doesn't stop working on a schema change
-                            prefHelper.deleteAllEtags()
-                        }
-                        .build())
+            RealmConfiguration.Builder()
+                .deleteRealmIfMigrationNeeded()
+                .initialData {
+                    // Reset the ETags saved, even though this has nothing to do with Realm
+                    // This is needed so that the app doesn't stop working on a schema change
+                    prefHelper.deleteAllEtags()
+                }
+                .build())
     }
 
     private fun createNotificationChannel() {
@@ -117,9 +114,9 @@ class TTasksApp : DaggerApplication() {
             val description = getString(R.string.channel_reminders_description)
             val importance = NotificationManager.IMPORTANCE_HIGH
             val channel = NotificationChannel(NotificationHelper.CHANNEL_REMINDERS, name, importance)
-                    .apply {
-                        this.description = description
-                    }
+                .apply {
+                    this.description = description
+                }
             // Register the channel with the system; you can't change the importance
             // or other notification behaviors after this
             val notificationManager = getSystemService(NotificationManager::class.java)
