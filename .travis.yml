@@ -21,3 +21,6 @@ android:
   # if you need to run emulator(s) during your tests
   - sys-img-x86-android-28
   - sys-img-armeabi-v7a-android-28
+
+script:
+- ./gradlew clean assembleDevDebug testDevDebugUnitTest connectedDevDebugAndroidTest
