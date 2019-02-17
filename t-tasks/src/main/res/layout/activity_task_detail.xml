@@ -58,9 +58,9 @@
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginEnd="@dimen/activity_horizontal_margin"
                     android:layout_marginStart="@dimen/margin_icon_horizontal"
                     android:layout_marginTop="56dp"
+                    android:layout_marginEnd="@dimen/activity_horizontal_margin"
                     android:orientation="vertical">
 
                     <TextView
@@ -135,14 +135,14 @@
                         android:id="@+id/task_completion_status"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        app:completed="@{task.completed}"
+                        app:completed="@{task.completedDate}"
                         tools:text="In progress" />
 
                     <View
                         android:layout_width="match_parent"
                         android:layout_height="1dp"
-                        android:layout_marginBottom="16dp"
                         android:layout_marginTop="16dp"
+                        android:layout_marginBottom="16dp"
                         android:background="?android:attr/listDivider" />
 
                     <GridLayout
@@ -156,9 +156,9 @@
                         <ImageView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:layout_rowSpan="2"
                             android:layout_gravity="center_vertical"
                             android:layout_marginEnd="@dimen/margin_edit_task"
-                            android:layout_rowSpan="2"
                             android:alpha="0.54"
                             app:srcCompat="@drawable/ic_event_24dp"
                             tools:ignore="ContentDescription" />
@@ -171,7 +171,7 @@
                             android:hint="@string/due_date_missing"
                             android:textColor="?android:textColorPrimary"
                             android:textSize="18sp"
-                            app:dueDate="@{task.due}"
+                            app:dueDate="@{task.dueDate}"
                             tools:text="Fri, May 20, 2016" />
 
                         <!-- TODO: enable the due time once it is implemented -->
@@ -183,7 +183,7 @@
                             android:textColor="?android:textColorPrimary"
                             android:textSize="18sp"
                             android:visibility="gone"
-                            app:dueTime="@{task.due}"
+                            app:dueTime="@{task.dueDate}"
                             tools:text="6:00 PM" />
 
                         <TextView
@@ -197,16 +197,16 @@
                     <GridLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="8dp"
                         android:layout_marginTop="8dp"
+                        android:layout_marginBottom="8dp"
                         android:columnCount="2">
 
                         <ImageView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:layout_rowSpan="2"
                             android:layout_gravity="center_vertical"
                             android:layout_marginEnd="@dimen/margin_edit_task"
-                            android:layout_rowSpan="2"
                             android:alpha="0.54"
                             app:srcCompat="@drawable/ic_notifications_24dp"
                             tools:ignore="ContentDescription" />
@@ -218,7 +218,7 @@
                             android:hint="@string/no_reminder_set"
                             android:textColor="?android:textColorPrimary"
                             android:textSize="18sp"
-                            app:reminder="@{task.reminder}"
+                            app:reminder="@{task.reminderDate}"
                             tools:text="1 hour before" />
 
                         <TextView
@@ -281,7 +281,7 @@
                 android:scaleY="0"
                 android:transitionName="@string/transition_fab"
                 app:elevation="9dp"
-                app:srcCompat="@{task.completed == null ? R.drawable.ic_done_white_24dp : R.drawable.ic_settings_backup_restore_24dp}"
+                app:srcCompat="@{task.completedDate == null ? R.drawable.ic_done_white_24dp : R.drawable.ic_settings_backup_restore_24dp}"
                 tools:alpha="1"
                 tools:scaleX="1"
                 tools:scaleY="1"

@@ -69,6 +69,10 @@ internal class EditTaskPresenter(
 
     private lateinit var taskListId: String
 
+    private lateinit var task: Task
+
+    private fun getNewTaskId() = UUID.randomUUID().toString()
+
     /**
      * Load the task lists and find the index of the provided task list in it.
      * This is used to automatically select the task list to which the current task belongs.
@@ -103,32 +107,36 @@ internal class EditTaskPresenter(
             })
         disposeOnUnbindView(taskListDisposable)
 
-        this.taskId?.let { taskIdValid ->
+        if (taskId != null) {
+            this.taskId?.let { taskIdValid ->
 
-            taskDisposable?.let { if (!it.isDisposed) it.dispose() }
+                taskDisposable?.let { if (!it.isDisposed) it.dispose() }
 
-            taskDisposable = tasksHelper.getTaskAsSingle(taskIdValid, realm)
-                .subscribe({ task ->
-                    dueDate = task.dueDate
-                    reminder = task.reminderDate
-                    view()?.onTaskLoaded(task)
-                }, {
-                    Timber.e(it, "Error while loading the task info")
-                    view()?.onTaskLoadError()
-                })
+                taskDisposable = tasksHelper.getTaskAsSingle(taskIdValid, realm)
+                    .subscribe({ task ->
+                        this.task = realm.copyFromRealm(task)
+                        view()?.onTaskLoaded(task)
+                    }, {
+                        Timber.e(it, "Error while loading the task info")
+                        view()?.onTaskLoadError()
+                    })
 
-            disposeOnUnbindView(taskDisposable!!)
+                disposeOnUnbindView(taskDisposable!!)
+            }
+        } else {
+            task = Task(getNewTaskId(), taskListId)
         }
     }
 
     // TODO: 2016-08-19 implement this using Firebase
     internal fun setDueTime(time: LocalTime) {
+        val dueDate = task.dueDate
         if (dueDate == null) {
-            dueDate = time.atDate(LocalDate.now()).atZone(ZoneId.systemDefault())
+            task.dueDate = time.atDate(LocalDate.now()).atZone(ZoneId.systemDefault())
         } else {
-            Timber.d("old date %s", dueDate!!.toString())
-            dueDate = time.atDate(dueDate!!.toLocalDate()).atZone(ZoneId.systemDefault())
-            Timber.d("new date %s", dueDate!!.toString())
+            Timber.d("old date %s", dueDate.toString())
+            task.dueDate = time.atDate(dueDate.toLocalDate()).atZone(ZoneId.systemDefault())
+            Timber.d("new date %s", dueDate.toString())
         }
     }
 
@@ -189,7 +197,7 @@ internal class EditTaskPresenter(
         val task = Task(taskId, taskListId)
         task.update(editTaskFields)
         task.synced = false
-        task.reminder = reminder?.let { Date(it.toInstant().toEpochMilli()) }
+        task.reminderDate = reminder
 
         // Schedule the notification
         reminder?.let {
@@ -226,27 +234,29 @@ internal class EditTaskPresenter(
         }
         // Update the task locally TODO: 2016-10-22 check this
         val managedTask = tasksHelper.getTask(taskId, realm) ?: return
-        val reminderId = managedTask.reminder?.hashCode() ?: 0
+        val reminderId = managedTask.reminderDate?.hashCode() ?: 0
         val notificationId = managedTask.notificationId
         realm.executeTransaction {
             managedTask.update(editTaskFields)
-            managedTask.reminder = reminder?.let { Date(it.toInstant().toEpochMilli()) }
+            managedTask.reminderDate = reminder
             managedTask.synced = false
         }
 
         widgetHelper.updateWidgets(taskListId)
 
         // Schedule a reminder only if there is one or it has changed
-        if (managedTask.reminder?.hashCode() != reminderId)
+        if (managedTask.reminderDate?.hashCode() != reminderId) {
             notificationHelper.scheduleTaskNotification(managedTask)
+        }
 
         // Cancel the notification if the user has removed the reminder
-        if (reminderId != 0 && managedTask.reminder == null)
+        if (reminderId != 0 && managedTask.reminderDate == null) {
             notificationHelper.cancelTaskNotification(notificationId)
+        }
 
         // Update or clear the reminder
         val tasksDatabase = FirebaseDatabase.getInstance().getTasksDatabase()
-        tasksDatabase.saveReminder(managedTask.id, reminder?.toInstant()?.toEpochMilli())
+        tasksDatabase.saveReminder(managedTask.id, managedTask.reminder)
 
         // Update the task on an active network connection
         if (isOnline) {
@@ -303,6 +313,6 @@ internal class EditTaskPresenter(
     fun Task.update(taskFields: TaskFields) {
         title = taskFields.title
         notes = taskFields.notes
-        due = taskFields.dueDate?.let { Date(ZonedDateTime.parse(it).toInstant().toEpochMilli()) }
+        due = taskFields.dueDate
     }
 }

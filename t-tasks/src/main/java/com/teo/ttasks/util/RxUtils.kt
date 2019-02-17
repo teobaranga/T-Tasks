@@ -24,7 +24,7 @@ object RxUtils {
                     val completedTasks = ArrayList<TaskItem>()
 
                     for (task in tasks) {
-                        if (task.completed == null) {
+                        if (task.completedDate == null) {
                             // Active task
                             activeTasks.add(TaskItem(task, TaskType.ACTIVE))
                         } else if (!hideCompleted) {
@@ -56,7 +56,7 @@ object RxUtils {
                     val completedTasks = mutableListOf<TaskItem>()
 
                     for (task in tasks) {
-                        if (task.completed == null) {
+                        if (task.completedDate == null) {
                             // Active task
                             activeTasks.add(TaskItem(task, TaskType.ACTIVE))
                         } else {

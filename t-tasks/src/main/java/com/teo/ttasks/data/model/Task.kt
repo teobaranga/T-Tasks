@@ -1,12 +1,12 @@
 package com.teo.ttasks.data.model
 
 import com.google.gson.annotations.Expose
+import com.teo.ttasks.StringToZonedTime
 import io.realm.RealmObject
 import io.realm.annotations.Ignore
 import io.realm.annotations.Index
 import io.realm.annotations.PrimaryKey
-import org.threeten.bp.*
-import java.util.*
+import org.threeten.bp.ZonedDateTime
 
 open class Task : RealmObject {
 
@@ -58,33 +58,33 @@ open class Task : RealmObject {
     var status: String? = null
 
     /**
-     * Due date of the task
+     * Due date of the task as a String. Use [dueDate] instead for the properly parsed date.
      */
     @Expose
-    var due: Date? = null
+    var due: String? = null
 
     @delegate:Ignore
-    val dueDate: ZonedDateTime? by lazy { due?.let { Instant.ofEpochMilli(it.time).atZone(ZoneId.systemDefault()) } }
+    var dueDate: ZonedDateTime? by StringToZonedTime({ due }, { date -> due = date })
 
     /**
      * Completion date of the task. This field is omitted if the task has not
      * been completed.
      */
     @Expose
-    var completed: Date? = null
+    var completed: String? = null
 
     @delegate:Ignore
-    val completedDate: ZonedDateTime? by lazy { completed?.let { Instant.ofEpochMilli(it.time).atZone(ZoneId.systemDefault()) } }
+    var completedDate: ZonedDateTime? by StringToZonedTime({ completed }, { date -> completed = date })
 
     @Expose
     var hidden: Boolean = false
 
     /***** Custom fields *****/
 
-    var reminder: Date? = null
+    var reminder: String? = null
 
     @delegate:Ignore
-    val reminderDate: ZonedDateTime? by lazy { reminder?.let { Instant.ofEpochMilli(it.time).atZone(ZoneId.systemDefault()) } }
+    var reminderDate: ZonedDateTime? by StringToZonedTime({ reminder }, { date -> reminder = date})
 
     /**
      * Field indicating whether the task is synced and up-to-date with the server.
@@ -115,7 +115,7 @@ open class Task : RealmObject {
         get() = !notes.isNullOrEmpty()
 
     val isCompleted: Boolean
-        get() = completed != null
+        get() = completedDate != null
 
     /**
      * Check if this task is only available locally.

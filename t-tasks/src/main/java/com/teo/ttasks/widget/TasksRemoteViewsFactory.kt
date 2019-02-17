@@ -12,6 +12,7 @@ import com.teo.ttasks.data.remote.TasksHelper
 import com.teo.ttasks.ui.activities.task_detail.TaskDetailActivity
 import com.teo.ttasks.ui.activities.task_detail.TaskDetailActivity.Companion.EXTRA_TASK_ID
 import com.teo.ttasks.util.DateUtils
+import org.threeten.bp.format.DateTimeFormatter
 import timber.log.Timber
 
 class TasksRemoteViewsFactory
@@ -33,7 +34,7 @@ internal constructor(
 
     override fun onDataSetChanged() {
         tasksHelper.getUnManagedTasks(taskListId)
-            .filter { it.completed == null } // only active tasks
+            .filter { it.completedDate == null } // only active tasks
             .toList()
             .subscribe(
                 { taskItems -> this.tasks = taskItems },
@@ -78,11 +79,11 @@ internal constructor(
             rv.setTextViewText(R.id.date_day_number, dueDate.format(DateUtils.formatterDayNumber))
 
             // Reminder
-            val reminder = task.reminder
+            val reminder = task.reminderDate
             if (reminder == null) {
                 rv.setViewVisibility(R.id.reminder, GONE)
             } else {
-                rv.setTextViewText(R.id.reminder, DateUtils.formatTime(context, reminder))
+                rv.setTextViewText(R.id.reminder, reminder.format(DateTimeFormatter.ISO_LOCAL_TIME))
                 rv.setViewVisibility(R.id.reminder, VISIBLE)
             }
         } else {

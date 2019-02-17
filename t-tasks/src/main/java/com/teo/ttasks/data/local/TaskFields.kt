@@ -2,7 +2,6 @@ package com.teo.ttasks.data.local
 
 import com.evernote.android.job.util.support.PersistableBundleCompat
 import com.teo.ttasks.data.model.Task
-import com.teo.ttasks.util.DateUtils.Companion.DATE_PATTERN
 import java.util.*
 
 private const val NUM_FIELDS = 5
@@ -56,7 +55,7 @@ class TaskFields : HashMap<String, String?>(NUM_FIELDS) {
         }
 
     /**
-     * The task's due date, always in UTC, in the format specified in [DATE_PATTERN]
+     * The task's due date, always in UTC.
      */
     var dueDate
         get() = this[KEY_DUE]

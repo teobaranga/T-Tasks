@@ -117,7 +117,7 @@ class TaskCreateJob : Job() {
         val onlineTaskId = onlineTask.id
         onlineTask.reminder?.let {
             val tasksDatabase = FirebaseDatabase.getInstance().getTasksDatabase()
-            tasksDatabase.saveReminder(onlineTaskId, it.time)
+            tasksDatabase.saveReminder(onlineTaskId, it)
         }
 
         Timber.d("Create Task job success - %s", onlineTaskId)

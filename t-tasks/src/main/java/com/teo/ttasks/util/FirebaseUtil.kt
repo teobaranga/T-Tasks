@@ -33,9 +33,9 @@ object FirebaseUtil {
      * Set or clear the reminder date for a given task
      *
      * @param taskId ID of the modified task
-     * @param dateInMillis the reminder date in milliseconds, can be null to remove the reminder
+     * @param date the reminder date, can be null to remove the reminder
      */
-    fun DatabaseReference.saveReminder(taskId: String, dateInMillis: Long?) {
-        reminder(taskId)?.setValue(dateInMillis)
+    fun DatabaseReference.saveReminder(taskId: String, date: String?) {
+        reminder(taskId)?.setValue(date)
     }
 }

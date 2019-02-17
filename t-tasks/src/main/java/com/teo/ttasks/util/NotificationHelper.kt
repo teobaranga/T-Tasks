@@ -14,8 +14,6 @@ import com.teo.ttasks.data.model.Task
 import com.teo.ttasks.receivers.TaskNotificationReceiver
 import com.teo.ttasks.ui.activities.task_detail.TaskDetailActivity
 import timber.log.Timber
-import java.text.SimpleDateFormat
-import java.util.*
 
 class NotificationHelper(private val context: Context) {
 
@@ -33,7 +31,9 @@ class NotificationHelper(private val context: Context) {
      */
     @JvmOverloads
     fun scheduleTaskNotification(task: Task, id: Int = task.notificationId) {
-        if (task.isCompleted || task.reminder == null) {
+        val reminderDate = task.reminderDate
+
+        if (task.isCompleted || reminderDate == null) {
             return
         }
 
@@ -104,20 +104,10 @@ class NotificationHelper(private val context: Context) {
         val pendingIntent = PendingIntent.getBroadcast(context, notificationId, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT)
 
         // Schedule an alarm for the reminder time on the due date
-        val alarmDate = Calendar.getInstance()
-                .apply {
-                    val reminderCal = Calendar.getInstance().apply { time = task.reminder }
-                    time = task.due
-                    set(Calendar.HOUR_OF_DAY, reminderCal.get(Calendar.HOUR_OF_DAY))
-                    set(Calendar.MINUTE, reminderCal.get(Calendar.MINUTE))
-                    set(Calendar.SECOND, reminderCal.get(Calendar.SECOND))
-                }
-                .time
         (context.getSystemService(Context.ALARM_SERVICE) as AlarmManager)
-                .set(AlarmManager.RTC_WAKEUP, alarmDate.time, pendingIntent)
+                .set(AlarmManager.RTC_WAKEUP, reminderDate.toInstant().toEpochMilli(), pendingIntent)
 
-        val alarmDateString = SimpleDateFormat("dd-MM-yyy HH:mm:ss z", Locale.getDefault()).format(alarmDate)
-        Timber.d("Scheduled alarm for task %s at %s", task.id, alarmDateString)
+        Timber.d("Scheduled alarm for task %s at %s", task.id, reminderDate)
     }
 
     /**

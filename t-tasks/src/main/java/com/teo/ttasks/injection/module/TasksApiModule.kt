@@ -1,7 +1,7 @@
 package com.teo.ttasks.injection.module
 
 import com.google.android.gms.auth.api.signin.GoogleSignIn
-import com.google.gson.*
+import com.google.gson.GsonBuilder
 import com.teo.ttasks.BuildConfig
 import com.teo.ttasks.TTasksApp
 import com.teo.ttasks.api.PeopleApi
@@ -9,7 +9,6 @@ import com.teo.ttasks.api.TasksApi
 import com.teo.ttasks.data.local.PrefHelper
 import com.teo.ttasks.data.remote.TasksHelper
 import com.teo.ttasks.data.remote.TokenHelper
-import com.teo.ttasks.util.DateUtils.Companion.utcDateFormat
 import dagger.Module
 import dagger.Provides
 import io.reactivex.schedulers.Schedulers
@@ -23,9 +22,6 @@ import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.gson.GsonConverterFactory
 import timber.log.Timber
-import java.lang.reflect.Type
-import java.text.ParseException
-import java.util.*
 import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 
@@ -113,28 +109,12 @@ class TasksApiModule {
             .addConverterFactory(
                 GsonConverterFactory.create(
                     GsonBuilder()
-                        .registerTypeAdapter(Date::class.java, GsonUTCDateAdapter())
                         .excludeFieldsWithoutExposeAnnotation()
                         .serializeNulls()
                         .create()
                 )
             )
             .addCallAdapterFactory(RxJava2CallAdapterFactory.createWithScheduler(Schedulers.io()))
-
-    private inner class GsonUTCDateAdapter internal constructor() : JsonSerializer<Date>, JsonDeserializer<Date> {
-
-        @Synchronized
-        override fun serialize(date: Date, type: Type, context: JsonSerializationContext) =
-            JsonPrimitive(utcDateFormat.format(date))
-
-        @Synchronized
-        override fun deserialize(jsonElement: JsonElement, type: Type, context: JsonDeserializationContext) =
-            try {
-                utcDateFormat.parse(jsonElement.asString)
-            } catch (e: ParseException) {
-                throw JsonParseException(e)
-            }!!
-    }
 
     companion object {
         private const val TASKS_BASE_URL = "https://www.googleapis.com/tasks/v1/"

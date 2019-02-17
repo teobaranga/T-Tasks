@@ -16,7 +16,6 @@ import com.teo.ttasks.data.model.TaskList
 import com.teo.ttasks.jobs.DeleteTaskJob
 import com.teo.ttasks.jobs.TaskCreateJob
 import com.teo.ttasks.jobs.TaskUpdateJob
-import com.teo.ttasks.util.DateUtils.Companion.utcDateFormat
 import com.teo.ttasks.util.FirebaseUtil.getTasksDatabase
 import com.teo.ttasks.util.FirebaseUtil.saveReminder
 import io.reactivex.Completable
@@ -26,9 +25,9 @@ import io.realm.Realm
 import io.realm.RealmList
 import io.realm.RealmQuery
 import io.realm.RealmResults
+import org.threeten.bp.ZonedDateTime
 import retrofit2.HttpException
 import timber.log.Timber
-import java.util.*
 
 /**
  * Common task operations
@@ -301,7 +300,7 @@ class TasksHelper(
                                     it.insertOrUpdate(task)
                                 } else localTask.reminder?.let {
                                     Timber.d("saving reminder")
-                                    tasksDatabase.saveReminder(localTask.id, it.time)
+                                    tasksDatabase.saveReminder(localTask.id, it)
                                 }
                             }
                         }
@@ -335,16 +334,16 @@ class TasksHelper(
             // Task is not synced at this point
             task.synced = false
             if (!task.isCompleted) {
-                task.completed = Date()
+                task.completedDate = ZonedDateTime.now()
                 task.status = STATUS_COMPLETED
             } else {
-                task.completed = null
+                task.completedDate = null
                 task.status = STATUS_NEEDS_ACTION
             }
         }
 
         val taskFields = taskFields {
-            completed = task.completed?.let { utcDateFormat.format(it) }
+            completed = task.completed
         }
 
         TaskUpdateJob.schedule(task.id, task.taskListId, taskFields)

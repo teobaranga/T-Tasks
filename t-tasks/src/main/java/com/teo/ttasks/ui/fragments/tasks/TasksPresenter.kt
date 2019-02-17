@@ -18,7 +18,6 @@ import io.reactivex.processors.PublishProcessor
 import io.reactivex.schedulers.Schedulers
 import io.realm.Realm
 import timber.log.Timber
-import java.util.*
 
 internal class TasksPresenter(
     private val tasksHelper: TasksHelper,
@@ -29,7 +28,7 @@ internal class TasksPresenter(
 
     private var sortingMode = prefHelper.sortMode
 
-    private val reminderProcessor = PublishProcessor.create<Pair<Task, Date>>()
+    private val reminderProcessor = PublishProcessor.create<Pair<Task, String>>()
 
     /**
      * Map of task IDs to their respective reminder disposable.
@@ -89,12 +88,11 @@ internal class TasksPresenter(
                         }
                         .subscribeOn(Schedulers.io())
                         .subscribe({ dataSnapshot ->
-                            dataSnapshot?.getValue(Long::class.java)?.let { dateInMillis ->
+                            dataSnapshot?.getValue(String::class.java)?.let { date ->
                                 // Timber.v("Reminder for $id: $dateInMillis")
-                                val reminder = Date(dateInMillis)
                                 val task = taskMap.getValue(id)
-                                if (task.reminder != reminder) {
-                                    reminderProcessor.onNext(Pair(task, reminder))
+                                if (task.reminder != date) {
+                                    reminderProcessor.onNext(Pair(task, date))
                                 }
                             }
                         }, { throwable ->

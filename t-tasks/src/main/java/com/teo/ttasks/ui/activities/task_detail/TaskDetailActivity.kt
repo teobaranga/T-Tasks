@@ -24,8 +24,8 @@ import com.teo.ttasks.data.model.TaskList
 import com.teo.ttasks.databinding.ActivityTaskDetailBinding
 import com.teo.ttasks.ui.activities.edit_task.EditTaskActivity
 import com.teo.ttasks.util.AnimUtils
-import com.teo.ttasks.util.DateUtils
 import dagger.android.support.DaggerAppCompatActivity
+import org.threeten.bp.format.DateTimeFormatter
 import javax.inject.Inject
 
 class TaskDetailActivity : DaggerAppCompatActivity(), TaskDetailView {
@@ -148,7 +148,7 @@ class TaskDetailActivity : DaggerAppCompatActivity(), TaskDetailView {
 
         // Create the share Intent for this task
         var extraText: String = task.title!!
-        task.due?.let { extraText += String.format(getString(R.string.extra_due_date), DateUtils.formatDate(this, it)) }
+        task.dueDate?.let { extraText += String.format(getString(R.string.extra_due_date), it.format(DateTimeFormatter.ISO_ZONED_DATE_TIME)) }
         if (task.hasNotes) extraText += String.format(getString(R.string.extra_notes), task.notes)
 
         shareIntent = Intent()

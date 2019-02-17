@@ -13,14 +13,16 @@ import io.mockk.verify
 import io.reactivex.Single
 import org.junit.Before
 import org.junit.Test
-import java.util.*
+import org.threeten.bp.ZonedDateTime
 
 class EditTaskPresenterTest : BasePresenterTest() {
 
     private val validTaskId = "123"
 
+    private val validTaskListId = "taskListId"
+
     private val validTask = Task().apply {
-        due = Date()
+        dueDate = ZonedDateTime.now()
     }
 
     @MockK
@@ -51,7 +53,7 @@ class EditTaskPresenterTest : BasePresenterTest() {
 
         // act
         editTaskPresenter.bindView(editTaskView)
-        editTaskPresenter.loadTaskInfo(validTaskId)
+        editTaskPresenter.loadTask(validTaskListId, validTaskId)
 
         // assert
         verify(exactly = 1) { tasksHelper.getTaskAsSingle(validTaskId, any()) }

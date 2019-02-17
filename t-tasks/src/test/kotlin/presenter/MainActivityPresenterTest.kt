@@ -1,5 +1,6 @@
 package presenter
 
+import com.teo.ttasks.UserManager
 import com.teo.ttasks.api.PeopleApi
 import com.teo.ttasks.api.entities.CoverPhotosResponse
 import com.teo.ttasks.data.local.PrefHelper
@@ -20,10 +21,16 @@ class MainActivityPresenterTest : BasePresenterTest() {
 
     @MockK
     private lateinit var tasksHelper: TasksHelper
+
     @MockK
     private lateinit var prefHelper: PrefHelper
+
     @MockK
     private lateinit var peopleApi: PeopleApi
+
+    @MockK
+    private lateinit var userManager: UserManager
+
     @RelaxedMockK
     private lateinit var mainView: MainView
 
@@ -32,7 +39,7 @@ class MainActivityPresenterTest : BasePresenterTest() {
     @Before
     override fun setup() {
         super.setup()
-        mainActivityPresenter = MainActivityPresenter(tasksHelper, prefHelper, peopleApi)
+        mainActivityPresenter = MainActivityPresenter(tasksHelper, prefHelper, peopleApi, userManager)
     }
 
     @Test
