@@ -147,6 +147,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/margin_edit_task"
             android:hint="@string/add_reminder"
+            android:onClick="onReminderClicked"
             android:textColor="?android:textColorPrimary"
             android:textSize="18sp"
             app:layout_constraintBottom_toBottomOf="@id/icon_reminder"

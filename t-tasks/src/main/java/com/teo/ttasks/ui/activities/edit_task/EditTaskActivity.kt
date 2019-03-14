@@ -54,6 +54,8 @@ class EditTaskActivity : DaggerAppCompatActivity(), EditTaskView {
 
     private lateinit var inputMethodManager: InputMethodManager
 
+    private lateinit var taskListId: String
+
     private var datePickerFragment: DatePickerFragment? = null
 
     /**
@@ -91,7 +93,7 @@ class EditTaskActivity : DaggerAppCompatActivity(), EditTaskView {
         editTaskPresenter.bindView(this)
 
         val taskId = intent.getStringExtra(EXTRA_TASK_ID)?.trim()
-        val taskListId = checkNotNull(intent.getStringExtra(EXTRA_TASK_LIST_ID)?.trim())
+        taskListId = checkNotNull(intent.getStringExtra(EXTRA_TASK_LIST_ID)?.trim())
 
         supportActionBar!!.setDisplayHomeAsUpEnabled(true)
 
@@ -122,9 +124,18 @@ class EditTaskActivity : DaggerAppCompatActivity(), EditTaskView {
         editTaskBinding.task = task
     }
 
-    override fun onTaskListsLoaded(taskLists: List<TaskList>, selectedPosition: Int) {
-        taskListsAdapter.addAll(taskLists)
-        editTaskBinding.taskLists.setSelection(selectedPosition)
+    override fun onTaskListsLoaded(taskLists: List<TaskList>) {
+        with(taskListsAdapter) {
+            clear()
+            addAll(taskLists)
+        }
+
+        if (taskLists.isNotEmpty()) {
+            editTaskBinding.taskLists.setSelection(
+                taskLists
+                    .indexOfFirst { taskList -> taskList.id == taskListId }
+                    .coerceAtLeast(0))
+        }
     }
 
     override fun onTaskLoadError() {

@@ -1,6 +1,5 @@
 package com.teo.ttasks.ui.activities.edit_task
 
-import androidx.core.util.Pair
 import com.google.firebase.database.FirebaseDatabase
 import com.teo.ttasks.data.local.TaskFields
 import com.teo.ttasks.data.local.WidgetHelper
@@ -12,7 +11,6 @@ import com.teo.ttasks.util.FirebaseUtil.getTasksDatabase
 import com.teo.ttasks.util.FirebaseUtil.saveReminder
 import com.teo.ttasks.util.NotificationHelper
 import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.Disposable
 import io.realm.Realm
 import org.threeten.bp.LocalDate
 import org.threeten.bp.LocalTime
@@ -56,8 +54,6 @@ internal class EditTaskPresenter(
     /** Object containing the task fields that have been modified. */
     private val editTaskFields: TaskFields = TaskFields()
 
-    private var taskDisposable: Disposable? = null
-
     /** ID of the current task. Its value is either null or a non-empty string. */
     private var taskId: String? = null
         set(value) {
@@ -87,44 +83,29 @@ internal class EditTaskPresenter(
         this.taskId = taskId
 
         val taskListDisposable = tasksHelper.getTaskLists(realm)
-            .map { taskLists ->
-                // Find the index of the current task list
-                taskLists.forEachIndexed { i, taskList ->
-                    if (taskList.id == this.taskListId) {
-                        return@map Pair(taskLists, i)
-                    }
-                }
-
-                // Index not found, select the first task list
-                Timber.w("Task list not found, selecting first task list")
-                return@map Pair(taskLists, 0)
-            }
-            .subscribe({ taskListsIndexPair ->
-                view()?.onTaskListsLoaded(taskListsIndexPair.first!!, taskListsIndexPair.second!!)
+            .subscribe({ taskLists ->
+                view()?.onTaskListsLoaded(taskLists)
             }, { throwable ->
                 Timber.e(throwable.toString())
                 view()?.onTaskLoadError()
             })
         disposeOnUnbindView(taskListDisposable)
 
-        if (taskId != null) {
-            this.taskId?.let { taskIdValid ->
+        val taskIdLocal = this.taskId
+        if (taskIdLocal != null) {
+            val taskDisposable = tasksHelper.getTaskAsSingle(taskIdLocal, realm)
+                .subscribe({ realmTask ->
+                    task = realmTask
+                    view()?.onTaskLoaded(task)
+                }, {
+                    Timber.e(it, "Error while loading the task info")
+                    view()?.onTaskLoadError()
+                })
 
-                taskDisposable?.let { if (!it.isDisposed) it.dispose() }
-
-                taskDisposable = tasksHelper.getTaskAsSingle(taskIdValid, realm)
-                    .subscribe({ task ->
-                        this.task = realm.copyFromRealm(task)
-                        view()?.onTaskLoaded(task)
-                    }, {
-                        Timber.e(it, "Error while loading the task info")
-                        view()?.onTaskLoadError()
-                    })
-
-                disposeOnUnbindView(taskDisposable!!)
-            }
+            disposeOnUnbindView(taskDisposable)
         } else {
             task = Task(getNewTaskId(), taskListId)
+            view()?.onTaskLoaded(task)
         }
     }
 
