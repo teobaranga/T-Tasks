@@ -23,4 +23,4 @@ android:
   - sys-img-armeabi-v7a-android-28
 
 script:
-- ./gradlew clean assembleDevDebug testDevDebugUnitTest connectedDevDebugAndroidTest
+- ./gradlew clean assembleDevDebug testDevDebugUnitTest
