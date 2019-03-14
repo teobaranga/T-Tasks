@@ -143,7 +143,7 @@ dependencies {
             'com.github.strooooke:appbarsyncedfab:v0.4',
             "com.google.android.gms:play-services-auth:16.0.1",
             "com.google.android.gms:play-services-gcm:16.0.0",
-            "com.google.android.material:material:1.0.0",
+            "com.google.android.material:material:1.1.0-alpha04",
             "com.google.dagger:dagger:${ver.dagger}",
             "com.google.dagger:dagger-android-support:${ver.dagger}",
             "com.google.firebase:firebase-core:16.0.7",
@@ -177,6 +177,9 @@ dependencies {
             "junit:junit:4.12",
             "org.jetbrains.kotlin:kotlin-test-junit:${VER.kotlin}",
     )
+    testImplementation ('org.threeten:threetenbp:1.3.8') {
+        exclude group:'com.jakewharton.threetenabp', module:'threetenabp'
+    }
 
     androidTestImplementation(
             "androidx.recyclerview:recyclerview:1.0.0",

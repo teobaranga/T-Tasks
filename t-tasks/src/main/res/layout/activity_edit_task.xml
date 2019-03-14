@@ -14,205 +14,187 @@
             type="com.teo.ttasks.ui.activities.edit_task.EditTaskView" />
     </data>
 
-    <ScrollView
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
+        android:clipToPadding="false"
+        android:paddingLeft="@dimen/activity_horizontal_margin"
+        android:paddingTop="@dimen/activity_vertical_margin"
+        android:paddingRight="@dimen/activity_horizontal_margin"
+        android:paddingBottom="@dimen/activity_vertical_margin"
         tools:context=".ui.activities.edit_task.EditTaskActivity">
 
-        <LinearLayout
-            android:layout_width="match_parent"
+        <ImageView
+            android:id="@+id/icon_title"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:clipChildren="false"
-            android:clipToPadding="false"
-            android:orientation="vertical"
-            android:paddingLeft="@dimen/activity_horizontal_margin"
-            android:paddingTop="@dimen/activity_vertical_margin"
-            android:paddingRight="@dimen/activity_horizontal_margin"
-            android:paddingBottom="@dimen/activity_vertical_margin">
+            android:layout_marginTop="24dp"
+            android:baseline="@dimen/baseline_edit_task"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/ic_label_24dp"
+            tools:ignore="ContentDescription" />
 
-            <!-- Prevent auto-focus on the EditText -->
-            <View
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:descendantFocusability="beforeDescendants"
-                android:focusableInTouchMode="true" />
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            app:layout_constraintBaseline_toBaselineOf="@id/icon_title"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/icon_title">
 
-            <LinearLayout
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/task_title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:layout_marginBottom="12dp"
-                android:orientation="horizontal">
+                android:hint="@string/title"
+                android:inputType="textAutoCorrect"
+                android:maxLines="1"
+                android:onTextChanged="@{view::onTitleChanged}"
+                android:text="@{task.title}"
+                tools:text="Do your laundry" />
 
-                <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="@dimen/margin_edit_task"
-                    android:baselineAlignBottom="true"
-                    app:srcCompat="@drawable/ic_label_24dp"
-                    tools:ignore="ContentDescription" />
+        </com.google.android.material.textfield.TextInputLayout>
 
-                <EditText
-                    android:id="@+id/task_title"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_vertical"
-                    android:background="@null"
-                    android:hint="@string/title"
-                    android:inputType="textCapSentences|textMultiLine"
-                    android:onTextChanged="@{view::onTitleChanged}"
-                    android:text="@{task.title}"
-                    tools:text="Do your laundry"
-                    tools:ignore="Autofill" />
+        <ImageView
+            android:id="@+id/icon_task_lists"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:layout_marginEnd="@dimen/margin_edit_task"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/icon_title"
+            app:srcCompat="@drawable/ic_task_list_24dp"
+            tools:ignore="ContentDescription" />
 
-            </LinearLayout>
+        <Spinner
+            android:id="@+id/task_lists"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_marginStart="@dimen/margin_edit_task"
+            app:layout_constraintBottom_toBottomOf="@id/icon_task_lists"
+            app:layout_constraintStart_toEndOf="@id/icon_task_lists"
+            tools:entries="@android:array/phoneTypes" />
 
-            <LinearLayout
+        <ImageView
+            android:id="@+id/icon_due_date"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/icon_task_lists"
+            app:srcCompat="@drawable/ic_event_24dp"
+            tools:ignore="ContentDescription" />
+
+        <TextView
+            android:id="@+id/due_date"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start"
+            android:layout_marginStart="@dimen/margin_edit_task"
+            android:hint="@string/set_due_date"
+            android:longClickable="true"
+            android:onClick="onDueDateClicked"
+            android:textColor="?android:textColorPrimary"
+            android:textSize="18sp"
+            app:dueDate="@{task.dueDate}"
+            app:layout_constraintBottom_toBottomOf="@id/icon_due_date"
+            app:layout_constraintStart_toEndOf="@id/icon_due_date"
+            tools:text="Fri, May 20, 2016" />
+
+        <!-- TODO: enable the due time once it is implemented -->
+        <TextView
+            android:id="@+id/due_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginStart="@dimen/margin_edit_task"
+            android:longClickable="true"
+            android:onClick="onDueTimeClicked"
+            android:onLongClick="@{view::onDueTimeLongClicked}"
+            android:textColor="?android:textColorPrimary"
+            android:textSize="18sp"
+            android:visibility="gone"
+            app:dueTime="@{task.dueDate}"
+            app:layout_constraintBottom_toBottomOf="@id/due_date"
+            app:layout_constraintStart_toEndOf="@id/due_date"
+            tools:text="6:00 PM"
+            tools:visibility="visible" />
+
+        <TextView
+            style="@style/TextAppearance.AppCompat.Caption"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/due_date"
+            app:layout_constraintStart_toStartOf="@id/due_date"
+            app:layout_constraintTop_toBottomOf="@id/due_date" />
+
+        <ImageView
+            android:id="@+id/icon_reminder"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="36dp"
+            android:layout_marginEnd="@dimen/margin_edit_task"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/icon_due_date"
+            app:srcCompat="@drawable/ic_notifications_24dp"
+            tools:ignore="ContentDescription" />
+
+        <TextView
+            android:id="@+id/reminder"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/margin_edit_task"
+            android:hint="@string/add_reminder"
+            android:textColor="?android:textColorPrimary"
+            android:textSize="18sp"
+            app:layout_constraintBottom_toBottomOf="@id/icon_reminder"
+            app:layout_constraintStart_toEndOf="@id/icon_reminder"
+            app:reminder="@{task.reminderDate}"
+            tools:text="1 hour before" />
+
+        <TextView
+            style="@style/TextAppearance.AppCompat.Caption"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/reminder"
+            app:layout_constraintStart_toStartOf="@id/reminder"
+            app:layout_constraintTop_toBottomOf="@id/reminder" />
+
+        <ImageView
+            android:id="@+id/icon_notes"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="58dp"
+            android:layout_marginEnd="@dimen/margin_edit_task"
+            android:baseline="@dimen/baseline_edit_task"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/icon_reminder"
+            app:srcCompat="@drawable/ic_bookmark_24dp"
+            tools:ignore="ContentDescription" />
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            app:layout_constraintBaseline_toBaselineOf="@id/icon_notes"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/icon_notes">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/notes"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:layout_marginBottom="12dp"
-                android:orientation="horizontal">
+                android:hint="@string/notes"
+                android:inputType="textCapSentences|textMultiLine|textAutoCorrect"
+                android:maxLines="3"
+                android:onTextChanged="@{view::onNotesChanged}"
+                android:text="@{task.notes}"
+                tools:text="Don't forget to separate the colors!" />
 
-                <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="@dimen/margin_edit_task"
-                    android:baselineAlignBottom="true"
-                    app:srcCompat="@drawable/ic_task_list_24dp"
-                    tools:ignore="ContentDescription" />
+        </com.google.android.material.textfield.TextInputLayout>
 
-                <Spinner
-                    android:id="@+id/task_lists"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_vertical"
-                    tools:entries="@android:array/phoneTypes" />
-
-            </LinearLayout>
-
-            <GridLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:layout_marginBottom="12dp"
-                android:columnCount="3">
-
-                <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_rowSpan="2"
-                    android:layout_gravity="center_vertical"
-                    android:layout_marginEnd="@dimen/margin_edit_task"
-                    app:srcCompat="@drawable/ic_event_24dp"
-                    tools:ignore="ContentDescription" />
-
-                <TextView
-                    android:id="@+id/due_date"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="start"
-                    android:hint="@string/set_due_date"
-                    android:longClickable="true"
-                    android:onClick="onDueDateClicked"
-                    android:textColor="?android:textColorPrimary"
-                    android:textSize="18sp"
-                    app:dueDate="@{task.dueDate}"
-                    tools:text="Fri, May 20, 2016" />
-
-                <!-- TODO: enable the due time once it is implemented -->
-                <TextView
-                    android:id="@+id/due_time"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_horizontal"
-                    android:longClickable="true"
-                    android:onClick="onDueTimeClicked"
-                    android:onLongClick="@{view::onDueTimeLongClicked}"
-                    android:textColor="?android:textColorPrimary"
-                    android:textSize="18sp"
-                    android:visibility="gone"
-                    app:dueTime="@{task.dueDate}"
-                    tools:text="6:00 PM" />
-
-                <TextView
-                    style="@style/TextAppearance.AppCompat.Caption"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/due_date" />
-
-            </GridLayout>
-
-            <GridLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/margin_items_edit_task"
-                android:layout_marginBottom="@dimen/margin_items_edit_task"
-                android:alignmentMode="alignBounds"
-                android:columnCount="2"
-                android:columnOrderPreserved="false"
-                android:onClick="onReminderClicked">
-
-                <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_rowSpan="2"
-                    android:layout_gravity="center_vertical"
-                    android:layout_marginEnd="@dimen/margin_edit_task"
-                    app:srcCompat="@drawable/ic_notifications_24dp"
-                    tools:ignore="ContentDescription" />
-
-                <TextView
-                    android:id="@+id/reminder"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="start"
-                    android:hint="@string/add_reminder"
-                    android:textColor="?android:textColorPrimary"
-                    android:textSize="18sp"
-                    app:reminder="@{task.reminderDate}"
-                    tools:text="1 hour before" />
-
-                <TextView
-                    style="@style/TextAppearance.AppCompat.Caption"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/reminder" />
-
-            </GridLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:orientation="horizontal">
-
-                <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:layout_marginEnd="@dimen/margin_edit_task"
-                    android:baselineAlignBottom="true"
-                    app:srcCompat="@drawable/ic_bookmark_24dp"
-                    tools:ignore="ContentDescription" />
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/notes"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="-4dp"
-                    android:layout_marginRight="-4dp"
-                    android:hint="@string/notes"
-                    android:inputType="textCapSentences|textMultiLine|textAutoCorrect"
-                    android:maxLines="3"
-                    android:onTextChanged="@{view::onNotesChanged}"
-                    android:text="@{task.notes}"
-                    tools:text="Don't forget to separate the colors!" />
-
-            </LinearLayout>
-
-        </LinearLayout>
-
-    </ScrollView>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </layout>
