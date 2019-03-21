@@ -98,7 +98,8 @@ android {
         test.java.srcDirs += 'src/test/kotlin'
     }
     dexOptions {
-        jumboMode = true
+        preDexLibraries true
+        javaMaxHeapSize "4g"
     }
 }
 
