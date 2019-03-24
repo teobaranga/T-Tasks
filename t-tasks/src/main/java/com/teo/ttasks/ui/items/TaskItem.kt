@@ -195,7 +195,7 @@ class TaskItem(
 
             // TODO: fix this - accessed too frequently
             val formatterDay = DateUtils.formatterDay
-            val formatterMonth = DateUtils.formatterMonth
+            val formatterMonth = DateUtils.formatterYearMonth
 
             val sameDay = lhs.completed?.format(formatterDay) == rhs.completed?.format(formatterDay)
             val sameMonth = lhs.completed?.format(formatterMonth) == rhs.completed?.format(formatterMonth)

@@ -27,7 +27,7 @@ import com.teo.ttasks.ui.activities.main.MainActivity
 import com.teo.ttasks.ui.activities.task_detail.TaskDetailActivity
 import com.teo.ttasks.ui.items.CategoryItem
 import com.teo.ttasks.ui.items.TaskItem
-import com.teo.ttasks.util.SortType
+import com.teo.ttasks.ui.items.TaskSectionItem
 import com.teo.ttasks.util.toastShort
 import dagger.android.support.DaggerFragment
 import eu.davidea.flexibleadapter.FlexibleAdapter
@@ -209,7 +209,9 @@ class TasksFragment : DaggerFragment(), TasksView, SwipeRefreshLayout.OnRefreshL
 
         tasksBinding.tasksList.apply {
             layoutManager = LinearLayoutManager(context)
-            adapter = this@TasksFragment.adapter
+//            adapter = this@TasksFragment.adapter
+            adapter =
+                FlexibleAdapter<TaskSectionItem>(listOf(TaskSectionItem(R.drawable.ic_whatshot_24dp, R.string.active)))
             setHasFixedSize(true)
         }
 
@@ -249,9 +251,9 @@ class TasksFragment : DaggerFragment(), TasksView, SwipeRefreshLayout.OnRefreshL
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         val refresh: Boolean = when (item.itemId) {
-            R.id.menu_sort_due_date -> tasksPresenter.switchSortMode(SortType.SORT_DATE)
-            R.id.menu_sort_alphabetical -> tasksPresenter.switchSortMode(SortType.SORT_ALPHA)
-            R.id.menu_sort_my_order -> tasksPresenter.switchSortMode(SortType.SORT_CUSTOM)
+//            R.id.menu_sort_due_date -> tasksPresenter.switchSortMode(SortType.SORT_DATE)
+//            R.id.menu_sort_alphabetical -> tasksPresenter.switchSortMode(SortType.SORT_ALPHA)
+//            R.id.menu_sort_my_order -> tasksPresenter.switchSortMode(SortType.SORT_CUSTOM)
             else -> false
         }
         if (refresh) {

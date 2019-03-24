@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools">
 
@@ -13,13 +12,13 @@
         <com.google.android.material.appbar.AppBarLayout
             android:id="@+id/appbar"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            app:elevation="0dp">
 
             <androidx.appcompat.widget.Toolbar
                 android:id="@+id/toolbar"
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
-                android:background="?attr/colorPrimary"
                 android:theme="@style/AppBarOverlay"
                 app:layout_scrollFlags="scroll|enterAlways"
                 app:popupTheme="@style/PopupOverlay">
@@ -28,7 +27,7 @@
                     android:id="@+id/spinner_task_lists"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:popupBackground="?attr/colorPrimaryDark"/>
+                    android:popupBackground="?attr/colorPrimaryDark" />
 
             </androidx.appcompat.widget.Toolbar>
 
@@ -38,7 +37,7 @@
             android:id="@+id/fragment_container"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            app:layout_behavior="@string/appbar_scrolling_view_behavior"/>
+            app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@id/fab"
@@ -51,8 +50,7 @@
             app:layout_behavior="com.teo.ttasks.ui.AppBarBoundFabBehavior"
             app:pressedTranslationZ="12dp"
             app:rippleColor="@color/orange_A200"
-            app:srcCompat="@drawable/ic_add_white_24dp"
-            tools:targetApi="lollipop"/>
+            app:srcCompat="@drawable/ic_add_white_24dp" />
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 

@@ -4,20 +4,13 @@
       xmlns:tools="http://schemas.android.com/tools"
       tools:context=".ui.activities.main.MainActivity">
     <item
-        android:id="@id/menu_sort"
-        android:icon="@drawable/ic_sort_24dp"
-        android:title="@string/menu_sort"
-        app:showAsAction="always">
-        <menu>
-            <item
-                android:id="@id/menu_sort_due_date"
-                android:title="@string/menu_sort_due_date"/>
-            <item
-                android:id="@id/menu_sort_alphabetical"
-                android:title="@string/menu_sort_alphabetical"/>
-            <item
-                android:id="@id/menu_sort_my_order"
-                android:title="@string/menu_sort_my_order"/>
-        </menu>
-    </item>
+        android:id="@id/menu_search"
+        android:icon="@drawable/ic_search_24dp"
+        android:title="@string/menu_search"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@id/menu_account"
+        android:icon="@drawable/ic_person_outline_24dp"
+        android:title="@string/menu_my_account"
+        app:showAsAction="always" />
 </menu>

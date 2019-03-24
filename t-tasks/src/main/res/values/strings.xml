@@ -113,5 +113,7 @@
     <string name="default_led_color">yellow</string>
 
     <string name="none">None</string>
+    <string name="menu_search">Search</string>
+    <string name="menu_my_account">My Account</string>
 
 </resources>

@@ -24,7 +24,9 @@ class DateUtils private constructor() {
 
         val formatterDayNumber = DateTimeFormatter.ofPattern("d")!!
 
-        val formatterMonth = DateTimeFormatter.ofPattern("yyyMM")!!
+        val formatterMonth = DateTimeFormatter.ofPattern("MMMM")!!
+
+        val formatterYearMonth = DateTimeFormatter.ofPattern("yyyMM")!!
 
         val formatterMonthYear = DateTimeFormatter.ofPattern("MMMM, yyyy")!!
 

@@ -11,10 +11,15 @@
     <item name="widget_events_list" type="id"/>
 
     <!-- Tasks menu -->
+    <item name="menu_account" type="id"/>
+    <item name="menu_search" type="id"/>
     <item name="menu_sort" type="id"/>
     <item name="menu_sort_due_date" type="id"/>
     <item name="menu_sort_my_order" type="id"/>
     <item name="menu_sort_alphabetical" type="id"/>
+
+    <!-- Tasks -->
+    <item name="task_date" type="id" />
 
     <item name="task_item" type="id"/>
     <item name="task_list_item" type="id"/>

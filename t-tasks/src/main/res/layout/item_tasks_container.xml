@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    tools:parentTag="com.teo.ttasks.ui.views.TasksContainerView">
+
+    <TextView
+        android:id="@+id/month"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingBottom="4dp"
+        android:textAppearance="?textAppearanceListItem"
+        android:textColor="@color/colorPrimary"
+        android:textStyle="bold|italic"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <com.teo.ttasks.ui.views.TaskDateView
+        android:id="@+id/task_date"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingEnd="12dp"
+        app:date="2019-01-23T02:19:56.000Z"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/month" />
+
+    <View
+        android:id="@+id/separator"
+        android:layout_width="1dp"
+        android:layout_height="0dp"
+        android:background="@color/md_grey_700"
+        app:layout_constraintBottom_toBottomOf="@id/task_list"
+        app:layout_constraintStart_toEndOf="@id/task_date"
+        app:layout_constraintTop_toBottomOf="@id/month" />
+
+    <com.teo.ttasks.ui.views.WrapContentListView
+        android:id="@+id/task_list"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:divider="@android:color/transparent"
+        android:dividerHeight="8dp"
+        android:scrollbars="none"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/separator"
+        app:layout_constraintTop_toBottomOf="@id/month"
+        tools:itemCount="3" />
+
+</merge>
