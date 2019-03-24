@@ -1,6 +1,5 @@
 package com.teo.ttasks.ui.activities.main
 
-import androidx.core.util.Pair
 import com.androidhuman.rxfirebase2.auth.rxSignOut
 import com.google.firebase.auth.FirebaseAuth
 import com.teo.ttasks.UserManager
@@ -75,27 +74,15 @@ class MainActivityPresenter(
         disposeOnUnbindView(coverPhotoDisposable)
     }
 
-    internal fun loadUserPictures() {
-//        prefHelper.userPhoto?.let { view()?.onUserPicture(it) }
-        prefHelper.userCover?.let { view()?.onUserCover(it) }
-    }
-
     internal fun getTaskLists() {
         val disposable = tasksHelper.getTaskLists(realm)
             .filter { it.isNotEmpty() }
-            .map { taskLists ->
-                val currentTaskListId = prefHelper.currentTaskListId
-                // Find the index of the current task list
-                taskLists.forEachIndexed { index, taskList ->
-                    if (taskList.id == currentTaskListId) {
-                        return@map Pair.create(taskLists, index)
-                    }
-                }
-                return@map Pair(taskLists, 0)
-            }
             .subscribe(
-                { taskListsIndexPair ->
-                    view()?.onTaskListsLoaded(taskListsIndexPair.first!!, taskListsIndexPair.second!!)
+                { taskLists ->
+                    // Find the index of the current task list
+                    val currentTaskListId = prefHelper.currentTaskListId
+                    val index = taskLists.indexOfFirst { it.id == currentTaskListId }.coerceAtLeast(0)
+                    view()?.onTaskListsLoaded(taskLists, index)
                 },
                 {
                     Timber.e(it, "Error while loading task lists")
@@ -113,7 +100,7 @@ class MainActivityPresenter(
     }
 
     internal fun signOut() {
-        firebaseAuth.rxSignOut()
+        val disposable = firebaseAuth.rxSignOut()
             .onErrorComplete {
                 Timber.e(it, "There was an error signing out from Firebase, ignoring")
                 return@onErrorComplete true
@@ -128,6 +115,7 @@ class MainActivityPresenter(
             }, {
                 Timber.e(it, "Could not sign out")
             })
+        disposeOnUnbindView(disposable)
     }
 
     private fun clearUser() {
