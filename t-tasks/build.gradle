@@ -116,6 +116,7 @@ dependencies {
             dagger  : '2.21',
             espresso: '3.1.1',
             retrofit: '2.5.0',
+            mockk   : '1.9.3',
     ]
 
     kapt(
@@ -143,14 +144,14 @@ dependencies {
             'com.evernote:android-job:1.2.6',
             'com.github.strooooke:appbarsyncedfab:v0.4',
             "com.google.android.gms:play-services-auth:16.0.1",
-            "com.google.android.gms:play-services-gcm:16.0.0",
-            "com.google.android.material:material:1.1.0-alpha04",
+            "com.google.android.gms:play-services-gcm:16.1.0",
+            "com.google.android.material:material:1.1.0-alpha05",
             "com.google.dagger:dagger:${ver.dagger}",
             "com.google.dagger:dagger-android-support:${ver.dagger}",
-            "com.google.firebase:firebase-core:16.0.7",
-            "com.google.firebase:firebase-auth:16.1.0",
-            "com.google.firebase:firebase-database:16.0.6",
-            'com.jakewharton.threetenabp:threetenabp:1.1.1',
+            "com.google.firebase:firebase-core:16.0.8",
+            "com.google.firebase:firebase-auth:16.2.0",
+            "com.google.firebase:firebase-database:16.1.0",
+            'com.jakewharton.threetenabp:threetenabp:1.2.0',
             "com.jakewharton.timber:timber:4.7.1",
             'com.mikepenz:aboutlibraries:6.2.3',
             'com.mikepenz:materialdrawer:6.1.2',
@@ -158,11 +159,11 @@ dependencies {
             "com.squareup.retrofit2:retrofit:${ver.retrofit}",
             "com.squareup.retrofit2:converter-gson:${ver.retrofit}",
             "com.squareup.retrofit2:adapter-rxjava2:${ver.retrofit}",
-            "com.squareup.okhttp3:logging-interceptor:3.13.1",
+            "com.squareup.okhttp3:logging-interceptor:3.14.0",
             'com.squareup.picasso:picasso:2.71828',
             'eu.davidea:flexible-adapter:5.1.0',
             'eu.davidea:flexible-adapter-databinding:1.0.0',
-            "io.reactivex.rxjava2:rxjava:2.2.6",
+            "io.reactivex.rxjava2:rxjava:2.2.8",
             "io.reactivex.rxjava2:rxandroid:2.1.1",
             "nl.littlerobots.rxlint:rxlint:1.7.3",
             "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${VER.kotlin}",
@@ -174,7 +175,7 @@ dependencies {
 
     // Dependencies for local unit tests
     testImplementation(
-            "io.mockk:mockk:1.9.1",
+            "io.mockk:mockk:${ver.mockk}",
             "junit:junit:4.12",
             "org.jetbrains.kotlin:kotlin-test-junit:${VER.kotlin}",
     )
@@ -194,7 +195,7 @@ dependencies {
             "androidx.test.espresso:espresso-core:${ver.espresso}",
             "androidx.test.espresso:espresso-contrib:${ver.espresso}",
             "androidx.test.espresso:espresso-intents:${ver.espresso}",
-            "io.mockk:mockk-android:1.9.1",
+            "io.mockk:mockk-android:${ver.mockk}",
     )
 }
 
