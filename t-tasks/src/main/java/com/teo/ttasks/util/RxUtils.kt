@@ -48,33 +48,33 @@ object RxUtils {
                 }
         }
 
-    fun getTaskItems(sortingMode: SortType): FlowableTransformer<List<Task>, Pair<TaskType, List<TaskItem>>> =
+    fun getTaskItems(sortingMode: SortType): FlowableTransformer<List<Task>, Pair<TaskType, List<Task>>> =
         FlowableTransformer { observable ->
             observable
                 .flatMap { tasks ->
-                    val activeTasks = mutableListOf<TaskItem>()
-                    val completedTasks = mutableListOf<TaskItem>()
+                    val activeTasks = mutableListOf<Task>()
+                    val completedTasks = mutableListOf<Task>()
 
                     for (task in tasks) {
                         if (task.completedDate == null) {
                             // Active task
-                            activeTasks.add(TaskItem(task, TaskType.ACTIVE))
+                            activeTasks.add(task)
                         } else {
                             // Completed task
-                            completedTasks.add(TaskItem(task, TaskType.COMPLETED))
+                            completedTasks.add(task)
                         }
                     }
 
                     when (sortingMode) {
                         SortType.SORT_DATE -> {
                             // Sort active tasks by due date in ascending order
-                            activeTasks.sort()
+//                            activeTasks.sort()
                             // Sort completed tasks by completion date in descending order
-                            completedTasks.sortWith(TaskItem.completionDateComparator)
+//                            completedTasks.sortWith(TaskItem.completionDateComparator)
                         }
                         SortType.SORT_ALPHA -> {
-                            activeTasks.sortWith(TaskItem.alphabeticalComparator)
-                            completedTasks.sortWith(TaskItem.alphabeticalComparator)
+//                            activeTasks.sortWith(TaskItem.alphabeticalComparator)
+//                            completedTasks.sortWith(TaskItem.alphabeticalComparator)
                         }
                         SortType.SORT_CUSTOM -> {
                             // Do nothing

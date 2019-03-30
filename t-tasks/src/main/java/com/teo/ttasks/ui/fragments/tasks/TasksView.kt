@@ -1,7 +1,7 @@
 package com.teo.ttasks.ui.fragments.tasks
 
+import com.teo.ttasks.data.model.Task
 import com.teo.ttasks.ui.base.MvpView
-import com.teo.ttasks.ui.items.TaskItem
 
 /**
  * Main purpose of such interfaces — hide details of View implementation,
@@ -11,9 +11,9 @@ internal interface TasksView : MvpView {
 
     fun onTasksLoading()
 
-    fun onActiveTasksLoaded(activeTasks: List<TaskItem>)
+    fun onActiveTasksLoaded(activeTasks: List<Task>)
 
-    fun onCompletedTasksLoaded(completedTasks: List<TaskItem>)
+    fun onCompletedTasksLoaded(completedTasks: List<Task>)
 
     fun onTasksLoadError()
 

@@ -1,6 +1,7 @@
 package com.teo.ttasks.util
 
 import android.content.Context
+import android.content.res.Resources
 import android.widget.Toast
 import androidx.annotation.StringRes
 
@@ -17,3 +18,5 @@ fun Context.toastShort(@StringRes resId: Int) {
 fun Context.toastShort(message: String) {
     Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
 }
+
+fun Int.dpToPx(): Int = (this * Resources.getSystem().displayMetrics.density).toInt()

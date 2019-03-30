@@ -10,8 +10,10 @@ import androidx.recyclerview.widget.RecyclerView
 import com.teo.ttasks.R
 import com.teo.ttasks.data.model.Task
 import com.teo.ttasks.databinding.ItemTaskSectionBinding
+import com.teo.ttasks.ui.SpacesItemDecoration
 import com.teo.ttasks.ui.views.TasksContainerView
 import com.teo.ttasks.util.DateUtils
+import com.teo.ttasks.util.dpToPx
 import eu.davidea.flexibleadapter.FlexibleAdapter
 import eu.davidea.flexibleadapter.items.AbstractFlexibleItem
 import eu.davidea.flexibleadapter.items.IFlexible
@@ -72,10 +74,7 @@ class TaskSectionItem(
             sectionTitle.setText(sectionTitleRes)
             sortType.setText(R.string.sort_mode_date)
             sortDirection.setImageResource(com.teo.ttasks.R.drawable.ic_arrow_downward_24dp)
-            with(taskList) {
-                this.adapter = TasksAdapter()
-                this.layoutManager = LinearLayoutManager(context)
-            }
+            taskList.adapter = TasksAdapter()
         }
     }
 
@@ -83,7 +82,12 @@ class TaskSectionItem(
         view: View,
         adapter: FlexibleAdapter<IFlexible<RecyclerView.ViewHolder>>
     ): TaskSectionItem.ViewHolder {
-        return ViewHolder(view, adapter)
+        return ViewHolder(view, adapter).apply {
+            with(binding.taskList) {
+                layoutManager = LinearLayoutManager(context)
+                addItemDecoration(SpacesItemDecoration(4.dpToPx()))
+            }
+        }
     }
 
     override fun getLayoutRes(): Int {

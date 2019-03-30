@@ -1,10 +1,10 @@
 package com.teo.ttasks.ui.views
 
 import android.content.Context
-import android.content.res.Resources
 import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
@@ -14,12 +14,10 @@ import com.teo.ttasks.R
 import com.teo.ttasks.R.layout
 import com.teo.ttasks.data.model.Task
 import com.teo.ttasks.util.DateUtils
+import com.teo.ttasks.util.dpToPx
 import org.threeten.bp.ZonedDateTime
 
-private val Int.dpToPx: Int
-    get() = (this * Resources.getSystem().displayMetrics.density).toInt()
-
-private val DEFAULT_MARGIN = 8.dpToPx
+private val DEFAULT_MARGIN = 8.dpToPx()
 
 /**
  */
@@ -41,7 +39,10 @@ class TasksContainerView @JvmOverloads constructor(
                     visibility = View.VISIBLE
                 }
                 with(monthView) {
-                    text = value.format(DateUtils.formatterMonth)
+                    text = when {
+                        value.year == ZonedDateTime.now().year -> value.format(DateUtils.formatterMonth)
+                        else -> value.format(DateUtils.formatterMonthYear)
+                    }
                     visibility = View.VISIBLE
                 }
             }
@@ -54,22 +55,31 @@ class TasksContainerView @JvmOverloads constructor(
                 val lastIndex = tasks.size - 1
                 for ((index, task) in tasks.withIndex()) {
                     val taskView = getInnerTaskItemView(task)
+
+                    // Add bottom margin for all views except the last one
                     if (index < lastIndex) {
                         taskView.layoutParams = (taskView.layoutParams as LinearLayout.LayoutParams).apply {
                             updateMargins(bottom = DEFAULT_MARGIN)
+                        }
+                    } else if (lastIndex == 0) {
+                        // Special case when containing only one task: make the inner task view take up all the space
+                        taskView.layoutParams = (taskView.layoutParams as LinearLayout.LayoutParams).apply {
+                            height = ViewGroup.LayoutParams.MATCH_PARENT
                         }
                     }
                     taskView.setOnClickListener { v -> println("click") }
                     taskListView.addView(taskView)
                 }
 
-                with(ConstraintSet()) {
-                    clone(this@TasksContainerView)
+                if (taskListView.bottom > taskDateView.bottom) {
+                    with(ConstraintSet()) {
+                        clone(this@TasksContainerView)
 
-                    // Separator view
-                    connect(R.id.separator, ConstraintSet.BOTTOM, R.id.task_list, ConstraintSet.BOTTOM)
+                        // Separator view
+                        connect(R.id.separator, ConstraintSet.BOTTOM, R.id.task_list, ConstraintSet.BOTTOM)
 
-                    applyTo(this@TasksContainerView)
+                        applyTo(this@TasksContainerView)
+                    }
                 }
             } else {
                 taskListView.removeAllViewsInLayout()

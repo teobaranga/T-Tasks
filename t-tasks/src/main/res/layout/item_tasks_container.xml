@@ -39,11 +39,17 @@
     <LinearLayout
         android:id="@+id/task_list"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
         android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/separator"
-        app:layout_constraintTop_toBottomOf="@id/month" />
+        app:layout_constraintTop_toBottomOf="@id/month" >
+
+        <!--<include layout="@layout/item_task_inner"-->
+            <!--android:layout_height="match_parent"-->
+            <!--android:layout_width="match_parent"/>-->
+
+    </LinearLayout>
 
 </merge>

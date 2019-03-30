@@ -23,12 +23,14 @@ import com.teo.ttasks.data.model.Task
 import com.teo.ttasks.databinding.FragmentTasksBinding
 import com.teo.ttasks.receivers.NetworkInfoReceiver
 import com.teo.ttasks.receivers.NetworkInfoReceiver.Companion.isOnline
+import com.teo.ttasks.ui.SpacesItemDecoration
 import com.teo.ttasks.ui.activities.edit_task.EditTaskActivity
 import com.teo.ttasks.ui.activities.main.MainActivity
 import com.teo.ttasks.ui.activities.task_detail.TaskDetailActivity
 import com.teo.ttasks.ui.items.CategoryItem
 import com.teo.ttasks.ui.items.TaskItem
 import com.teo.ttasks.ui.items.TaskSectionItem
+import com.teo.ttasks.util.dpToPx
 import com.teo.ttasks.util.toastShort
 import dagger.android.support.DaggerFragment
 import eu.davidea.flexibleadapter.FlexibleAdapter
@@ -89,6 +91,8 @@ class TasksFragment : DaggerFragment(), TasksView, SwipeRefreshLayout.OnRefreshL
     internal lateinit var fab: FloatingActionButton
 
     internal lateinit var adapter: FlexibleAdapter<IFlexible<*>>
+
+    internal lateinit var tasksAdapter: FlexibleAdapter<TaskSectionItem>
 
     private lateinit var activeTasksHeader: CategoryItem
 
@@ -187,6 +191,8 @@ class TasksFragment : DaggerFragment(), TasksView, SwipeRefreshLayout.OnRefreshL
             addListener(taskItemClickListener)
         }
 
+        tasksAdapter = FlexibleAdapter(null)
+
         createNavBarPair()
 
         networkInfoReceiver.setOnConnectionChangedListener { isOnline ->
@@ -210,20 +216,8 @@ class TasksFragment : DaggerFragment(), TasksView, SwipeRefreshLayout.OnRefreshL
 
         tasksBinding.tasksList.apply {
             layoutManager = LinearLayoutManager(context)
-//            adapter = this@TasksFragment.adapter
-            adapter =
-                FlexibleAdapter<TaskSectionItem>(listOf(TaskSectionItem(R.drawable.ic_whatshot_24dp, R.string.active, listOf(
-                    Task().apply {
-                        title = "Buy groceries"
-                        notes = "Go to the supermarket and pick them up"
-                        reminder = "2019-01-23T02:19:56.000Z"
-                        due = "2019-01-23T02:19:56.000Z"
-                    },
-                    Task().apply {
-                        title = "Study for interview"
-                        notes = "Look up very complicated algorithms"
-                        due = "2019-01-23T02:19:56.000Z"
-                    }))))
+            adapter = this@TasksFragment.tasksAdapter
+            addItemDecoration(SpacesItemDecoration(8.dpToPx()))
             setHasFixedSize(true)
         }
 
@@ -280,20 +274,22 @@ class TasksFragment : DaggerFragment(), TasksView, SwipeRefreshLayout.OnRefreshL
     }
 
     // TODO combine the code for loading the active/completed tasks
-    override fun onActiveTasksLoaded(activeTasks: List<TaskItem>) {
-        activeTasksHeader.subItems = activeTasks
+    override fun onActiveTasksLoaded(activeTasks: List<Task>) {
+//        activeTasksHeader.subItems = activeTasks
         if (!activeTasksHeader.isExpanded) {
             adapter.expand(activeTasksHeader)
         }
+        tasksAdapter.addItem(TaskSectionItem(R.drawable.ic_whatshot_24dp, R.string.active, activeTasks))
         Timber.v("Loaded %d active tasks", activeTasks.size)
     }
 
-    override fun onCompletedTasksLoaded(completedTasks: List<TaskItem>) {
-        completedTasksHeader.subItems = completedTasks
+    override fun onCompletedTasksLoaded(completedTasks: List<Task>) {
+//        completedTasksHeader.subItems = completedTasks
         if (tasksPresenter.showCompleted && !completedTasksHeader.isExpanded) {
             adapter.expand(completedTasksHeader)
 //                    Handler().post { completedTasksHeader.toggleArrow(false) }
         }
+        tasksAdapter.addItem(TaskSectionItem(R.drawable.ic_done_white_24dp, R.string.completed, completedTasks))
         Timber.v("loaded %d completed tasks", completedTasks.size)
     }
 
@@ -377,6 +373,7 @@ class TasksFragment : DaggerFragment(), TasksView, SwipeRefreshLayout.OnRefreshL
      */
     fun updateTaskListId(newTaskListId: String) {
         if (newTaskListId != taskListId) {
+            tasksAdapter.clear()
             // In case it is attached, disable fragment scrolling to prevent crashing
             if (isAdded) {
                 (activity as MainActivity).disableScrolling(false)

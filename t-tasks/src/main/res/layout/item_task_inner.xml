@@ -5,6 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="?selectableItemBackground"
+    android:gravity="center_vertical"
     android:orientation="vertical"
     android:paddingStart="14dp"
     android:paddingEnd="14dp">
@@ -28,7 +29,8 @@
         android:maxLines="2"
         android:textAppearance="@style/TextAppearance.AppCompat.Small"
         android:textStyle="italic"
-        tools:text="Go to the supermarket and pick them up" />
+        tools:text="Go to the supermarket and pick them up"
+        tools:visibility="visible" />
 
     <TextView
         android:id="@+id/reminder"

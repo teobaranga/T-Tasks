@@ -61,7 +61,7 @@
                 android:clipToPadding="false"
                 android:paddingBottom="80dp"
                 android:scrollbars="vertical"
-                tools:listitem="@layout/item_task" />
+                tools:listitem="@layout/item_task_section" />
 
         </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
