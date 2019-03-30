@@ -18,6 +18,9 @@ class DateUtils private constructor() {
         var formatterDate = getDateFormatter()
             private set
 
+        /**
+         * Has the pattern yyyyMMdd, eg. 20191230
+         */
         val formatterDay = DateTimeFormatter.ofPattern("yyyyMMdd")!!
 
         val formatterDayName = DateTimeFormatter.ofPattern("EEE")!!

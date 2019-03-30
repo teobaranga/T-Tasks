@@ -57,19 +57,13 @@
                 tools:ignore="ContentDescription"
                 tools:srcCompat="@drawable/ic_arrow_downward_24dp" />
 
-            <com.teo.ttasks.ui.views.TasksContainerView
-                android:id="@+id/container_1"
-                android:layout_width="0dp"
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/task_list"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/section_title"
-                app:layout_constraintEnd_toEndOf="parent"/>
-
-            <!--<com.teo.ttasks.ui.views.TasksContainerView-->
-                <!--android:layout_width="wrap_content"-->
-                <!--android:layout_height="wrap_content"-->
-                <!--app:layout_constraintStart_toStartOf="parent"-->
-                <!--app:layout_constraintTop_toBottomOf="@id/container_1" />-->
+                app:layout_constraintTop_toBottomOf="@id/section_title" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 

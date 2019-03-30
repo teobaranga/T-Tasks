@@ -19,6 +19,7 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.teo.ttasks.R
+import com.teo.ttasks.data.model.Task
 import com.teo.ttasks.databinding.FragmentTasksBinding
 import com.teo.ttasks.receivers.NetworkInfoReceiver
 import com.teo.ttasks.receivers.NetworkInfoReceiver.Companion.isOnline
@@ -211,7 +212,18 @@ class TasksFragment : DaggerFragment(), TasksView, SwipeRefreshLayout.OnRefreshL
             layoutManager = LinearLayoutManager(context)
 //            adapter = this@TasksFragment.adapter
             adapter =
-                FlexibleAdapter<TaskSectionItem>(listOf(TaskSectionItem(R.drawable.ic_whatshot_24dp, R.string.active)))
+                FlexibleAdapter<TaskSectionItem>(listOf(TaskSectionItem(R.drawable.ic_whatshot_24dp, R.string.active, listOf(
+                    Task().apply {
+                        title = "Buy groceries"
+                        notes = "Go to the supermarket and pick them up"
+                        reminder = "2019-01-23T02:19:56.000Z"
+                        due = "2019-01-23T02:19:56.000Z"
+                    },
+                    Task().apply {
+                        title = "Study for interview"
+                        notes = "Look up very complicated algorithms"
+                        due = "2019-01-23T02:19:56.000Z"
+                    }))))
             setHasFixedSize(true)
         }
 
