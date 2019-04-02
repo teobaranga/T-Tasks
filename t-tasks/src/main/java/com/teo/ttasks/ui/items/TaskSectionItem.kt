@@ -42,6 +42,8 @@ class TaskSectionItem(
 
     private inner class TasksAdapter : RecyclerView.Adapter<TasksAdapter.ViewHolder>() {
 
+        val taskDateMapAsSequence = taskDateMap.asSequence()
+
         private inner class ViewHolder(val tasksContainerView: TasksContainerView) :
             RecyclerView.ViewHolder(tasksContainerView)
 
@@ -53,8 +55,12 @@ class TaskSectionItem(
         }
 
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+            val previousContainerDate = if (position > 0) {
+                taskDateMapAsSequence.elementAt(position - 1).value[0].dueDate
+            } else null
             with(holder.tasksContainerView) {
-                val taskList = taskDateMap.asSequence().elementAt(position).value
+                val taskList = taskDateMapAsSequence.elementAt(position).value
+                showMonth = previousContainerDate?.month != taskList[0].dueDate?.month
                 date = taskList[0].dueDate
                 tasks = taskList
             }

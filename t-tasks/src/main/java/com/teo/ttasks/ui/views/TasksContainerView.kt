@@ -28,6 +28,8 @@ class TasksContainerView @JvmOverloads constructor(
     defStyleRes: Int = 0
 ) : ConstraintLayout(context, attrs, defStyleAttr, defStyleRes) {
 
+    var showMonth: Boolean = false
+
     var date: ZonedDateTime? = null
         set(value) {
             if (value == null) {
@@ -39,11 +41,15 @@ class TasksContainerView @JvmOverloads constructor(
                     visibility = View.VISIBLE
                 }
                 with(monthView) {
-                    text = when {
-                        value.year == ZonedDateTime.now().year -> value.format(DateUtils.formatterMonth)
-                        else -> value.format(DateUtils.formatterMonthYear)
+                    if (showMonth) {
+                        text = when {
+                            value.year == ZonedDateTime.now().year -> value.format(DateUtils.formatterMonth)
+                            else -> value.format(DateUtils.formatterMonthYear)
+                        }
+                        visibility = View.VISIBLE
+                    } else {
+                        visibility = View.GONE
                     }
-                    visibility = View.VISIBLE
                 }
             }
             field = value
