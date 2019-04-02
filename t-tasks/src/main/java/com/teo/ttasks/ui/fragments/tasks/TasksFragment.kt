@@ -279,7 +279,7 @@ class TasksFragment : DaggerFragment(), TasksView, SwipeRefreshLayout.OnRefreshL
         if (!activeTasksHeader.isExpanded) {
             adapter.expand(activeTasksHeader)
         }
-        tasksAdapter.addItem(TaskSectionItem(R.drawable.ic_whatshot_24dp, R.string.active, activeTasks))
+        tasksAdapter.addItem(TaskSectionItem(R.drawable.ic_whatshot_24dp, R.string.active, activeTasks, TaskSectionItem.DateType.DUE))
         Timber.v("Loaded %d active tasks", activeTasks.size)
     }
 
@@ -289,7 +289,7 @@ class TasksFragment : DaggerFragment(), TasksView, SwipeRefreshLayout.OnRefreshL
             adapter.expand(completedTasksHeader)
 //                    Handler().post { completedTasksHeader.toggleArrow(false) }
         }
-        tasksAdapter.addItem(TaskSectionItem(R.drawable.ic_done_white_24dp, R.string.completed, completedTasks))
+        tasksAdapter.addItem(TaskSectionItem(R.drawable.ic_done_white_24dp, R.string.completed, completedTasks, TaskSectionItem.DateType.COMPLETED))
         Timber.v("loaded %d completed tasks", completedTasks.size)
     }
 

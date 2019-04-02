@@ -18,12 +18,21 @@ import eu.davidea.flexibleadapter.FlexibleAdapter
 import eu.davidea.flexibleadapter.items.AbstractFlexibleItem
 import eu.davidea.flexibleadapter.items.IFlexible
 import eu.davidea.viewholders.FlexibleViewHolder
+import org.threeten.bp.ZonedDateTime
 
 class TaskSectionItem(
     @DrawableRes private val iconRes: Int,
     @StringRes private val sectionTitleRes: Int,
-    private val tasks: List<Task>
+    private val tasks: List<Task>,
+    dateType: DateType
 ) : AbstractFlexibleItem<TaskSectionItem.ViewHolder>() {
+
+    enum class DateType(val accessFunction: Task.() -> ZonedDateTime?) {
+        COMPLETED({ completedDate }),
+        DUE({ dueDate });
+    }
+
+    private val sortDate: Task.() -> ZonedDateTime? = dateType.accessFunction
 
     /**
      * Map from Day to tasks in that day
@@ -31,7 +40,7 @@ class TaskSectionItem(
     private val taskDateMap: Map<String?, List<Task>> by lazy {
         val map = mutableMapOf<String?, MutableList<Task>>()
         for (task in tasks) {
-            val day = task.dueDate?.format(DateUtils.formatterDay)
+            val day = task.sortDate()?.format(DateUtils.formatterDay)
             when (day) {
                 in map -> map[day]!!.add(task)
                 else -> map[day] = mutableListOf(task)
@@ -56,12 +65,12 @@ class TaskSectionItem(
 
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
             val previousContainerDate = if (position > 0) {
-                taskDateMapAsSequence.elementAt(position - 1).value[0].dueDate
+                taskDateMapAsSequence.elementAt(position - 1).value[0].sortDate()
             } else null
             with(holder.tasksContainerView) {
                 val taskList = taskDateMapAsSequence.elementAt(position).value
-                showMonth = previousContainerDate?.month != taskList[0].dueDate?.month
-                date = taskList[0].dueDate
+                showMonth = previousContainerDate?.month != taskList[0].sortDate()?.month
+                date = taskList[0].sortDate()
                 tasks = taskList
             }
         }
