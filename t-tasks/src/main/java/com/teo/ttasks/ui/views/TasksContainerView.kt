@@ -4,20 +4,15 @@ import android.content.Context
 import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.ConstraintSet
-import androidx.core.view.updateMargins
 import com.teo.ttasks.R
 import com.teo.ttasks.R.layout
 import com.teo.ttasks.data.model.Task
 import com.teo.ttasks.util.DateUtils
-import com.teo.ttasks.util.dpToPx
 import org.threeten.bp.ZonedDateTime
-
-private val DEFAULT_MARGIN = 8.dpToPx()
 
 /**
  */
@@ -58,33 +53,26 @@ class TasksContainerView @JvmOverloads constructor(
     var tasks: List<Task>? = null
         set(tasks) {
             if (!tasks.isNullOrEmpty()) {
-                val lastIndex = tasks.size - 1
-                for ((index, task) in tasks.withIndex()) {
+                for (task in tasks) {
                     val taskView = getInnerTaskItemView(task)
 
-                    // Add bottom margin for all views except the last one
-                    if (index < lastIndex) {
-                        taskView.layoutParams = (taskView.layoutParams as LinearLayout.LayoutParams).apply {
-                            updateMargins(bottom = DEFAULT_MARGIN)
-                        }
-                    } else if (lastIndex == 0) {
-                        // Special case when containing only one task: make the inner task view take up all the space
-                        taskView.layoutParams = (taskView.layoutParams as LinearLayout.LayoutParams).apply {
-                            height = ViewGroup.LayoutParams.MATCH_PARENT
-                        }
-                    }
-                    taskView.setOnClickListener { v -> println("click") }
+                    taskView.setOnClickListener { println("click") }
                     taskListView.addView(taskView)
                 }
 
-                if (taskListView.bottom > taskDateView.bottom) {
-                    with(ConstraintSet()) {
-                        clone(this@TasksContainerView)
-
-                        // Separator view
-                        connect(R.id.separator, ConstraintSet.BOTTOM, R.id.task_list, ConstraintSet.BOTTOM)
-
-                        applyTo(this@TasksContainerView)
+                taskListView.post {
+                    if (taskListView.bottom > taskDateView.bottom) {
+                        with(ConstraintSet()) {
+                            clone(this@TasksContainerView)
+                            connect(R.id.separator, ConstraintSet.BOTTOM, R.id.task_list, ConstraintSet.BOTTOM)
+                            applyTo(this@TasksContainerView)
+                        }
+                    } else {
+                        with(ConstraintSet()) {
+                            clone(this@TasksContainerView)
+                            connect(R.id.task_list, ConstraintSet.BOTTOM, R.id.task_date, ConstraintSet.BOTTOM)
+                            applyTo(this@TasksContainerView)
+                        }
                     }
                 }
             } else {

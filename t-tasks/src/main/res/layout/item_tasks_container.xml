@@ -10,7 +10,8 @@
         android:id="@+id/month"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:paddingBottom="4dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
         android:textAppearance="?textAppearanceListItem"
         android:textColor="@color/colorPrimary"
         android:textStyle="bold|italic"
@@ -34,7 +35,7 @@
         android:background="@color/md_grey_700"
         app:layout_constraintBottom_toBottomOf="@id/task_date"
         app:layout_constraintStart_toEndOf="@id/task_date"
-        app:layout_constraintTop_toBottomOf="@id/month" />
+        app:layout_constraintTop_toTopOf="@id/task_date" />
 
     <LinearLayout
         android:id="@+id/task_list"
@@ -43,8 +44,9 @@
         android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHeight_default="wrap"
         app:layout_constraintStart_toEndOf="@id/separator"
-        app:layout_constraintTop_toBottomOf="@id/month" >
+        app:layout_constraintTop_toTopOf="@id/task_date">
 
         <!--<include layout="@layout/item_task_inner"-->
             <!--android:layout_height="match_parent"-->

@@ -36,6 +36,7 @@ import dagger.android.support.DaggerFragment
 import eu.davidea.flexibleadapter.FlexibleAdapter
 import eu.davidea.flexibleadapter.items.IFlexible
 import timber.log.Timber
+import java.util.Collections.emptyList
 import javax.inject.Inject
 
 /**
