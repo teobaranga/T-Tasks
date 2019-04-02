@@ -145,7 +145,7 @@ dependencies {
             'com.github.strooooke:appbarsyncedfab:v0.4',
             "com.google.android.gms:play-services-auth:16.0.1",
             "com.google.android.gms:play-services-gcm:16.1.0",
-            "com.google.android.material:material:1.1.0-alpha05",
+            "com.google.android.material:material:1.0.0",
             "com.google.dagger:dagger:${ver.dagger}",
             "com.google.dagger:dagger-android-support:${ver.dagger}",
             "com.google.firebase:firebase-core:16.0.8",
