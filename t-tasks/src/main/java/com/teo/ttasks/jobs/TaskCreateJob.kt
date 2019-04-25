@@ -5,9 +5,7 @@ import com.evernote.android.job.JobManager
 import com.evernote.android.job.JobRequest
 import com.evernote.android.job.util.support.PersistableBundleCompat
 import com.google.firebase.database.FirebaseDatabase
-import com.teo.ttasks.TTasksApp
 import com.teo.ttasks.api.TasksApi
-import com.teo.ttasks.data.local.PrefHelper
 import com.teo.ttasks.data.local.TaskFields
 import com.teo.ttasks.data.local.WidgetHelper
 import com.teo.ttasks.data.model.Task
@@ -18,9 +16,13 @@ import com.teo.ttasks.util.NotificationHelper
 import io.realm.Realm
 import timber.log.Timber
 import java.util.concurrent.TimeUnit
-import javax.inject.Inject
 
-class TaskCreateJob : Job() {
+class TaskCreateJob(
+    @Transient private val tasksHelper: TasksHelper,
+    @Transient private val widgetHelper: WidgetHelper,
+    @Transient private val notificationHelper: NotificationHelper,
+    @Transient private val tasksApi: TasksApi
+) : Job() {
 
     companion object {
         const val TAG = "CREATE_TASK"
@@ -29,12 +31,12 @@ class TaskCreateJob : Job() {
 
         fun schedule(localTaskId: String, taskListId: String, taskFields: TaskFields? = null) {
             JobManager.instance().getAllJobRequestsForTag(TAG)
-                    .forEach {
-                        if (it.extras[EXTRA_LOCAL_ID] as String == localTaskId) {
-                            Timber.v("Create Task job already exists for %s, ignoring...", localTaskId)
-                            return
-                        }
+                .forEach {
+                    if (it.extras[EXTRA_LOCAL_ID] as String == localTaskId) {
+                        Timber.v("Create Task job already exists for %s, ignoring...", localTaskId)
+                        return
                     }
+                }
             val extras = PersistableBundleCompat().apply {
                 putString(EXTRA_LOCAL_ID, localTaskId)
                 putString(EXTRA_TASK_LIST_ID, taskListId)
@@ -43,27 +45,18 @@ class TaskCreateJob : Job() {
                 }
             }
             JobRequest.Builder(TAG)
-                    .setBackoffCriteria(5_000L, JobRequest.BackoffPolicy.EXPONENTIAL)
-                    .setRequiredNetworkType(JobRequest.NetworkType.CONNECTED)
-                    .setExtras(extras)
-                    .setRequirementsEnforced(true)
-                    .setUpdateCurrent(true)
-                    .setExecutionWindow(1, TimeUnit.DAYS.toMillis(1))
-                    .build()
-                    .schedule()
+                .setBackoffCriteria(5_000L, JobRequest.BackoffPolicy.EXPONENTIAL)
+                .setRequiredNetworkType(JobRequest.NetworkType.CONNECTED)
+                .setExtras(extras)
+                .setRequirementsEnforced(true)
+                .setUpdateCurrent(true)
+                .setExecutionWindow(1, TimeUnit.DAYS.toMillis(1))
+                .build()
+                .schedule()
         }
     }
 
-    @Inject @Transient internal lateinit var tasksHelper: TasksHelper
-    @Inject @Transient internal lateinit var prefHelper: PrefHelper
-    @Inject @Transient internal lateinit var widgetHelper: WidgetHelper
-    @Inject @Transient internal lateinit var notificationHelper: NotificationHelper
-    @Inject @Transient internal lateinit var tasksApi: TasksApi
-
     override fun onRunJob(params: Params): Result {
-        // Inject dependencies
-        (context.applicationContext as TTasksApp).applicationComponent.inject(this)
-
         // Extract params
         val extras = params.extras
         val localTaskId = extras[EXTRA_LOCAL_ID] as String
@@ -76,21 +69,21 @@ class TaskCreateJob : Job() {
         // Local task was not found, it was probably deleted, no point in continuing
         if (localTask == null) {
             realm.close()
-            return Job.Result.SUCCESS
+            return Result.SUCCESS
         }
 
         val onlineTask: Task
         try {
             onlineTask =
-                    if (taskFields != null) {
-                        tasksApi.createTask(taskListId, taskFields).blockingGet()
-                    } else {
-                        tasksApi.createTask(taskListId, localTask).blockingGet()
-                    }
+                if (taskFields != null) {
+                    tasksApi.createTask(taskListId, taskFields).blockingGet()
+                } else {
+                    tasksApi.createTask(taskListId, localTask).blockingGet()
+                }
         } catch (ex: Exception) {
             // Handle failure
             Timber.e("Failed to create the new task, will retry...")
-            return Job.Result.RESCHEDULE
+            return Result.RESCHEDULE
         }
 
         // Copy the custom attributes, since they might have changed in the meantime
@@ -121,7 +114,7 @@ class TaskCreateJob : Job() {
         }
 
         Timber.d("Create Task job success - %s", onlineTaskId)
-        return Job.Result.SUCCESS
+        return Result.SUCCESS
     }
 
     override fun onCancel() {

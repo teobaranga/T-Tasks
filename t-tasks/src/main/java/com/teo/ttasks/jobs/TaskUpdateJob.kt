@@ -4,7 +4,6 @@ import com.evernote.android.job.Job
 import com.evernote.android.job.JobManager
 import com.evernote.android.job.JobRequest
 import com.evernote.android.job.util.support.PersistableBundleCompat
-import com.teo.ttasks.TTasksApp
 import com.teo.ttasks.api.TasksApi
 import com.teo.ttasks.data.local.TaskFields
 import com.teo.ttasks.data.local.WidgetHelper
@@ -14,9 +13,13 @@ import com.teo.ttasks.util.NotificationHelper
 import io.realm.Realm
 import timber.log.Timber
 import java.util.concurrent.TimeUnit
-import javax.inject.Inject
 
-class TaskUpdateJob : Job() {
+class TaskUpdateJob(
+    @Transient private val tasksHelper: TasksHelper,
+    @Transient private val widgetHelper: WidgetHelper,
+    @Transient private val notificationHelper: NotificationHelper,
+    @Transient private val tasksApi: TasksApi
+) : Job() {
 
     companion object {
         const val TAG = "UPDATE_TASK"
@@ -32,58 +35,51 @@ class TaskUpdateJob : Job() {
                 }
             }
             JobManager.instance().getAllJobRequestsForTag(TAG)
-                    .forEach {
-                        if (it.extras[EXTRA_LOCAL_ID] as String == localTaskId) {
-                            Timber.v("Update Task job already exists for %s, rescheduling...", localTaskId)
-                            it.cancelAndEdit()
-                                    .setExtras(extras)
-                                    .setExecutionWindow(1, TimeUnit.DAYS.toMillis(7))
-                                    .build()
-                                    .schedule()
-                            return
-                        }
+                .forEach {
+                    if (it.extras[EXTRA_LOCAL_ID] as String == localTaskId) {
+                        Timber.v("Update Task job already exists for %s, rescheduling...", localTaskId)
+                        it.cancelAndEdit()
+                            .setExtras(extras)
+                            .setExecutionWindow(1, TimeUnit.DAYS.toMillis(7))
+                            .build()
+                            .schedule()
+                        return
                     }
+                }
             JobRequest.Builder(TAG)
-                    .setBackoffCriteria(5_000L, JobRequest.BackoffPolicy.EXPONENTIAL)
-                    .setRequiredNetworkType(JobRequest.NetworkType.CONNECTED)
-                    .setExtras(extras)
-                    .setRequirementsEnforced(true)
-                    .setUpdateCurrent(true)
-                    // Attempt this job for a week
-                    .setExecutionWindow(1, TimeUnit.DAYS.toMillis(7))
-                    .build()
-                    .schedule()
+                .setBackoffCriteria(5_000L, JobRequest.BackoffPolicy.EXPONENTIAL)
+                .setRequiredNetworkType(JobRequest.NetworkType.CONNECTED)
+                .setExtras(extras)
+                .setRequirementsEnforced(true)
+                .setUpdateCurrent(true)
+                // Attempt this job for a week
+                .setExecutionWindow(1, TimeUnit.DAYS.toMillis(7))
+                .build()
+                .schedule()
         }
 
         fun cancel(taskId: String, taskListId: String) {
             val jobManager = JobManager.instance()
             jobManager.getAllJobRequestsForTag(TAG)
-                    .forEach {
-                        if (it.extras[EXTRA_LOCAL_ID] as String == taskId &&
-                                it.extras[EXTRA_TASK_LIST_ID] as String == taskListId) {
-                            jobManager.cancel(it.jobId)
-                            Timber.v("Update Task job cancelled for %s", taskId)
-                            return
-                        }
+                .forEach {
+                    if (it.extras[EXTRA_LOCAL_ID] as String == taskId &&
+                        it.extras[EXTRA_TASK_LIST_ID] as String == taskListId
+                    ) {
+                        jobManager.cancel(it.jobId)
+                        Timber.v("Update Task job cancelled for %s", taskId)
+                        return
                     }
+                }
         }
     }
-
-    @Inject @Transient internal lateinit var tasksHelper: TasksHelper
-    @Inject @Transient internal lateinit var widgetHelper: WidgetHelper
-    @Inject @Transient internal lateinit var notificationHelper: NotificationHelper
-    @Inject @Transient internal lateinit var tasksApi: TasksApi
 
     override fun onRunJob(params: Params): Result {
         Timber.v("Task Update Job running...")
 
         if (params.failureCount >= 10) {
             Timber.w("Task Update Job failed 10 times, abandoning")
-            return Job.Result.FAILURE
+            return Result.FAILURE
         }
-
-        // Inject dependencies
-        (context.applicationContext as TTasksApp).applicationComponent.inject(this)
 
         // Extract params
         val extras = params.extras
@@ -98,7 +94,7 @@ class TaskUpdateJob : Job() {
         if (localTask == null) {
             Timber.v("Task not found - Success")
             realm.close()
-            return Job.Result.SUCCESS
+            return Result.SUCCESS
         }
 
         // The task was updated elsewhere
@@ -111,16 +107,16 @@ class TaskUpdateJob : Job() {
         val onlineTask: Task
         try {
             onlineTask =
-                    if (taskFields != null) {
-                        tasksApi.updateTask(localTaskId, taskListId, taskFields).blockingGet()
-                    } else {
-                        tasksApi.updateTask(localTaskId, taskListId, localTask).blockingGet()
-                    }
+                if (taskFields != null) {
+                    tasksApi.updateTask(localTaskId, taskListId, taskFields).blockingGet()
+                } else {
+                    tasksApi.updateTask(localTaskId, taskListId, localTask).blockingGet()
+                }
         } catch (ex: Exception) {
             // Handle failure
             Timber.e("Failed to update the task, will retry...")
             realm.close()
-            return Job.Result.RESCHEDULE
+            return Result.RESCHEDULE
         }
 
         // Mark the task as synced
@@ -141,7 +137,7 @@ class TaskUpdateJob : Job() {
         }
 
         Timber.d("Update Task job success - %s", localTaskId)
-        return Job.Result.SUCCESS
+        return Result.SUCCESS
     }
 
     override fun onCancel() {

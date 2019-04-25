@@ -6,21 +6,21 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import com.teo.ttasks.R
 import com.teo.ttasks.data.TaskListsAdapter
 import com.teo.ttasks.data.model.TaskList
 import com.teo.ttasks.databinding.ActivityWidgetConfigureBinding
 import com.teo.ttasks.widget.TasksWidgetProvider
-import dagger.android.support.DaggerAppCompatActivity
-import javax.inject.Inject
+import org.koin.android.scope.currentScope
 
 /**
  * The configuration screen for the [TasksWidgetProvider] AppWidget.
  */
-class TasksWidgetConfigureActivity : DaggerAppCompatActivity(), TasksWidgetConfigureView {
+class TasksWidgetConfigureActivity : AppCompatActivity(), TasksWidgetConfigureView {
 
-    @Inject internal lateinit var presenter: TasksWidgetConfigurePresenter
+    private val presenter: TasksWidgetConfigurePresenter by currentScope.inject()
 
     private var mAppWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID
 

@@ -3,7 +3,7 @@ package com.teo.ttasks.ui.activities.task_detail
 import com.teo.ttasks.data.local.WidgetHelper
 import com.teo.ttasks.data.model.Task
 import com.teo.ttasks.data.remote.TasksHelper
-import com.teo.ttasks.jobs.DeleteTaskJob
+import com.teo.ttasks.jobs.TaskDeleteJob
 import com.teo.ttasks.ui.base.Presenter
 import com.teo.ttasks.util.NotificationHelper
 import io.reactivex.disposables.Disposable
@@ -93,7 +93,7 @@ internal class TaskDetailPresenter(private val tasksHelper: TasksHelper,
                     realm.copyToRealmOrUpdate(it).deleted = true
                 }
 
-                DeleteTaskJob.schedule(it.id, it.taskListId)
+                TaskDeleteJob.schedule(it.id, it.taskListId)
             }
 
             // Trigger a widget update only if the task is marked as active

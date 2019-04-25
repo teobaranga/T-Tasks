@@ -1,5 +1,6 @@
 package com.teo.ttasks
 
+import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
@@ -14,33 +15,36 @@ import com.mikepenz.materialdrawer.util.AbstractDrawerImageLoader
 import com.mikepenz.materialdrawer.util.DrawerImageLoader
 import com.squareup.picasso.Picasso
 import com.teo.ttasks.data.local.PrefHelper
-import com.teo.ttasks.injection.component.ApplicationComponent
-import com.teo.ttasks.injection.component.DaggerApplicationComponent
+import com.teo.ttasks.injection.appModule
+import com.teo.ttasks.injection.networkModule
 import com.teo.ttasks.jobs.DefaultJobCreator
 import com.teo.ttasks.util.DateUtils
 import com.teo.ttasks.util.NightHelper
 import com.teo.ttasks.util.NotificationHelper
-import dagger.android.AndroidInjector
-import dagger.android.support.DaggerApplication
 import io.fabric.sdk.android.Fabric
 import io.realm.Realm
 import io.realm.RealmConfiguration
+import io.realm.rx.RealmObservableFactory
+import org.koin.android.ext.android.inject
+import org.koin.android.ext.koin.androidContext
+import org.koin.android.ext.koin.androidLogger
+import org.koin.core.context.startKoin
 import timber.log.Timber
-import javax.inject.Inject
 
-class TTasksApp : DaggerApplication() {
+class TTasksApp : Application() {
 
-    @Inject
-    internal lateinit var prefHelper: PrefHelper
-
-    var applicationComponent: ApplicationComponent by LazyInit {
-        DaggerApplicationComponent
-            .builder()
-            .create(this@TTasksApp) as ApplicationComponent
-    }
+    private val prefHelper: PrefHelper by inject()
 
     override fun onCreate() {
         super.onCreate()
+
+        startKoin {
+            androidLogger()
+            // Android context
+            androidContext(this@TTasksApp)
+            // modules
+            modules(appModule, networkModule)
+        }
 
         DateUtils.init(this)
 
@@ -90,8 +94,6 @@ class TTasksApp : DaggerApplication() {
 
         createNotificationChannel()
     }
-
-    override fun applicationInjector(): AndroidInjector<out TTasksApp> = applicationComponent
 
     private fun initRealmConfiguration() {
         Realm.init(this)

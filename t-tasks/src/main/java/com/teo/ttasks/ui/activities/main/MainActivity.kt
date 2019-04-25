@@ -41,8 +41,8 @@ import com.teo.ttasks.ui.activities.SettingsActivity
 import com.teo.ttasks.ui.activities.sign_in.SignInActivity.Companion.startSignInActivity
 import com.teo.ttasks.ui.fragments.task_lists.TaskListsFragment
 import com.teo.ttasks.ui.fragments.tasks.TasksFragment
+import org.koin.android.scope.currentScope
 import timber.log.Timber
-import javax.inject.Inject
 
 // TODO: 2015-12-29 implement multiple accounts
 open class MainActivity : BaseActivity(), MainView {
@@ -66,8 +66,7 @@ open class MainActivity : BaseActivity(), MainView {
         fun Context.startMainActivity() = startActivity(Intent(this, MainActivity::class.java))
     }
 
-    @Inject
-    internal lateinit var mainActivityPresenter: MainActivityPresenter
+    private val mainActivityPresenter: MainActivityPresenter by currentScope.inject()
 
     /** The profile of the currently logged in user  */
     internal lateinit var profile: ProfileDrawerItem

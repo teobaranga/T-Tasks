@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import com.google.android.gms.common.api.ApiException
 import com.teo.ttasks.R
@@ -12,11 +13,11 @@ import com.teo.ttasks.databinding.ActivitySignInBinding
 import com.teo.ttasks.receivers.NetworkInfoReceiver.Companion.isOnline
 import com.teo.ttasks.ui.activities.main.MainActivity.Companion.startMainActivity
 import com.teo.ttasks.util.toastShort
-import dagger.android.support.DaggerAppCompatActivity
+import org.koin.android.ext.android.inject
+import org.koin.android.scope.currentScope
 import timber.log.Timber
-import javax.inject.Inject
 
-open class SignInActivity : DaggerAppCompatActivity(), SignInView {
+open class SignInActivity : AppCompatActivity(), SignInView {
 
     companion object {
 
@@ -28,11 +29,9 @@ open class SignInActivity : DaggerAppCompatActivity(), SignInView {
             startActivity(Intent(this, SignInActivity::class.java).apply { putExtra(ARG_SIGN_OUT, signOut) })
     }
 
-    @Inject
-    internal lateinit var signInPresenter: SignInPresenter
+    private val signInPresenter: SignInPresenter by currentScope.inject()
 
-    @Inject
-    internal lateinit var userManager: UserManager
+    private val userManager: UserManager by inject()
 
     private lateinit var signInBinding: ActivitySignInBinding
 

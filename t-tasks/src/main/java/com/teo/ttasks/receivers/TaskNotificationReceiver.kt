@@ -2,16 +2,17 @@ package com.teo.ttasks.receivers
 
 import android.app.Notification
 import android.app.NotificationManager
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.widget.Toast
 import com.teo.ttasks.data.remote.TasksHelper
-import dagger.android.DaggerBroadcastReceiver
 import io.realm.Realm
+import org.koin.core.KoinComponent
+import org.koin.core.inject
 import timber.log.Timber
-import javax.inject.Inject
 
-class TaskNotificationReceiver : DaggerBroadcastReceiver() {
+class TaskNotificationReceiver : BroadcastReceiver(), KoinComponent {
 
     companion object {
         const val NOTIFICATION_ID = "notification-id"
@@ -24,11 +25,9 @@ class TaskNotificationReceiver : DaggerBroadcastReceiver() {
         const val ACTION_DELETE = "delete"
     }
 
-    @Inject internal lateinit var tasksHelper: TasksHelper
+    private val tasksHelper: TasksHelper by inject()
 
     override fun onReceive(context: Context, intent: Intent?) {
-        super.onReceive(context, intent)
-
         intent?.action?.let { action ->
             val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             val taskId = intent.getStringExtra(TASK_ID)

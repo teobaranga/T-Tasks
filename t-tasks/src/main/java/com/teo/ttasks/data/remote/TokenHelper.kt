@@ -5,7 +5,7 @@ import android.content.Context
 import com.google.android.gms.auth.GoogleAuthUtil
 import com.google.android.gms.common.Scopes
 import com.teo.ttasks.data.local.PrefHelper
-import com.teo.ttasks.injection.module.ApplicationModule.Companion.SCOPE_TASKS
+import com.teo.ttasks.injection.SCOPE_TASKS
 import io.reactivex.Single
 
 class TokenHelper(

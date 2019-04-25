@@ -14,24 +14,19 @@ import com.teo.ttasks.ui.activities.edit_task.EditTaskActivity
 import com.teo.ttasks.ui.activities.main.MainActivity
 import com.teo.ttasks.ui.activities.task_detail.TaskDetailActivity
 import com.teo.ttasks.widget.configure.TasksWidgetConfigureActivity
-import dagger.android.AndroidInjection
 import io.realm.Realm
+import org.koin.core.KoinComponent
+import org.koin.core.inject
 import timber.log.Timber
 import java.util.*
-import javax.inject.Inject
 
 /**
  * Implementation of App Widget functionality.
  * App Widget Configuration implemented in [TasksWidgetConfigureActivity]
  */
-class TasksWidgetProvider : AppWidgetProvider() {
+class TasksWidgetProvider : AppWidgetProvider(), KoinComponent {
 
-    @Inject internal lateinit var prefHelper: PrefHelper
-
-    override fun onReceive(context: Context?, intent: Intent?) {
-        AndroidInjection.inject(this, context)
-        super.onReceive(context, intent)
-    }
+    private val prefHelper: PrefHelper by inject()
 
     override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
         Timber.d("onUpdate with ids %s", Arrays.toString(appWidgetIds))

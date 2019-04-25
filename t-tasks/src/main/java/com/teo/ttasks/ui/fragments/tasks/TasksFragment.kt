@@ -7,13 +7,21 @@ import android.net.ConnectivityManager
 import android.os.Bundle
 import android.os.SystemClock
 import android.view.*
+import android.view.LayoutInflater
+import android.view.MenuItem
+import android.view.View
 import android.view.View.GONE
 import android.view.View.VISIBLE
+import android.view.ViewGroup
 import android.view.Window.NAVIGATION_BAR_BACKGROUND_TRANSITION_NAME
 import android.widget.Toast
 import androidx.core.app.ActivityOptionsCompat
 import androidx.core.util.Pair
+import androidx.core.view.isVisible
 import androidx.databinding.DataBindingUtil
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
@@ -32,12 +40,16 @@ import com.teo.ttasks.ui.items.TaskItem
 import com.teo.ttasks.ui.items.TaskSectionItem
 import com.teo.ttasks.util.dpToPx
 import com.teo.ttasks.util.toastShort
-import dagger.android.support.DaggerFragment
 import eu.davidea.flexibleadapter.FlexibleAdapter
 import eu.davidea.flexibleadapter.items.IFlexible
+import org.koin.android.ext.android.inject
+import org.koin.android.scope.currentScope
 import timber.log.Timber
 import java.util.Collections.emptyList
-import javax.inject.Inject
+
+private const val ARG_TASK_LIST_ID = "taskListId"
+
+private const val RC_USER_RECOVERABLE = 1
 
 /**
  * Fragment that displays the list of tasks belonging to the provided [taskListId].
@@ -47,7 +59,7 @@ import javax.inject.Inject
  * updates to the tasks from that task list. A refresh is then triggered in order to make sure the
  * data is not stale.
  */
-class TasksFragment : DaggerFragment(), TasksView, SwipeRefreshLayout.OnRefreshListener {
+class TasksFragment : Fragment(), TasksView, SwipeRefreshLayout.OnRefreshListener {
 
     /**
      * Array holding the 3 shared elements used during the transition to the [TaskDetailActivity].
@@ -60,11 +72,9 @@ class TasksFragment : DaggerFragment(), TasksView, SwipeRefreshLayout.OnRefreshL
      */
     private val pairs: Array<Pair<View, String>?> = arrayOfNulls(3)
 
-    @Inject
-    internal lateinit var tasksPresenter: TasksPresenter
+    private val tasksPresenter: TasksPresenter by currentScope.inject()
 
-    @Inject
-    internal lateinit var networkInfoReceiver: NetworkInfoReceiver
+    private val networkInfoReceiver: NetworkInfoReceiver by inject()
 
     /** ID of the current task list. Its value is either null or a non-empty string. */
     internal var taskListId: String? = null
@@ -386,11 +396,6 @@ class TasksFragment : DaggerFragment(), TasksView, SwipeRefreshLayout.OnRefreshL
     }
 
     companion object {
-
-        private const val ARG_TASK_LIST_ID = "taskListId"
-
-        private const val RC_USER_RECOVERABLE = 1
-
         /** Create a new instance of this fragment */
         fun newInstance(): TasksFragment = TasksFragment()
     }

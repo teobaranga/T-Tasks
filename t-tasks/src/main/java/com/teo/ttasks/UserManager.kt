@@ -9,7 +9,7 @@ import com.google.android.gms.common.Scopes
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.Scope
 import com.google.android.gms.tasks.Task
-import com.teo.ttasks.injection.module.ApplicationModule
+import com.teo.ttasks.injection.SCOPE_TASKS
 import io.reactivex.Completable
 
 /**
@@ -27,7 +27,7 @@ class UserManager(private val context: Context) {
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestEmail()
             .requestIdToken(context.getString(R.string.default_web_client_id))
-            .requestScopes(Scope(ApplicationModule.SCOPE_TASKS), Scope(Scopes.PLUS_ME))
+            .requestScopes(Scope(SCOPE_TASKS), Scope(Scopes.PLUS_ME))
             .build()
 
         return@lazy GoogleSignIn.getClient(context, gso)

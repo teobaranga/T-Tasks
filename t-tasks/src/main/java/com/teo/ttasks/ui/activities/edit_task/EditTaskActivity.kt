@@ -14,6 +14,7 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.DatePicker
 import android.widget.LinearLayout
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.DialogFragment
 import com.teo.ttasks.R
@@ -23,14 +24,13 @@ import com.teo.ttasks.data.model.TaskList
 import com.teo.ttasks.databinding.ActivityEditTaskBinding
 import com.teo.ttasks.util.DateUtils
 import com.teo.ttasks.util.toastShort
-import dagger.android.support.DaggerAppCompatActivity
+import org.koin.android.scope.currentScope
 import org.threeten.bp.LocalDateTime
 import org.threeten.bp.LocalTime
 import org.threeten.bp.ZoneId
 import java.util.*
-import javax.inject.Inject
 
-class EditTaskActivity : DaggerAppCompatActivity(), EditTaskView {
+class EditTaskActivity : AppCompatActivity(), EditTaskView {
 
     class DatePickerFragment : DialogFragment() {
         override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
@@ -45,8 +45,7 @@ class EditTaskActivity : DaggerAppCompatActivity(), EditTaskView {
         }
     }
 
-    @Inject
-    internal lateinit var editTaskPresenter: EditTaskPresenter
+    private val editTaskPresenter: EditTaskPresenter by currentScope.inject()
 
     private lateinit var editTaskBinding: ActivityEditTaskBinding
 

@@ -6,21 +6,24 @@ import com.teo.ttasks.ui.base.Presenter
 
 import io.realm.Realm
 
-internal class TasksWidgetConfigurePresenter(private val mTasksHelper: TasksHelper, private val mPrefHelper: PrefHelper) : Presenter<TasksWidgetConfigureView>() {
+internal class TasksWidgetConfigurePresenter(
+    private val tasksHelper: TasksHelper,
+    private val prefHelper: PrefHelper
+) : Presenter<TasksWidgetConfigureView>() {
 
     private lateinit var realm: Realm
 
     internal fun loadTaskLists() {
-        mTasksHelper.getTaskLists(realm)
-                .subscribe({
-                    taskLists -> view()?.onTaskListsLoaded(taskLists)
-                }, {
-                    view()?.onTaskListsLoadError()
-                })
+        tasksHelper.getTaskLists(realm)
+            .subscribe({ taskLists ->
+                view()?.onTaskListsLoaded(taskLists)
+            }, {
+                view()?.onTaskListsLoadError()
+            })
     }
 
     internal fun saveWidgetTaskListId(appWidgetId: Int, taskListId: String) {
-        mPrefHelper.setWidgetTaskListId(appWidgetId, taskListId)
+        prefHelper.setWidgetTaskListId(appWidgetId, taskListId)
     }
 
     override fun bindView(view: TasksWidgetConfigureView) {

@@ -13,7 +13,7 @@ import com.teo.ttasks.data.model.Task
 import com.teo.ttasks.data.model.Task.Companion.STATUS_COMPLETED
 import com.teo.ttasks.data.model.Task.Companion.STATUS_NEEDS_ACTION
 import com.teo.ttasks.data.model.TaskList
-import com.teo.ttasks.jobs.DeleteTaskJob
+import com.teo.ttasks.jobs.TaskDeleteJob
 import com.teo.ttasks.jobs.TaskCreateJob
 import com.teo.ttasks.jobs.TaskUpdateJob
 import com.teo.ttasks.util.FirebaseUtil.getTasksDatabase
@@ -245,7 +245,7 @@ class TasksHelper(
                         it.deleteFromRealm()
                     } else {
                         // Schedule a delete job to delete the remote and local task
-                        DeleteTaskJob.schedule(it.id, taskListId)
+                        TaskDeleteJob.schedule(it.id, taskListId)
                     }
                 }
                 // Handle creation

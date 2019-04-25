@@ -3,16 +3,13 @@ package com.teo.ttasks.widget
 import android.content.Intent
 import android.widget.RemoteViewsService
 import com.teo.ttasks.data.remote.TasksHelper
-import dagger.android.AndroidInjection
-import javax.inject.Inject
+import org.koin.android.ext.android.inject
 
 class TasksWidgetService : RemoteViewsService() {
 
-    @Inject
-    lateinit var tasksHelper: TasksHelper
+    private val tasksHelper: TasksHelper by inject()
 
-    override fun onGetViewFactory(intent: Intent): RemoteViewsService.RemoteViewsFactory {
-        AndroidInjection.inject(this)
+    override fun onGetViewFactory(intent: Intent): RemoteViewsFactory {
         return TasksRemoteViewsFactory(applicationContext, intent, tasksHelper)
     }
 }

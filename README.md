@@ -37,7 +37,7 @@ More features are planned and will be added in the future.
 - **MaterialDrawer**: https://github.com/mikepenz/MaterialDrawer
 - **AboutLibraries**: https://github.com/mikepenz/AboutLibraries
 - **Android-Iconics**: https://github.com/mikepenz/Android-Iconics
-- **Dagger 2**: http://google.github.io/dagger/
+- **KOIN**: https://github.com/InsertKoinIO/koin
 - **RxJava**: https://github.com/ReactiveX/RxJava
 - **RxAndroid**: https://github.com/ReactiveX/RxAndroid
 - **Realm**: https://github.com/realm/realm-java

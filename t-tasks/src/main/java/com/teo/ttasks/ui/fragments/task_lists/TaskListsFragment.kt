@@ -11,6 +11,7 @@ import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.databinding.DataBindingUtil
+import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
@@ -22,14 +23,13 @@ import com.teo.ttasks.ui.activities.main.MainActivity
 import com.teo.ttasks.ui.items.TaskListItem
 import com.teo.ttasks.util.NightHelper
 import com.teo.ttasks.util.toastShort
-import dagger.android.support.DaggerFragment
 import eu.davidea.flexibleadapter.FlexibleAdapter
+import org.koin.android.scope.currentScope
 import timber.log.Timber
-import javax.inject.Inject
 
-class TaskListsFragment : DaggerFragment(), TaskListsView, SwipeRefreshLayout.OnRefreshListener {
+class TaskListsFragment : Fragment(), TaskListsView, SwipeRefreshLayout.OnRefreshListener {
 
-    @Inject internal lateinit var taskListsPresenter: TaskListsPresenter
+    private val taskListsPresenter: TaskListsPresenter by currentScope.inject()
 
     private lateinit var adapter: FlexibleAdapter<TaskListItem>
 

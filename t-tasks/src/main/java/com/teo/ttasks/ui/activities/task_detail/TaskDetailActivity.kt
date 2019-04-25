@@ -5,8 +5,6 @@ import android.content.DialogInterface
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import androidx.core.view.MenuItemCompat
-import androidx.core.view.ViewCompat
 import android.transition.Transition
 import android.view.Gravity
 import android.view.View
@@ -14,8 +12,11 @@ import android.view.animation.AlphaAnimation
 import android.view.animation.OvershootInterpolator
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.PopupMenu
 import androidx.appcompat.widget.ShareActionProvider
+import androidx.core.view.MenuItemCompat
+import androidx.core.view.ViewCompat
 import androidx.databinding.DataBindingUtil
 import com.teo.ttasks.BuildConfig
 import com.teo.ttasks.R
@@ -24,11 +25,10 @@ import com.teo.ttasks.data.model.TaskList
 import com.teo.ttasks.databinding.ActivityTaskDetailBinding
 import com.teo.ttasks.ui.activities.edit_task.EditTaskActivity
 import com.teo.ttasks.util.AnimUtils
-import dagger.android.support.DaggerAppCompatActivity
+import org.koin.android.scope.currentScope
 import org.threeten.bp.format.DateTimeFormatter
-import javax.inject.Inject
 
-class TaskDetailActivity : DaggerAppCompatActivity(), TaskDetailView {
+class TaskDetailActivity : AppCompatActivity(), TaskDetailView {
 
     companion object {
 
@@ -69,7 +69,7 @@ class TaskDetailActivity : DaggerAppCompatActivity(), TaskDetailView {
         }
     }
 
-    @Inject internal lateinit var taskDetailPresenter: TaskDetailPresenter
+    private val taskDetailPresenter: TaskDetailPresenter by currentScope.inject()
 
     internal lateinit var taskDetailBinding: ActivityTaskDetailBinding
 

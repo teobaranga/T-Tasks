@@ -3,7 +3,6 @@ package com.teo.ttasks
 import android.app.Activity
 import android.app.Instrumentation
 import android.content.Intent
-import androidx.test.core.app.ApplicationProvider
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.assertion.ViewAssertions.matches
@@ -16,11 +15,8 @@ import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.Status
-import com.teo.ttasks.injection.component.TestApplicationComponent
 import com.teo.ttasks.ui.activities.sign_in.SignInActivity
 import io.mockk.every
-import org.junit.Before
-import org.junit.BeforeClass
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -37,20 +33,6 @@ class StartActivityForResultTest {
 
     companion object {
         private const val ACTION_SIGN_IN = "com.google.android.gms.auth.GOOGLE_SIGN_IN"
-
-        private lateinit var testAppComponent: TestApplicationComponent
-
-        @BeforeClass
-        @JvmStatic
-        fun setup() {
-            testAppComponent =
-                    (ApplicationProvider.getApplicationContext<TTasksApp>().applicationComponent as TestApplicationComponent)
-        }
-    }
-
-    @Before
-    fun before() {
-        testAppComponent.inject(this)
     }
 
     @Test
@@ -81,5 +63,4 @@ class StartActivityForResultTest {
         // Make sure that the Sign In button is still visible after a sign in error
         onView(withId(R.id.sign_in_button)).check(matches(withEffectiveVisibility(VISIBLE)))
     }
-
 }
