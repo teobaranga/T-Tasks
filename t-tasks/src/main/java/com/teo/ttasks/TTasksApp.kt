@@ -8,7 +8,6 @@ import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Build
 import android.widget.ImageView
-import com.crashlytics.android.Crashlytics
 import com.evernote.android.job.JobManager
 import com.jakewharton.threetenabp.AndroidThreeTen
 import com.mikepenz.materialdrawer.util.AbstractDrawerImageLoader
@@ -21,7 +20,6 @@ import com.teo.ttasks.jobs.DefaultJobCreator
 import com.teo.ttasks.util.DateUtils
 import com.teo.ttasks.util.NightHelper
 import com.teo.ttasks.util.NotificationHelper
-import io.fabric.sdk.android.Fabric
 import io.realm.Realm
 import io.realm.RealmConfiguration
 import io.realm.rx.RealmObservableFactory
@@ -73,8 +71,6 @@ class TTasksApp : Application() {
 //                    .enableDumpapp(Stetho.defaultDumperPluginsProvider(this))
 //                    .enableWebKitInspector(RealmInspectorModulesProvider.builder(this).build())
 //                    .build())
-        } else {
-            Fabric.with(this, Crashlytics())
         }
 
         initRealmConfiguration()
