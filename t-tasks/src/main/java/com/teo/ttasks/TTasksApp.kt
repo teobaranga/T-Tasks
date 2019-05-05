@@ -4,15 +4,9 @@ import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
-import android.graphics.drawable.Drawable
-import android.net.Uri
 import android.os.Build
-import android.widget.ImageView
 import com.evernote.android.job.JobManager
 import com.jakewharton.threetenabp.AndroidThreeTen
-import com.mikepenz.materialdrawer.util.AbstractDrawerImageLoader
-import com.mikepenz.materialdrawer.util.DrawerImageLoader
-import com.squareup.picasso.Picasso
 import com.teo.ttasks.data.local.PrefHelper
 import com.teo.ttasks.injection.appModule
 import com.teo.ttasks.injection.networkModule
@@ -74,19 +68,6 @@ class TTasksApp : Application() {
         }
 
         initRealmConfiguration()
-
-        //initialize and create the image loader logic
-        DrawerImageLoader.init(object : AbstractDrawerImageLoader() {
-            override fun set(imageView: ImageView?, uri: Uri?, placeholder: Drawable?, tag: String?) {
-                var requestCreator = Picasso.get().load(uri)
-                placeholder?.let { requestCreator = requestCreator.placeholder(it) }
-                requestCreator.into(imageView)
-            }
-
-            override fun cancel(imageView: ImageView?) {
-                imageView?.let { Picasso.get().cancelRequest(it) }
-            }
-        })
 
         createNotificationChannel()
     }

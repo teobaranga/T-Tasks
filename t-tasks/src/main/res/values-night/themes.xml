@@ -3,40 +3,27 @@
 
     <!-- Base theme (with action bar) -->
     <style name="Base.Theme" parent="Theme.MaterialComponents.Light.DarkActionBar">
-        <item name="colorPrimary">@color/md_grey_850</item>
-        <item name="colorPrimaryDark">@color/md_grey_900</item>
+        <item name="colorPrimary">@color/grey_850</item>
+        <item name="colorPrimaryDark">@color/grey_900</item>
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
     <!-- Base theme (no action bar) -->
     <style name="Base.Theme.NoActionBar" parent="Theme.MaterialComponents.Light.NoActionBar">
-        <item name="colorPrimary">@color/md_grey_850</item>
-        <item name="colorPrimaryDark">@color/md_grey_900</item>
+        <item name="colorPrimary">@color/grey_850</item>
+        <item name="colorPrimaryDark">@color/grey_900</item>
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
     <style name="Theme.Main" parent="Base.Theme.NoActionBar">
         <!-- CAB -->
         <item name="windowActionModeOverlay">true</item>
-
-        <!-- MaterialDrawer specific values -->
-        <item name="material_drawer_background">@color/material_drawer_dark_background</item>
-        <item name="material_drawer_header_selection_text">@color/material_drawer_dark_primary_text</item>
-        <item name="material_drawer_header_selection_subtext">@color/md_dark_secondary</item>
-        <item name="material_drawer_primary_text">@color/material_drawer_dark_primary_text</item>
-        <item name="material_drawer_primary_icon">@color/material_drawer_dark_primary_icon</item>
-        <item name="material_drawer_secondary_text">@color/material_drawer_dark_secondary_text</item>
-        <item name="material_drawer_hint_text">@color/material_drawer_dark_hint_text</item>
-        <item name="material_drawer_hint_icon">@color/material_drawer_dark_hint_icon</item>
-        <item name="material_drawer_divider">@color/material_drawer_dark_divider</item>
-        <item name="material_drawer_selected">@color/material_drawer_dark_selected</item>
-        <item name="material_drawer_selected_text">@color/colorAccent</item>
     </style>
 
     <!-- About -->
     <style name="Theme.About" parent="AboutLibrariesTheme">
-        <item name="colorPrimary">@color/md_grey_850</item>
-        <item name="colorPrimaryDark">@color/md_grey_900</item>
+        <item name="colorPrimary">@color/grey_850</item>
+        <item name="colorPrimaryDark">@color/grey_900</item>
 
         <item name="about_libraries_title_description">@android:color/primary_text_dark</item>
     </style>

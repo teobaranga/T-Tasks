@@ -47,7 +47,7 @@ class TaskListsFragment : Fragment(), TaskListsView, SwipeRefreshLayout.OnRefres
     private fun showEditTaskListDialog(taskListItem: TaskListItem?) {
         val newTaskList = taskListItem == null
 
-        val themeResId = if (NightHelper.isNight(context!!)) R.style.MaterialBaseTheme_AlertDialog else R.style.MaterialBaseTheme_Light_AlertDialog
+        val themeResId = if (NightHelper.isNight(context!!)) R.style.AlertDialog_AppCompat else R.style.AlertDialog_AppCompat_Light
 
         val editDialog = AlertDialog.Builder(activity!!, themeResId)
                 .setView(R.layout.dialog_task_list_edit)

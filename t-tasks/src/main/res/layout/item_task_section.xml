@@ -7,7 +7,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:layout_marginEnd="8dp"
-        android:background="@color/md_light_cards"
+        android:background="@android:color/white"
         app:cardCornerRadius="8dp">
 
         <androidx.constraintlayout.widget.ConstraintLayout
@@ -19,7 +19,7 @@
                 android:id="@+id/icon_title"
                 android:layout_width="18dp"
                 android:layout_height="18dp"
-                android:tint="@color/md_light_primary_icon"
+                android:tint="?android:textColorPrimary"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 tools:ignore="ContentDescription"
@@ -51,7 +51,7 @@
                 android:id="@+id/sort_direction"
                 android:layout_width="18dp"
                 android:layout_height="18dp"
-                android:tint="@color/md_light_primary_icon"
+                android:tint="?android:textColorPrimary"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 tools:ignore="ContentDescription"

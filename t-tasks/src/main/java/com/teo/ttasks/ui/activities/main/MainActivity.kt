@@ -1,34 +1,18 @@
 package com.teo.ttasks.ui.activities.main
 
-import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.drawable.Drawable
 import android.os.Bundle
-import android.os.Handler
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
-import android.view.View.GONE
-import android.view.View.VISIBLE
 import android.widget.AdapterView
-import androidx.appcompat.app.ActionBar
+import androidx.core.graphics.drawable.toDrawable
 import androidx.databinding.DataBindingUtil
-import androidx.fragment.app.Fragment
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.floatingactionbutton.FloatingActionButton
-import com.mikepenz.google_material_typeface_library.GoogleMaterial
-import com.mikepenz.materialdrawer.AccountHeader
-import com.mikepenz.materialdrawer.AccountHeaderBuilder
-import com.mikepenz.materialdrawer.Drawer
-import com.mikepenz.materialdrawer.DrawerBuilder
-import com.mikepenz.materialdrawer.holder.ImageHolder
-import com.mikepenz.materialdrawer.model.DividerDrawerItem
-import com.mikepenz.materialdrawer.model.PrimaryDrawerItem
-import com.mikepenz.materialdrawer.model.ProfileDrawerItem
-import com.mikepenz.materialdrawer.model.SecondaryDrawerItem
-import com.mikepenz.materialdrawer.util.DrawerUIUtils
 import com.squareup.picasso.Picasso
 import com.squareup.picasso.Target
 import com.teo.ttasks.R
@@ -39,13 +23,15 @@ import com.teo.ttasks.ui.activities.AboutActivity.Companion.startAboutActivity
 import com.teo.ttasks.ui.activities.BaseActivity
 import com.teo.ttasks.ui.activities.SettingsActivity
 import com.teo.ttasks.ui.activities.sign_in.SignInActivity.Companion.startSignInActivity
+import com.teo.ttasks.ui.fragments.AccountInfoDialogFragment
+import com.teo.ttasks.ui.fragments.AccountInfoDialogFragment.AccountInfoListener
 import com.teo.ttasks.ui.fragments.task_lists.TaskListsFragment
 import com.teo.ttasks.ui.fragments.tasks.TasksFragment
 import org.koin.android.scope.currentScope
 import timber.log.Timber
 
 // TODO: 2015-12-29 implement multiple accounts
-open class MainActivity : BaseActivity(), MainView {
+open class MainActivity : BaseActivity(), MainView, AccountInfoListener {
 
     companion object {
         private const val TAG_TASKS = "tasks"
@@ -54,24 +40,10 @@ open class MainActivity : BaseActivity(), MainView {
         // private const val RC_ADD = 4;
         private const val RC_NIGHT_MODE = 415
 
-        private const val ID_TASKS: Long = 0x01
-        private const val ID_TASK_LISTS: Long = 0x02
-//        private const val ID_ADD_ACCOUNT = 0x01
-//        private const val ID_MANAGE_ACCOUNT = 0x02
-        private const val ID_SETTINGS: Long = 0xF0
-        private const val ID_HELP_AND_FEEDBACK: Long = 0xF1
-        private const val ID_ABOUT: Long = 0xF2
-        private const val ID_SIGN_OUT: Long = 0xF3
-
         fun Context.startMainActivity() = startActivity(Intent(this, MainActivity::class.java))
     }
 
     private val mainActivityPresenter: MainActivityPresenter by currentScope.inject()
-
-    /** The profile of the currently logged in user  */
-    internal lateinit var profile: ProfileDrawerItem
-
-    internal lateinit var accountHeader: AccountHeader
 
     private var tasksFragment: TasksFragment? = null
 
@@ -81,10 +53,9 @@ open class MainActivity : BaseActivity(), MainView {
 
     private lateinit var taskListsAdapter: TaskListsAdapter
 
-    private lateinit var drawer: Drawer
+    private lateinit var accountMenuItem: MenuItem
 
-    /** Recreate the activity after a night mode setting change */
-    private var recreate: Boolean = false
+    private var userPhotoTarget: Target? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -112,152 +83,42 @@ open class MainActivity : BaseActivity(), MainView {
             }
         }
 
-        profile = ProfileDrawerItem()
-            .withName(mainActivityPresenter.userName)
-            .withEmail(mainActivityPresenter.userEmail)
-            .withNameShown(true)
-            .withIdentifier(0)
-            .withTag(ProfileIconTarget())
-
-        // Create the AccountHeader
-        accountHeader = AccountHeaderBuilder()
-            .withActivity(this)
-            .withHeaderBackground(R.color.colorPrimary)
-            .withCurrentProfileHiddenInList(true)
-            .withSelectionListEnabledForSingleProfile(false)
-            .addProfiles(
-                profile
-//                        ProfileSettingDrawerItem()
-//                                .withName(resources.getString(R.string.drawer_add_account))
-//                                .withIcon(GoogleMaterial.Icon.gmd_account_add)
-//                                .withIdentifier(ID_ADD_ACCOUNT),
-//                        ProfileSettingDrawerItem()
-//                                .withName(resources.getString(R.string.drawer_manage_account))
-//                                .withIcon(GoogleMaterial.Icon.gmd_settings)
-//                                .withIdentifier(ID_MANAGE_ACCOUNT)
-            )
-            .withSavedInstance(savedInstanceState)
-            .build()
-
-        // Create the drawer
-        drawer = DrawerBuilder()
-            .withActivity(this)
-            .withToolbar(toolbar()!!)
-            .withAccountHeader(accountHeader)
-            .addDrawerItems(
-                PrimaryDrawerItem()
-                    .withName(R.string.tasks)
-                    .withIcon(R.drawable.ic_tasks_24dp)
-                    .withIconTintingEnabled(true)
-                    .withIdentifier(ID_TASKS),
-                PrimaryDrawerItem()
-                    .withName(R.string.task_lists)
-                    .withIcon(R.drawable.ic_task_lists_24dp)
-                    .withIconTintingEnabled(true)
-                    .withIdentifier(ID_TASK_LISTS),
-                DividerDrawerItem(),
-                SecondaryDrawerItem()
-                    .withName(resources.getString(R.string.drawer_settings))
-                    .withIcon(GoogleMaterial.Icon.gmd_settings)
-                    .withIdentifier(ID_SETTINGS)
-                    .withSelectable(false),
-                SecondaryDrawerItem()
-                    .withName(R.string.drawer_help_and_feedback)
-                    .withIcon(GoogleMaterial.Icon.gmd_help)
-                    .withIdentifier(ID_HELP_AND_FEEDBACK)
-                    .withSelectable(false),
-                SecondaryDrawerItem()
-                    .withName(R.string.drawer_about)
-                    .withIcon(GoogleMaterial.Icon.gmd_info_outline)
-                    .withIdentifier(ID_ABOUT)
-                    .withSelectable(false),
-                SecondaryDrawerItem()
-                    .withName(R.string.sign_out)
-                    .withIcon(R.drawable.ic_sign_out_24dp)
-                    .withIconTintingEnabled(true)
-                    .withIdentifier(ID_SIGN_OUT)
-                    .withSelectable(false)
-            )
-            .withOnDrawerItemClickListener { _, _, drawerItem ->
-                // The header and footer items don't contain a drawerItem
-                if (drawerItem == null) {
-                    return@withOnDrawerItemClickListener false
-                }
-
-                var fragment: Fragment? = null
-                var tag: String? = null
-
-                when (drawerItem.identifier) {
-                    ID_TASKS -> {
-                        if (supportFragmentManager.findFragmentById(R.id.fragment_container) is TasksFragment) {
-                            return@withOnDrawerItemClickListener false
-                        }
-                        // Get the tasks fragment
-                        tasksFragment = tasksFragment
-                            ?: (supportFragmentManager.findFragmentByTag(TAG_TASKS) as? TasksFragment
-                                ?: TasksFragment.newInstance())
-                        fragment = tasksFragment
-                        tag = TAG_TASKS
-                    }
-                    ID_TASK_LISTS -> {
-                        if (supportFragmentManager.findFragmentById(R.id.fragment_container) is TaskListsFragment) {
-                            return@withOnDrawerItemClickListener false
-                        }
-                        // Get the task lists fragment
-                        taskListsFragment = taskListsFragment
-                            ?: (supportFragmentManager.findFragmentByTag(TAG_TASK_LISTS) as? TaskListsFragment
-                                ?: TaskListsFragment.newInstance())
-                        fragment = taskListsFragment
-                        tag = TAG_TASK_LISTS
-                    }
-                    ID_SETTINGS -> SettingsActivity.startForResult(this, RC_NIGHT_MODE)
-                    ID_ABOUT -> startAboutActivity()
-                    ID_SIGN_OUT -> mainActivityPresenter.signOut()
-                    else -> {
-                        // If we're being restored from a previous state,
-                        // then we don't need to do anything and should return or else
-                        // we could end up with overlapping fragments.
-                    }
-                }
-                if (fragment != null) {
-                    Timber.v("Switching to fragment %s", tag)
-                    supportFragmentManager
-                        .beginTransaction()
-                        .replace(R.id.fragment_container, fragment, tag)
-                        .commit()
-                    updateActionBar(supportActionBar!!, drawerItem.identifier)
-                    mainBinding.appbar.setExpanded(true)
-                }
-                return@withOnDrawerItemClickListener false
-            }
-            .withSavedInstance(savedInstanceState)
-            .build()
-
         // Only set the active selection or active profile if we do not recreate the activity
         if (savedInstanceState == null) {
-            // set the selection to the first item
-            drawer.setSelectionAtPosition(1)
-            //set the active profile
-            accountHeader.activeProfile = profile
-        } else {
-            // Restore state
-            updateActionBar(supportActionBar!!, drawer.currentSelection)
+            // Inflate the tasks fragment
+            tasksFragment = tasksFragment
+                ?: (supportFragmentManager.findFragmentByTag(TAG_TASKS) as? TasksFragment
+                    ?: TasksFragment.newInstance(mainActivityPresenter.lastAccessedTaskListId))
+
+            supportFragmentManager
+                .beginTransaction()
+                .replace(R.id.fragment_container, tasksFragment!!, TAG_TASKS)
+                .commit()
         }
+//        mainActivityPresenter.subscribeToTaskLists()
     }
 
-    override fun onStart() {
-        super.onStart()
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.menu_tasks, menu)
+        return true
+    }
+
+    override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
+        accountMenuItem = menu?.findItem(R.id.menu_account)!!
+
         mainActivityPresenter.loadCurrentUser()
-        mainActivityPresenter.getTaskLists()
+
+        return super.onPrepareOptionsMenu(menu)
     }
 
-    override fun onPostResume() {
-        super.onPostResume()
-        if (recreate) {
-            // Recreate the activity after a delay that is equal to the drawer close delay
-            // otherwise, the drawer will open unexpectedly after a night mode change
-            Handler().postDelayed({ this.recreate() }, 50)
-            recreate = false
+    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+        return when(item?.itemId) {
+            R.id.menu_account -> {
+                val accountDialogFragment = AccountInfoDialogFragment.newInstance()
+                accountDialogFragment.show(supportFragmentManager, "account_info")
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
         }
     }
 
@@ -266,16 +127,9 @@ open class MainActivity : BaseActivity(), MainView {
         super.onDestroy()
     }
 
-    override fun onSaveInstanceState(outState: Bundle) {
-        // Add the values which need to be saved from the drawer and account header to the bundle
-        super.onSaveInstanceState(accountHeader.saveInstanceState(drawer.saveInstanceState(outState)))
-    }
-
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         when (requestCode) {
-            RC_NIGHT_MODE -> if (resultCode == Activity.RESULT_OK)
-                recreate = true
 //            RC_ADD -> {
 //                if(resultCode == RESULT_OK) {
 //                    val acc: MaterialAccount = MaterialAccount(resources, data?.getStringExtra(AccountManager.KEY_ACCOUNT_NAME),"", R.drawable.ic_photo, R.drawable.ic_cover)
@@ -290,12 +144,18 @@ open class MainActivity : BaseActivity(), MainView {
      * Load the profile picture into the current profile
      * and display it in the Navigation drawer header.
      */
-    override fun onUserPicture(pictureUrl: String) = Picasso.get()
-        .load(pictureUrl)
-        .placeholder(DrawerUIUtils.getPlaceHolder(this))
-        .into(profile.tag as Target)
+    override fun onUserPicture(pictureUrl: String) {
+        Timber.v("User photo URL: %s", pictureUrl)
+        if (userPhotoTarget == null) {
+            userPhotoTarget = ProfileIconTarget()
+        }
+        Picasso.get()
+            .load(pictureUrl)
+            .into(userPhotoTarget!!)
+    }
 
-    override fun onUserCover(coverUrl: String) = accountHeader.setHeaderBackground(ImageHolder(coverUrl))
+    override fun onUserCover(coverUrl: String) {
+    }
 
     /**
      * Load the task lists and prepare them to be displayed.
@@ -319,11 +179,6 @@ open class MainActivity : BaseActivity(), MainView {
         // Return to the sign in activity
         startSignInActivity(true)
         finish()
-    }
-
-    override fun onBackPressed() = when {
-        drawer.isDrawerOpen -> drawer.closeDrawer()
-        else -> super.onBackPressed()
     }
 
     /**
@@ -357,45 +212,28 @@ open class MainActivity : BaseActivity(), MainView {
 
     fun fab(): FloatingActionButton = mainBinding.fab
 
-    /**
-     * Update the action bar layout based on the currently selected drawer item
-     */
-    private fun updateActionBar(actionBar: ActionBar, drawerItemId: Long) {
-        when (drawerItemId) {
-            ID_TASKS -> {
-                // Clear the title and display the spinner with the task lists
-                actionBar.setDisplayShowTitleEnabled(false)
-                mainBinding.spinnerTaskLists.visibility = VISIBLE
-            }
-            ID_TASK_LISTS -> {
-                // Restore visibility of the title and remove the task list spinner
-                mainBinding.spinnerTaskLists.visibility = GONE
-                actionBar.setTitle(R.string.task_lists)
-                actionBar.setDisplayShowTitleEnabled(true)
-            }
-        }
+    override fun onSignOut() {
+        mainActivityPresenter.signOut()
+    }
+
+    override fun onSettingsShow() {
+        SettingsActivity.startForResult(this, RC_NIGHT_MODE)
+    }
+
+    override fun onAboutShow() {
+        startAboutActivity()
     }
 
     private inner class ProfileIconTarget : Target {
         override fun onBitmapLoaded(bitmap: Bitmap, from: Picasso.LoadedFrom) {
-            // Create another image the same size
-            val padding = 48
-            val imageWithBG = Bitmap.createBitmap(bitmap.width + padding, bitmap.height + padding, bitmap.config)
-            // Create a canvas to draw on the new image
-            val canvas = Canvas(imageWithBG)
-            // Set its background to white
-            canvas.drawColor(Color.WHITE)
-            // Draw old image on the background
-            canvas.drawBitmap(bitmap, padding / 2f, padding / 2f, null)
-            profile.withIcon(imageWithBG)
-            accountHeader.updateProfile(profile)
+            accountMenuItem.icon = bitmap.toDrawable(resources)
         }
 
         override fun onBitmapFailed(e: Exception?, errorDrawable: Drawable?) {
             Timber.e(e, "Failed to load profile icon")
         }
 
-        override fun onPrepareLoad(placeHolderDrawable: Drawable) {}
+        override fun onPrepareLoad(placeHolderDrawable: Drawable?) {}
     }
 
     // TODO: implement chooseAccount

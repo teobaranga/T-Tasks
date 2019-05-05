@@ -8,6 +8,8 @@
         <item name="colorSecondary">@color/orange_A400</item>
         <item name="colorPrimaryDark">@color/colorPrimary</item>
         <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:colorBackground">?attr/colorPrimary</item>
+        <item name="android:navigationBarColor">?attr/colorPrimary</item>
         <!--<item name="colorOnSecondary">@color/background_color</item>-->
     </style>
 
@@ -18,6 +20,8 @@
         <!--<item name="colorPrimaryDark">@color/colorPrimaryDark</item>-->
         <item name="colorPrimaryDark">@color/colorPrimary</item>
         <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:colorBackground">?attr/colorPrimary</item>
+        <item name="android:navigationBarColor">?attr/colorPrimary</item>
         <!--<item name="colorOnSecondary">@color/background_color</item>-->
     </style>
 
@@ -25,19 +29,6 @@
     <style name="Base.Theme.Main" parent="Base.Theme.NoActionBar">
         <!-- CAB -->
         <item name="windowActionModeOverlay">true</item>
-
-        <!-- MaterialDrawer specific values -->
-        <item name="material_drawer_background">@color/material_drawer_background</item>
-        <item name="material_drawer_header_selection_text">@color/material_drawer_dark_primary_text</item>
-        <item name="material_drawer_header_selection_subtext">@color/md_dark_secondary</item>
-        <item name="material_drawer_primary_text">@color/material_drawer_primary_text</item>
-        <item name="material_drawer_primary_icon">@color/material_drawer_primary_icon</item>
-        <item name="material_drawer_secondary_text">@color/material_drawer_secondary_text</item>
-        <item name="material_drawer_hint_text">@color/material_drawer_hint_text</item>
-        <item name="material_drawer_hint_icon">@color/material_drawer_hint_icon</item>
-        <item name="material_drawer_divider">@color/material_drawer_divider</item>
-        <item name="material_drawer_selected">@color/material_drawer_selected</item>
-        <item name="material_drawer_selected_text">@color/material_drawer_selected_text</item>
     </style>
 
     <!-- Main theme -->

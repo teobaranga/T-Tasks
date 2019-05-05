@@ -2,6 +2,6 @@
 <resources>
 
     <!-- Task item -->
-    <color name="task_background">@color/md_grey_800</color>
+    <color name="task_background">@color/grey_800</color>
 
 </resources>
