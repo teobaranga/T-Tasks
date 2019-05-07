@@ -2,22 +2,27 @@
 <resources>
 
     <!-- Base theme (with action bar) -->
-    <style name="Base.Theme" parent="Theme.MaterialComponents.Light.DarkActionBar">
+    <style name="Base.Theme" parent="Theme.AppCompat.DayNight.DarkActionBar">
         <item name="colorPrimary">@color/grey_850</item>
         <item name="colorPrimaryDark">@color/grey_900</item>
         <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:colorBackground">?attr/colorPrimary</item>
+        <item name="android:navigationBarColor">?attr/colorPrimary</item>
     </style>
 
     <!-- Base theme (no action bar) -->
-    <style name="Base.Theme.NoActionBar" parent="Theme.MaterialComponents.Light.NoActionBar">
+    <style name="Base.Theme.NoActionBar" parent="Theme.AppCompat.DayNight.NoActionBar">
         <item name="colorPrimary">@color/grey_850</item>
         <item name="colorPrimaryDark">@color/grey_900</item>
         <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:colorBackground">?attr/colorPrimary</item>
+        <item name="android:navigationBarColor">?attr/colorPrimary</item>
     </style>
 
     <style name="Theme.Main" parent="Base.Theme.NoActionBar">
         <!-- CAB -->
         <item name="windowActionModeOverlay">true</item>
+        <item name="android:windowBackground">@drawable/launch_screen</item>
     </style>
 
     <!-- About -->

@@ -2,6 +2,7 @@ package com.teo.ttasks.ui.activities.main
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
@@ -22,6 +23,7 @@ import com.teo.ttasks.ui.fragments.AccountInfoDialogFragment
 import com.teo.ttasks.ui.fragments.AccountInfoDialogFragment.AccountInfoListener
 import com.teo.ttasks.ui.fragments.task_lists.TaskListsFragment
 import com.teo.ttasks.ui.fragments.tasks.TasksFragment
+import com.teo.ttasks.util.getColorFromAttr
 import org.koin.android.scope.currentScope
 import timber.log.Timber
 
@@ -51,6 +53,7 @@ open class MainActivity : BaseActivity(), MainView, AccountInfoListener {
     private lateinit var accountMenuItem: MenuItem
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        window.setBackgroundDrawable(ColorDrawable(getColorFromAttr(R.attr.colorPrimary)))
         super.onCreate(savedInstanceState)
         mainActivityPresenter.bindView(this)
 
