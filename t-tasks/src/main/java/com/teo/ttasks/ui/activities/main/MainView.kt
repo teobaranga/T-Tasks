@@ -5,9 +5,6 @@ import com.teo.ttasks.ui.base.MvpView
 
 interface MainView : MvpView {
 
-    /** Called when the user has a profile picture  */
-    fun onUserPicture(pictureUrl: String)
-
     /** Called when the user has a cover picture  */
     fun onUserCover(coverUrl: String)
 

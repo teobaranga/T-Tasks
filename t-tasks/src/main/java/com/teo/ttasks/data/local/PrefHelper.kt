@@ -3,11 +3,12 @@ package com.teo.ttasks.data.local
 import android.content.Context
 import android.content.SharedPreferences
 import android.preference.PreferenceManager
+import com.google.firebase.auth.FirebaseAuth
 import com.teo.ttasks.util.NightHelper.NIGHT_AUTO
 import com.teo.ttasks.util.SortType
 import timber.log.Timber
 
-class PrefHelper(private val context: Context) {
+class PrefHelper(private val context: Context, private val firebaseAuth: FirebaseAuth) {
 
     companion object {
 
@@ -35,6 +36,10 @@ class PrefHelper(private val context: Context) {
 
     private val sharedPreferences: SharedPreferences by lazy { PreferenceManager.getDefaultSharedPreferences(context) }
 
+    private val userSharedPreferences: SharedPreferences by lazy {
+        context.getSharedPreferences(firebaseAuth.currentUser!!.uid, Context.MODE_PRIVATE)
+    }
+
     val nightMode: String
         get() = sharedPreferences.getString(PREF_NIGHT_MODE, NIGHT_AUTO)!!
 
@@ -45,8 +50,8 @@ class PrefHelper(private val context: Context) {
         get() = sharedPreferences.getString(PREF_USER_NAME, "")!!
 
     var userPhoto: String?
-        get() = sharedPreferences.getString(PREF_USER_PHOTO, null)
-        set(photoUrl) = sharedPreferences.edit().putString(PREF_USER_PHOTO, photoUrl).apply()
+        get() = userSharedPreferences.getString(PREF_USER_PHOTO, null)
+        set(photoUrl) = userSharedPreferences.edit().putString(PREF_USER_PHOTO, photoUrl).apply()
 
     var userCover: String?
         get() = sharedPreferences.getString(PREF_USER_COVER, null)

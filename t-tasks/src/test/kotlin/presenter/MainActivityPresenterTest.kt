@@ -1,5 +1,6 @@
 package presenter
 
+import android.content.Context
 import android.net.Uri
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
@@ -22,6 +23,9 @@ import org.junit.Test
 class MainActivityPresenterTest : BasePresenterTest() {
 
     private val coverPhotosResponseEmpty = CoverPhotosResponse().apply { coverPhotos = emptyArray() }
+
+    @MockK
+    private lateinit var context: Context
 
     @MockK
     private lateinit var tasksHelper: TasksHelper
@@ -47,7 +51,7 @@ class MainActivityPresenterTest : BasePresenterTest() {
     override fun setup() {
         super.setup()
         every { firebaseAuth.addAuthStateListener(any()) } answers { }
-        mainActivityPresenter = MainActivityPresenter(tasksHelper, prefHelper, peopleApi, userManager, firebaseAuth)
+        mainActivityPresenter = MainActivityPresenter(context, tasksHelper, prefHelper, peopleApi, userManager, firebaseAuth)
     }
 
     @Test
@@ -67,7 +71,6 @@ class MainActivityPresenterTest : BasePresenterTest() {
         mainActivityPresenter.loadCurrentUser()
 
         // assert
-        verify(exactly = 1) { mainView.onUserPicture(photoUrlString) }
         verify(exactly = 1) { peopleApi.getCurrentPersonCoverPhotos() }
         verify(exactly = 0) { mainView.onUserCover(any()) }
     }

@@ -2,19 +2,14 @@ package com.teo.ttasks.ui.activities.main
 
 import android.content.Context
 import android.content.Intent
-import android.graphics.Bitmap
-import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.AdapterView
-import androidx.core.graphics.drawable.toDrawable
 import androidx.databinding.DataBindingUtil
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.floatingactionbutton.FloatingActionButton
-import com.squareup.picasso.Picasso
-import com.squareup.picasso.Target
 import com.teo.ttasks.R
 import com.teo.ttasks.data.TaskListsAdapter
 import com.teo.ttasks.data.model.TaskList
@@ -54,8 +49,6 @@ open class MainActivity : BaseActivity(), MainView, AccountInfoListener {
     private lateinit var taskListsAdapter: TaskListsAdapter
 
     private lateinit var accountMenuItem: MenuItem
-
-    private var userPhotoTarget: Target? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -105,9 +98,7 @@ open class MainActivity : BaseActivity(), MainView, AccountInfoListener {
 
     override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
         accountMenuItem = menu?.findItem(R.id.menu_account)!!
-
-        mainActivityPresenter.loadCurrentUser()
-
+        mainActivityPresenter.loadProfilePicture(accountMenuItem)
         return super.onPrepareOptionsMenu(menu)
     }
 
@@ -138,20 +129,6 @@ open class MainActivity : BaseActivity(), MainView, AccountInfoListener {
 //                }
 //            }
         }
-    }
-
-    /**
-     * Load the profile picture into the current profile
-     * and display it in the Navigation drawer header.
-     */
-    override fun onUserPicture(pictureUrl: String) {
-        Timber.v("User photo URL: %s", pictureUrl)
-        if (userPhotoTarget == null) {
-            userPhotoTarget = ProfileIconTarget()
-        }
-        Picasso.get()
-            .load(pictureUrl)
-            .into(userPhotoTarget!!)
     }
 
     override fun onUserCover(coverUrl: String) {
@@ -222,18 +199,6 @@ open class MainActivity : BaseActivity(), MainView, AccountInfoListener {
 
     override fun onAboutShow() {
         startAboutActivity()
-    }
-
-    private inner class ProfileIconTarget : Target {
-        override fun onBitmapLoaded(bitmap: Bitmap, from: Picasso.LoadedFrom) {
-            accountMenuItem.icon = bitmap.toDrawable(resources)
-        }
-
-        override fun onBitmapFailed(e: Exception?, errorDrawable: Drawable?) {
-            Timber.e(e, "Failed to load profile icon")
-        }
-
-        override fun onPrepareLoad(placeHolderDrawable: Drawable?) {}
     }
 
     // TODO: implement chooseAccount

@@ -52,11 +52,13 @@ const val SCOPE_TASKS = "https://www.googleapis.com/auth/tasks"
 
 val appModule = module {
 
+    single { FirebaseAuth.getInstance() }
+
     single { NetworkInfoReceiver() }
 
     single { UserManager(context = get()) }
 
-    single { PrefHelper(context = get()) }
+    single { PrefHelper(context = get(), firebaseAuth = get()) }
 
     single { WidgetHelper(context = get(), prefHelper = get()) }
 
@@ -77,11 +79,12 @@ val appModule = module {
     scope(named<MainActivity>()) {
         scoped {
             MainActivityPresenter(
+                context = get(),
                 tasksHelper = get(),
                 prefHelper = get(),
                 peopleApi = get(),
                 userManager = get(),
-                firebaseAuth = FirebaseAuth.getInstance())
+                firebaseAuth = get())
         }
     }
 
