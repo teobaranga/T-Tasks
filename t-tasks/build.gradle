@@ -118,7 +118,7 @@ afterEvaluate {
 dependencies {
     def ver = [
             espresso: '3.1.1',
-            koin    : '2.0.0-rc-2',
+            koin    : '2.0.0-GA2',
             retrofit: '2.5.0',
             mockk   : '1.9.3',
     ]
@@ -132,7 +132,7 @@ dependencies {
             "androidx.appcompat:appcompat:1.0.2",
             "androidx.cardview:cardview:1.0.0",
             'androidx.constraintlayout:constraintlayout:2.0.0-alpha3',
-            'androidx.core:core-ktx:1.0.1',
+            'androidx.core:core-ktx:1.0.2',
             "androidx.fragment:fragment:1.0.0",
             "androidx.lifecycle:lifecycle-extensions:2.0.0",
             'androidx.preference:preference:1.0.0',
@@ -143,7 +143,7 @@ dependencies {
             'com.androidhuman.rxfirebase2:firebase-database:16.0.3.0',
             'com.androidhuman.rxfirebase2:firebase-database-kotlin:16.0.3.0',
             'com.artemzin.rxjava:proguard-rules:1.3.3.0',
-            "com.crashlytics.sdk.android:crashlytics:2.9.9",
+            "com.crashlytics.sdk.android:crashlytics:2.10.0",
             'com.evernote:android-job:1.2.6',
             'com.github.strooooke:appbarsyncedfab:v0.4',
             "com.google.android.gms:play-services-auth:16.0.1",
@@ -157,7 +157,7 @@ dependencies {
             "com.squareup.retrofit2:retrofit:${ver.retrofit}",
             "com.squareup.retrofit2:converter-gson:${ver.retrofit}",
             "com.squareup.retrofit2:adapter-rxjava2:${ver.retrofit}",
-            "com.squareup.okhttp3:logging-interceptor:3.14.0",
+            "com.squareup.okhttp3:logging-interceptor:3.14.1",
             'com.squareup.picasso:picasso:2.71828',
             'eu.davidea:flexible-adapter:5.1.0',
             'eu.davidea:flexible-adapter-databinding:1.0.0',

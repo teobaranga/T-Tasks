@@ -17,8 +17,8 @@ buildscript {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${VER.kotlin}"
 //        classpath 'com.getkeepsafe.dexcount:dexcount-gradle-plugin:0.8.2'
         classpath 'com.google.gms:google-services:4.2.0'
-        classpath 'io.realm:realm-gradle-plugin:5.10.0'
-        classpath 'io.fabric.tools:gradle:1.28.1'
+        classpath 'io.realm:realm-gradle-plugin:5.11.0'
+        classpath 'io.fabric.tools:gradle:1.29.0'
     }
 }
 
