@@ -10,7 +10,10 @@ import androidx.annotation.LayoutRes
 import com.teo.ttasks.R
 import com.teo.ttasks.data.model.TaskList
 
-class TaskListsAdapter(context: Context) : ArrayAdapter<TaskList>(context, layoutResId) {
+class TaskListsAdapter(
+    context: Context,
+    taskLists: List<TaskList> = emptyList()
+) : ArrayAdapter<TaskList>(context, layoutResId, taskLists) {
 
     companion object {
         private const val layoutResId = R.layout.spinner_item_task_list
