@@ -78,30 +78,6 @@ class MainActivityPresenter(
         prefHelper.currentTaskListId = taskListId
     }
 
-    /**
-     * Load the account information for the currently signed in Google user.
-     * Must be called after onConnected
-     */
-    internal fun loadCurrentUser() {
-        // Load the current user's profile picture
-        firebaseAuth.currentUser?.photoUrl.apply { view()?.onUserPicture(toString()) }
-
-        // Load the current user's cover photo
-        val coverPhotoDisposable = peopleApi.getCurrentPersonCoverPhotos()
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(
-                { coverPhotosResponse ->
-                    val coverPhotos = coverPhotosResponse.coverPhotos
-                    Timber.v("Found %d cover photo(s)", coverPhotos.size)
-                    coverPhotos.getOrNull(0)?.apply {
-                        Timber.v("Cover photo: %s", url)
-                        view()?.onUserCover(url)
-                    }
-                },
-                { Timber.e(it, "Error while loading cover photos") })
-        disposeOnUnbindView(coverPhotoDisposable)
-    }
-
     internal fun loadProfilePicture(menuItem: MenuItem) {
         firebaseAuth.currentUser?.let { firebaseUser ->
             val photoFile = File(context.cacheDir, firebaseUser.uid)
