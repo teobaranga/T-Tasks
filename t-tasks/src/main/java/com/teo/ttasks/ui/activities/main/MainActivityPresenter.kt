@@ -55,6 +55,17 @@ class MainActivityPresenter(
     internal val userEmail: String?
         get() = prefHelper.userEmail
 
+    /**
+     * Save the ID of the last accessed task list so that it can be displayed the next time the user opens the app
+     *
+     * @param taskListId task list identifier
+     */
+    internal var lastAccessedTaskListId: String?
+        get() = prefHelper.currentTaskListId
+        set(value) {
+            prefHelper.currentTaskListId = value
+        }
+
     /** Listener handling the sign out event */
     private val firebaseAuthStateListener = FirebaseAuth.AuthStateListener { firebaseAuth ->
         if (firebaseAuth.currentUser == null) {
@@ -68,15 +79,6 @@ class MainActivityPresenter(
     private var profileIconTarget: ProfileIconTarget? = null
 
     internal fun isSignedIn() = firebaseAuth.currentUser != null
-
-    /**
-     * Save the ID of the last accessed task list so that it can be displayed the next time the user opens the app
-
-     * @param taskListId task list identifier
-     */
-    internal fun setLastAccessedTaskList(taskListId: String) {
-        prefHelper.currentTaskListId = taskListId
-    }
 
     internal fun loadProfilePicture(menuItem: MenuItem) {
         firebaseAuth.currentUser?.let { firebaseUser ->
@@ -115,8 +117,10 @@ class MainActivityPresenter(
         }
     }
 
-    internal fun getTaskLists() {
-        val disposable = tasksHelper.getTaskLists(realm)
+    internal fun subscribeToTaskLists() {
+        Timber.v("Subscribing to task lists notification")
+
+        val disposable = tasksHelper.getTaskLists(realm, false)
             .filter { it.isNotEmpty() }
             .subscribe(
                 { taskLists ->
@@ -130,6 +134,16 @@ class MainActivityPresenter(
                     view()?.onTaskListsLoadError()
                 })
         disposeOnUnbindView(disposable)
+    }
+
+    internal fun getTaskLists(): Pair<List<TaskList>, Int> {
+        val taskLists = tasksHelper.getTaskLists(realm, false).blockingFirst()
+
+        // Find the index of the current task list
+        val currentTaskListId = prefHelper.currentTaskListId
+        val index = taskLists.indexOfFirst { it.id == currentTaskListId }.coerceAtLeast(0)
+
+        return Pair(taskLists, index)
     }
 
     internal fun refreshTaskLists() {

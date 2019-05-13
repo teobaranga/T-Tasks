@@ -21,7 +21,6 @@ import com.teo.ttasks.ui.activities.SettingsActivity
 import com.teo.ttasks.ui.activities.sign_in.SignInActivity.Companion.startSignInActivity
 import com.teo.ttasks.ui.fragments.AccountInfoDialogFragment
 import com.teo.ttasks.ui.fragments.AccountInfoDialogFragment.AccountInfoListener
-import com.teo.ttasks.ui.fragments.task_lists.TaskListsFragment
 import com.teo.ttasks.ui.fragments.tasks.TasksFragment
 import com.teo.ttasks.util.getColorFromAttr
 import org.koin.android.scope.currentScope
@@ -32,7 +31,6 @@ open class MainActivity : BaseActivity(), MainView, AccountInfoListener {
 
     companion object {
         private const val TAG_TASKS = "tasks"
-        private const val TAG_TASK_LISTS = "taskLists"
 
         // private const val RC_ADD = 4;
         private const val RC_NIGHT_MODE = 415
@@ -43,8 +41,6 @@ open class MainActivity : BaseActivity(), MainView, AccountInfoListener {
     private val mainActivityPresenter: MainActivityPresenter by currentScope.inject()
 
     private var tasksFragment: TasksFragment? = null
-
-    private var taskListsFragment: TaskListsFragment? = null
 
     private lateinit var mainBinding: ActivityMainBinding
 
@@ -65,13 +61,20 @@ open class MainActivity : BaseActivity(), MainView, AccountInfoListener {
 
         mainBinding = DataBindingUtil.setContentView(this, R.layout.activity_main)
 
-        taskListsAdapter = TaskListsAdapter(supportActionBar!!.themedContext)
+        val (taskLists, index) = mainActivityPresenter.getTaskLists()
+        mainActivityPresenter.lastAccessedTaskListId = taskLists[index].id
+
+        taskListsAdapter = TaskListsAdapter(supportActionBar!!.themedContext, taskLists)
+
         mainBinding.spinnerTaskLists.apply {
             adapter = taskListsAdapter
+
+            setSelection(index, false)
+
             onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-                override fun onItemSelected(adapterView: AdapterView<*>, view: View, position: Int, id: Long) {
+                override fun onItemSelected(adapterView: AdapterView<*>, view: View?, position: Int, id: Long) {
                     val taskListId = (adapterView.getItemAtPosition(position) as TaskList).id
-                    mainActivityPresenter.setLastAccessedTaskList(taskListId)
+                    mainActivityPresenter.lastAccessedTaskListId = taskListId
                     tasksFragment?.updateTaskListId(taskListId)
                 }
 
