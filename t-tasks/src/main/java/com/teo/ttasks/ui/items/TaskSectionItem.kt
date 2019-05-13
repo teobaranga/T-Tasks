@@ -40,8 +40,7 @@ class TaskSectionItem(
     private val taskDateMap: Map<String?, List<Task>> by lazy {
         val map = mutableMapOf<String?, MutableList<Task>>()
         for (task in tasks) {
-            val day = task.sortDate()?.format(DateUtils.formatterDay)
-            when (day) {
+            when (val day = task.sortDate()?.format(DateUtils.formatterDay)) {
                 in map -> map[day]!!.add(task)
                 else -> map[day] = mutableListOf(task)
             }
@@ -51,7 +50,7 @@ class TaskSectionItem(
 
     private inner class TasksAdapter : RecyclerView.Adapter<TasksAdapter.ViewHolder>() {
 
-        val taskDateMapAsSequence = taskDateMap.asSequence()
+        val taskDateMapAsList = taskDateMap.asSequence().toList()
 
         private inner class ViewHolder(val tasksContainerView: TasksContainerView) :
             RecyclerView.ViewHolder(tasksContainerView)
@@ -65,12 +64,13 @@ class TaskSectionItem(
 
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
             val previousContainerDate = if (position > 0) {
-                taskDateMapAsSequence.elementAt(position - 1).value[0].sortDate()
+                taskDateMapAsList.elementAt(position - 1).value[0].sortDate()
             } else null
             with(holder.tasksContainerView) {
-                val taskList = taskDateMapAsSequence.elementAt(position).value
-                showMonth = previousContainerDate?.month != taskList[0].sortDate()?.month
-                date = taskList[0].sortDate()
+                val taskList = taskDateMapAsList.elementAt(position).value
+                val firstTask = taskList[0]
+                showMonth = previousContainerDate?.month != firstTask.sortDate()?.month
+                date = firstTask.sortDate()
                 tasks = taskList
             }
         }
@@ -84,11 +84,11 @@ class TaskSectionItem(
         position: Int,
         payloads: MutableList<Any>?
     ) {
-        holder.binding.apply {
+        with(holder.binding) {
             iconTitle.setImageResource(iconRes)
             sectionTitle.setText(sectionTitleRes)
             sortType.setText(R.string.sort_mode_date)
-            sortDirection.setImageResource(com.teo.ttasks.R.drawable.ic_arrow_downward_24dp)
+            sortDirection.setImageResource(R.drawable.ic_arrow_downward_24dp)
             taskList.adapter = TasksAdapter()
         }
     }
@@ -96,7 +96,7 @@ class TaskSectionItem(
     override fun createViewHolder(
         view: View,
         adapter: FlexibleAdapter<IFlexible<RecyclerView.ViewHolder>>
-    ): TaskSectionItem.ViewHolder {
+    ): ViewHolder {
         return ViewHolder(view, adapter).apply {
             with(binding.taskList) {
                 layoutManager = LinearLayoutManager(context)
