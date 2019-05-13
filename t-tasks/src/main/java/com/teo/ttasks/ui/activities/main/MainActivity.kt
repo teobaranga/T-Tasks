@@ -8,6 +8,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.AdapterView
+import androidx.core.view.updateLayoutParams
 import androidx.databinding.DataBindingUtil
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -18,6 +19,7 @@ import com.teo.ttasks.databinding.ActivityMainBinding
 import com.teo.ttasks.ui.activities.AboutActivity.Companion.startAboutActivity
 import com.teo.ttasks.ui.activities.BaseActivity
 import com.teo.ttasks.ui.activities.SettingsActivity
+import com.teo.ttasks.ui.activities.edit_task.EditTaskActivity
 import com.teo.ttasks.ui.activities.sign_in.SignInActivity.Companion.startSignInActivity
 import com.teo.ttasks.ui.fragments.AccountInfoDialogFragment
 import com.teo.ttasks.ui.fragments.AccountInfoDialogFragment.AccountInfoListener
@@ -80,6 +82,10 @@ open class MainActivity : BaseActivity(), MainView, AccountInfoListener {
 
                 override fun onNothingSelected(adapterView: AdapterView<*>) {}
             }
+        }
+
+        mainBinding.fab.setOnClickListener {
+            EditTaskActivity.startCreate(this, mainActivityPresenter.lastAccessedTaskListId!!, null)
         }
 
         // Only set the active selection or active profile if we do not recreate the activity
@@ -164,36 +170,35 @@ open class MainActivity : BaseActivity(), MainView, AccountInfoListener {
         finish()
     }
 
+    fun fab(): FloatingActionButton = mainBinding.fab
+
     /**
-     * Enable the scrolling system, which moves the toolbar and the FAB
-     * out of the way when scrolling down and brings them back when scrolling up.
+     * Set the scroll behavior of the FAB.
+     *
+     * @param enable if true, enables the scrolling system, which moves the toolbar and the FAB
+     * out of the way when scrolling down and brings them back when scrolling up. If false, disables the whole
+     * scrolling system, which pins the toolbar and the FAB in place. This is used when the content of the fragment
+     * is not big enough to require scrolling, such is the case when a short list or an empty view is displayed.
      */
-    fun enableScrolling() {
-        val layoutParams = mainBinding.toolbar.layoutParams as AppBarLayout.LayoutParams
-        val flags = AppBarLayout.LayoutParams.SCROLL_FLAG_SCROLL or AppBarLayout.LayoutParams.SCROLL_FLAG_ENTER_ALWAYS
-        if (layoutParams.scrollFlags != flags) {
-            layoutParams.scrollFlags = flags
-            mainBinding.toolbar.layoutParams = layoutParams
+    fun setFabScrolling(enable:Boolean, delay: Boolean = false) {
+        val runnable = Runnable {
+            mainBinding.toolbar.updateLayoutParams<AppBarLayout.LayoutParams> {
+                val flags = if (enable) {
+                    AppBarLayout.LayoutParams.SCROLL_FLAG_SCROLL or AppBarLayout.LayoutParams.SCROLL_FLAG_ENTER_ALWAYS
+                } else {
+                    0
+                }
+                if (scrollFlags != flags) {
+                    scrollFlags = flags
+                }
+            }
+        }
+        if (enable) {
+            runnable.run()
+        } else {
+            mainBinding.fab.postDelayed(runnable, if (delay) 300L else 0L)
         }
     }
-
-    /**
-     * Disable the whole scrolling system, which pins the toolbar and the FAB in place.
-     * This is used when the content of the fragment is not big enough to require scrolling,
-     * such is the case when a short list or an empty view is displayed.
-     */
-    fun disableScrolling(delay: Boolean) {
-        // Delay the behavior change by 300 milliseconds to give time to the FAB to restore its default position
-        mainBinding.fab.postDelayed({
-            val layoutParams = mainBinding.toolbar.layoutParams as AppBarLayout.LayoutParams
-            if (layoutParams.scrollFlags != 0) {
-                layoutParams.scrollFlags = 0
-                mainBinding.toolbar.layoutParams = layoutParams
-            }
-        }, if (delay) 300L else 0L)
-    }
-
-    fun fab(): FloatingActionButton = mainBinding.fab
 
     override fun onSignOut() {
         mainActivityPresenter.signOut()

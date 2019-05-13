@@ -25,7 +25,6 @@ import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.teo.ttasks.R
 import com.teo.ttasks.data.model.Task
 import com.teo.ttasks.databinding.FragmentTasksBinding
@@ -98,8 +97,6 @@ class TasksFragment : Fragment(), TasksView, SwipeRefreshLayout.OnRefreshListene
      * [Shared elements overflow navigation bar in transition animation](http://stackoverflow.com/q/32501024/5606622).
      */
     internal lateinit var navBar: Pair<View, String>
-
-    internal lateinit var fab: FloatingActionButton
 
     internal lateinit var adapter: FlexibleAdapter<IFlexible<*>>
 
@@ -243,12 +240,6 @@ class TasksFragment : Fragment(), TasksView, SwipeRefreshLayout.OnRefreshListene
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         val mainActivity = activity as MainActivity
-        fab = mainActivity.fab().apply {
-            setOnClickListener {
-                EditTaskActivity.startCreate(mainActivity, taskListId!!, null)
-            }
-        }
-        pairs[2] = Pair.create<View, String>(fab, getString(R.string.transition_fab))
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -336,10 +327,10 @@ class TasksFragment : Fragment(), TasksView, SwipeRefreshLayout.OnRefreshListene
         tasksBinding.tasksList.post {
             val layoutManager = tasksBinding.tasksList.layoutManager as LinearLayoutManager
             val position = layoutManager.findLastVisibleItemPosition()
-            if (adapter.itemCount - 1 <= position || position == RecyclerView.NO_POSITION) {
-                (activity as MainActivity).disableScrolling(true)
+            if (tasksAdapter.itemCount - 1 <= position || position == RecyclerView.NO_POSITION) {
+                (activity as MainActivity).setFabScrolling(enable = false, delay = true)
             } else {
-                (activity as MainActivity).enableScrolling()
+                (activity as MainActivity).setFabScrolling(true)
             }
         }
     }
@@ -379,7 +370,7 @@ class TasksFragment : Fragment(), TasksView, SwipeRefreshLayout.OnRefreshListene
 
     /**
      * Switch the task list associated with this fragment and reload the tasks.
-
+     *
      * @param newTaskListId task list identifier
      */
     fun updateTaskListId(newTaskListId: String) {
@@ -387,7 +378,7 @@ class TasksFragment : Fragment(), TasksView, SwipeRefreshLayout.OnRefreshListene
             tasksAdapter.clear()
             // In case it is attached, disable fragment scrolling to prevent crashing
             if (isAdded) {
-                (activity as MainActivity).disableScrolling(false)
+                (activity as MainActivity).setFabScrolling(false)
             }
             taskListId = newTaskListId
             tasksPresenter.subscribeToTasks(taskListId!!)

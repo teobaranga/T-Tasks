@@ -162,9 +162,9 @@ class TaskListsFragment : Fragment(), TaskListsView, SwipeRefreshLayout.OnRefres
             val position = layoutManager.findLastVisibleItemPosition()
             if (adapter.mainItemCount - 1 <= position || position == RecyclerView.NO_POSITION) {
                 // All task lists fit on the screen, no need for scrolling
-                (activity as MainActivity).disableScrolling(true)
+                (activity as MainActivity).setFabScrolling(enable = false, delay = true)
             } else {
-                (activity as MainActivity).enableScrolling()
+                (activity as MainActivity).setFabScrolling(true)
             }
         }
     }
