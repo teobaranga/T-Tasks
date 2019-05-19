@@ -107,7 +107,7 @@ class EditTaskActivity : AppCompatActivity(), EditTaskView {
 
             // Show the keyboard
             editTaskBinding.taskTitle.requestFocus()
-            inputMethodManager.showSoftInput(editTaskBinding.taskTitle, InputMethodManager.SHOW_IMPLICIT)
+            inputMethodManager.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0)
         }
 
         // Load the available task lists and the task, if available
