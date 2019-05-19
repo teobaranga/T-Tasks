@@ -16,7 +16,7 @@ import com.teo.ttasks.R
 import com.teo.ttasks.data.TaskListsAdapter
 import com.teo.ttasks.data.model.TaskList
 import com.teo.ttasks.databinding.ActivityMainBinding
-import com.teo.ttasks.ui.activities.AboutActivity.Companion.startAboutActivity
+import com.teo.ttasks.ui.activities.AboutActivity
 import com.teo.ttasks.ui.activities.BaseActivity
 import com.teo.ttasks.ui.activities.SettingsActivity
 import com.teo.ttasks.ui.activities.edit_task.EditTaskActivity

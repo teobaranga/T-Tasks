@@ -281,11 +281,11 @@
                 android:scaleY="0"
                 android:transitionName="@string/transition_fab"
                 app:elevation="9dp"
-                app:srcCompat="@{task.completedDate == null ? R.drawable.ic_done_white_24dp : R.drawable.ic_settings_backup_restore_24dp}"
+                app:srcCompat="@{task.completedDate == null ? R.drawable.ic_done_24dp : R.drawable.ic_settings_backup_restore_24dp}"
                 tools:alpha="1"
                 tools:scaleX="1"
                 tools:scaleY="1"
-                tools:src="@drawable/ic_done_white_24dp" />
+                tools:src="@drawable/ic_done_24dp" />
 
         </FrameLayout>
 

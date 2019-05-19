@@ -63,7 +63,7 @@ class NotificationHelper(private val context: Context) {
                     action = TaskNotificationReceiver.ACTION_COMPLETE
                 }
         val completedPendingIntent = PendingIntent.getBroadcast(context, 0, completedIntent, PendingIntent.FLAG_UPDATE_CURRENT)
-        val completedAction = NotificationCompat.Action(R.drawable.ic_done_white_24dp, "Mark as completed", completedPendingIntent)
+        val completedAction = NotificationCompat.Action(R.drawable.ic_done_24dp, "Mark as completed", completedPendingIntent)
 
         // Create the delete intent
         val deleteIntent = Intent(context, TaskNotificationReceiver::class.java)
