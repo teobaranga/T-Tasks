@@ -6,7 +6,7 @@
     <color name="colorAccent">@color/orange_A400</color>
 
     <!-- Task item -->
-    <color name="task_background">@color/brown_400</color>
+    <color name="task_background">@android:color/white</color>
     <color name="task_background_widget">@color/brown_400</color>
 
     <!-- Material Colors -->
