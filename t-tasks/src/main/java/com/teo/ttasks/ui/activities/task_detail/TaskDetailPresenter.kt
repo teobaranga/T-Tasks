@@ -10,9 +10,11 @@ import io.reactivex.disposables.Disposable
 import io.realm.Realm
 import timber.log.Timber
 
-internal class TaskDetailPresenter(private val tasksHelper: TasksHelper,
-                                   private val widgetHelper: WidgetHelper,
-                                   private val notificationHelper: NotificationHelper) : Presenter<TaskDetailView>() {
+internal class TaskDetailPresenter(
+    private val tasksHelper: TasksHelper,
+    private val widgetHelper: WidgetHelper,
+    private val notificationHelper: NotificationHelper
+) : Presenter<TaskDetailView>() {
 
     private lateinit var realm: Realm
 
@@ -27,30 +29,30 @@ internal class TaskDetailPresenter(private val tasksHelper: TasksHelper,
         this.taskId = taskId
         taskSubscription?.let { if (!it.isDisposed) it.dispose() }
         taskSubscription = tasksHelper.getTaskAsSingle(taskId, realm)
-                .subscribe(
-                        { task ->
-                            this.task = realm.copyFromRealm(task)
-                            view()?.onTaskLoaded(this.task!!)
-                        },
-                        {
-                            Timber.e(it, "Error while retrieving the task")
-                            view()?.onTaskLoadError()
-                        }
-                )
+            .subscribe(
+                { task ->
+                    this.task = realm.copyFromRealm(task)
+                    view()?.onTaskLoaded(this.task!!)
+                },
+                {
+                    Timber.e(it, "Error while retrieving the task")
+                    view()?.onTaskLoadError()
+                }
+            )
         disposeOnUnbindView(taskSubscription!!)
     }
 
     internal fun getTaskList(taskListId: String) {
         val disposable = tasksHelper.getTaskListAsSingle(taskListId, realm)
-                .subscribe(
-                        { taskList ->
-                            view()?.onTaskListLoaded(realm.copyFromRealm(taskList))
-                        },
-                        {
-                            Timber.e(it, "Error while retrieving the task list")
-                            view()?.onTaskListLoadError()
-                        }
-                )
+            .subscribe(
+                { taskList ->
+                    view()?.onTaskListLoaded(realm.copyFromRealm(taskList))
+                },
+                {
+                    Timber.e(it, "Error while retrieving the task list")
+                    view()?.onTaskListLoadError()
+                }
+            )
         disposeOnUnbindView(disposable)
     }
 
