@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="8dp"
+    app:cardBackgroundColor="@color/task_background"
+    app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.TTasks.MaterialCardView.Rounded.Top">
+
+    <TextView
+        android:id="@+id/section_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:drawablePadding="4dp"
+        android:gravity="bottom"
+        android:paddingHorizontal="12dp"
+        android:paddingTop="8dp"
+        android:textAppearance="?android:textAppearanceListItem"
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:drawableStart="@drawable/ic_whatshot_24dp"
+        tools:text="Active" />
+
+    <TextView
+        android:id="@+id/sort_type"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end"
+        android:drawableEnd="@drawable/ic_arrow_downward_24dp"
+        android:drawablePadding="4dp"
+        android:paddingHorizontal="12dp"
+        android:paddingTop="8dp"
+        android:text="Date"
+        android:textAppearance="?android:textAppearanceListItem"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+</com.google.android.material.card.MaterialCardView>

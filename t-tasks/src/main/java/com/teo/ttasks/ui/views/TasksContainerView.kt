@@ -23,6 +23,10 @@ class TasksContainerView @JvmOverloads constructor(
     defStyleRes: Int = 0
 ) : ConstraintLayout(context, attrs, defStyleAttr, defStyleRes) {
 
+    companion object {
+        private val currentYear by lazy { ZonedDateTime.now().year }
+    }
+
     var showMonth: Boolean = false
 
     var date: ZonedDateTime? = null
@@ -38,7 +42,7 @@ class TasksContainerView @JvmOverloads constructor(
                 with(monthView) {
                     if (showMonth) {
                         text = when {
-                            value.year == ZonedDateTime.now().year -> value.format(DateUtils.formatterMonth)
+                            value.year == currentYear -> value.format(DateUtils.formatterMonth)
                             else -> value.format(DateUtils.formatterMonthYear)
                         }
                         visibility = View.VISIBLE

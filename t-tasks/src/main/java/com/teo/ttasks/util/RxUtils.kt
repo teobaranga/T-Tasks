@@ -52,8 +52,8 @@ object RxUtils {
         FlowableTransformer { observable ->
             observable
                 .flatMap { tasks ->
-                    val activeTasks = mutableListOf<Task>()
-                    val completedTasks = mutableListOf<Task>()
+                    val activeTasks = ArrayList<Task>(tasks.size)
+                    val completedTasks = ArrayList<Task>(tasks.size)
 
                     for (task in tasks) {
                         if (task.completedDate == null) {

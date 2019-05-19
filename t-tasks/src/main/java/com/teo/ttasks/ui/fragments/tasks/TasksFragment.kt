@@ -5,8 +5,6 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.net.ConnectivityManager
 import android.os.Bundle
-import android.os.SystemClock
-import android.view.*
 import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
@@ -15,7 +13,6 @@ import android.view.View.VISIBLE
 import android.view.ViewGroup
 import android.view.Window.NAVIGATION_BAR_BACKGROUND_TRANSITION_NAME
 import android.widget.Toast
-import androidx.core.app.ActivityOptionsCompat
 import androidx.core.util.Pair
 import androidx.core.view.isVisible
 import androidx.databinding.DataBindingUtil
@@ -26,25 +23,18 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.teo.ttasks.R
+import com.teo.ttasks.TasksAdapter
 import com.teo.ttasks.data.model.Task
 import com.teo.ttasks.databinding.FragmentTasksBinding
 import com.teo.ttasks.receivers.NetworkInfoReceiver
 import com.teo.ttasks.receivers.NetworkInfoReceiver.Companion.isOnline
-import com.teo.ttasks.ui.SpacesItemDecoration
-import com.teo.ttasks.ui.activities.edit_task.EditTaskActivity
 import com.teo.ttasks.ui.activities.main.MainActivity
 import com.teo.ttasks.ui.activities.task_detail.TaskDetailActivity
-import com.teo.ttasks.ui.items.CategoryItem
-import com.teo.ttasks.ui.items.TaskItem
-import com.teo.ttasks.ui.items.TaskSectionItem
-import com.teo.ttasks.util.dpToPx
 import com.teo.ttasks.util.toastShort
 import eu.davidea.flexibleadapter.FlexibleAdapter
-import eu.davidea.flexibleadapter.items.IFlexible
 import org.koin.android.ext.android.inject
 import org.koin.android.scope.currentScope
 import timber.log.Timber
-import java.util.Collections.emptyList
 
 private const val ARG_TASK_LIST_ID = "taskListId"
 
@@ -98,15 +88,11 @@ class TasksFragment : Fragment(), TasksView, SwipeRefreshLayout.OnRefreshListene
      */
     internal lateinit var navBar: Pair<View, String>
 
-    internal lateinit var adapter: FlexibleAdapter<IFlexible<*>>
-
-    internal lateinit var tasksAdapter: FlexibleAdapter<TaskSectionItem>
-
-    private lateinit var activeTasksHeader: CategoryItem
-
-    private lateinit var completedTasksHeader: CategoryItem
+    private lateinit var tasksAdapter: TasksAdapter
 
     private lateinit var tasksBinding: FragmentTasksBinding
+
+    private lateinit var tasksViewModel: TasksViewModel
 
     private val taskItemClickListener = object : FlexibleAdapter.OnItemClickListener {
         // Reject quick, successive clicks because they break the app
@@ -114,56 +100,56 @@ class TasksFragment : Fragment(), TasksView, SwipeRefreshLayout.OnRefreshListene
         private var lastClickTime = 0L
 
         override fun onItemClick(view: View, position: Int): Boolean {
-            val item = adapter.getItem(position)!!
-            when (item) {
-                is CategoryItem -> {
-                    if (item == completedTasksHeader && item.hasSubItems()) {
-                        tasksPresenter.showCompleted = item.isExpanded
-                    }
-                    return true
-                }
-                is TaskItem -> {
-                    // Handle click on a task item
-                    val currentTime = SystemClock.elapsedRealtime()
-                    if (currentTime - lastClickTime > MIN_CLICK_INTERVAL) {
-                        lastClickTime = currentTime
-
-                        // Make sure the navigation bar view isn't null
-                        if (navBar.first == null) {
-                            createNavBarPair()
-                        }
-
-                        // Add the task header layout to the shared elements
-
-                        pairs[0] = Pair.create(item.binding.layoutTask, getString(R.string.transition_task_header))
-
-                        // Find the shared elements to be used in the transition
-                        val sharedElements: Array<Pair<View, String>?>
-
-                        if (!fab.isShown) {
-                            // Check the navigation bar view
-                            sharedElements = if (pairs[1]?.first == null) {
-                                // Get only the task header layout element
-                                arrayOf(pairs[0])
-                            } else {
-                                // Get the task header layout and the navigation bar
-                                arrayOf(pairs[0], pairs[1])
-                            }
-                        } else {
-                            sharedElements = if (pairs[1]?.first == null) {
-                                // Get only the task header and the FAB
-                                arrayOf(pairs[0], pairs[2])
-                            } else {
-                                // Get all the 3 elements
-                                pairs
-                            }
-                        }
-
-                        val options = ActivityOptionsCompat.makeSceneTransitionAnimation(activity!!, *sharedElements)
-                        TaskDetailActivity.start(context!!, item.taskId, taskListId!!, options.toBundle())
-                    }
-                }
-            }
+//            val item = tasksAdapter.getItem(position)!!
+//            when (item) {
+//                is CategoryItem -> {
+//                    if (item == completedTasksHeader && item.hasSubItems()) {
+//                        tasksPresenter.showCompleted = item.isExpanded
+//                    }
+//                    return true
+//                }
+//                is TaskItem -> {
+//                    // Handle click on a task item
+//                    val currentTime = SystemClock.elapsedRealtime()
+//                    if (currentTime - lastClickTime > MIN_CLICK_INTERVAL) {
+//                        lastClickTime = currentTime
+//
+//                        // Make sure the navigation bar view isn't null
+//                        if (navBar.first == null) {
+//                            createNavBarPair()
+//                        }
+//
+//                        // Add the task header layout to the shared elements
+//
+//                        pairs[0] = Pair.create(item.binding.layoutTask, getString(R.string.transition_task_header))
+//
+//                        // Find the shared elements to be used in the transition
+//                        val sharedElements: Array<Pair<View, String>?>
+//
+//                        if (!fab.isShown) {
+//                            // Check the navigation bar view
+//                            sharedElements = if (pairs[1]?.first == null) {
+//                                // Get only the task header layout element
+//                                arrayOf(pairs[0])
+//                            } else {
+//                                // Get the task header layout and the navigation bar
+//                                arrayOf(pairs[0], pairs[1])
+//                            }
+//                        } else {
+//                            sharedElements = if (pairs[1]?.first == null) {
+//                                // Get only the task header and the FAB
+//                                arrayOf(pairs[0], pairs[2])
+//                            } else {
+//                                // Get all the 3 elements
+//                                pairs
+//                            }
+//                        }
+//
+//                        val options = ActivityOptionsCompat.makeSceneTransitionAnimation(activity!!, *sharedElements)
+//                        TaskDetailActivity.start(context!!, item.taskId, taskListId!!, options.toBundle())
+//                    }
+//                }
+//            }
             return true
         }
     }
@@ -184,22 +170,11 @@ class TasksFragment : Fragment(), TasksView, SwipeRefreshLayout.OnRefreshListene
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setHasOptionsMenu(true)
         retainInstance = true
 
-        savedInstanceState?.let { taskListId = it.getString(ARG_TASK_LIST_ID) }
+        taskListId = savedInstanceState?.getString(ARG_TASK_LIST_ID) ?: arguments?.getString(ARG_TASK_LIST_ID)
 
-        activeTasksHeader = CategoryItem(getString(R.string.active)).apply { isExpanded = true }
-        completedTasksHeader = CategoryItem(getString(R.string.completed), getString(R.string.completed_count)).apply {
-            isExpanded = tasksPresenter.showCompleted
-        }
-
-        adapter = FlexibleAdapter<IFlexible<*>>(null, null).apply {
-            isAutoScrollOnExpand = false
-            addListener(taskItemClickListener)
-        }
-
-        tasksAdapter = FlexibleAdapter(null)
+        tasksAdapter = TasksAdapter()
 
         createNavBarPair()
 
@@ -210,6 +185,8 @@ class TasksFragment : Fragment(), TasksView, SwipeRefreshLayout.OnRefreshListene
                 tasksPresenter.syncTasks(taskListId)
             }
         }
+
+        tasksViewModel = ViewModelProviders.of(this)[TasksViewModel::class.java]
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
@@ -223,23 +200,32 @@ class TasksFragment : Fragment(), TasksView, SwipeRefreshLayout.OnRefreshListene
         tasksPresenter.bindView(this)
 
         tasksBinding.tasksList.apply {
-            layoutManager = LinearLayoutManager(context)
             adapter = this@TasksFragment.tasksAdapter
-            addItemDecoration(SpacesItemDecoration(8.dpToPx()))
-            setHasFixedSize(true)
         }
 
         tasksBinding.swipeRefreshLayout.setOnRefreshListener(this)
 
-        taskListId?.let { tasksPresenter.subscribeToTasks(it, savedInstanceState != null) }
+        taskListId?.let {
+            tasksPresenter.subscribeToTasks(it)
+            tasksPresenter.activeTasks.observe(this, Observer { activeTasks ->
+                if (activeTasks.isNotEmpty()) {
+                    tasksAdapter.activeTasks = activeTasks
+                    showTaskListIfNeeded()
+                }
+                Timber.v("Loaded %d active tasks", activeTasks.size)
+            })
+
+            tasksPresenter.completedTasks.observe(this, Observer { completedTasks ->
+                if (completedTasks.isNotEmpty()) {
+                    tasksAdapter.completedTasks = completedTasks
+                    showTaskListIfNeeded()
+                }
+                Timber.v("Loaded %d completed tasks", completedTasks.size)
+            })
+        }
 
         // Synchronize tasks and then refresh this task list
         refreshTasks()
-    }
-
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
-        val mainActivity = activity as MainActivity
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -250,11 +236,6 @@ class TasksFragment : Fragment(), TasksView, SwipeRefreshLayout.OnRefreshListene
         context!!.unregisterReceiver(networkInfoReceiver)
         tasksPresenter.unbindView(this)
         super.onDestroyView()
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        super.onCreateOptionsMenu(menu, inflater)
-        inflater.inflate(R.menu.menu_tasks, menu)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -271,28 +252,21 @@ class TasksFragment : Fragment(), TasksView, SwipeRefreshLayout.OnRefreshListene
     }
 
     override fun onTasksLoading() {
-        tasksBinding.tasksLoading.visibility = VISIBLE
-        tasksBinding.tasksEmpty.visibility = GONE
+        if (tasksAdapter.itemCount == 0) {
+            with(tasksBinding) {
+                tasksList.visibility = GONE
+//                tasksLoading.visibility = VISIBLE
+                tasksEmpty.visibility = GONE
+            }
+        }
     }
 
-    // TODO combine the code for loading the active/completed tasks
     override fun onActiveTasksLoaded(activeTasks: List<Task>) {
-//        activeTasksHeader.subItems = activeTasks
-        if (!activeTasksHeader.isExpanded) {
-            adapter.expand(activeTasksHeader)
-        }
-        tasksAdapter.addItem(TaskSectionItem(R.drawable.ic_whatshot_24dp, R.string.active, activeTasks, TaskSectionItem.DateType.DUE))
-        Timber.v("Loaded %d active tasks", activeTasks.size)
+        tasksViewModel.activeTasks.value = activeTasks
     }
 
     override fun onCompletedTasksLoaded(completedTasks: List<Task>) {
-//        completedTasksHeader.subItems = completedTasks
-        if (tasksPresenter.showCompleted && !completedTasksHeader.isExpanded) {
-            adapter.expand(completedTasksHeader)
-//                    Handler().post { completedTasksHeader.toggleArrow(false) }
-        }
-        tasksAdapter.addItem(TaskSectionItem(R.drawable.ic_done_white_24dp, R.string.completed, completedTasks, TaskSectionItem.DateType.COMPLETED))
-        Timber.v("loaded %d completed tasks", completedTasks.size)
+        tasksViewModel.completedTasks.value = completedTasks
     }
 
     override fun onTasksLoadError() {
@@ -301,27 +275,23 @@ class TasksFragment : Fragment(), TasksView, SwipeRefreshLayout.OnRefreshListene
     }
 
     override fun onTasksEmpty() {
-        Timber.v("onTasksEmpty")
-        adapter.updateDataSet(emptyList())
         tasksBinding.tasksList.visibility = GONE
-        tasksBinding.tasksLoading.visibility = GONE
+//        tasksBinding.tasksLoading.visibility = GONE
         tasksBinding.tasksEmpty.visibility = VISIBLE
         onRefreshDone()
     }
 
+    private fun showTaskListIfNeeded() {
+        if (!tasksBinding.tasksList.isVisible) {
+            with(tasksBinding) {
+                tasksList.visibility = VISIBLE
+//                tasksLoading.visibility = GONE
+                tasksEmpty.visibility = GONE
+            }
+        }
+    }
+
     override fun onTasksLoaded() {
-        Timber.v("onTasksLoaded")
-        val itemList = mutableListOf<CategoryItem>()
-        if (activeTasksHeader.subItemsCount > 0) {
-            itemList.add(activeTasksHeader)
-        }
-        if (completedTasksHeader.subItemsCount > 0) {
-            itemList.add(completedTasksHeader)
-        }
-        adapter.updateDataSet(itemList.toList())
-        tasksBinding.tasksList.visibility = VISIBLE
-        tasksBinding.tasksLoading.visibility = GONE
-        tasksBinding.tasksEmpty.visibility = GONE
         onRefreshDone()
 
         tasksBinding.tasksList.post {
@@ -351,7 +321,7 @@ class TasksFragment : Fragment(), TasksView, SwipeRefreshLayout.OnRefreshListene
     }
 
     /** Cache the Pair holding the navigation bar view and its associated transition name  */
-    internal fun createNavBarPair() {
+    private fun createNavBarPair() {
         val navBarView = activity!!.window.decorView.findViewById<View>(android.R.id.navigationBarBackground)
         navBar = Pair.create(navBarView, NAVIGATION_BAR_BACKGROUND_TRANSITION_NAME)
         pairs[1] = navBar
@@ -375,7 +345,6 @@ class TasksFragment : Fragment(), TasksView, SwipeRefreshLayout.OnRefreshListene
      */
     fun updateTaskListId(newTaskListId: String) {
         if (newTaskListId != taskListId) {
-            tasksAdapter.clear()
             // In case it is attached, disable fragment scrolling to prevent crashing
             if (isAdded) {
                 (activity as MainActivity).setFabScrolling(false)
@@ -388,6 +357,14 @@ class TasksFragment : Fragment(), TasksView, SwipeRefreshLayout.OnRefreshListene
 
     companion object {
         /** Create a new instance of this fragment */
-        fun newInstance(): TasksFragment = TasksFragment()
+        fun newInstance(taskListId: String?): TasksFragment {
+            val tasksFragment = TasksFragment().apply {
+                arguments = Bundle().apply {
+                    putString(ARG_TASK_LIST_ID, taskListId)
+                }
+            }
+            Timber.v("New TasksFragment: ${tasksFragment.arguments}")
+            return tasksFragment
+        }
     }
 }

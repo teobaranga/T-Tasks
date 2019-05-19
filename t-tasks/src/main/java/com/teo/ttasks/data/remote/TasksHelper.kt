@@ -13,18 +13,15 @@ import com.teo.ttasks.data.model.Task
 import com.teo.ttasks.data.model.Task.Companion.STATUS_COMPLETED
 import com.teo.ttasks.data.model.Task.Companion.STATUS_NEEDS_ACTION
 import com.teo.ttasks.data.model.TaskList
-import com.teo.ttasks.jobs.TaskDeleteJob
 import com.teo.ttasks.jobs.TaskCreateJob
+import com.teo.ttasks.jobs.TaskDeleteJob
 import com.teo.ttasks.jobs.TaskUpdateJob
 import com.teo.ttasks.util.FirebaseUtil.getTasksDatabase
 import com.teo.ttasks.util.FirebaseUtil.saveReminder
 import io.reactivex.Completable
 import io.reactivex.Flowable
 import io.reactivex.Single
-import io.realm.Realm
-import io.realm.RealmList
-import io.realm.RealmQuery
-import io.realm.RealmResults
+import io.realm.*
 import org.threeten.bp.ZonedDateTime
 import retrofit2.HttpException
 import timber.log.Timber
@@ -52,7 +49,7 @@ class TasksHelper(
      * @param async (optional)
      * @return a Flowable containing the list of task lists
      */
-    fun getTaskLists(realm: Realm, async: Boolean = true): Flowable<RealmResults<TaskList>> {
+    fun getTaskLists(realm: Realm, async: Boolean = true): Flowable<out List<TaskList>> {
         // Build the base query
         val query = queryTaskLists(realm)
 
@@ -173,11 +170,26 @@ class TasksHelper(
      * @param realm          an instance of Realm
      * @param excludeDeleted (optional) whether to exclude locally deleted tasks - true by default
      */
-    fun getTasks(taskListId: String, realm: Realm, excludeDeleted: Boolean = true): Flowable<RealmResults<Task>> =
-        queryTasks(taskListId, realm, excludeDeleted)
-            .findAllAsync()
+    fun getTasks(taskListId: String, realm: Realm, excludeDeleted: Boolean = true, async: Boolean = true): Flowable<RealmResults<Task>> {
+        return queryTasks(taskListId, realm, excludeDeleted)
+            .let { return@let if (async) it.findAllAsync() else it.findAll() }
             .asFlowable()
             .filter { it.isLoaded && it.isValid }
+    }
+
+    fun getActiveTasks(taskListId: String, realm: Realm): RealmResults<Task> {
+        return queryTasks(taskListId, realm)
+            .equalTo(com.teo.ttasks.data.model.TaskFields.COMPLETED, null as String?)
+            .sort(com.teo.ttasks.data.model.TaskFields.DUE, Sort.DESCENDING)
+            .findAllAsync()
+    }
+
+    fun getCompletedTasks(taskListId: String, realm: Realm): RealmResults<Task> {
+        return queryTasks(taskListId, realm)
+            .notEqualTo(com.teo.ttasks.data.model.TaskFields.COMPLETED, null as String?)
+            .sort(com.teo.ttasks.data.model.TaskFields.COMPLETED, Sort.DESCENDING)
+            .findAllAsync()
+    }
 
     /**
      * Get the tasks associated with a given task list from the local database.

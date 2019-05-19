@@ -8,32 +8,23 @@
         android:layout_marginStart="8dp"
         android:layout_marginEnd="8dp"
         android:background="@android:color/white"
-        app:cardCornerRadius="8dp">
+        app:cardElevation="2dp"
+        app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.TTasks.MaterialCardView.Rounded.Top">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="16dp">
 
-            <ImageView
-                android:id="@+id/icon_title"
-                android:layout_width="18dp"
-                android:layout_height="18dp"
-                android:tint="?android:textColorPrimary"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                tools:ignore="ContentDescription"
-                tools:srcCompat="@drawable/ic_whatshot_24dp" />
-
             <TextView
                 android:id="@+id/section_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="4dp"
+                android:drawableStart="@drawable/ic_whatshot_24dp"
+                android:gravity="bottom"
                 android:textAppearance="?android:textAppearanceListItem"
-                app:layout_constraintBottom_toBottomOf="@id/icon_title"
-                app:layout_constraintStart_toEndOf="@id/icon_title"
-                app:layout_constraintTop_toTopOf="@id/icon_title"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
                 tools:text="Active" />
 
             <TextView
@@ -41,26 +32,17 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="4dp"
+                android:drawableEnd="@drawable/ic_arrow_downward_24dp"
                 android:textAppearance="?android:textAppearanceListItem"
-                app:layout_constraintBottom_toBottomOf="@id/sort_direction"
-                app:layout_constraintEnd_toStartOf="@id/sort_direction"
-                app:layout_constraintTop_toTopOf="@id/sort_direction"
-                tools:text="Date" />
-
-            <ImageView
-                android:id="@+id/sort_direction"
-                android:layout_width="18dp"
-                android:layout_height="18dp"
-                android:tint="?android:textColorPrimary"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                tools:ignore="ContentDescription"
-                tools:srcCompat="@drawable/ic_arrow_downward_24dp" />
+                tools:text="Date" />
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/task_list"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/section_title" />
