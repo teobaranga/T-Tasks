@@ -12,7 +12,7 @@ import com.teo.ttasks.data.model.TaskList
 
 class TaskListsAdapter(
     context: Context,
-    taskLists: List<TaskList> = emptyList()
+    taskLists: List<TaskList> = mutableListOf()
 ) : ArrayAdapter<TaskList>(context, layoutResId, taskLists) {
 
     companion object {

@@ -7,4 +7,8 @@
 
     <style name="TextAppearance.TaskListTitle.TaskDetail" parent="@style/TextAppearance.AppCompat.Subhead" />
 
+    <style name="Widget.TTasks.Toolbar.Dark" parent="Widget.MaterialComponents.Toolbar">
+        <item name="android:background">?colorPrimary</item>
+    </style>
+
 </resources>

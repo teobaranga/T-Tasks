@@ -86,7 +86,7 @@ internal class EditTaskPresenter(
             .subscribe({ taskLists ->
                 view()?.onTaskListsLoaded(taskLists)
             }, { throwable ->
-                Timber.e(throwable.toString())
+                Timber.e(throwable, "Error loading task lists")
                 view()?.onTaskLoadError()
             })
         disposeOnUnbindView(taskListDisposable)

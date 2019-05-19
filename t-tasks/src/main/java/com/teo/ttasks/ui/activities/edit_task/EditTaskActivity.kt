@@ -296,20 +296,23 @@ class EditTaskActivity : AppCompatActivity(), EditTaskView {
 
         private const val EXTRA_TASK_LIST_ID = "taskListId"
 
-        fun startEdit(context: Context, taskId: String, taskListId: String, bundle: Bundle?) =
+        fun startEdit(context: Context, taskId: String, taskListId: String, bundle: Bundle?) {
             context.startActivity(getTaskCreateIntent(context, taskListId).apply {
                 putExtra(EXTRA_TASK_ID, taskId)
             }, bundle)
+        }
 
-        fun startCreate(context: Context, taskListId: String, bundle: Bundle?) =
+        fun startCreate(context: Context, taskListId: String, bundle: Bundle?) {
             context.startActivity(getTaskCreateIntent(context, taskListId), bundle)
+        }
 
         /**
          * Used when starting this activity from the widget
          */
-        fun getTaskCreateIntent(context: Context, taskListId: String) =
-            Intent(context, EditTaskActivity::class.java).apply {
+        fun getTaskCreateIntent(context: Context, taskListId: String): Intent {
+            return Intent(context, EditTaskActivity::class.java).apply {
                 putExtra(EXTRA_TASK_LIST_ID, taskListId)
             }
+        }
     }
 }

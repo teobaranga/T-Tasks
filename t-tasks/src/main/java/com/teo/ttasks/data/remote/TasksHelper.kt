@@ -49,7 +49,7 @@ class TasksHelper(
      * @param async (optional)
      * @return a Flowable containing the list of task lists
      */
-    fun getTaskLists(realm: Realm, async: Boolean = true): Flowable<out List<TaskList>> {
+    fun getTaskLists(realm: Realm, async: Boolean = true): Flowable<RealmResults<TaskList>> {
         // Build the base query
         val query = queryTaskLists(realm)
 
