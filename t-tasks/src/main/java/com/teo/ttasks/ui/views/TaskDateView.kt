@@ -16,7 +16,7 @@ import kotlin.math.roundToInt
 
 private const val dayNumberSizeSp = 24f
 
-private const val dayNameSizeSp = 14f
+private const val dayNameSizeSp = 16f
 
 @StyleableRes
 private const val primaryColorIdx = 0
@@ -142,14 +142,14 @@ class TaskDateView : View {
         val dayOfMonthHeight = if (dayNumber != null) dayOfMonthHeight else 0
         val dayOfWeekHeight = if (dayName != null) dayOfWeekHeight else 0
         val size = paddingTop + paddingBottom + dayOfMonthHeight + dayOfWeekHeight
-        return View.resolveSizeAndState(size, measureSpec, 0)
+        return resolveSizeAndState(size, measureSpec, 0)
     }
 
     private fun measureWidth(measureSpec: Int): Int {
         val dayOfMonthWidth = if (dayNumber != null) dayOfMonthWidth else 0
         val dayOfWeekWidth = if (dayName != null) dayOfWeekWidth else 0
         val size = paddingLeft + paddingRight + Math.max(dayOfMonthWidth, dayOfWeekWidth)
-        return View.resolveSizeAndState(size, measureSpec, 0)
+        return resolveSizeAndState(size, measureSpec, 0)
     }
 
     private fun drawDayOfMonth(canvas: Canvas, dayOfMonth: String) {
