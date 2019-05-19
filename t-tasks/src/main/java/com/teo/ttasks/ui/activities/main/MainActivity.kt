@@ -50,9 +50,11 @@ open class MainActivity : BaseActivity(), MainView, AccountInfoListener {
 
     private lateinit var accountMenuItem: MenuItem
 
+    private lateinit var lastAccessedTaskId: String
+
     override fun onCreate(savedInstanceState: Bundle?) {
-        window.setBackgroundDrawable(ColorDrawable(getColorFromAttr(R.attr.colorPrimary)))
         super.onCreate(savedInstanceState)
+        window.setBackgroundDrawable(ColorDrawable(getColorFromAttr(R.attr.colorPrimary)))
         mainActivityPresenter.bindView(this)
 
         // Show the SignIn activity if there's no user connected
@@ -64,7 +66,7 @@ open class MainActivity : BaseActivity(), MainView, AccountInfoListener {
         mainBinding = DataBindingUtil.setContentView(this, R.layout.activity_main)
 
         val (taskLists, index) = mainActivityPresenter.getTaskLists()
-        mainActivityPresenter.lastAccessedTaskListId = taskLists[index].id
+        lastAccessedTaskId = taskLists[index].id
 
         taskListsAdapter = TaskListsAdapter(supportActionBar!!.themedContext, taskLists)
 
@@ -76,7 +78,7 @@ open class MainActivity : BaseActivity(), MainView, AccountInfoListener {
             onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
                 override fun onItemSelected(adapterView: AdapterView<*>, view: View?, position: Int, id: Long) {
                     val taskListId = (adapterView.getItemAtPosition(position) as TaskList).id
-                    mainActivityPresenter.lastAccessedTaskListId = taskListId
+                    lastAccessedTaskId = taskListId
                     tasksFragment?.updateTaskListId(taskListId)
                 }
 
@@ -85,7 +87,7 @@ open class MainActivity : BaseActivity(), MainView, AccountInfoListener {
         }
 
         mainBinding.fab.setOnClickListener {
-            EditTaskActivity.startCreate(this, mainActivityPresenter.lastAccessedTaskListId!!, null)
+            EditTaskActivity.startCreate(this, lastAccessedTaskId, null)
         }
 
         // Only set the active selection or active profile if we do not recreate the activity
@@ -93,7 +95,7 @@ open class MainActivity : BaseActivity(), MainView, AccountInfoListener {
             // Inflate the tasks fragment
             tasksFragment = tasksFragment
                 ?: (supportFragmentManager.findFragmentByTag(TAG_TASKS) as? TasksFragment
-                    ?: TasksFragment.newInstance(mainActivityPresenter.lastAccessedTaskListId))
+                    ?: TasksFragment.newInstance(lastAccessedTaskId))
 
             supportFragmentManager
                 .beginTransaction()
@@ -125,22 +127,14 @@ open class MainActivity : BaseActivity(), MainView, AccountInfoListener {
         }
     }
 
+    override fun onStop() {
+        super.onStop()
+        mainActivityPresenter.lastAccessedTaskListId = lastAccessedTaskId
+    }
+
     override fun onDestroy() {
         mainActivityPresenter.unbindView(this)
         super.onDestroy()
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        when (requestCode) {
-//            RC_ADD -> {
-//                if(resultCode == RESULT_OK) {
-//                    val acc: MaterialAccount = MaterialAccount(resources, data?.getStringExtra(AccountManager.KEY_ACCOUNT_NAME),"", R.drawable.ic_photo, R.drawable.ic_cover)
-//                    addAccount(acc)
-//                    Toast.makeText(this, data?.getStringExtra(AccountManager.KEY_ACCOUNT_NAME), Toast.LENGTH_SHORT).show()
-//                }
-//            }
-        }
     }
 
     override fun onUserCover(coverUrl: String) {
@@ -153,6 +147,7 @@ open class MainActivity : BaseActivity(), MainView, AccountInfoListener {
     override fun onTaskListsLoaded(taskLists: List<TaskList>, currentTaskListIndex: Int) {
         // Set the task list only if it's different than the currently selected one
         if (mainBinding.spinnerTaskLists.selectedItemPosition != currentTaskListIndex) {
+            // TODO: use DiffUtil?
             taskListsAdapter.clear()
             taskListsAdapter.addAll(taskLists)
             // Restore previously selected task list
@@ -211,56 +206,4 @@ open class MainActivity : BaseActivity(), MainView, AccountInfoListener {
     override fun onAboutShow() {
         AboutActivity.start(this)
     }
-
-    // TODO: implement chooseAccount
-    //    private void chooseAccount() {
-    //        // disconnects the account and the account picker
-    //        // stays there until another account is chosen
-    //        if (mGoogleApiClient.isOnline()) {
-    //            // Prior to disconnecting, run clearDefaultAccount().
-    ////            Plus.AccountApi.clearDefaultAccount(mGoogleApiClient);
-    ////            Plus.AccountApi.revokeAccessAndDisconnect(mGoogleApiClient)
-    ////                    .setResultCallback(new ResultCallback<Status>() {
-    ////
-    ////                        public void onResult(Status status) {
-    ////                            // mGoogleApiClient is now disconnected and access has been revoked.
-    ////                            // Trigger app logic to comply with the developer policies
-    ////                        }
-    ////
-    ////                    });
-    //            Plus.AccountApi.clearDefaultAccount(mGoogleApiClient);
-    //            mGoogleApiClient.disconnect();
-    //            mGoogleApiClient.connect();
-    //        }
-    //    }
-
-    // TODO: implement OnAccountAddComplete
-    //    private class OnAccountAddComplete implements AccountManagerCallback<Bundle> {
-    //        @Override
-    //        public void run(AccountManagerFuture<Bundle> result) {
-    //            Bundle bundle;
-    //            try {
-    //                bundle = result.getResult();
-    //            } catch (OperationCanceledException e) {
-    //                e.printStackTrace();
-    //                return;
-    //            } catch (AuthenticatorException e) {
-    //                e.printStackTrace();
-    //                return;
-    //            } catch (IOException e) {
-    //                e.printStackTrace();
-    //                return;
-    //            }
-    //
-    ////            MaterialAccount acc = new MaterialAccount(MainActivity.this.getResources(), "",
-    ////                    bundle.getString(AccountManager.KEY_ACCOUNT_NAME), R.drawable.ic_photo, R.drawable.ic_cover);
-    ////            MainActivity.this.addAccount(acc);
-    //
-    ////            mAccount = new Account(
-    ////                    bundle.getString(AccountManager.KEY_ACCOUNT_NAME),
-    ////                    bundle.getString(AccountManager.KEY_ACCOUNT_TYPE)
-    ////            );
-    //            // do more stuff
-    //        }
-    //    }
 }
