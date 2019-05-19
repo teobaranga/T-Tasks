@@ -13,8 +13,7 @@ import com.teo.ttasks.util.NightHelper
 class AboutActivity : LibsActivity() {
 
     companion object {
-
-        fun Context.startAboutActivity() = startActivity(Intent(this, AboutActivity::class.java))
+        fun start(context: Context) = context.startActivity(Intent(context, AboutActivity::class.java))
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

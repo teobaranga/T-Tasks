@@ -46,12 +46,12 @@ class AccountInfoDialogFragment : DialogFragment() {
 
     override fun onResume() {
         // Get existing layout params for the window
-        val params = dialog.window!!.attributes
+        val params = dialog!!.window!!.attributes
         params.gravity = Gravity.TOP
         params.y = 72.dpToPx()
         params.width = WindowManager.LayoutParams.MATCH_PARENT
         params.height = WindowManager.LayoutParams.WRAP_CONTENT
-        dialog.window!!.attributes = params as WindowManager.LayoutParams
+        dialog!!.window!!.attributes = params as WindowManager.LayoutParams
         super.onResume()
     }
 }

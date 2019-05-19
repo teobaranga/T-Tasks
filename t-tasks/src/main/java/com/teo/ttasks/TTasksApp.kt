@@ -16,11 +16,11 @@ import com.teo.ttasks.util.NightHelper
 import com.teo.ttasks.util.NotificationHelper
 import io.realm.Realm
 import io.realm.RealmConfiguration
-import io.realm.rx.RealmObservableFactory
 import org.koin.android.ext.android.inject
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
+import org.threeten.bp.ZonedDateTime
 import timber.log.Timber
 
 class TTasksApp : Application() {
@@ -41,6 +41,7 @@ class TTasksApp : Application() {
         DateUtils.init(this)
 
         AndroidThreeTen.init(this)
+        ZonedDateTime.now()
 
         // Apply night mode
         val nightMode = prefHelper.nightMode

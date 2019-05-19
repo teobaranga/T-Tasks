@@ -209,7 +209,7 @@ open class MainActivity : BaseActivity(), MainView, AccountInfoListener {
     }
 
     override fun onAboutShow() {
-        startAboutActivity()
+        AboutActivity.start(this)
     }
 
     // TODO: implement chooseAccount
