@@ -46,12 +46,12 @@
             android:layout_height="wrap_content"
             android:layout_gravity="bottom|end"
             android:layout_margin="@dimen/fab_margin"
+            android:src="@drawable/ic_add_white_24dp"
             android:transitionName="@string/transition_fab"
             app:elevation="6dp"
             app:layout_behavior="com.teo.ttasks.ui.AppBarBoundFabBehavior"
             app:pressedTranslationZ="12dp"
-            app:rippleColor="@color/orange_A200"
-            app:srcCompat="@drawable/ic_add_white_24dp" />
+            app:tint="@android:color/white" />
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 

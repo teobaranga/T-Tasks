@@ -5,6 +5,7 @@
     <style name="Base.Theme" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
         <item name="colorPrimary">@color/grey_850</item>
         <item name="colorPrimaryDark">@color/grey_900</item>
+        <item name="colorSecondary">@color/orange_A400</item>
         <item name="colorAccent">@color/colorAccent</item>
         <item name="android:colorBackground">?attr/colorPrimary</item>
         <item name="android:navigationBarColor">?attr/colorPrimary</item>
@@ -14,6 +15,7 @@
     <style name="Base.Theme.NoActionBar" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="colorPrimary">@color/grey_850</item>
         <item name="colorPrimaryDark">@color/grey_900</item>
+        <item name="colorSecondary">@color/orange_A400</item>
         <item name="colorAccent">@color/colorAccent</item>
         <item name="android:colorBackground">?attr/colorPrimary</item>
         <item name="android:navigationBarColor">?attr/colorPrimary</item>
