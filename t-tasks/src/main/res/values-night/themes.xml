@@ -2,7 +2,7 @@
 <resources>
 
     <!-- Base theme (with action bar) -->
-    <style name="Base.Theme" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
+    <style name="Base.Theme" parent="Theme.MaterialComponents">
         <item name="colorPrimary">@color/grey_850</item>
         <item name="colorPrimaryDark">@color/grey_850</item>
         <item name="colorSecondary">@color/orange_A400</item>
@@ -14,7 +14,7 @@
     </style>
 
     <!-- Base theme (no action bar) -->
-    <style name="Base.Theme.NoActionBar" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+    <style name="Base.Theme.NoActionBar" parent="Theme.MaterialComponents.NoActionBar">
         <item name="colorPrimary">@color/grey_850</item>
         <item name="colorPrimaryDark">@color/grey_850</item>
         <item name="colorSecondary">@color/orange_A400</item>

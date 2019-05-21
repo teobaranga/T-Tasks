@@ -51,8 +51,6 @@ class EditTaskActivity : AppCompatActivity(), EditTaskView {
 
     private lateinit var taskListsAdapter: TaskListsAdapter
 
-    private lateinit var inputMethodManager: InputMethodManager
-
     private lateinit var taskListId: String
 
     private var datePickerFragment: DatePickerFragment? = null
@@ -85,8 +83,6 @@ class EditTaskActivity : AppCompatActivity(), EditTaskView {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        inputMethodManager = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-
         editTaskBinding = DataBindingUtil.setContentView(this, R.layout.activity_edit_task)
         editTaskBinding.view = this
         editTaskPresenter.bindView(this)
@@ -107,7 +103,6 @@ class EditTaskActivity : AppCompatActivity(), EditTaskView {
 
             // Show the keyboard
             editTaskBinding.taskTitle.requestFocus()
-            inputMethodManager.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0)
         }
 
         // Load the available task lists and the task, if available
@@ -194,8 +189,6 @@ class EditTaskActivity : AppCompatActivity(), EditTaskView {
                 if (editTaskBinding.taskTitle.length() == 0) {
                     editTaskBinding.taskTitle.error = getString(R.string.error_no_title)
                     editTaskBinding.taskTitle.requestFocus()
-                    val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-                    imm.showSoftInput(editTaskBinding.taskTitle, InputMethodManager.SHOW_IMPLICIT)
                     return true
                 }
                 editTaskPresenter.finishTask()
@@ -207,8 +200,7 @@ class EditTaskActivity : AppCompatActivity(), EditTaskView {
 
     @Suppress("UNUSED_PARAMETER")
     fun onDueDateClicked(v: View) {
-        // Hide the keyboard
-        currentFocus?.let { inputMethodManager.hideSoftInputFromWindow(it.windowToken, 0) }
+        hideKeyboard()
 
         if (editTaskPresenter.hasDueDate()) {
             val dialog = AlertDialog.Builder(this)
@@ -239,12 +231,15 @@ class EditTaskActivity : AppCompatActivity(), EditTaskView {
 
     @Suppress("UNUSED_PARAMETER")
     fun onDueTimeClicked(v: View) {
-        currentFocus?.let { inputMethodManager.hideSoftInputFromWindow(it.windowToken, 0) }
+        hideKeyboard()
+
         showReminderTimePickerDialog()
     }
 
     @Suppress("UNUSED_PARAMETER")
     fun onReminderClicked(v: View) {
+        hideKeyboard()
+
         if (!editTaskPresenter.hasDueDate()) {
             toastShort("You need to set a due date before adding a reminder")
             return
@@ -288,6 +283,13 @@ class EditTaskActivity : AppCompatActivity(), EditTaskView {
             minute,
             DateFormat.is24HourFormat(this)
         ).show()
+    }
+
+    private fun hideKeyboard() {
+        currentFocus?.windowToken?.let {
+            val inputMethodManager = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+            inputMethodManager.hideSoftInputFromWindow(it, 0)
+        }
     }
 
     companion object {

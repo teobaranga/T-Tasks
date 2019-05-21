@@ -6,7 +6,8 @@
     android:layout_height="wrap_content"
     android:layout_marginHorizontal="8dp"
     app:cardBackgroundColor="@color/task_background"
-    app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.TTasks.MaterialCardView.Rounded.Top">
+    app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.TTasks.MaterialCardView.Rounded.Top"
+    tools:context=".ui.activities.main.MainActivity">
 
     <TextView
         android:id="@+id/section_title"
