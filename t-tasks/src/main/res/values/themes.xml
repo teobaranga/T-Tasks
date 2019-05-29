@@ -34,6 +34,7 @@
     <!-- Main theme -->
     <style name="Theme.Main" parent="Base.Theme.Main">
         <item name="android:textColorPrimary">?android:textColorPrimaryInverse</item>
+        <item name="android:textColorTertiary">?android:textColorTertiaryInverse</item>
         <item name="android:windowContentTransitions">true</item>
         <item name="android:windowActivityTransitions">true</item>
         <item name="android:windowBackground">@drawable/launch_screen</item>
