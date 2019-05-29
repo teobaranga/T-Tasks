@@ -1,9 +1,6 @@
 package com.teo.ttasks.ui.fragments.tasks
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MediatorLiveData
 import com.google.firebase.database.FirebaseDatabase
-import com.teo.ttasks.LiveRealmResults
 import com.teo.ttasks.data.local.PrefHelper
 import com.teo.ttasks.data.model.Task
 import com.teo.ttasks.data.remote.TasksHelper
@@ -44,16 +41,6 @@ internal class TasksPresenter(
             prefHelper.showCompleted = showCompleted
         }
 
-    private val _activeTasks: MediatorLiveData<List<Task>> = MediatorLiveData()
-
-    private val _completedTasks: MediatorLiveData<List<Task>> = MediatorLiveData()
-
-    val activeTasks: LiveData<List<Task>>
-        get() = _activeTasks
-
-    val completedTasks: LiveData<List<Task>>
-        get() = _completedTasks
-
     /**
      * Load and monitor changes to the tasks associated with the provided
      * task list from the local database.
@@ -61,14 +48,6 @@ internal class TasksPresenter(
      * @param taskListId task list identifier
      */
     internal fun subscribeToTasks(taskListId: String) {
-
-        _activeTasks.addSource(LiveRealmResults(tasksHelper.getActiveTasks(taskListId, realm))) {
-            _activeTasks.value = it
-        }
-
-        _completedTasks.addSource(LiveRealmResults(tasksHelper.getCompletedTasks(taskListId, realm))) {
-            _completedTasks.value = it
-        }
 
 //            .doOnNext { tasks ->
 //                Timber.v(Thread.currentThread().name)

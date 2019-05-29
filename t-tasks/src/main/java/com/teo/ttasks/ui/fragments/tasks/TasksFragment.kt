@@ -6,7 +6,6 @@ import android.content.IntentFilter
 import android.net.ConnectivityManager
 import android.os.Bundle
 import android.view.LayoutInflater
-import android.view.MenuItem
 import android.view.View
 import android.view.View.GONE
 import android.view.View.VISIBLE
@@ -206,18 +205,20 @@ class TasksFragment : Fragment(), TasksView, SwipeRefreshLayout.OnRefreshListene
         tasksBinding.swipeRefreshLayout.setOnRefreshListener(this)
 
         taskListId?.let {
-            tasksPresenter.subscribeToTasks(it)
-            tasksPresenter.activeTasks.observe(this, Observer { activeTasks ->
+            tasksViewModel.getTasks(it)
+            tasksViewModel.activeTasks.observe(this, Observer { activeTasks ->
                 if (activeTasks.isNotEmpty()) {
                     tasksAdapter.activeTasks = activeTasks
+                    tasksAdapter.notifyDataSetChanged()
                     showTaskListIfNeeded()
                 }
                 Timber.v("Loaded %d active tasks", activeTasks.size)
             })
 
-            tasksPresenter.completedTasks.observe(this, Observer { completedTasks ->
+            tasksViewModel.completedTasks.observe(this, Observer { completedTasks ->
                 if (completedTasks.isNotEmpty()) {
                     tasksAdapter.completedTasks = completedTasks
+                    tasksAdapter.notifyDataSetChanged()
                     showTaskListIfNeeded()
                 }
                 Timber.v("Loaded %d completed tasks", completedTasks.size)
@@ -238,19 +239,6 @@ class TasksFragment : Fragment(), TasksView, SwipeRefreshLayout.OnRefreshListene
         super.onDestroyView()
     }
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        val refresh: Boolean = when (item.itemId) {
-//            R.id.menu_sort_due_date -> tasksPresenter.switchSortMode(SortType.SORT_DATE)
-//            R.id.menu_sort_alphabetical -> tasksPresenter.switchSortMode(SortType.SORT_ALPHA)
-//            R.id.menu_sort_my_order -> tasksPresenter.switchSortMode(SortType.SORT_CUSTOM)
-            else -> false
-        }
-        if (refresh) {
-            tasksPresenter.subscribeToTasks(taskListId!!)
-        }
-        return super.onOptionsItemSelected(item)
-    }
-
     override fun onTasksLoading() {
         if (tasksAdapter.itemCount == 0) {
             with(tasksBinding) {
@@ -262,11 +250,11 @@ class TasksFragment : Fragment(), TasksView, SwipeRefreshLayout.OnRefreshListene
     }
 
     override fun onActiveTasksLoaded(activeTasks: List<Task>) {
-        tasksViewModel.activeTasks.value = activeTasks
+//        tasksViewModel.activeTasks.value = activeTasks
     }
 
     override fun onCompletedTasksLoaded(completedTasks: List<Task>) {
-        tasksViewModel.completedTasks.value = completedTasks
+//        tasksViewModel.completedTasks.value = completedTasks
     }
 
     override fun onTasksLoadError() {
@@ -350,7 +338,7 @@ class TasksFragment : Fragment(), TasksView, SwipeRefreshLayout.OnRefreshListene
                 (activity as MainActivity).setFabScrolling(false)
             }
             taskListId = newTaskListId
-            tasksPresenter.subscribeToTasks(taskListId!!)
+            tasksViewModel.getTasks(taskListId!!)
             refreshTasks()
         }
     }
