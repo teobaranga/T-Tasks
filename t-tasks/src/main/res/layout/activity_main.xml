@@ -49,7 +49,6 @@
             android:src="@drawable/ic_add_white_24dp"
             android:transitionName="@string/transition_fab"
             app:elevation="6dp"
-            app:layout_behavior="com.teo.ttasks.ui.AppBarBoundFabBehavior"
             app:pressedTranslationZ="12dp"
             app:tint="@android:color/white" />
 

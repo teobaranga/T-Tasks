@@ -47,7 +47,7 @@ private const val RC_USER_RECOVERABLE = 1
  * updates to the tasks from that task list. A refresh is then triggered in order to make sure the
  * data is not stale.
  */
-class TasksFragment : Fragment(), TasksView, SwipeRefreshLayout.OnRefreshListener {
+class TasksFragment : Fragment(), TasksView {
 
     /**
      * Array holding the 3 shared elements used during the transition to the [TaskDetailActivity].
@@ -153,6 +153,10 @@ class TasksFragment : Fragment(), TasksView, SwipeRefreshLayout.OnRefreshListene
         }
     }
 
+    private val refreshListener: SwipeRefreshLayout.OnRefreshListener = SwipeRefreshLayout.OnRefreshListener {
+        refreshTasks()
+    }
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         when (requestCode) {
@@ -202,16 +206,16 @@ class TasksFragment : Fragment(), TasksView, SwipeRefreshLayout.OnRefreshListene
             adapter = this@TasksFragment.tasksAdapter
         }
 
-        tasksBinding.swipeRefreshLayout.setOnRefreshListener(this)
+        tasksBinding.swipeRefreshLayout.setOnRefreshListener(refreshListener)
 
         taskListId?.let {
-            tasksViewModel.getTasks(it)
             tasksViewModel.activeTasks.observe(this, Observer { activeTasks ->
                 if (activeTasks.isNotEmpty()) {
                     tasksAdapter.activeTasks = activeTasks
                     tasksAdapter.notifyDataSetChanged()
                     showTaskListIfNeeded()
                 }
+                onTasksLoaded()
                 Timber.v("Loaded %d active tasks", activeTasks.size)
             })
 
@@ -221,8 +225,10 @@ class TasksFragment : Fragment(), TasksView, SwipeRefreshLayout.OnRefreshListene
                     tasksAdapter.notifyDataSetChanged()
                     showTaskListIfNeeded()
                 }
+                onTasksLoaded()
                 Timber.v("Loaded %d completed tasks", completedTasks.size)
             })
+            tasksViewModel.getTasks(it)
         }
 
         // Synchronize tasks and then refresh this task list
@@ -282,19 +288,11 @@ class TasksFragment : Fragment(), TasksView, SwipeRefreshLayout.OnRefreshListene
     override fun onTasksLoaded() {
         onRefreshDone()
 
-        tasksBinding.tasksList.post {
-            val layoutManager = tasksBinding.tasksList.layoutManager as LinearLayoutManager
-            val position = layoutManager.findLastVisibleItemPosition()
-            if (tasksAdapter.itemCount - 1 <= position || position == RecyclerView.NO_POSITION) {
-                (activity as MainActivity).setFabScrolling(enable = false, delay = true)
-            } else {
-                (activity as MainActivity).setFabScrolling(true)
-            }
-        }
-    }
-
-    override fun onRefresh() {
-        refreshTasks()
+        // Check if all tasks fit on the screen, in which case no need for scrolling
+        val layoutManager = tasksBinding.tasksList.layoutManager as LinearLayoutManager
+        val position = layoutManager.findLastVisibleItemPosition()
+        val scrolling = !(tasksAdapter.itemCount - 1 <= position || position == RecyclerView.NO_POSITION)
+        (activity as MainActivity).setAppBarScrolling(scrolling)
     }
 
     override fun onRefreshDone() {
@@ -333,10 +331,6 @@ class TasksFragment : Fragment(), TasksView, SwipeRefreshLayout.OnRefreshListene
      */
     fun updateTaskListId(newTaskListId: String) {
         if (newTaskListId != taskListId) {
-            // In case it is attached, disable fragment scrolling to prevent crashing
-            if (isAdded) {
-                (activity as MainActivity).setFabScrolling(false)
-            }
             taskListId = newTaskListId
             tasksViewModel.getTasks(taskListId!!)
             refreshTasks()

@@ -168,31 +168,25 @@ open class MainActivity : BaseActivity(), MainView, AccountInfoListener {
     fun fab(): FloatingActionButton = mainBinding.fab
 
     /**
-     * Set the scroll behavior of the FAB.
+     * Toggle the scroll behavior of the AppBar.
      *
-     * @param enable if true, enables the scrolling system, which moves the toolbar and the FAB
-     * out of the way when scrolling down and brings them back when scrolling up. If false, disables the whole
-     * scrolling system, which pins the toolbar and the FAB in place. This is used when the content of the fragment
-     * is not big enough to require scrolling, such is the case when a short list or an empty view is displayed.
+     * @param enable if `true`, enables the scrolling system, which moves the toolbar out of the way when scrolling
+     * down and brings it back when scrolling up. If false, disables the whole scrolling system, which pins it in place.
+     * This is used when the content of the fragment is not big enough to require scrolling, such is the case when a
+     * short list or an empty view is displayed.
      */
-    fun setFabScrolling(enable:Boolean, delay: Boolean = false) {
-        val runnable = Runnable {
-            mainBinding.toolbar.updateLayoutParams<AppBarLayout.LayoutParams> {
-                val flags = if (enable) {
-                    AppBarLayout.LayoutParams.SCROLL_FLAG_SCROLL or AppBarLayout.LayoutParams.SCROLL_FLAG_ENTER_ALWAYS
-                } else {
-                    0
-                }
-                if (scrollFlags != flags) {
-                    scrollFlags = flags
-                }
+    fun setAppBarScrolling(enable: Boolean) {
+        mainBinding.toolbar.updateLayoutParams<AppBarLayout.LayoutParams> {
+            val flags = if (enable) {
+                AppBarLayout.LayoutParams.SCROLL_FLAG_SCROLL or AppBarLayout.LayoutParams.SCROLL_FLAG_ENTER_ALWAYS
+            } else {
+                0
+            }
+            if (scrollFlags != flags) {
+                scrollFlags = flags
             }
         }
-        if (enable) {
-            runnable.run()
-        } else {
-            mainBinding.fab.postDelayed(runnable, if (delay) 300L else 0L)
-        }
+        Timber.v("Scroll enabled: $enable")
     }
 
     override fun onSignOut() {
