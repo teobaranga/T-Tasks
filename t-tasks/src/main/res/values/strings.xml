@@ -33,6 +33,8 @@
     <string name="msg_task_list_empty">Empty task list</string>
     <string name="msg_task_list_empty_extra">Start by creating a new task!</string>
     <string name="error_tasks_loading">There was an error refreshing your tasks, please try again later.</string>
+    <string name="task_section_completed">Completed</string>
+    <string name="task_section_active">Active</string>
     <string name="completed_count">Completed (%d)</string>
 
     <!-- Task Lists -->

@@ -5,14 +5,13 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.net.ConnectivityManager
 import android.os.Bundle
+import android.os.SystemClock
 import android.view.LayoutInflater
 import android.view.View
 import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.view.ViewGroup
-import android.view.Window.NAVIGATION_BAR_BACKGROUND_TRANSITION_NAME
 import android.widget.Toast
-import androidx.core.util.Pair
 import androidx.core.view.isVisible
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
@@ -30,7 +29,6 @@ import com.teo.ttasks.receivers.NetworkInfoReceiver.Companion.isOnline
 import com.teo.ttasks.ui.activities.main.MainActivity
 import com.teo.ttasks.ui.activities.task_detail.TaskDetailActivity
 import com.teo.ttasks.util.toastShort
-import eu.davidea.flexibleadapter.FlexibleAdapter
 import org.koin.android.ext.android.inject
 import org.koin.android.scope.currentScope
 import timber.log.Timber
@@ -49,17 +47,6 @@ private const val RC_USER_RECOVERABLE = 1
  */
 class TasksFragment : Fragment(), TasksView {
 
-    /**
-     * Array holding the 3 shared elements used during the transition to the [TaskDetailActivity].
-     *
-     * **0**: Task header layout, always present - *mandatory*
-     *
-     * **1**: Navigation bar, can be missing - *optional*
-     *
-     * **2**: FAB, could be hidden - *optional*
-     */
-    private val pairs: Array<Pair<View, String>?> = arrayOfNulls(3)
-
     private val tasksPresenter: TasksPresenter by currentScope.inject()
 
     private val networkInfoReceiver: NetworkInfoReceiver by inject()
@@ -73,88 +60,28 @@ class TasksFragment : Fragment(), TasksView {
             }
         }
 
-    /**
-     * The navigation bar view along with its associated transition name, used as a shared
-     * element when selecting a task to prevent the task item from overlapping
-     * it during the animation. This is cached to avoid the `findViewById` every time a task is
-     * selected.
-     *
-     * **Note:** The view can be null if the activity is re-created after getting killed and
-     * if that's the case [createNavBarPair] must be called to recreate it.
-     *
-     * For more information, see
-     * [Shared elements overflow navigation bar in transition animation](http://stackoverflow.com/q/32501024/5606622).
-     */
-    internal lateinit var navBar: Pair<View, String>
-
     private lateinit var tasksAdapter: TasksAdapter
 
     private lateinit var tasksBinding: FragmentTasksBinding
 
     private lateinit var tasksViewModel: TasksViewModel
 
-    private val taskItemClickListener = object : FlexibleAdapter.OnItemClickListener {
-        // Reject quick, successive clicks because they break the app
-        private val MIN_CLICK_INTERVAL = 1000
-        private var lastClickTime = 0L
-
-        override fun onItemClick(view: View, position: Int): Boolean {
-//            val item = tasksAdapter.getItem(position)!!
-//            when (item) {
-//                is CategoryItem -> {
-//                    if (item == completedTasksHeader && item.hasSubItems()) {
-//                        tasksPresenter.showCompleted = item.isExpanded
-//                    }
-//                    return true
-//                }
-//                is TaskItem -> {
-//                    // Handle click on a task item
-//                    val currentTime = SystemClock.elapsedRealtime()
-//                    if (currentTime - lastClickTime > MIN_CLICK_INTERVAL) {
-//                        lastClickTime = currentTime
-//
-//                        // Make sure the navigation bar view isn't null
-//                        if (navBar.first == null) {
-//                            createNavBarPair()
-//                        }
-//
-//                        // Add the task header layout to the shared elements
-//
-//                        pairs[0] = Pair.create(item.binding.layoutTask, getString(R.string.transition_task_header))
-//
-//                        // Find the shared elements to be used in the transition
-//                        val sharedElements: Array<Pair<View, String>?>
-//
-//                        if (!fab.isShown) {
-//                            // Check the navigation bar view
-//                            sharedElements = if (pairs[1]?.first == null) {
-//                                // Get only the task header layout element
-//                                arrayOf(pairs[0])
-//                            } else {
-//                                // Get the task header layout and the navigation bar
-//                                arrayOf(pairs[0], pairs[1])
-//                            }
-//                        } else {
-//                            sharedElements = if (pairs[1]?.first == null) {
-//                                // Get only the task header and the FAB
-//                                arrayOf(pairs[0], pairs[2])
-//                            } else {
-//                                // Get all the 3 elements
-//                                pairs
-//                            }
-//                        }
-//
-//                        val options = ActivityOptionsCompat.makeSceneTransitionAnimation(activity!!, *sharedElements)
-//                        TaskDetailActivity.start(context!!, item.taskId, taskListId!!, options.toBundle())
-//                    }
-//                }
-//            }
-            return true
-        }
-    }
-
     private val refreshListener: SwipeRefreshLayout.OnRefreshListener = SwipeRefreshLayout.OnRefreshListener {
         refreshTasks()
+    }
+
+    private val taskClickListener: TasksAdapter.TaskClickListener = object : TasksAdapter.TaskClickListener {
+        // Reject quick, successive clicks
+        private val MIN_CLICK_INTERVAL = 1_000
+        private var lastClickTime = 0L
+
+        override fun onTaskClicked(task: Task) {
+            val currentTime = SystemClock.elapsedRealtime()
+            if (currentTime - lastClickTime > MIN_CLICK_INTERVAL) {
+                lastClickTime = currentTime
+                TaskDetailActivity.start(context!!, task.id, taskListId!!, null)
+            }
+        }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -177,9 +104,10 @@ class TasksFragment : Fragment(), TasksView {
 
         taskListId = savedInstanceState?.getString(ARG_TASK_LIST_ID) ?: arguments?.getString(ARG_TASK_LIST_ID)
 
-        tasksAdapter = TasksAdapter()
-
-        createNavBarPair()
+        tasksAdapter = TasksAdapter().let {
+            it.taskClickListener = taskClickListener
+            return@let it
+        }
 
         networkInfoReceiver.setOnConnectionChangedListener { isOnline ->
             if (isOnline) {
@@ -255,14 +183,6 @@ class TasksFragment : Fragment(), TasksView {
         }
     }
 
-    override fun onActiveTasksLoaded(activeTasks: List<Task>) {
-//        tasksViewModel.activeTasks.value = activeTasks
-    }
-
-    override fun onCompletedTasksLoaded(completedTasks: List<Task>) {
-//        tasksViewModel.completedTasks.value = completedTasks
-    }
-
     override fun onTasksLoadError() {
         context?.toastShort(R.string.error_tasks_loading)
         onRefreshDone()
@@ -304,13 +224,6 @@ class TasksFragment : Fragment(), TasksView {
             context?.toastShort("Synchronized $taskSyncCount tasks")
         }
         tasksPresenter.refreshTasks(taskListId)
-    }
-
-    /** Cache the Pair holding the navigation bar view and its associated transition name  */
-    private fun createNavBarPair() {
-        val navBarView = activity!!.window.decorView.findViewById<View>(android.R.id.navigationBarBackground)
-        navBar = Pair.create(navBarView, NAVIGATION_BAR_BACKGROUND_TRANSITION_NAME)
-        pairs[1] = navBar
     }
 
     /**

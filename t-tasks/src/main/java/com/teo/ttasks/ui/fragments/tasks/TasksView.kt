@@ -1,6 +1,5 @@
 package com.teo.ttasks.ui.fragments.tasks
 
-import com.teo.ttasks.data.model.Task
 import com.teo.ttasks.ui.base.MvpView
 
 /**
@@ -10,10 +9,6 @@ import com.teo.ttasks.ui.base.MvpView
 internal interface TasksView : MvpView {
 
     fun onTasksLoading()
-
-    fun onActiveTasksLoaded(activeTasks: List<Task>)
-
-    fun onCompletedTasksLoaded(completedTasks: List<Task>)
 
     fun onTasksLoadError()
 

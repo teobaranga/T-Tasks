@@ -17,10 +17,14 @@ const val VIEW_TYPE_BOTTOM = 2
 class TasksAdapter(
     var activeTasks: List<Task> = emptyList(),
     var completedTasks: List<Task> = emptyList()
-) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+) : RecyclerView.Adapter<TasksAdapter.ViewHolder>() {
 
     companion object {
         private val currentYear by lazy { ZonedDateTime.now().year }
+    }
+
+    interface TaskClickListener {
+        fun onTaskClicked(task: Task)
     }
 
     enum class DateType(val accessFunction: Task.() -> ZonedDateTime?) {
@@ -28,19 +32,58 @@ class TasksAdapter(
         DUE({ dueDate });
     }
 
-    inner class TopViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val title: TextView = itemView.findViewById(R.id.section_title)
-        val sortType: TextView = itemView.findViewById(R.id.sort_type)
+    abstract class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        abstract fun bind(position: Int)
     }
 
-    inner class MiddleViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+    inner class TopViewHolder(itemView: View) : ViewHolder(itemView) {
+        val title: TextView = itemView.findViewById(R.id.section_title)
+        val completed: String = itemView.context.getString(R.string.task_section_completed)
+        val active: String = itemView.context.getString(R.string.task_section_active)
+
+        override fun bind(position: Int) {
+            if (activeTasks.isEmpty() || position != 0) {
+                title.text = completed
+                title.setCompoundDrawablesRelativeWithIntrinsicBounds(R.drawable.ic_done_24dp, 0, 0, 0)
+            } else {
+                title.text = active
+                title.setCompoundDrawablesRelativeWithIntrinsicBounds(R.drawable.ic_whatshot_24dp, 0, 0, 0)
+            }
+        }
+    }
+
+    inner class MiddleViewHolder(itemView: View) : ViewHolder(itemView), View.OnClickListener {
+
         private val dayView: TaskDateView = itemView.findViewById(R.id.task_date)
         private val monthView: TextView = itemView.findViewById(R.id.month)
         private val title: TextView = itemView.findViewById(R.id.task_title)
         private val description: TextView = itemView.findViewById(R.id.task_description)
         private val reminder: TextView = itemView.findViewById(R.id.reminder)
+        private val taskBodyLayout: View = itemView.findViewById(R.id.layout_task_body)
 
-        fun compute(task:Task, prevTask: Task?, dateType: DateType) {
+        private lateinit var task: Task
+
+        init {
+            taskBodyLayout.setOnClickListener(this)
+        }
+
+        override fun bind(position: Int) {
+            val (task, prevTask, dateType) = when {
+                position == 0 -> throw IllegalArgumentException("Not supposed to be 0 and MIDDLE")
+                position <= activeTasks.size -> Triple(
+                    activeTasks[position - 1],
+                    activeTasks.getOrNull(position - 2),
+                    DateType.DUE
+                )
+                else -> Triple(
+                    completedTasks[position - activeTasks.size - 3],
+                    completedTasks.getOrNull(position - activeTasks.size - 4),
+                    DateType.COMPLETED
+                )
+            }
+
+            this.task = task
+
             val getSortDate: Task.() -> ZonedDateTime? = dateType.accessFunction
             val taskSortDate = task.getSortDate()
             val prevTaskSortDate = prevTask?.getSortDate()
@@ -85,9 +128,25 @@ class TasksAdapter(
                 reminder.visibility = View.VISIBLE
             }
         }
+
+        override fun onClick(v: View?) {
+            val adapterPosition = adapterPosition
+            taskClickListener?.let {
+                if (adapterPosition != RecyclerView.NO_POSITION) {
+
+                    it.onTaskClicked(task)
+                }
+            }
+        }
     }
 
-    inner class BottomViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
+    inner class BottomViewHolder(itemView: View) : ViewHolder(itemView) {
+        override fun bind(position: Int) {
+            // Nothing to do
+        }
+    }
+
+    var taskClickListener: TaskClickListener? = null
 
     override fun getItemViewType(position: Int): Int {
         if (activeTasks.isEmpty() && completedTasks.isEmpty()) {
@@ -132,34 +191,11 @@ class TasksAdapter(
                 (if (completedTasks.isEmpty()) 0 else completedTasks.size + 2)
     }
 
-    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-        when (holder.itemViewType) {
-            VIEW_TYPE_TOP -> {
-                val topViewHolder = holder as TopViewHolder
-                if (activeTasks.isEmpty() || position != 0) {
-                    topViewHolder.title.text = "Completed"
-                    topViewHolder.title.setCompoundDrawablesRelativeWithIntrinsicBounds(R.drawable.ic_done_24dp, 0, 0, 0)
-                } else {
-                    topViewHolder.title.text = "Active"
-                    topViewHolder.title.setCompoundDrawablesRelativeWithIntrinsicBounds(R.drawable.ic_whatshot_24dp, 0, 0, 0)
-                }
-            }
-            VIEW_TYPE_MIDDLE -> {
-                val (task, prevTask, dateType) = when {
-                    position == 0 -> throw IllegalArgumentException("Not supposed to be 0 and MIDDLE")
-                    position <= activeTasks.size -> Triple(activeTasks[position - 1], activeTasks.getOrNull(position - 2), DateType.DUE)
-                    else -> Triple(completedTasks[position - activeTasks.size - 3], completedTasks.getOrNull(position - activeTasks.size - 4), DateType.COMPLETED)
-                }
-                (holder as MiddleViewHolder).compute(task, prevTask, dateType)
-            }
-            VIEW_TYPE_BOTTOM -> {
-
-            }
-            else -> throw IllegalArgumentException("Unsupported viewType: ${holder.itemViewType}")
-        }
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+        holder.bind(position)
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val layoutInflater = LayoutInflater.from(parent.context)
         return when (viewType) {
             VIEW_TYPE_TOP ->

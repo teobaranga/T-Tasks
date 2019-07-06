@@ -10,7 +10,8 @@
     android:paddingStart="14dp"
     android:paddingTop="8dp"
     android:paddingEnd="14dp"
-    android:paddingBottom="8dp">
+    android:paddingBottom="8dp"
+    android:theme="@android:style/ThemeOverlay.Material.Light">
 
     <TextView
         android:id="@+id/task_title"
