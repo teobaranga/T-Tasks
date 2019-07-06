@@ -35,7 +35,7 @@ class TTasksApp : Application() {
             // Android context
             androidContext(this@TTasksApp)
             // modules
-            modules(appModule, networkModule)
+            modules(listOf(appModule, networkModule))
         }
 
         DateUtils.init(this)

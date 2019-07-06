@@ -388,7 +388,7 @@ class TasksHelper(
     private fun handleResourceNotModified(throwable: Throwable): Boolean {
         // End the stream if the status code is 304 - Not Modified
         if (throwable is HttpException) {
-            throwable.response().errorBody()?.let {
+            throwable.response()?.errorBody()?.let {
                 it.close()
                 Timber.v("closed error body")
             }

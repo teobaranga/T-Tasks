@@ -32,7 +32,7 @@ import com.teo.ttasks.util.NotificationHelper
 import com.teo.ttasks.widget.configure.TasksWidgetConfigureActivity
 import com.teo.ttasks.widget.configure.TasksWidgetConfigurePresenter
 import io.reactivex.schedulers.Schedulers
-import okhttp3.OkHttpClient
+import okhttp3.*
 import okhttp3.logging.HttpLoggingInterceptor
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
@@ -154,7 +154,9 @@ val networkModule = module {
             .connectTimeout(1, TimeUnit.MINUTES)
             .readTimeout(1, TimeUnit.MINUTES)
             .writeTimeout(1, TimeUnit.MINUTES)
-            .addInterceptor(HttpLoggingInterceptor().setLevel(if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BASIC else HttpLoggingInterceptor.Level.NONE))
+            .addInterceptor(HttpLoggingInterceptor().apply {
+                level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BASIC else HttpLoggingInterceptor.Level.NONE
+            })
             .addInterceptor { chain ->
                 // Use the access token to access the Tasks API
                 val request = chain.request()
@@ -174,27 +176,29 @@ val networkModule = module {
                     }
                 }
             }
-            .authenticator { _, response ->
-                // Refresh the access token when it expires
-                Timber.d("Unauthorized, requesting new access token")
-                return@authenticator when (val account = GoogleSignIn.getLastSignedInAccount(context)?.account) {
-                    null -> {
-                        Timber.e("User is null, should be signed out")
-                        null
-                    }
-                    else -> {
-                        try {
-                            val accessToken = tokenHelper.refreshAccessToken(account).blockingGet()
-                            response.request().newBuilder()
-                                .header(HEADER_AUTHORIZATION, String.format(VALUE_BEARER, accessToken))
-                                .build()
-                        } catch (e: Exception) {
-                            Timber.e(e, "Could not get new access token")
+            .authenticator(object: Authenticator {
+                override fun authenticate(route: Route?, response: Response): Request? {
+                    // Refresh the access token when it expires
+                    Timber.d("Unauthorized, requesting new access token")
+                    return when (val account = GoogleSignIn.getLastSignedInAccount(context)?.account) {
+                        null -> {
+                            Timber.e("User is null, should be signed out")
                             null
+                        }
+                        else -> {
+                            try {
+                                val accessToken = tokenHelper.refreshAccessToken(account).blockingGet()
+                                response.request.newBuilder()
+                                    .header(HEADER_AUTHORIZATION, String.format(VALUE_BEARER, accessToken))
+                                    .build()
+                            } catch (e: Exception) {
+                                Timber.e(e, "Could not get new access token")
+                                null
+                            }
                         }
                     }
                 }
-            }
+            })
             .build()
     }
 }
