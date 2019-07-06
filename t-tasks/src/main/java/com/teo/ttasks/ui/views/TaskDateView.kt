@@ -12,6 +12,7 @@ import androidx.annotation.StyleableRes
 import com.teo.ttasks.R
 import com.teo.ttasks.util.DateUtils
 import org.threeten.bp.ZonedDateTime
+import kotlin.math.max
 import kotlin.math.roundToInt
 
 private const val dayNumberSizeSp = 24f
@@ -148,19 +149,19 @@ class TaskDateView : View {
     private fun measureWidth(measureSpec: Int): Int {
         val dayOfMonthWidth = if (dayNumber != null) dayOfMonthWidth else 0
         val dayOfWeekWidth = if (dayName != null) dayOfWeekWidth else 0
-        val size = paddingLeft + paddingRight + Math.max(dayOfMonthWidth, dayOfWeekWidth)
+        val size = paddingLeft + paddingRight + max(dayOfMonthWidth, dayOfWeekWidth)
         return resolveSizeAndState(size, measureSpec, 0)
     }
 
     private fun drawDayOfMonth(canvas: Canvas, dayOfMonth: String) {
-        val x = paddingLeft + Math.max(dayOfMonthWidth, dayOfWeekWidth) / 2
+        val x = paddingLeft + max(dayOfMonthWidth, dayOfWeekWidth) / 2
         //the y coordinate marks the bottom of the text, so we need to factor in the height
         val y = paddingTop + dayOfMonthHeight
         canvas.drawText(dayOfMonth, x.toFloat(), y.toFloat(), dayOfMonthPaint)
     }
 
     private fun drawDayOfWeek(canvas: Canvas, dayOfWeek: String) {
-        val x = paddingLeft + Math.max(dayOfMonthWidth, dayOfWeekWidth) / 2
+        val x = paddingLeft + max(dayOfMonthWidth, dayOfWeekWidth) / 2
         //the y coordinate marks the bottom of the text, so we need to factor in the height
         val y = paddingTop + dayOfMonthHeight + dayOfWeekHeight
         canvas.drawText(dayOfWeek, x.toFloat(), y.toFloat(), dayOfWeekPaint)
