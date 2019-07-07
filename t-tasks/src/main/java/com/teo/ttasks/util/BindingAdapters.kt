@@ -12,7 +12,9 @@ object BindingAdapters {
     @BindingAdapter("dueDate")
     @JvmStatic
     fun bindDueDate(view: TextView, date: ZonedDateTime?) {
-        view.text = DateUtils.formatterDate.format(date)
+        date?.let {
+            view.text = DateUtils.formatterDate.format(it)
+        }
     }
 
     @BindingAdapter("dueTime")

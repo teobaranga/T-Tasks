@@ -16,7 +16,7 @@
             type="com.teo.ttasks.data.model.TaskList" />
     </data>
 
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@id/container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -29,7 +29,9 @@
             android:layout_height="wrap_content"
             android:background="@drawable/bg_task_detail_header"
             android:minHeight="142dp"
-            android:transitionName="@string/transition_task_header">
+            android:transitionName="@string/transition_task_header"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
 
             <LinearLayout
                 android:layout_width="wrap_content"
@@ -92,15 +94,28 @@
 
         </FrameLayout>
 
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@id/fab"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="@dimen/activity_horizontal_margin"
+            app:layout_constraintBottom_toBottomOf="@id/task_header"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/task_header"
+            app:srcCompat="@{task.completedDate == null ? R.drawable.ic_done_24dp : R.drawable.ic_settings_backup_restore_24dp}"
+            tools:src="@drawable/ic_done_24dp" />
+
         <LinearLayout
             android:id="@id/task_content"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:background="?android:colorBackground"
             android:clipChildren="false"
             android:clipToPadding="false"
             android:orientation="vertical"
-            android:background="?android:colorBackground"
-            android:padding="@dimen/text_margin">
+            android:padding="@dimen/text_margin"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/task_header">
 
             <TextView
                 android:id="@+id/task_completion_status"
@@ -229,6 +244,6 @@
 
         </LinearLayout>
 
-    </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </layout>

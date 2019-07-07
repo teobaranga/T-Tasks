@@ -18,7 +18,6 @@ import com.teo.ttasks.util.ARG_TASK_LIST_ID
 import com.teo.ttasks.util.dpToPx
 import timber.log.Timber
 
-
 class TaskDetailFragment : BottomSheetDialogFragment() {
 
     companion object {
@@ -70,6 +69,11 @@ class TaskDetailFragment : BottomSheetDialogFragment() {
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         fragmentTaskDetailBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_task_detail, container, false)
+
+        fragmentTaskDetailBinding.fab.setOnClickListener {
+            taskDetailViewModel.updateCompletionStatus()
+            dismiss()
+        }
 
         return fragmentTaskDetailBinding.root
     }
