@@ -7,10 +7,6 @@
 
     <style name="TextAppearance.TaskListTitle.TaskDetail" parent="@style/TextAppearance.AppCompat.Subhead" />
 
-    <style name="Widget.TTasks.Toolbar.Dark" parent="Widget.MaterialComponents.Toolbar">
-        <item name="android:background">?colorPrimary</item>
-    </style>
-
     <style name="Widget.TTasks.TextInputLayout.OutlinedBox" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
         <item name="boxStrokeColor">@color/outline_stroke_color</item>
         <item name="hintTextColor">?android:textColorPrimary</item>

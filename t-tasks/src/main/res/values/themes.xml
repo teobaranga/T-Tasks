@@ -2,19 +2,18 @@
 <resources>
 
     <!-- Base theme (with action bar) -->
-    <style name="Base.Theme" parent="Theme.MaterialComponents">
-        <item name="colorPrimary">@color/brown_500</item>
-        <item name="colorPrimaryDark">@color/brown_500</item>
-        <item name="colorSecondary">@color/orange_A400</item>
+    <style name="Base.Theme" parent="Theme.MaterialComponents.DayNight">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorSecondary">@color/colorSecondary</item>
         <item name="colorAccent">@color/colorAccent</item>
         <item name="toolbarStyle">@style/Widget.TTasks.Toolbar</item>
-        <item name="android:colorBackground">?attr/colorPrimary</item>
-        <item name="android:navigationBarColor">?attr/colorPrimary</item>
         <item name="android:textCursorDrawable">@null</item>
+        <item name="android:navigationBarColor">?attr/colorPrimary</item>
     </style>
 
     <!-- Base theme (no action bar) -->
-    <style name="Base.Theme.NoActionBar" parent="Theme.MaterialComponents.NoActionBar">
+    <style name="Base.Theme.NoActionBar" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorSecondary">@color/orange_A400</item>
         <!--<item name="colorPrimaryDark">@color/colorPrimaryDark</item>-->
@@ -25,16 +24,25 @@
         <!--<item name="colorOnSecondary">@color/background_color</item>-->
     </style>
 
+    <!-- Base theme (dark action bar) -->
+    <style name="Base.Theme.DarkActionBar" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorSecondary">@color/colorSecondary</item>
+        <item name="colorAccent">@color/colorAccent</item>
+        <item name="toolbarStyle">@style/Widget.TTasks.Toolbar</item>
+        <item name="android:navigationBarColor">?attr/colorPrimary</item>
+    </style>
+
     <!-- Main -->
     <style name="Base.Theme.Main" parent="Base.Theme.NoActionBar">
+        <item name="android:colorBackground">?attr/colorPrimary</item>
         <!-- CAB -->
         <item name="windowActionModeOverlay">true</item>
     </style>
 
     <!-- Main theme -->
     <style name="Theme.Main" parent="Base.Theme.Main">
-        <item name="android:textColorPrimary">?android:textColorPrimaryInverse</item>
-        <item name="android:textColorTertiary">?android:textColorTertiaryInverse</item>
         <item name="android:windowContentTransitions">true</item>
         <item name="android:windowActivityTransitions">true</item>
         <item name="android:windowBackground">@drawable/launch_screen</item>
@@ -59,13 +67,10 @@
         <item name="android:windowBackground">@color/background_super_dark</item>
     </style>
 
-    <!-- Edit Task -->
-    <style name="Base.Theme.EditTask" parent="Base.Theme">
+    <!-- Edit Task theme -->
+    <style name="Theme.EditTask" parent="Base.Theme.DarkActionBar" >
         <item name="android:spinnerItemStyle">@style/SpinnerItemStyle</item>
     </style>
-
-    <!-- Edit Task theme -->
-    <style name="Theme.EditTask" parent="Base.Theme.EditTask" />
 
     <!-- Sign In -->
     <style name="Theme.SignIn" parent="Theme.AppCompat.Light.NoActionBar">

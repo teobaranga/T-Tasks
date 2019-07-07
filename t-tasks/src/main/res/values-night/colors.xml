@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <color name="colorPrimary">@color/grey_850</color>
+    <color name="colorPrimaryDark">@color/grey_850</color>
+
     <!-- Task item -->
     <color name="task_background">@color/grey_800</color>
 

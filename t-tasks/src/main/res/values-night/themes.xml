@@ -1,18 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <!-- Base theme (with action bar) -->
-    <style name="Base.Theme" parent="Theme.MaterialComponents">
-        <item name="colorPrimary">@color/grey_850</item>
-        <item name="colorPrimaryDark">@color/grey_850</item>
-        <item name="colorSecondary">@color/orange_A400</item>
-        <item name="colorAccent">@color/colorAccent</item>
-        <item name="toolbarStyle">@style/Widget.TTasks.Toolbar.Dark</item>
-        <item name="android:colorBackground">?attr/colorPrimary</item>
-        <item name="android:navigationBarColor">?attr/colorPrimary</item>
-        <item name="android:textCursorDrawable">@null</item>
-    </style>
-
     <!-- Base theme (no action bar) -->
     <style name="Base.Theme.NoActionBar" parent="Theme.MaterialComponents.NoActionBar">
         <item name="colorPrimary">@color/grey_850</item>
@@ -24,10 +12,9 @@
         <item name="android:textCursorDrawable">@null</item>
     </style>
 
-    <style name="Theme.Main" parent="Base.Theme.NoActionBar">
-        <!-- CAB -->
-        <item name="windowActionModeOverlay">true</item>
-        <item name="android:windowBackground">@drawable/launch_screen</item>
+    <!-- Edit Task theme -->
+    <style name="Theme.EditTask" parent="Base.Theme" >
+        <item name="android:colorBackground">?attr/colorPrimary</item>
     </style>
 
     <!-- About -->
