@@ -83,11 +83,7 @@ internal class TaskDetailPresenter(
     internal fun deleteTask() {
         task?.let {
             if (it.isLocalOnly) {
-                // Delete the task from the local database
-                realm.executeTransaction { _ ->
-                    // Make sure we're deleting a managed task
-                    realm.copyToRealmOrUpdate(it).deleteFromRealm()
-                }
+                tasksHelper.deleteTask(it, realm)
             } else {
                 // Mark it as deleted so it doesn't show up in the list
                 realm.executeTransaction { _ ->

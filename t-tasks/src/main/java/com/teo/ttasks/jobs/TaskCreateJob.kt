@@ -1,6 +1,5 @@
 package com.teo.ttasks.jobs
 
-import com.evernote.android.job.Job
 import com.evernote.android.job.JobManager
 import com.evernote.android.job.JobRequest
 import com.evernote.android.job.util.support.PersistableBundleCompat
@@ -22,7 +21,7 @@ class TaskCreateJob(
     @Transient private val widgetHelper: WidgetHelper,
     @Transient private val notificationHelper: NotificationHelper,
     @Transient private val tasksApi: TasksApi
-) : Job() {
+) : RealmJob() {
 
     companion object {
         const val TAG = "CREATE_TASK"
@@ -56,21 +55,23 @@ class TaskCreateJob(
         }
     }
 
-    override fun onRunJob(params: Params): Result {
+    override fun onRunJob(params: Params, realm: Realm): Result {
         // Extract params
         val extras = params.extras
         val localTaskId = extras[EXTRA_LOCAL_ID] as String
         val taskListId = extras[EXTRA_TASK_LIST_ID] as String
         val taskFields = TaskFields.fromBundle(extras)
 
-        val realm = Realm.getDefaultInstance()
-        val localTask = tasksHelper.getTask(localTaskId, realm)
+        // Use an unmanaged task so that it can be serialized by GSON
+        val taskManaged = tasksHelper.getTask(localTaskId, realm, false)
+        val localTask = taskManaged?.let { realm.copyFromRealm(it) }
 
         // Local task was not found, it was probably deleted, no point in continuing
         if (localTask == null) {
-            realm.close()
             return Result.SUCCESS
         }
+
+        Timber.v("Creating task: $localTask")
 
         val onlineTask: Task
         try {
@@ -93,9 +94,8 @@ class TaskCreateJob(
         // Update the local task with the full information and delete the old task
         realm.executeTransaction {
             it.insertOrUpdate(onlineTask)
-            localTask.deleteFromRealm()
+            taskManaged.deleteFromRealm()
         }
-        realm.close()
 
         // Update the widget
         widgetHelper.updateWidgets(taskListId)

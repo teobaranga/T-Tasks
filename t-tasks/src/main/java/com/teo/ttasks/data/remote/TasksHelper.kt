@@ -85,10 +85,10 @@ class TasksHelper(
             }
         }
 
-    fun getTaskList(taskListId: String, realm: Realm): TaskList? =
+    fun getTaskList(taskListId: String, realm: Realm, async: Boolean = true): TaskList? =
         realm.where(TaskList::class.java)
             .equalTo(com.teo.ttasks.data.model.TaskListFields.ID, taskListId)
-            .findFirstAsync()
+            .let { if (async) it.findFirstAsync() else it.findFirst() }
 
     /**
      * Update a task list by modifying specific fields (online)
@@ -151,7 +151,7 @@ class TasksHelper(
                             it.insertOrUpdate(taskListsResponse)
                             // Insert the new task lists
                             taskListsResponse.items?.forEach { taskList ->
-                                getTaskList(taskList.id, it) ?: it.insertOrUpdate(taskList)
+                                getTaskList(taskList.id, it, false) ?: it.insertOrUpdate(taskList)
                             }
                         }
                     } else {
@@ -220,10 +220,11 @@ class TasksHelper(
     /**
      * Get the first [Task] with the provided ID or null if the task is not found
      */
-    fun getTask(taskId: String, realm: Realm): Task? =
-        realm.where(Task::class.java)
+    fun getTask(taskId: String, realm: Realm, async: Boolean = true): Task? {
+        return realm.where(Task::class.java)
             .equalTo(com.teo.ttasks.data.model.TaskFields.ID, taskId)
-            .findFirstAsync()
+            .let { if (async) it.findFirstAsync() else it.findFirst() }
+    }
 
     /**
      * Update the given task from the provided task list to the new value
@@ -234,6 +235,14 @@ class TasksHelper(
     private fun updateTask(taskListId: String, task: Task): Single<Task> {
         Timber.d("updating task %s, %s, %s", task.id, task.synced, task.deleted)
         return tasksApi.updateTask(taskListId, task.id, task).map { task }
+    }
+
+    fun deleteTask(task: Task, realm: Realm) {
+        // Delete the task from the local database
+        realm.executeTransaction { _ ->
+            // Make sure we're deleting a managed task
+            realm.copyToRealmOrUpdate(task).deleteFromRealm()
+        }
     }
 
     /**
@@ -305,7 +314,7 @@ class TasksHelper(
                             it.insertOrUpdate(tasksResponse)
                             val tasksDatabase = FirebaseDatabase.getInstance().getTasksDatabase()
                             tasksResponse.items?.forEach { task ->
-                                val localTask = getTask(task.id, it)
+                                val localTask = getTask(task.id, it, false)
                                 if (localTask == null) {
                                     // Insert the new task into the local storage
                                     task.taskListId = taskListId

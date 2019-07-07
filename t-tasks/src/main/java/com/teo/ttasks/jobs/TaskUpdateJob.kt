@@ -1,6 +1,5 @@
 package com.teo.ttasks.jobs
 
-import com.evernote.android.job.Job
 import com.evernote.android.job.JobManager
 import com.evernote.android.job.JobRequest
 import com.evernote.android.job.util.support.PersistableBundleCompat
@@ -19,7 +18,7 @@ class TaskUpdateJob(
     @Transient private val widgetHelper: WidgetHelper,
     @Transient private val notificationHelper: NotificationHelper,
     @Transient private val tasksApi: TasksApi
-) : Job() {
+) : RealmJob() {
 
     companion object {
         const val TAG = "UPDATE_TASK"
@@ -73,7 +72,7 @@ class TaskUpdateJob(
         }
     }
 
-    override fun onRunJob(params: Params): Result {
+    override fun onRunJob(params: Params, realm: Realm): Result {
         Timber.v("Task Update Job running...")
 
         if (params.failureCount >= 10) {
@@ -87,20 +86,18 @@ class TaskUpdateJob(
         val taskListId = extras[EXTRA_TASK_LIST_ID] as String
         val taskFields = TaskFields.fromBundle(extras)
 
-        val realm = Realm.getDefaultInstance()
-        val localTask = tasksHelper.getTask(localTaskId, realm)
+        val taskManaged = tasksHelper.getTask(localTaskId, realm, false)
+        val localTask = taskManaged?.let { realm.copyFromRealm(it) }
 
         // Local task was not found, it was probably deleted, no point in continuing
         if (localTask == null) {
             Timber.v("Task not found - Success")
-            realm.close()
             return Result.SUCCESS
         }
 
         // The task was updated elsewhere
         if (localTask.synced) {
             Timber.v("Task was already synced - Success")
-            realm.close()
             return Result.SUCCESS
         }
 
@@ -115,7 +112,6 @@ class TaskUpdateJob(
         } catch (ex: Exception) {
             // Handle failure
             Timber.e("Failed to update the task, will retry...")
-            realm.close()
             return Result.RESCHEDULE
         }
 
@@ -125,7 +121,6 @@ class TaskUpdateJob(
         realm.executeTransaction {
             it.insertOrUpdate(onlineTask)
         }
-        realm.close()
 
         // Update the widget
         widgetHelper.updateWidgets(taskListId)

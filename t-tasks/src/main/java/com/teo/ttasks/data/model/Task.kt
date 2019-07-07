@@ -174,4 +174,12 @@ open class Task : RealmObject {
         notificationDismissed = task.notificationDismissed
         notificationId = task.notificationId
     }
+
+    override fun toString(): String {
+        return "Task(id='$id', taskListId='$taskListId', kind='$kind', etag=$etag, title=$title," +
+                " updated=$updated, parent=$parent, position=$position, notes=$notes, status=$status, due=$due," +
+                " completed=$completed, hidden=$hidden, reminder=$reminder, synced=$synced, deleted=$deleted," +
+                " notificationDismissed=$notificationDismissed, notificationId=$notificationId)"
+    }
+
 }
