@@ -89,4 +89,9 @@
     <!-- Widget configure -->
     <style name="Theme.TasksWidgetConfigure" parent="Theme.AppCompat.Light.Dialog" />
 
+    <style name="BottomSheetDialogTheme" parent="@style/Theme.MaterialComponents.Light.BottomSheetDialog">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="bottomSheetStyle">@style/BottomSheet.Modal.Transparent</item>
+    </style>
+
 </resources>

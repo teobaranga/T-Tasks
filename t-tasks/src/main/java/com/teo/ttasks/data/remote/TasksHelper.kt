@@ -88,7 +88,7 @@ class TasksHelper(
     fun getTaskList(taskListId: String, realm: Realm): TaskList? =
         realm.where(TaskList::class.java)
             .equalTo(com.teo.ttasks.data.model.TaskListFields.ID, taskListId)
-            .findFirst()
+            .findFirstAsync()
 
     /**
      * Update a task list by modifying specific fields (online)
@@ -223,7 +223,7 @@ class TasksHelper(
     fun getTask(taskId: String, realm: Realm): Task? =
         realm.where(Task::class.java)
             .equalTo(com.teo.ttasks.data.model.TaskFields.ID, taskId)
-            .findFirst()
+            .findFirstAsync()
 
     /**
      * Update the given task from the provided task list to the new value

@@ -2,19 +2,14 @@ package com.teo.ttasks.ui.fragments.tasks
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
-import androidx.lifecycle.ViewModel
 import com.teo.ttasks.LiveRealmResults
 import com.teo.ttasks.data.model.Task
 import com.teo.ttasks.data.remote.TasksHelper
-import io.realm.Realm
+import com.teo.ttasks.ui.base.RealmViewModel
 import org.koin.core.KoinComponent
 import org.koin.core.inject
 
-class TasksViewModel : ViewModel(), KoinComponent {
-
-    private val realm by lazy {
-        Realm.getDefaultInstance()
-    }
+class TasksViewModel : RealmViewModel(), KoinComponent {
 
     private val tasksHelper: TasksHelper by inject()
 
@@ -52,10 +47,5 @@ class TasksViewModel : ViewModel(), KoinComponent {
 
             currentCompletedTasksSource = this
         }
-    }
-
-    override fun onCleared() {
-        realm.close()
-        super.onCleared()
     }
 }

@@ -3,6 +3,10 @@
 
     <style name="AppBarOverlay" parent="ThemeOverlay.MaterialComponents.Dark.ActionBar"/>
 
+    <style name="BottomSheet.Modal.Transparent" parent="@style/Widget.Design.BottomSheet.Modal">
+        <item name="android:background">@android:color/transparent</item>
+    </style>
+
     <style name="PopupOverlay" parent="ThemeOverlay.MaterialComponents.Light"/>
 
     <style name="PopupMenu" parent="@style/Widget.AppCompat.Light.PopupMenu">

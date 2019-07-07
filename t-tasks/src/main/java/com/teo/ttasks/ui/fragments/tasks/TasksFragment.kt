@@ -27,13 +27,12 @@ import com.teo.ttasks.databinding.FragmentTasksBinding
 import com.teo.ttasks.receivers.NetworkInfoReceiver
 import com.teo.ttasks.receivers.NetworkInfoReceiver.Companion.isOnline
 import com.teo.ttasks.ui.activities.main.MainActivity
-import com.teo.ttasks.ui.task_detail.TaskDetailBottomSheetDialogFragment
+import com.teo.ttasks.ui.task_detail.TaskDetailFragment
+import com.teo.ttasks.util.ARG_TASK_LIST_ID
 import com.teo.ttasks.util.toastShort
 import org.koin.android.ext.android.inject
 import org.koin.android.scope.currentScope
 import timber.log.Timber
-
-private const val ARG_TASK_LIST_ID = "taskListId"
 
 private const val RC_USER_RECOVERABLE = 1
 
@@ -79,7 +78,7 @@ class TasksFragment : Fragment(), TasksView {
             val currentTime = SystemClock.elapsedRealtime()
             if (currentTime - lastClickTime > MIN_CLICK_INTERVAL) {
                 lastClickTime = currentTime
-                TaskDetailActivity.start(context!!, task.id, taskListId!!, null)
+                TaskDetailFragment.newInstance(task.id, taskListId!!).show(fragmentManager!!, null)
             }
         }
     }
