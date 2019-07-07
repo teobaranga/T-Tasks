@@ -12,7 +12,7 @@ import com.teo.ttasks.data.local.PrefHelper
 import com.teo.ttasks.data.model.TaskList
 import com.teo.ttasks.ui.activities.edit_task.EditTaskActivity
 import com.teo.ttasks.ui.activities.main.MainActivity
-import com.teo.ttasks.ui.activities.task_detail.TaskDetailActivity
+import com.teo.ttasks.ui.task_detail.TaskDetailActivity
 import com.teo.ttasks.widget.configure.TasksWidgetConfigureActivity
 import io.realm.Realm
 import org.koin.core.KoinComponent

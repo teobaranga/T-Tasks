@@ -12,7 +12,7 @@ import androidx.core.content.res.ResourcesCompat
 import com.teo.ttasks.R
 import com.teo.ttasks.data.model.Task
 import com.teo.ttasks.receivers.TaskNotificationReceiver
-import com.teo.ttasks.ui.activities.task_detail.TaskDetailActivity
+import com.teo.ttasks.ui.task_detail.TaskDetailActivity
 import timber.log.Timber
 
 class NotificationHelper(private val context: Context) {

@@ -22,8 +22,8 @@ import com.teo.ttasks.ui.activities.main.MainActivity
 import com.teo.ttasks.ui.activities.main.MainActivityPresenter
 import com.teo.ttasks.ui.activities.sign_in.SignInActivity
 import com.teo.ttasks.ui.activities.sign_in.SignInPresenter
-import com.teo.ttasks.ui.activities.task_detail.TaskDetailActivity
-import com.teo.ttasks.ui.activities.task_detail.TaskDetailPresenter
+import com.teo.ttasks.ui.task_detail.TaskDetailActivity
+import com.teo.ttasks.ui.task_detail.TaskDetailPresenter
 import com.teo.ttasks.ui.fragments.task_lists.TaskListsFragment
 import com.teo.ttasks.ui.fragments.task_lists.TaskListsPresenter
 import com.teo.ttasks.ui.fragments.tasks.TasksFragment

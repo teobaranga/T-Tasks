@@ -27,7 +27,7 @@ import com.teo.ttasks.databinding.FragmentTasksBinding
 import com.teo.ttasks.receivers.NetworkInfoReceiver
 import com.teo.ttasks.receivers.NetworkInfoReceiver.Companion.isOnline
 import com.teo.ttasks.ui.activities.main.MainActivity
-import com.teo.ttasks.ui.activities.task_detail.TaskDetailActivity
+import com.teo.ttasks.ui.task_detail.TaskDetailBottomSheetDialogFragment
 import com.teo.ttasks.util.toastShort
 import org.koin.android.ext.android.inject
 import org.koin.android.scope.currentScope

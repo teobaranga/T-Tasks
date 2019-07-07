@@ -1,4 +1,4 @@
-package com.teo.ttasks.ui.activities.task_detail
+package com.teo.ttasks.ui.task_detail
 
 import android.content.Context
 import android.content.DialogInterface

@@ -9,8 +9,8 @@ import android.widget.RemoteViewsService
 import com.teo.ttasks.R
 import com.teo.ttasks.data.model.Task
 import com.teo.ttasks.data.remote.TasksHelper
-import com.teo.ttasks.ui.activities.task_detail.TaskDetailActivity
-import com.teo.ttasks.ui.activities.task_detail.TaskDetailActivity.Companion.EXTRA_TASK_ID
+import com.teo.ttasks.ui.task_detail.TaskDetailActivity
+import com.teo.ttasks.ui.task_detail.TaskDetailActivity.Companion.EXTRA_TASK_ID
 import com.teo.ttasks.util.DateUtils
 import org.threeten.bp.format.DateTimeFormatter
 import timber.log.Timber

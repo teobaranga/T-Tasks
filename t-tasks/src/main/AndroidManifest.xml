@@ -33,7 +33,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".ui.activities.task_detail.TaskDetailActivity"
+            android:name="com.teo.ttasks.ui.task_detail.TaskDetailActivity"
             android:label="@string/app_name"
             android:parentActivityName=".ui.activities.main.MainActivity"
             android:theme="@style/Theme.TaskDetail">

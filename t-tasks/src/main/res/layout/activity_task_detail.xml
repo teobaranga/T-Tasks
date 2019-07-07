@@ -21,7 +21,7 @@
         android:layout_height="match_parent"
         android:clipChildren="false"
         android:clipToPadding="false"
-        tools:context=".ui.activities.task_detail.TaskDetailActivity">
+        tools:context=".ui.task_detail.TaskDetailActivity">
 
         <LinearLayout
             android:id="@id/container"
