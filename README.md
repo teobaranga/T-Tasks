@@ -18,9 +18,9 @@ More features are planned and will be added in the future.
 ### Screenshots
 
 <p align="center">
-  <img src="http://i.imgur.com/k06QhyE.png" width="30%" height="30%"/>
-  <img src="http://i.imgur.com/oPMrMDt.png" width="30%" height="30%"/>
-  <img src="http://i.imgur.com/OTUHvFo.png" width="30%" height="30%"/>
+  <img src="https://i.imgur.com/CpTcxEF.png" width="30%" height="30%"/>
+  <img src="https://i.imgur.com/sz1kvht.png" width="30%" height="30%"/>
+  <img src="https://i.imgur.com/9ycty2j.png" width="30%" height="30%"/>
 </p>
 
 
