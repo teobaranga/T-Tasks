@@ -31,7 +31,9 @@ class TasksWidgetConfigureActivity : AppCompatActivity(), TasksWidgetConfigureVi
     @Suppress("UNUSED_PARAMETER")
     fun onAddClicked(v: View) {
         // Store the task list ID associated with this widget locally
-        presenter.saveWidgetTaskListId(mAppWidgetId, taskListsAdapter.getItem(binding.taskLists.selectedItemPosition).id)
+        taskListsAdapter.getItem(binding.taskLists.selectedItemPosition)?.let { taskList ->
+            presenter.saveWidgetTaskListId(mAppWidgetId, taskList.id)
+        }
 
         // It is the responsibility of the configuration activity to update the app widget
         // Trigger the AppWidgetProvider in order to update the widget
