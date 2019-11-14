@@ -3,7 +3,7 @@ package com.teo.ttasks.data.local
 import android.content.Context
 import android.content.SharedPreferences
 import android.net.Uri
-import android.provider.Settings
+import android.provider.Settings.System.DEFAULT_NOTIFICATION_URI
 import androidx.core.net.toUri
 import androidx.preference.PreferenceManager
 import com.google.firebase.auth.FirebaseAuth
@@ -98,8 +98,14 @@ class PrefHelper(private val context: Context, private val firebaseAuth: Firebas
         set(color) = sharedPreferences.edit().putString(prefKeyNotificationLedColor, color).apply()
 
     var notificationSound: Uri?
-        get() = sharedPreferences.getString(prefKeyNotificationSound, Settings.System.DEFAULT_NOTIFICATION_URI.toString())?.toUri()
-        set(sound) = sharedPreferences.edit().putString(prefKeyNotificationSound, sound.toString()).apply()
+        get() {
+            val soundString = sharedPreferences.getString(prefKeyNotificationSound, DEFAULT_NOTIFICATION_URI.toString())!!
+            return if (soundString.isBlank()) null else soundString.toUri()
+        }
+        set(sound) {
+            val soundString = sound?.toString() ?: ""
+            sharedPreferences.edit().putString(prefKeyNotificationSound, soundString).apply()
+        }
 
     var notificationVibration: Boolean
         get() = sharedPreferences.getBoolean(prefKeyNotificationVibration, context.getString(R.string.pref_notification_vibrate_default).toBoolean())
