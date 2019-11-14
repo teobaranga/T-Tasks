@@ -11,11 +11,13 @@
         <item>Never</item>
         <item>Auto</item>
         <item>Always</item>
+        <item>System</item>
     </string-array>
     <string-array name="pref_night_mode_values">
         <item>never</item>
         <item>auto</item>
         <item>always</item>
+        <item>system</item>
     </string-array>
 
     <!-- Example settings for Data & Sync -->
