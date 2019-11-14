@@ -7,10 +7,10 @@ android:
   # - platform-tools
 
   # The BuildTools version used by your project
-  - build-tools-28.0.3
+  - build-tools-29.0.2
 
   # The SDK version used to compile your project
-  - android-28
+  - android-29
 
   # Additional components
   - extra-google-google_play_services
@@ -19,8 +19,8 @@ android:
 
   # Specify at least one system image,
   # if you need to run emulator(s) during your tests
-  - sys-img-x86-android-28
-  - sys-img-armeabi-v7a-android-28
+  - sys-img-x86-android-29
+  - sys-img-armeabi-v7a-android-29
 
 script:
 - ./gradlew clean assembleDevDebug testDevDebugUnitTest
