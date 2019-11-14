@@ -22,12 +22,12 @@ import com.teo.ttasks.ui.activities.main.MainActivity
 import com.teo.ttasks.ui.activities.main.MainActivityPresenter
 import com.teo.ttasks.ui.activities.sign_in.SignInActivity
 import com.teo.ttasks.ui.activities.sign_in.SignInPresenter
-import com.teo.ttasks.ui.task_detail.TaskDetailActivity
-import com.teo.ttasks.ui.task_detail.TaskDetailPresenter
 import com.teo.ttasks.ui.fragments.task_lists.TaskListsFragment
 import com.teo.ttasks.ui.fragments.task_lists.TaskListsPresenter
 import com.teo.ttasks.ui.fragments.tasks.TasksFragment
 import com.teo.ttasks.ui.fragments.tasks.TasksPresenter
+import com.teo.ttasks.ui.task_detail.TaskDetailActivity
+import com.teo.ttasks.ui.task_detail.TaskDetailPresenter
 import com.teo.ttasks.util.NotificationHelper
 import com.teo.ttasks.widget.configure.TasksWidgetConfigureActivity
 import com.teo.ttasks.widget.configure.TasksWidgetConfigurePresenter
@@ -62,7 +62,7 @@ val appModule = module {
 
     single { WidgetHelper(context = get(), prefHelper = get()) }
 
-    single { NotificationHelper(context = get()) }
+    single { NotificationHelper(context = get(), prefHelper = get()) }
 
     factory { TaskCreateJob(tasksHelper = get(), widgetHelper = get(), notificationHelper = get(), tasksApi = get()) }
 

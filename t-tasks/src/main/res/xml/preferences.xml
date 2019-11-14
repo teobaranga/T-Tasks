@@ -1,91 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
-<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <PreferenceCategory
-        android:title="@string/pref_header_theme">
+    <PreferenceCategory app:title="@string/pref_header_theme">
 
-        <!-- NOTE: Hide buttons to simplify the UI. Users can touch outside the dialog to dismiss it. -->
-        <!-- NOTE: ListPreference's summary should be set to its value by the activity code. -->
         <ListPreference
-            android:defaultValue="@string/default_night_mode"
-            android:entries="@array/pref_night_modes"
-            android:entryValues="@array/pref_night_mode_values"
-            android:key="night_mode"
-            android:negativeButtonText="@null"
-            android:positiveButtonText="@null"
-            android:title="@string/pref_night_mode"/>
-
-        <!--<CheckBoxPreference-->
-            <!--android:defaultValue="true"-->
-            <!--android:key="example_checkbox"-->
-            <!--android:summary="@string/pref_description_social_recommendations"-->
-            <!--android:title="@string/pref_title_social_recommendations"/>-->
-
-        <!--&lt;!&ndash; NOTE: EditTextPreference accepts EditText attributes. &ndash;&gt;-->
-        <!--&lt;!&ndash; NOTE: EditTextPreference's summary should be set to its value by the activity code. &ndash;&gt;-->
-        <!--<EditTextPreference-->
-            <!--android:capitalize="words"-->
-            <!--android:defaultValue="@string/pref_default_display_name"-->
-            <!--android:inputType="textCapWords"-->
-            <!--android:key="example_text"-->
-            <!--android:maxLines="1"-->
-            <!--android:selectAllOnFocus="true"-->
-            <!--android:singleLine="true"-->
-            <!--android:title="@string/pref_title_display_name"/>-->
+            app:defaultValue="@string/pref_night_mode_default"
+            app:entries="@array/pref_night_modes"
+            app:entryValues="@array/pref_night_mode_values"
+            app:key="@string/pref_night_mode_key"
+            app:negativeButtonText="@null"
+            app:positiveButtonText="@null"
+            app:title="@string/pref_night_mode"
+            app:useSimpleSummaryProvider="true" />
 
     </PreferenceCategory>
 
-    <PreferenceCategory
-        android:title="@string/pref_header_notifications">
+    <PreferenceCategory app:title="@string/pref_header_notifications">
 
         <CheckBoxPreference
-            android:defaultValue="true"
-            android:key="reminder_vibrate"
-            android:title="@string/pref_title_vibrate"/>
+            app:defaultValue="@string/pref_notification_vibrate_default"
+            app:key="@string/pref_notification_vibrate_key"
+            app:title="@string/pref_notification_vibrate_title" />
 
-        <!-- NOTE: Hide buttons to simplify the UI. Users can touch outside the dialog to dismiss it. -->
-        <!-- NOTE: ListPreference's summary should be set to its value by the activity code. -->
         <ListPreference
-            android:defaultValue="@string/default_led_color"
-            android:entries="@array/pref_led_colors"
-            android:entryValues="@array/pref_led_color_values"
-            android:key="reminder_color"
-            android:negativeButtonText="@null"
-            android:positiveButtonText="@null"
-            android:title="@string/pref_led_color"/>
+            app:defaultValue="@string/pref_notification_led_color_default"
+            app:entries="@array/pref_notification_led_colors"
+            app:entryValues="@array/pref_notification_led_color_values"
+            app:key="@string/pref_notification_led_color_key"
+            app:negativeButtonText="@null"
+            app:positiveButtonText="@null"
+            app:title="@string/pref_notification_led_color_title"
+            app:useSimpleSummaryProvider="true" />
 
-        <!-- Allows the user to choose a ringtone in the 'notification' category. -->
-        <!-- NOTE: RingtonePreference's summary should be set to its value by the activity code. -->
-        <RingtonePreference
-            android:defaultValue="@string/default_reminder_sound"
-            android:key="reminder_sound"
-            android:showDefault="true"
-            android:showSilent="true"
-            android:ringtoneType="notification"
-            android:title="@string/pref_title_sound"/>
+        <Preference
+            app:key="@string/pref_notification_sound_key"
+            app:title="@string/pref_notification_sound_title" />
 
     </PreferenceCategory>
-
-    <!--<PreferenceCategory-->
-        <!--android:title="@string/pref_header_data_sync">-->
-        <!---->
-        <!--&lt;!&ndash; NOTE: Hide buttons to simplify the UI. Users can touch outside the dialog to dismiss it. &ndash;&gt;-->
-        <!--&lt;!&ndash; NOTE: ListPreference's summary should be set to its value by the activity code. &ndash;&gt;-->
-        <!--<ListPreference-->
-            <!--android:defaultValue="180"-->
-            <!--android:entries="@array/pref_sync_frequency_titles"-->
-            <!--android:entryValues="@array/pref_sync_frequency_values"-->
-            <!--android:key="sync_frequency"-->
-            <!--android:negativeButtonText="@null"-->
-            <!--android:positiveButtonText="@null"-->
-            <!--android:title="@string/pref_title_sync_frequency"/>-->
-
-        <!--&lt;!&ndash; This preference simply launches an intent when selected. Use this UI sparingly, per-->
-             <!--design guidelines. &ndash;&gt;-->
-        <!--<Preference android:title="@string/pref_title_system_sync_settings">-->
-            <!--<intent android:action="android.settings.SYNC_SETTINGS"/>-->
-        <!--</Preference>-->
-
-    <!--</PreferenceCategory>-->
 
 </PreferenceScreen>

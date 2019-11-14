@@ -194,7 +194,7 @@ open class MainActivity : BaseActivity(), MainView, AccountInfoListener {
     }
 
     override fun onSettingsShow() {
-        SettingsActivity.startForResult(this, RC_NIGHT_MODE)
+        SettingsActivity.start(this)
     }
 
     override fun onAboutShow() {

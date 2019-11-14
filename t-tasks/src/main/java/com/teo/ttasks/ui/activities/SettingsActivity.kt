@@ -1,22 +1,27 @@
 package com.teo.ttasks.ui.activities
 
-import android.app.Activity
+import android.content.Context
 import android.content.Intent
-import android.content.SharedPreferences
 import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Bundle
-import android.preference.RingtonePreference
-import androidx.preference.ListPreference
+import android.provider.Settings.System.DEFAULT_NOTIFICATION_URI
 import androidx.appcompat.app.AppCompatActivity
+import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import com.teo.ttasks.R
-import com.teo.ttasks.util.NightHelper
-import timber.log.Timber
+import com.teo.ttasks.data.local.PrefHelper
+import org.koin.core.KoinComponent
+import org.koin.core.inject
 
 class SettingsActivity : AppCompatActivity() {
 
-    private var nightModeChanged = false
+    companion object {
+
+        fun start(context: Context) {
+            context.startActivity(Intent(context, SettingsActivity::class.java))
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -26,132 +31,73 @@ class SettingsActivity : AppCompatActivity() {
         supportFragmentManager.beginTransaction()
                 .replace(android.R.id.content, SettingsFragment())
                 .commit()
+    }
 
-        if (savedInstanceState != null) {
-            nightModeChanged = savedInstanceState.getBoolean(ARG_NIGHT_MODE_CHANGED, false)
-            Timber.d("night mode changed %s", nightModeChanged)
-            if (nightModeChanged)
-                setResult(Activity.RESULT_OK)
+    class SettingsFragment : PreferenceFragmentCompat(), KoinComponent {
+
+        companion object {
+            private const val REQUEST_CODE_ALERT_RINGTONE = 0
         }
-    }
 
-    public override fun onSaveInstanceState(outState: Bundle) {
-        Timber.d("saving")
-        outState.putBoolean(ARG_NIGHT_MODE_CHANGED, nightModeChanged)
-        super.onSaveInstanceState(outState)
-    }
+        private val prefHelper: PrefHelper by inject()
 
-    fun setNightModeChanged(nightModeChanged: Boolean) {
-        this.nightModeChanged = nightModeChanged
-    }
+        private lateinit var prefKeyRingtone: String
 
-    class SettingsFragment : PreferenceFragmentCompat(), SharedPreferences.OnSharedPreferenceChangeListener {
-
-        override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String) {
-            // do nothing yet
-        }
+        private var currentRingtoneUri: Uri? = prefHelper.notificationSound
 
         override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
-            TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+            setPreferencesFromResource(R.xml.preferences, rootKey)
         }
 
         override fun onCreate(savedInstanceState: Bundle?) {
             super.onCreate(savedInstanceState)
 
-            // Load the preferences from an XML resource
-            addPreferencesFromResource(R.xml.preferences)
+            prefKeyRingtone = getString(R.string.pref_notification_sound_key)
 
-            val sharedPreferences = preferenceManager.sharedPreferences
+            updateRingtonePrefSummary()
+        }
 
-            val nightMode = findPreference(NIGHT_MODE) as ListPreference
-            val initialNightMode = sharedPreferences.getString(NIGHT_MODE, getString(R.string.default_night_mode))
-            setNightMode(nightMode, initialNightMode)
+        override fun onPreferenceTreeClick(preference: Preference): Boolean {
+            return when (preference.key) {
+                prefKeyRingtone -> {
+                    val intent = Intent(RingtoneManager.ACTION_RINGTONE_PICKER).apply {
+                        putExtra(RingtoneManager.EXTRA_RINGTONE_TYPE, RingtoneManager.TYPE_NOTIFICATION)
+                        putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_DEFAULT, true)
+                        putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_SILENT, true)
+                        putExtra(RingtoneManager.EXTRA_RINGTONE_DEFAULT_URI, DEFAULT_NOTIFICATION_URI)
+                        putExtra(RingtoneManager.EXTRA_RINGTONE_EXISTING_URI, currentRingtoneUri)
+                    }
 
-            nightMode.setOnPreferenceChangeListener { preference, newValue ->
-                setNightMode(preference as ListPreference, newValue as String)
-                val oldValue = preference.value
-                NightHelper.applyNightMode(newValue)
-                val activity = activity as SettingsActivity
-                if (initialNightMode != newValue) {
-                    Timber.d("changed")
-                    activity.setNightModeChanged(true)
-                } else {
-                    Timber.d("not changed")
-                    activity.setNightModeChanged(false)
+                    startActivityForResult(intent, REQUEST_CODE_ALERT_RINGTONE)
+                    true
                 }
-                if (oldValue != newValue)
-                    activity.recreate()
-                true
-            }
-
-            val reminderSound = findPreference(REMINDER_SOUND) as RingtonePreference
-            val initialSound = sharedPreferences.getString(REMINDER_SOUND, getString(R.string.default_reminder_sound))
-            setReminderSound(reminderSound, initialSound)
-
-            reminderSound.setOnPreferenceChangeListener { preference, newValue ->
-                setReminderSound(preference as RingtonePreference, newValue as String)
-                true
-            }
-
-            val reminderColor = findPreference(REMINDER_COLOR) as ListPreference
-            val initialColor = sharedPreferences.getString(REMINDER_COLOR, getString(R.string.default_led_color))
-            setColor(reminderColor, initialColor)
-
-            reminderColor.setOnPreferenceChangeListener { preference, newValue ->
-                setColor(preference as ListPreference, newValue as String)
-                true
-            }
-
-            // set texts correctly
-            onSharedPreferenceChanged(null, "")
-        }
-
-        override fun onStart() {
-            super.onStart()
-            preferenceManager.sharedPreferences.registerOnSharedPreferenceChangeListener(this)
-        }
-
-        override fun onStop() {
-            preferenceManager.sharedPreferences.unregisterOnSharedPreferenceChangeListener(this)
-            super.onStop()
-        }
-
-        private fun setNightMode(preference: ListPreference, nightMode: String) {
-            preference.summary = Character.toTitleCase(nightMode[0]) + nightMode.substring(1)
-        }
-
-        private fun setReminderSound(preference: RingtonePreference, sound: String?) {
-            if (sound == null || sound.isBlank()) {
-                preference.setSummary(R.string.pref_ringtone_silent)
-            } else {
-                RingtoneManager.getRingtone(activity, Uri.parse(sound))?.let { ringtone ->
-                    preference.summary = ringtone.getTitle(activity)
+                else -> {
+                    super.onPreferenceTreeClick(preference)
                 }
             }
         }
 
-        private fun setColor(preference: ListPreference, colorString: String?) {
-            if (colorString == null || colorString.isBlank()) {
-                preference.summary = getString(R.string.none)
+        override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+            if (requestCode == REQUEST_CODE_ALERT_RINGTONE && data != null) {
+                currentRingtoneUri = data.getParcelableExtra(RingtoneManager.EXTRA_RINGTONE_PICKED_URI)
+                prefHelper.notificationSound = currentRingtoneUri
+                updateRingtonePrefSummary()
             } else {
-                val ch = colorString[0]
-                val color = if (Character.isTitleCase(ch)) colorString else Character.toTitleCase(ch) + colorString.substring(1)
-                preference.summary = color
+                super.onActivityResult(requestCode, resultCode, data)
             }
         }
 
-        companion object {
-            private const val NIGHT_MODE = "night_mode"
-            private const val REMINDER_SOUND = "reminder_sound"
-            private const val REMINDER_COLOR = "reminder_color"
-        }
-    }
+        private fun updateRingtonePrefSummary() {
+            val soundPref = findPreference<Preference>(prefKeyRingtone)!!
+            val sound = prefHelper.notificationSound
 
-    companion object {
-        private const val ARG_NIGHT_MODE_CHANGED = "nightMode"
-
-        fun startForResult(activity: AppCompatActivity, requestCode: Int) {
-            activity.startActivityForResult(Intent(activity, SettingsActivity::class.java), requestCode)
+            if (sound == null) {
+                soundPref.summary = getString(R.string.pref_notification_sound_silent)
+            } else {
+                RingtoneManager.getRingtone(activity, sound)?.let { ringtone ->
+                    soundPref.summary = ringtone.getTitle(activity)
+                }
+            }
         }
     }
 }

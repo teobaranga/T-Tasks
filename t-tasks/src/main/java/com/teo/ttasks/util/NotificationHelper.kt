@@ -1,21 +1,23 @@
 package com.teo.ttasks.util
 
-import android.app.*
+import android.app.AlarmManager
+import android.app.Notification
+import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
-import android.net.Uri
-import android.preference.PreferenceManager
 import androidx.core.app.NotificationCompat
 import androidx.core.app.TaskStackBuilder
 import androidx.core.content.res.ResourcesCompat
 import com.teo.ttasks.R
+import com.teo.ttasks.data.local.PrefHelper
 import com.teo.ttasks.data.model.Task
 import com.teo.ttasks.receivers.TaskNotificationReceiver
 import com.teo.ttasks.ui.task_detail.TaskDetailActivity
 import timber.log.Timber
 
-class NotificationHelper(private val context: Context) {
+class NotificationHelper(private val context: Context, private val prefHelper: PrefHelper) {
 
     companion object {
         /** Notification channel ID for reminders */
@@ -73,22 +75,18 @@ class NotificationHelper(private val context: Context) {
                 }
         val deletePendingIntent = PendingIntent.getBroadcast(context, 0, deleteIntent, PendingIntent.FLAG_UPDATE_CURRENT)
 
-        // Check if user enabled reminder vibration
-        val preferences = PreferenceManager.getDefaultSharedPreferences(context)
-        val vibrate = preferences.getBoolean("reminder_vibrate", true)
-        val sound = Uri.parse(preferences.getString("reminder_sound", context.getString(R.string.default_reminder_sound)))
-        val colorString = preferences.getString("reminder_color", context.getString(R.string.default_led_color))
-        val color = if (colorString!!.isEmpty()) NotificationCompat.COLOR_DEFAULT else Color.parseColor(colorString)
+        val ledColorString = prefHelper.notificationLedColor
+        val ledColor = if (ledColorString.isEmpty()) NotificationCompat.COLOR_DEFAULT else Color.parseColor(ledColorString)
 
         // Create the notification
         val notification = NotificationCompat.Builder(context, "default")
                 .setContentTitle(String.format(context.getString(R.string.task_due), task.title))
                 .setContentText(context.getString(R.string.notification_more_info))
                 .setSmallIcon(R.drawable.ic_assignment_turned_in_24dp)
-                .setDefaults(if (vibrate) Notification.DEFAULT_VIBRATE else 0) // enable vibration only if requested
-                .setSound(sound)
+                .setDefaults(if (prefHelper.notificationVibration) Notification.DEFAULT_VIBRATE else 0) // enable vibration only if requested
+                .setSound(prefHelper.notificationSound)
                 .setOnlyAlertOnce(true)
-                .setLights(color, 500, 2000)
+                .setLights(ledColor, 500, 2000)
                 .setColor(ResourcesCompat.getColor(context.resources, R.color.colorPrimary, null))
                 .setContentIntent(resultPendingIntent)
                 .setDeleteIntent(deletePendingIntent)

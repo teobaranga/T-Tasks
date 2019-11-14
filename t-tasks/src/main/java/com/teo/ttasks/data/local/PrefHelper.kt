@@ -2,9 +2,13 @@ package com.teo.ttasks.data.local
 
 import android.content.Context
 import android.content.SharedPreferences
-import android.preference.PreferenceManager
+import android.net.Uri
+import android.provider.Settings
+import androidx.core.net.toUri
+import androidx.preference.PreferenceManager
 import com.google.firebase.auth.FirebaseAuth
-import com.teo.ttasks.util.NightHelper.NIGHT_AUTO
+import com.teo.ttasks.R
+import com.teo.ttasks.util.NightHelper
 import com.teo.ttasks.util.SortType
 import timber.log.Timber
 
@@ -30,9 +34,15 @@ class PrefHelper(private val context: Context, private val firebaseAuth: Firebas
         private const val PREF_SHOW_COMPLETED = "showCompleted"
 
         private const val PREF_SORT_MODE = "sortMode"
-
-        private const val PREF_NIGHT_MODE = "night_mode"
     }
+
+    private val prefKeyNotificationLedColor: String = context.getString(R.string.pref_notification_led_color_key)
+
+    private val prefKeyNotificationSound: String = context.getString(R.string.pref_notification_sound_key)
+
+    private val prefKeyNotificationVibration: String = context.getString(R.string.pref_notification_vibrate_key)
+
+    private val prefKeyNightMode: String = context.getString(R.string.pref_night_mode_key)
 
     private val sharedPreferences: SharedPreferences by lazy { PreferenceManager.getDefaultSharedPreferences(context) }
 
@@ -41,7 +51,7 @@ class PrefHelper(private val context: Context, private val firebaseAuth: Firebas
     }
 
     val nightMode: String
-        get() = sharedPreferences.getString(PREF_NIGHT_MODE, NIGHT_AUTO)!!
+        get() = sharedPreferences.getString(prefKeyNightMode, context.getString(R.string.pref_night_mode_default))!!
 
     val userEmail: String?
         get() = sharedPreferences.getString(PREF_USER_EMAIL, null)
@@ -82,6 +92,33 @@ class PrefHelper(private val context: Context, private val firebaseAuth: Firebas
     var sortMode: SortType
         get() = SortType.valueOf(sharedPreferences.getString(PREF_SORT_MODE, null) ?: SortType.SORT_DATE.name)
         set(sortMode) = sharedPreferences.edit().putString(PREF_SORT_MODE, sortMode.name).apply()
+
+    var notificationLedColor: String
+        get() = sharedPreferences.getString(prefKeyNotificationLedColor, context.getString(R.string.pref_notification_led_color_default))!!
+        set(color) = sharedPreferences.edit().putString(prefKeyNotificationLedColor, color).apply()
+
+    var notificationSound: Uri?
+        get() = sharedPreferences.getString(prefKeyNotificationSound, Settings.System.DEFAULT_NOTIFICATION_URI.toString())?.toUri()
+        set(sound) = sharedPreferences.edit().putString(prefKeyNotificationSound, sound.toString()).apply()
+
+    var notificationVibration: Boolean
+        get() = sharedPreferences.getBoolean(prefKeyNotificationVibration, context.getString(R.string.pref_notification_vibrate_default).toBoolean())
+        set(vibration) = sharedPreferences.edit().putBoolean(prefKeyNotificationVibration, vibration).apply()
+
+    /**
+     * Listener used to apply some global logic whenever specific preferences change.
+     */
+    private val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+        when (key) {
+            prefKeyNightMode -> {
+                NightHelper.applyNightMode(nightMode)
+            }
+        }
+    }
+
+    init {
+        sharedPreferences.registerOnSharedPreferenceChangeListener(listener)
+    }
 
     fun setUser(email: String, displayName: String) = sharedPreferences.edit()
         .putString(PREF_USER_EMAIL, email)
