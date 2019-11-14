@@ -12,11 +12,6 @@
         <item name="android:textCursorDrawable">@null</item>
     </style>
 
-    <!-- Edit Task theme -->
-    <style name="Theme.EditTask" parent="Base.Theme" >
-        <item name="android:colorBackground">?attr/colorPrimary</item>
-    </style>
-
     <!-- About -->
     <style name="Theme.About" parent="AboutLibrariesTheme">
         <item name="colorPrimary">@color/grey_850</item>

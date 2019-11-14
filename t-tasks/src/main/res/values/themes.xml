@@ -31,6 +31,7 @@
         <item name="colorSecondary">@color/colorSecondary</item>
         <item name="colorAccent">@color/colorAccent</item>
         <item name="toolbarStyle">@style/Widget.TTasks.Toolbar</item>
+        <item name="android:colorBackground">?attr/colorPrimary</item>
         <item name="android:navigationBarColor">?attr/colorPrimary</item>
     </style>
 
@@ -81,7 +82,7 @@
     </style>
 
     <!-- Settings -->
-    <style name="Theme.Settings" parent="Base.Theme" />
+    <style name="Theme.Settings" parent="Base.Theme.DarkActionBar" />
 
     <!-- About -->
     <style name="Theme.About" parent="AboutLibrariesTheme.Light.DarkToolbar" />
