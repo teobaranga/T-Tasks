@@ -16,7 +16,7 @@ import androidx.core.view.isVisible
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProviders
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
@@ -78,7 +78,7 @@ class TasksFragment : Fragment(), TasksView {
             val currentTime = SystemClock.elapsedRealtime()
             if (currentTime - lastClickTime > MIN_CLICK_INTERVAL) {
                 lastClickTime = currentTime
-                TaskDetailFragment.newInstance(task.id, taskListId!!).show(fragmentManager!!, null)
+                TaskDetailFragment.newInstance(task.id, taskListId!!).show(parentFragmentManager, null)
             }
         }
     }
@@ -116,7 +116,7 @@ class TasksFragment : Fragment(), TasksView {
             }
         }
 
-        tasksViewModel = ViewModelProviders.of(this)[TasksViewModel::class.java]
+        tasksViewModel = ViewModelProvider(this)[TasksViewModel::class.java]
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
@@ -136,7 +136,7 @@ class TasksFragment : Fragment(), TasksView {
         tasksBinding.swipeRefreshLayout.setOnRefreshListener(refreshListener)
 
         taskListId?.let {
-            tasksViewModel.activeTasks.observe(this, Observer { activeTasks ->
+            tasksViewModel.activeTasks.observe(viewLifecycleOwner, Observer { activeTasks ->
                 if (activeTasks.isNotEmpty()) {
                     tasksAdapter.activeTasks = activeTasks
                     tasksAdapter.notifyDataSetChanged()
@@ -146,7 +146,7 @@ class TasksFragment : Fragment(), TasksView {
                 Timber.v("Loaded %d active tasks", activeTasks.size)
             })
 
-            tasksViewModel.completedTasks.observe(this, Observer { completedTasks ->
+            tasksViewModel.completedTasks.observe(viewLifecycleOwner, Observer { completedTasks ->
                 if (completedTasks.isNotEmpty()) {
                     tasksAdapter.completedTasks = completedTasks
                     tasksAdapter.notifyDataSetChanged()
