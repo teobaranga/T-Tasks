@@ -5,9 +5,6 @@ import com.teo.ttasks.ui.base.MvpView
 
 interface MainView : MvpView {
 
-    /** Called when the user has a cover picture  */
-    fun onUserCover(coverUrl: String)
-
     fun onTaskListsLoaded(taskLists: List<TaskList>, currentTaskListIndex: Int)
 
     fun onTaskListsLoadError()

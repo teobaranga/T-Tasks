@@ -21,7 +21,6 @@ class PrefHelper(private val context: Context, private val firebaseAuth: Firebas
         private const val PREF_USER_EMAIL = "email"
         private const val PREF_USER_NAME = "name"
         private const val PREF_USER_PHOTO = "photo"
-        private const val PREF_USER_COVER = "cover"
 
         private const val PREF_CURRENT_TASK_LIST_ID = "currentTaskListId"
         private const val PREF_ACCESS_TOKEN = "accessToken"
@@ -62,10 +61,6 @@ class PrefHelper(private val context: Context, private val firebaseAuth: Firebas
     var userPhoto: String?
         get() = userSharedPreferences.getString(PREF_USER_PHOTO, null)
         set(photoUrl) = userSharedPreferences.edit().putString(PREF_USER_PHOTO, photoUrl).apply()
-
-    var userCover: String?
-        get() = sharedPreferences.getString(PREF_USER_COVER, null)
-        set(coverUrl) = sharedPreferences.edit().putString(PREF_USER_COVER, coverUrl).apply()
 
     var accessToken: String?
         get() = sharedPreferences.getString(PREF_ACCESS_TOKEN, null)

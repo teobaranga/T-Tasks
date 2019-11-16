@@ -6,7 +6,6 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.gson.GsonBuilder
 import com.teo.ttasks.BuildConfig
 import com.teo.ttasks.UserManager
-import com.teo.ttasks.api.PeopleApi
 import com.teo.ttasks.api.TasksApi
 import com.teo.ttasks.data.local.PrefHelper
 import com.teo.ttasks.data.local.WidgetHelper
@@ -43,7 +42,6 @@ import timber.log.Timber
 import java.util.concurrent.TimeUnit
 
 private const val TASKS_BASE_URL = "https://www.googleapis.com/tasks/v1/"
-private const val PEOPLE_BASE_URL = "https://people.googleapis.com/v1/"
 
 private const val HEADER_AUTHORIZATION = "Authorization"
 private const val VALUE_BEARER = "Bearer %s"
@@ -82,7 +80,6 @@ val appModule = module {
                 context = get(),
                 tasksHelper = get(),
                 prefHelper = get(),
-                peopleApi = get(),
                 userManager = get(),
                 firebaseAuth = get())
         }
@@ -126,8 +123,6 @@ val networkModule = module {
     single { TokenHelper(prefHelper = get(), context = get()) }
 
     single { get<Retrofit.Builder>().baseUrl(TASKS_BASE_URL).build().create(TasksApi::class.java) }
-
-    single { get<Retrofit.Builder>().baseUrl(PEOPLE_BASE_URL).build().create(PeopleApi::class.java) }
 
     single {
         Retrofit.Builder()

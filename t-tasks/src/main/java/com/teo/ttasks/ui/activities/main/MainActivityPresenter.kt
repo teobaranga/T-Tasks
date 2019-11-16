@@ -10,7 +10,6 @@ import com.google.firebase.auth.FirebaseAuth
 import com.squareup.picasso.Picasso
 import com.squareup.picasso.Target
 import com.teo.ttasks.UserManager
-import com.teo.ttasks.api.PeopleApi
 import com.teo.ttasks.data.local.PrefHelper
 import com.teo.ttasks.data.model.TaskList
 import com.teo.ttasks.data.remote.TasksHelper
@@ -27,7 +26,6 @@ class MainActivityPresenter(
     private val context: Context,
     private val tasksHelper: TasksHelper,
     private val prefHelper: PrefHelper,
-    private val peopleApi: PeopleApi,
     private val userManager: UserManager,
     private val firebaseAuth: FirebaseAuth
 ) : Presenter<MainView>() {
@@ -48,12 +46,6 @@ class MainActivityPresenter(
     }
 
     private lateinit var realm: Realm
-
-    internal val userName: String
-        get() = prefHelper.userName
-
-    internal val userEmail: String?
-        get() = prefHelper.userEmail
 
     /**
      * Save the ID of the last accessed task list so that it can be displayed the next time the user opens the app

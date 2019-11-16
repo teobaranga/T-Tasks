@@ -35,7 +35,6 @@ open class MainActivity : BaseActivity(), MainView, AccountInfoListener {
         private const val TAG_TASKS = "tasks"
 
         // private const val RC_ADD = 4;
-        private const val RC_NIGHT_MODE = 415
 
         fun Context.startMainActivity() = startActivity(Intent(this, MainActivity::class.java))
     }
@@ -116,8 +115,8 @@ open class MainActivity : BaseActivity(), MainView, AccountInfoListener {
         return super.onPrepareOptionsMenu(menu)
     }
 
-    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
-        return when(item?.itemId) {
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when(item.itemId) {
             R.id.menu_account -> {
                 val accountDialogFragment = AccountInfoDialogFragment.newInstance()
                 accountDialogFragment.show(supportFragmentManager, "account_info")
@@ -135,9 +134,6 @@ open class MainActivity : BaseActivity(), MainView, AccountInfoListener {
     override fun onDestroy() {
         mainActivityPresenter.unbindView(this)
         super.onDestroy()
-    }
-
-    override fun onUserCover(coverUrl: String) {
     }
 
     /**
