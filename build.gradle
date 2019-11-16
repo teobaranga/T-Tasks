@@ -16,8 +16,8 @@ buildscript {
         classpath 'com.android.tools.build:gradle:3.5.2'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${VER.kotlin}"
 //        classpath 'com.getkeepsafe.dexcount:dexcount-gradle-plugin:0.8.2'
-        classpath 'com.google.gms:google-services:4.3.2'
-        classpath 'io.realm:realm-gradle-plugin:6.0.0'
+        classpath 'com.google.gms:google-services:4.3.3'
+        classpath 'io.realm:realm-gradle-plugin:6.0.1'
         classpath 'io.fabric.tools:gradle:1.31.2'
     }
 }
