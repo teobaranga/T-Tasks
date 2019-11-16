@@ -1,46 +1,53 @@
-apply plugin: 'com.android.application'
-apply plugin: 'io.fabric'
-apply plugin: 'realm-android'
-apply plugin: 'kotlin-android'
-apply from: "../dependencies.gradle"
-//apply plugin: 'com.getkeepsafe.dexcount'
+plugins {
+    id 'com.android.application'
+    id 'kotlin-android'
+    id 'kotlin-android-extensions'
+    id 'kotlin-kapt'
+    id 'io.fabric'
+    id 'realm-android'
+    id "org.jetbrains.kotlin.plugin.allopen" version "1.3.50"
+//    id 'com.getkeepsafe.dexcount'
+}
 //apply from: '../config/quality/quality.gradle'
 
 repositories {
     maven { url 'https://github.com/uPhyca/stetho-realm/raw/master/maven-repo' }
 }
 
-// Load keystore
-def keystorePropertiesFile = rootProject.file("keystore.properties");
-def keystoreProperties = new Properties()
-keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+allOpen {
+    annotation("com.teo.ttasks.OpenClassOnDebug")
+}
 
 android {
-    compileSdkVersion 27
-    buildToolsVersion '27.0.1'
+    compileSdkVersion 29
+    buildToolsVersion "29.0.2"
     defaultConfig {
         applicationId "com.teo.ttasks"
-        minSdkVersion 16
-        targetSdkVersion 27
+        minSdkVersion 21
+        targetSdkVersion 29
         versionCode 1
         versionName '0.1'
-        vectorDrawables.useSupportLibrary = true
-        testInstrumentationRunner 'android.support.test.runner.AndroidJUnitRunner'
+//        vectorDrawables.useSupportLibrary = true
+        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
         multiDexEnabled true
     }
     signingConfigs {
         release {
             storeFile file('keystore/release.jks')
-            keyAlias keystoreProperties['keyAlias']
-            keyPassword keystoreProperties['keyPassword']
-            storePassword keystoreProperties['storePassword']
+            keyAlias 'teo baranga'
+            keyPassword "$System.env.TT_KEY"
+            storePassword "$System.env.TT_KEY"
         }
     }
     buildTypes {
+        debug {
+            manifestPlaceholders = [enableCrashReporting: "false"]
+        }
         release {
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.release
+            manifestPlaceholders = [enableCrashReporting: "true"]
         }
     }
 
@@ -60,7 +67,7 @@ android {
         abi {
             enable true
             reset()
-            include 'x86', 'armeabi-v7a', 'mips'
+            include 'x86', 'armeabi-v7a'
             universalApk false
         }
     }
@@ -79,11 +86,7 @@ android {
         disable 'InvalidPackage' // Okio references java.nio that does not presented in Android SDK.
     }
     packagingOptions {
-        exclude 'META-INF/NOTICE'
-        exclude 'META-INF/NOTICE.txt'
-        exclude 'META-INF/LICENSE'
-        exclude 'META-INF/LICENSE.txt'
-        exclude 'META-INF/services/javax.annotation.processing.Processor'
+        exclude 'META-INF/library-core_release.kotlin_module'
     }
     // This allows us see tests execution progress in the output on the CI.
     testOptions.unitTests.all {
@@ -96,7 +99,11 @@ android {
         test.java.srcDirs += 'src/test/kotlin'
     }
     dexOptions {
-        jumboMode = true
+        preDexLibraries true
+        javaMaxHeapSize "4g"
+    }
+    kotlinOptions {
+        jvmTarget = '1.8'
     }
 }
 
@@ -109,67 +116,107 @@ afterEvaluate {
 }
 
 dependencies {
-    implementation 'com.android.support:multidex:1.0.2'
-    implementation libraries.dagger
-    annotationProcessor libraries.daggerCompiler
-    annotationProcessor libraries.daggerAndroidProcessor
-    implementation libraries.daggerAndroidSupport
-    implementation libraries.rxJava
-    implementation libraries.rxAndroid
-    implementation deps.support.cardview
-    implementation deps.support.design
-    implementation deps.support.fragment
-    implementation libraries.timber
-    implementation libraries.playServicesAuth
-    implementation libraries.playServicesGcm
-    implementation libraries.retrofit
-    implementation libraries.retrofitGson
-    implementation libraries.retrofitRxJavaAdapter
-    implementation libraries.okHttpLoggingInterceptor
-    implementation libraries.firebaseAuth
-    implementation libraries.firebaseDatabase
-    implementation 'com.birbit:android-priority-jobqueue:2.0.1'
-    implementation('com.mikepenz:aboutlibraries:6.0.0@aar') { transitive = true }
-    implementation 'com.mikepenz:fastadapter:3.0.4@aar'
-    implementation 'com.mikepenz:fastadapter-commons:3.0.3@aar'
-    implementation 'com.mikepenz:fastadapter-extensions-expandable:3.0.3@aar'
-    implementation('com.mikepenz:materialdrawer:6.0.1@aar') { transitive = true }
-    implementation 'com.mikepenz:google-material-typeface:3.0.1.2.original@aar'
-    implementation 'com.squareup.picasso:picasso:2.5.2'
-    implementation 'com.artemzin.rxjava:proguard-rules:1.3.3.0'
-    implementation 'com.github.strooooke:appbarsyncedfab:v0.4'
-    implementation('com.crashlytics.sdk.android:crashlytics:2.7.1@aar') { transitive = true }
-    annotationProcessor 'dk.ilios:realmfieldnameshelper:1.1.1'
-    annotationProcessor 'org.projectlombok:lombok:1.16.18'
-    compileOnly 'org.projectlombok:lombok:1.16.18'
+    def ver = [
+            espresso: '3.2.0',
+            koin    : '2.0.1',
+            retrofit: '2.6.2',
+            mockk   : '1.9.3',
+    ]
+
+    kapt(
+            'dk.ilios:realmfieldnameshelper:1.1.1',
+    )
+
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.2'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.2'
+    implementation "androidx.lifecycle:lifecycle-livedata-ktx:2.2.0-rc02"
+    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.2.0-rc02"
+
+    implementation(
+            "androidx.annotation:annotation:1.1.0",
+            "androidx.appcompat:appcompat:1.1.0",
+            "androidx.cardview:cardview:1.0.0",
+            'androidx.constraintlayout:constraintlayout:2.0.0-beta3',
+            'androidx.core:core-ktx:1.1.0',
+            "androidx.fragment:fragment:1.1.0",
+            "androidx.lifecycle:lifecycle-extensions:2.2.0-rc01",
+            'androidx.preference:preference:1.1.0',
+            "androidx.recyclerview:recyclerview:1.0.0",
+            "androidx.swiperefreshlayout:swiperefreshlayout:1.0.0",
+            'com.androidhuman.rxfirebase2:firebase-auth:16.1.0.0',
+            'com.androidhuman.rxfirebase2:firebase-auth-kotlin:16.1.0.0',
+            'com.androidhuman.rxfirebase2:firebase-core:16.0.5.0',
+            'com.androidhuman.rxfirebase2:firebase-database:16.0.3.0',
+            'com.androidhuman.rxfirebase2:firebase-database-kotlin:16.0.3.0',
+            'com.artemzin.rxjava:proguard-rules:1.3.3.0',
+            "com.crashlytics.sdk.android:crashlytics:2.10.1",
+            'com.evernote:android-job:1.4.2',
+            'com.github.strooooke:appbarsyncedfab:v0.5',
+            "com.google.android.gms:play-services-auth:17.0.0",
+            "com.google.android.gms:play-services-gcm:17.0.0",
+            "com.google.android.material:material:1.1.0-beta01",
+            "com.google.firebase:firebase-auth:19.1.0",
+            "com.google.firebase:firebase-database:19.2.0",
+            'com.jakewharton.threetenabp:threetenabp:1.2.1',
+            "com.jakewharton.timber:timber:4.7.1",
+            'com.mikepenz:aboutlibraries:7.0.4',
+            "com.squareup.retrofit2:retrofit:${ver.retrofit}",
+            "com.squareup.retrofit2:converter-gson:${ver.retrofit}",
+            "com.squareup.retrofit2:adapter-rxjava2:${ver.retrofit}",
+            "com.squareup.okhttp3:logging-interceptor:4.2.2",
+            'com.squareup.picasso:picasso:2.71828',
+            'eu.davidea:flexible-adapter:5.1.0',
+            'eu.davidea:flexible-adapter-databinding:1.0.0',
+            "io.reactivex.rxjava2:rxjava:2.2.14",
+            "io.reactivex.rxjava2:rxandroid:2.1.1",
+            "nl.littlerobots.rxlint:rxlint:1.7.4",
+            "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${VER.kotlin}",
+            "org.koin:koin-android:${ver.koin}",
+            "org.koin:koin-android-scope:${ver.koin}",
+    )
     compileOnly 'javax.annotation:jsr250-api:1.0'
 
-    debugImplementation libraries.stetho
-    debugImplementation 'com.uphyca:stetho_realm:2.1.0'
+//    debugImplementation libraries.stetho
+//    debugImplementation 'com.uphyca:stetho_realm:2.1.0'
 
     // Dependencies for local unit tests
-    testImplementation libraries.junit
-    testImplementation "org.mockito:mockito-all:${mockitoVersion}"
-    testImplementation "org.hamcrest:hamcrest-all:${hamcrestVersion}"
-    testImplementation "org.powermock:powermock-module-junit4:${powerMockito}"
-    testImplementation "org.powermock:powermock-api-mockito:${powerMockito}"
-    testImplementation "org.jetbrains.kotlin:kotlin-stdlib:$versions.kotlin"
-    testImplementation "org.jetbrains.kotlin:kotlin-test-junit:$versions.kotlin"
+    testImplementation(
+            "io.mockk:mockk:${ver.mockk}",
+            "junit:junit:4.12",
+            "org.jetbrains.kotlin:kotlin-test-junit:${VER.kotlin}",
+    )
+    testImplementation ('org.threeten:threetenbp:1.4.0') {
+        exclude group:'com.jakewharton.threetenabp', module:'threetenabp'
+    }
 
-    androidTestImplementation deps.support.recyclerview
+    androidTestImplementation(
+            "androidx.recyclerview:recyclerview:1.0.0",
 
-    // Android Testing Support Library's runner and rules
-    androidTestImplementation libraries.supportTestRunner
-    androidTestImplementation libraries.supportTestRules
-    // Espresso UI Testing dependencies.
-    androidTestImplementation(deps.espresso.core, {
-        exclude group: 'com.android.support', module: 'support-annotations'
-        exclude group: 'com.google.code.findbugs', module: 'jsr305'
-    })
-    androidTestImplementation(deps.espresso.contrib, {
-        exclude group: 'com.android.support', module: 'support-annotations'
-        exclude group: 'com.google.code.findbugs', module: 'jsr305'
-    })
+            // Android Testing Support Library's runner and rules
+            "androidx.test.ext:junit:1.1.1",
+            'androidx.test:runner:1.2.0',
+            'androidx.test:rules:1.2.0',
+
+            // Espresso UI Testing dependencies.
+            "androidx.test.espresso:espresso-core:${ver.espresso}",
+            "androidx.test.espresso:espresso-contrib:${ver.espresso}",
+            "androidx.test.espresso:espresso-intents:${ver.espresso}",
+            "io.mockk:mockk-android:${ver.mockk}",
+    )
+}
+
+kapt {
+    javacOptions {
+        // Increase the max count of errors from annotation processors.
+        // Default is 100.
+        option("-Xmaxerrs", 500)
+    }
+}
+
+gradle.projectsEvaluated {
+    tasks.withType(JavaCompile) {
+        options.compilerArgs << "-Xmaxerrs" << "500" // or whatever number you want
+    }
 }
 
 // Log out test results to console

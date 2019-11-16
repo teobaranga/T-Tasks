@@ -1,13 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
-      xmlns:app="http://schemas.android.com/apk/res-auto"
-      xmlns:tools="http://schemas.android.com/tools"
-      tools:context=".ui.activities.task_detail.TaskDetailActivity">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".ui.task_detail.TaskDetailActivity">
+
+    <item
+        android:id="@+id/edit"
+        android:icon="@drawable/ic_edit_24dp"
+        android:title="@string/edit"
+        app:showAsAction="always" />
+
     <item
         android:id="@+id/share"
         android:title="@string/share"
-        app:actionProviderClass="android.support.v7.widget.ShareActionProvider"/>
+        app:actionProviderClass="androidx.appcompat.widget.ShareActionProvider" />
+
     <item
         android:id="@+id/delete"
-        android:title="@string/delete"/>
+        android:title="@string/delete" />
+
 </menu>

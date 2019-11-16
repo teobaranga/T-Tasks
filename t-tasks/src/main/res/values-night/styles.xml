@@ -3,4 +3,14 @@
 
     <style name="PopupOverlay" parent="ThemeOverlay.AppCompat.Dark"/>
 
+    <style name="TextAppearance.TaskTitle.TaskDetail" parent="@style/TextAppearance.AppCompat.Title" />
+
+    <style name="TextAppearance.TaskListTitle.TaskDetail" parent="@style/TextAppearance.AppCompat.Subhead" />
+
+    <style name="Widget.TTasks.TextInputLayout.OutlinedBox" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="boxStrokeColor">@color/outline_stroke_color</item>
+        <item name="hintTextColor">?android:textColorPrimary</item>
+        <item name="colorPrimary">@color/orange_A200</item>
+    </style>
+
 </resources>

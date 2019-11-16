@@ -18,9 +18,9 @@ More features are planned and will be added in the future.
 ### Screenshots
 
 <p align="center">
-  <img src="http://i.imgur.com/k06QhyE.png" width="30%" height="30%"/>
-  <img src="http://i.imgur.com/oPMrMDt.png" width="30%" height="30%"/>
-  <img src="http://i.imgur.com/OTUHvFo.png" width="30%" height="30%"/>
+  <img src="https://i.imgur.com/CpTcxEF.png" width="30%" height="30%"/>
+  <img src="https://i.imgur.com/sz1kvht.png" width="30%" height="30%"/>
+  <img src="https://i.imgur.com/9ycty2j.png" width="30%" height="30%"/>
 </p>
 
 
@@ -28,15 +28,16 @@ More features are planned and will be added in the future.
 
 
 - **Android Support Library**
-- **Google Tasks API**: https://developers.google.com/google-apps/tasks/
+- **Google Tasks API**: https://developers.google.com/tasks/
 - **Google Sign In**: https://developers.google.com/identity/sign-in/android/
+- **FlexibleAdapter**: https://github.com/davideas/FlexibleAdapter
 - **Firebase**: https://firebase.google.com
 - **Retrofit**: https://github.com/square/retrofit
 - **Android Priority Job Queue**: https://github.com/yigit/android-priority-jobqueue
 - **MaterialDrawer**: https://github.com/mikepenz/MaterialDrawer
 - **AboutLibraries**: https://github.com/mikepenz/AboutLibraries
 - **Android-Iconics**: https://github.com/mikepenz/Android-Iconics
-- **Dagger 2**: http://google.github.io/dagger/
+- **KOIN**: https://github.com/InsertKoinIO/koin
 - **RxJava**: https://github.com/ReactiveX/RxJava
 - **RxAndroid**: https://github.com/ReactiveX/RxAndroid
 - **Realm**: https://github.com/realm/realm-java
@@ -48,7 +49,7 @@ More features are planned and will be added in the future.
 
 
 ```
-Copyright 2017, Teo Baranga
+Copyright 2018-19, Teo Baranga
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

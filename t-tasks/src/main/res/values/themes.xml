@@ -2,62 +2,76 @@
 <resources>
 
     <!-- Base theme (with action bar) -->
-    <style name="Base.Theme" parent="Theme.AppCompat.DayNight.DarkActionBar">
+    <style name="Base.Theme" parent="Theme.MaterialComponents.DayNight">
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorSecondary">@color/colorSecondary</item>
         <item name="colorAccent">@color/colorAccent</item>
+        <item name="toolbarStyle">@style/Widget.TTasks.Toolbar</item>
+        <item name="android:textCursorDrawable">@null</item>
+        <item name="android:navigationBarColor">?attr/colorPrimary</item>
     </style>
 
     <!-- Base theme (no action bar) -->
-    <style name="Base.Theme.NoActionBar" parent="Theme.AppCompat.DayNight.NoActionBar">
+    <style name="Base.Theme.NoActionBar" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorSecondary">@color/orange_A400</item>
+        <!--<item name="colorPrimaryDark">@color/colorPrimaryDark</item>-->
+        <item name="colorPrimaryDark">@color/colorPrimary</item>
+        <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:colorBackground">?attr/colorPrimary</item>
+        <item name="android:navigationBarColor">?attr/colorPrimary</item>
+        <!--<item name="colorOnSecondary">@color/background_color</item>-->
+    </style>
+
+    <!-- Base theme (dark action bar) -->
+    <style name="Base.Theme.DarkActionBar" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorSecondary">@color/colorSecondary</item>
         <item name="colorAccent">@color/colorAccent</item>
+        <item name="toolbarStyle">@style/Widget.TTasks.Toolbar</item>
+        <item name="android:colorBackground">?attr/colorPrimary</item>
+        <item name="android:navigationBarColor">?attr/colorPrimary</item>
     </style>
 
     <!-- Main -->
-    <style name="Base.Theme.Main" parent="Theme.AppCompat.Light.NoActionBar">
-        <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
-        <item name="colorAccent">@color/colorAccent</item>
-
+    <style name="Base.Theme.Main" parent="Base.Theme.NoActionBar">
+        <item name="android:colorBackground">?attr/colorPrimary</item>
         <!-- CAB -->
         <item name="windowActionModeOverlay">true</item>
-
-        <!-- Here we setting appcompat’s actionBarStyle -->
-        <item name="drawerArrowStyle">@style/MaterialDrawer.DrawerArrowStyle</item>
-
-        <!-- MaterialDrawer specific values -->
-        <item name="material_drawer_background">@color/md_light_background</item>
-        <item name="material_drawer_primary_text">@color/material_drawer_primary_text</item>
-        <item name="material_drawer_primary_icon">@color/material_drawer_primary_icon</item>
-        <item name="material_drawer_secondary_text">@color/material_drawer_secondary_text</item>
-        <item name="material_drawer_hint_text">@color/material_drawer_hint_text</item>
-        <item name="material_drawer_hint_icon">@color/material_drawer_hint_icon</item>
-        <item name="material_drawer_divider">@color/material_drawer_divider</item>
-        <item name="material_drawer_selected">@color/material_drawer_selected</item>
-        <item name="material_drawer_selected_text">@color/material_drawer_selected_text</item>
-        <item name="material_drawer_header_selection_text">
-            @color/material_drawer_header_selection_text
-        </item>
     </style>
 
+    <!-- Main theme -->
     <style name="Theme.Main" parent="Base.Theme.Main">
+        <item name="android:windowContentTransitions">true</item>
+        <item name="android:windowActivityTransitions">true</item>
+        <item name="android:windowBackground">@drawable/launch_screen</item>
+        <!--<item name="android:windowSharedElementsUseOverlay">false</item>-->
+        <!--<item name="android:windowExitTransition">@transition/edit_task_enter</item>-->
     </style>
 
     <!-- Task Detail -->
     <style name="Base.Theme.TaskDetail" parent="Base.Theme.NoActionBar">
         <item name="popupMenuStyle">@style/PopupMenu</item>
+        <item name="coordinatorLayoutStyle">@style/Widget.Support.CoordinatorLayout</item>
     </style>
 
-    <style name="Theme.TaskDetail" parent="Base.Theme.TaskDetail"/>
+    <!-- Task Detail theme -->
+    <style name="Theme.TaskDetail" parent="Base.Theme.TaskDetail">
+        <item name="android:windowActivityTransitions">true</item>
+        <item name="android:windowContentTransitions">true</item>
+        <item name="android:windowSharedElementEnterTransition">@android:transition/move</item>
+        <item name="android:windowSharedElementReturnTransition">@android:transition/no_transition</item>
+        <item name="android:windowEnterTransition">@transition/task_detail_enter</item>
+        <item name="android:windowReturnTransition">@transition/task_detail_return</item>
+        <item name="android:windowBackground">@color/background_super_dark</item>
+    </style>
 
-    <!-- Edit Task -->
-    <style name="Base.Theme.EditTask" parent="Base.Theme">
+    <!-- Edit Task theme -->
+    <style name="Theme.EditTask" parent="Base.Theme.DarkActionBar" >
         <item name="android:spinnerItemStyle">@style/SpinnerItemStyle</item>
     </style>
-
-    <style name="Theme.EditTask" parent="Base.Theme.EditTask"/>
 
     <!-- Sign In -->
     <style name="Theme.SignIn" parent="Theme.AppCompat.Light.NoActionBar">
@@ -68,15 +82,19 @@
     </style>
 
     <!-- Settings -->
-    <style name="Theme.Settings" parent="Base.Theme"/>
+    <style name="Theme.Settings" parent="Base.Theme.DarkActionBar" />
 
     <!-- About -->
-    <style name="Theme.About" parent="Base.Theme"/>
+    <style name="Theme.About" parent="AboutLibrariesTheme.Light.DarkToolbar" />
 
     <!-- Widget configure -->
-    <style name="Theme.TasksWidgetConfigure" parent="Theme.AppCompat.Light.Dialog"/>
+    <style name="Theme.TasksWidgetConfigure" parent="Theme.AppCompat.Light.Dialog" />
 
-    <!-- Widget -->
-    <style name="Theme.Widget" parent="Theme.AppCompat"/>
+    <style name="BottomSheetDialogTheme" parent="@style/Theme.MaterialComponents.Light.BottomSheetDialog">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorSecondary">@color/colorSecondary</item>
+        <item name="colorOnSecondary">@android:color/white</item>
+        <item name="bottomSheetStyle">@style/BottomSheet.Modal.Transparent</item>
+    </style>
 
 </resources>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The due date as a string in the format: -->
+    <attr name="date" format="string" />
+
+    <declare-styleable name="TaskDateView">
+        <attr name="date" />
+    </declare-styleable>
+
+</resources>

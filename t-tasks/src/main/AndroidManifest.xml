@@ -33,7 +33,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".ui.activities.task_detail.TaskDetailActivity"
+            android:name="com.teo.ttasks.ui.task_detail.TaskDetailActivity"
             android:label="@string/app_name"
             android:parentActivityName=".ui.activities.main.MainActivity"
             android:theme="@style/Theme.TaskDetail">
@@ -44,6 +44,7 @@
         <activity
             android:name=".ui.activities.edit_task.EditTaskActivity"
             android:label="@string/title_activity_edit_task"
+            android:windowSoftInputMode="stateVisible"
             android:theme="@style/Theme.EditTask">
         </activity>
         <activity
@@ -85,22 +86,18 @@
             android:name=".widget.TasksWidgetService"
             android:permission="android.permission.BIND_REMOTEVIEWS" />
 
-        <service
-            android:name=".services.MyJobService"
-            android:permission="android.permission.BIND_JOB_SERVICE" />
-
-        <service
-            android:name=".services.MyGcmJobService"
-            android:exported="true"
-            android:permission="com.google.android.gms.permission.BIND_NETWORK_TASK_SERVICE">
-            <intent-filter>
-                <action android:name="com.google.android.gms.gcm.ACTION_TASK_READY" />
-            </intent-filter>
-        </service>
-
         <meta-data
             android:name="io.fabric.ApiKey"
             android:value="49881be4a0f3b48a47ff8a046e4e3c45d0de363d" />
+        <meta-data
+            android:name="firebase_analytics_collection_deactivated"
+            android:value="true" />
+        <meta-data
+            android:name="google_analytics_adid_collection_enabled"
+            android:value="false" />
+        <meta-data
+            android:name="firebase_crashlytics_collection_enabled"
+            android:value="${enableCrashReporting}" />
 
     </application>
 

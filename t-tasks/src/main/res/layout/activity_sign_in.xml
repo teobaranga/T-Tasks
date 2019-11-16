@@ -1,56 +1,101 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <RelativeLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"
         tools:context=".ui.activities.sign_in.SignInActivity">
+
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/guideline_vertical"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintGuide_percent="0.5" />
+
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/guideline_horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            app:layout_constraintGuide_percent="0.5" />
 
         <ImageView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_above="@+id/text_welcome"
-            android:layout_centerHorizontal="true"
+            android:layout_marginBottom="64dp"
             android:src="@mipmap/ic_launcher"
-            tools:ignore="ContentDescription"/>
+            app:layout_constraintBottom_toTopOf="@id/text_welcome"
+            app:layout_constraintLeft_toLeftOf="@id/guideline_vertical"
+            app:layout_constraintRight_toRightOf="@id/guideline_vertical"
+            tools:ignore="ContentDescription" />
 
         <TextView
             android:id="@+id/text_welcome"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
-            android:layout_marginBottom="64dp"
-            android:layout_marginTop="64dp"
-            android:gravity="center"
             android:text="@string/welcome"
-            android:textAppearance="@style/TextAppearance.AppCompat.Large.Inverse"/>
+            android:textAppearance="@style/TextAppearance.AppCompat.Large.Inverse"
+            app:layout_constraintBottom_toBottomOf="@id/guideline_horizontal"
+            app:layout_constraintLeft_toLeftOf="@id/guideline_vertical"
+            app:layout_constraintRight_toRightOf="@id/guideline_vertical"
+            app:layout_constraintTop_toTopOf="@id/guideline_horizontal" />
 
         <TextView
             android:id="@+id/text_welcome_description"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/text_welcome"
-            android:layout_centerInParent="true"
-            android:layout_marginBottom="56dp"
-            android:gravity="center"
+            android:layout_marginTop="64dp"
             android:maxWidth="264dp"
             android:text="@string/welcome_description"
             android:textAppearance="@style/TextAppearance.AppCompat.Small.Inverse"
-            android:textStyle="italic|bold"/>
+            android:textStyle="italic|bold"
+            app:layout_constraintLeft_toLeftOf="@id/guideline_vertical"
+            app:layout_constraintRight_toRightOf="@id/guideline_vertical"
+            app:layout_constraintTop_toBottomOf="@id/text_welcome" />
 
-        <com.google.android.gms.common.SignInButton
-            android:id="@+id/sign_in_button"
+        <ViewSwitcher
+            android:id="@+id/view_switcher"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/text_welcome_description"
-            android:layout_centerHorizontal="true"
-            android:minWidth="256dp"
-            app:buttonSize="wide"/>
+            android:layout_marginTop="56dp"
+            app:layout_constraintLeft_toLeftOf="@id/guideline_vertical"
+            app:layout_constraintRight_toRightOf="@id/guideline_vertical"
+            app:layout_constraintTop_toBottomOf="@id/text_welcome_description">
 
-    </RelativeLayout>
+            <com.google.android.gms.common.SignInButton
+                android:id="@+id/sign_in_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                app:buttonSize="wide" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:layout_gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/loading_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Small.Inverse"
+                    tools:text="Hello" />
+
+                <ProgressBar
+                    android:id="@+id/progressBar"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="264dp"
+                    android:layout_height="wrap_content"
+                    android:indeterminate="true" />
+            </LinearLayout>
+
+        </ViewSwitcher>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </layout>

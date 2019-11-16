@@ -1,74 +1,52 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
-        xmlns:tools="http://schemas.android.com/tools">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <data>
 
-        <import type="com.teo.ttasks.R"/>
+        <import type="com.teo.ttasks.R" />
 
         <variable
             name="task"
-            type="com.teo.ttasks.data.model.TTask"/>
+            type="com.teo.ttasks.data.model.Task" />
 
         <variable
             name="taskList"
-            type="com.teo.ttasks.data.model.TTaskList"/>
+            type="com.teo.ttasks.data.model.TaskList" />
     </data>
 
-    <android.support.design.widget.CoordinatorLayout
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:clipChildren="false"
         android:clipToPadding="false"
-        tools:context=".ui.activities.task_detail.TaskDetailActivity">
+        tools:context=".ui.task_detail.TaskDetailActivity">
 
         <LinearLayout
-            android:id="@id/container"
+            android:id="@+id/container"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical">
 
             <FrameLayout
-                android:id="@id/task_header"
+                android:id="@+id/task_header"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@color/task_background"
                 android:minHeight="142dp"
-                android:transitionName="@string/transition_task_header"
-                tools:targetApi="lollipop">
-
-                <FrameLayout
-                    android:id="@id/back_container"
-                    android:layout_width="?attr/actionBarSize"
-                    android:layout_height="?attr/actionBarSize"
-                    android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
-
-                    <ImageButton
-                        android:id="@id/back"
-                        style="@style/Widget.AppCompat.ActionButton"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center"
-                        android:contentDescription="@string/description_return_to_task_list"
-                        android:onClick="onBackClicked"
-                        app:srcCompat="@drawable/ic_clear_24dp"/>
-
-                </FrameLayout>
+                android:transitionName="@string/transition_task_header">
 
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginEnd="@dimen/activity_horizontal_margin"
-                    android:layout_marginLeft="@dimen/margin_icon_horizontal"
-                    android:layout_marginRight="@dimen/activity_horizontal_margin"
                     android:layout_marginStart="@dimen/margin_icon_horizontal"
                     android:layout_marginTop="56dp"
-                    android:orientation="vertical"
-                    android:theme="@style/AppBarOverlay">
+                    android:layout_marginEnd="@dimen/activity_horizontal_margin"
+                    android:orientation="vertical">
 
                     <TextView
-                        android:id="@id/task_title"
+                        android:id="@+id/task_title"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:ellipsize="end"
@@ -76,9 +54,9 @@
                         android:maxLines="2"
                         android:minLines="2"
                         android:text="@{task.title}"
-                        android:textAppearance="@style/TextAppearance.AppCompat.Title"
+                        android:textAppearance="@style/TextAppearance.TaskTitle.TaskDetail"
                         android:transitionName="@string/transition_task_title"
-                        tools:text="Do your laundry"/>
+                        tools:text="Do your laundry" />
 
                     <TextView
                         android:id="@+id/task_list_title"
@@ -87,46 +65,28 @@
                         android:ellipsize="end"
                         android:maxLines="1"
                         android:text="@{taskList.title}"
-                        android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
-                        tools:text="House work"/>
+                        android:textAppearance="@style/TextAppearance.TaskListTitle.TaskDetail"
+                        tools:text="House work" />
 
                 </LinearLayout>
 
-                <LinearLayout
-                    android:id="@+id/bar"
-                    android:layout_width="wrap_content"
-                    android:layout_height="?attr/actionBarSize"
-                    android:layout_gravity="end"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
-
-                    <ImageButton
-                        android:id="@+id/edit"
-                        style="@style/Widget.AppCompat.ActionButton"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:contentDescription="@string/description_delete_task"
-                        android:onClick="onEditClicked"
-                        app:srcCompat="@drawable/ic_edit_24dp"/>
-
-                    <com.teo.ttasks.ui.OverflowMenuButton
-                        android:id="@+id/more"
-                        style="@style/Widget.AppCompat.ActionButton.Overflow"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"/>
-
-                </LinearLayout>
+                <androidx.appcompat.widget.Toolbar
+                    android:id="@+id/toolbar"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@color/task_background"
+                    app:menu="@menu/menu_task_detail"
+                    app:navigationIcon="@drawable/ic_clear_24dp" />
 
             </FrameLayout>
 
-            <android.support.v4.widget.NestedScrollView
+            <androidx.core.widget.NestedScrollView
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:fillViewport="true">
 
                 <LinearLayout
-                    android:id="@id/task_content"
+                    android:id="@+id/task_content"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:background="?android:colorBackground"
@@ -139,15 +99,15 @@
                         android:id="@+id/task_completion_status"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        app:completed="@{task.completed}"
-                        tools:text="In progress"/>
+                        app:completed="@{task.completedDate}"
+                        tools:text="In progress" />
 
                     <View
                         android:layout_width="match_parent"
                         android:layout_height="1dp"
-                        android:layout_marginBottom="16dp"
                         android:layout_marginTop="16dp"
-                        android:background="?android:attr/listDivider"/>
+                        android:layout_marginBottom="16dp"
+                        android:background="?android:attr/listDivider" />
 
                     <GridLayout
                         android:layout_width="match_parent"
@@ -160,12 +120,12 @@
                         <ImageView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:layout_rowSpan="2"
                             android:layout_gravity="center_vertical"
                             android:layout_marginEnd="@dimen/margin_edit_task"
-                            android:layout_marginRight="@dimen/margin_edit_task"
-                            android:layout_rowSpan="2"
+                            android:alpha="0.54"
                             app:srcCompat="@drawable/ic_event_24dp"
-                            tools:ignore="ContentDescription"/>
+                            tools:ignore="ContentDescription" />
 
                         <TextView
                             android:id="@+id/due_date"
@@ -175,8 +135,8 @@
                             android:hint="@string/due_date_missing"
                             android:textColor="?android:textColorPrimary"
                             android:textSize="18sp"
-                            app:dueDate="@{task.due}"
-                            tools:text="Fri, May 20, 2016"/>
+                            app:dueDate="@{task.dueDate}"
+                            tools:text="Fri, May 20, 2016" />
 
                         <!-- TODO: enable the due time once it is implemented -->
                         <TextView
@@ -187,33 +147,33 @@
                             android:textColor="?android:textColorPrimary"
                             android:textSize="18sp"
                             android:visibility="gone"
-                            app:dueTime="@{task.due}"
-                            tools:text="6:00 PM"/>
+                            app:dueTime="@{task.dueDate}"
+                            tools:text="6:00 PM" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/due_date"
-                            android:textAppearance="@style/TextAppearance.AppCompat.Caption"/>
+                            android:textAppearance="@style/TextAppearance.AppCompat.Caption" />
 
                     </GridLayout>
 
                     <GridLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="8dp"
                         android:layout_marginTop="8dp"
+                        android:layout_marginBottom="8dp"
                         android:columnCount="2">
 
                         <ImageView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:layout_rowSpan="2"
                             android:layout_gravity="center_vertical"
                             android:layout_marginEnd="@dimen/margin_edit_task"
-                            android:layout_marginRight="@dimen/margin_edit_task"
-                            android:layout_rowSpan="2"
+                            android:alpha="0.54"
                             app:srcCompat="@drawable/ic_notifications_24dp"
-                            tools:ignore="ContentDescription"/>
+                            tools:ignore="ContentDescription" />
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -222,14 +182,14 @@
                             android:hint="@string/no_reminder_set"
                             android:textColor="?android:textColorPrimary"
                             android:textSize="18sp"
-                            app:reminder="@{task.reminder}"
-                            tools:text="1 hour before"/>
+                            app:reminder="@{task.reminderDate}"
+                            tools:text="1 hour before" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/reminder"
-                            android:textAppearance="@style/TextAppearance.AppCompat.Caption"/>
+                            android:textAppearance="@style/TextAppearance.AppCompat.Caption" />
 
                     </GridLayout>
 
@@ -244,9 +204,9 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginEnd="@dimen/margin_edit_task"
-                            android:layout_marginRight="@dimen/margin_edit_task"
+                            android:alpha="0.54"
                             app:srcCompat="@drawable/ic_bookmark_24dp"
-                            tools:ignore="ContentDescription"/>
+                            tools:ignore="ContentDescription" />
 
                         <TextView
                             android:id="@+id/notes"
@@ -254,15 +214,15 @@
                             android:layout_height="wrap_content"
                             android:hint="@string/notes_missing"
                             android:text="@{task.notes}"
-                            android:textAppearance="?android:textAppearanceMedium"
+                            android:textAppearance="@style/TextAppearance.AppCompat.Medium"
                             android:textColor="?android:textColorPrimary"
-                            tools:text="Don't forget to separate the colors!"/>
+                            tools:text="Don't forget to separate the colors!" />
 
                     </LinearLayout>
 
                 </LinearLayout>
 
-            </android.support.v4.widget.NestedScrollView>
+            </androidx.core.widget.NestedScrollView>
 
         </LinearLayout>
 
@@ -274,27 +234,25 @@
             app:layout_anchor="@id/task_header"
             app:layout_anchorGravity="bottom|end">
 
-            <android.support.design.widget.FloatingActionButton
-                android:id="@id/fab"
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/fab"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="@dimen/activity_horizontal_margin"
-                android:layout_marginRight="@dimen/activity_horizontal_margin"
                 android:alpha="0"
                 android:onClick="onFabClicked"
                 android:scaleX="0"
                 android:scaleY="0"
                 android:transitionName="@string/transition_fab"
                 app:elevation="9dp"
-                app:srcCompat="@{task.completed == null ? R.drawable.ic_done_white_24dp : R.drawable.ic_settings_backup_restore_24dp}"
+                app:srcCompat="@{task.completedDate == null ? R.drawable.ic_done_24dp : R.drawable.ic_settings_backup_restore_24dp}"
                 tools:alpha="1"
                 tools:scaleX="1"
                 tools:scaleY="1"
-                tools:src="@drawable/ic_done_white_24dp"
-                tools:targetApi="lollipop"/>
+                tools:src="@drawable/ic_done_24dp" />
 
         </FrameLayout>
 
-    </android.support.design.widget.CoordinatorLayout>
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
 </layout>
