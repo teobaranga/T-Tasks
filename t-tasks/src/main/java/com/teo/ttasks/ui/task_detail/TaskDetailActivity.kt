@@ -6,16 +6,13 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.transition.Transition
-import android.view.Gravity
+import android.view.MenuItem
 import android.view.View
 import android.view.animation.AlphaAnimation
 import android.view.animation.OvershootInterpolator
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.PopupMenu
-import androidx.appcompat.widget.ShareActionProvider
-import androidx.core.view.MenuItemCompat
 import androidx.core.view.ViewCompat
 import androidx.databinding.DataBindingUtil
 import com.teo.ttasks.BuildConfig
@@ -78,39 +75,12 @@ class TaskDetailActivity : AppCompatActivity(), TaskDetailView {
 
     private lateinit var shareIntent: Intent
 
-    private val overflowClickListener = View.OnClickListener {
-        val popup = PopupMenu(this, taskDetailBinding.bar)
-        popup.gravity = Gravity.END
-        popup.inflate(R.menu.menu_task_detail)
-        (MenuItemCompat.getActionProvider(popup.menu.findItem(R.id.share)) as ShareActionProvider).setShareIntent(shareIntent)
-        popup.setOnMenuItemClickListener { item ->
-            when (item.itemId) {
-                R.id.delete -> {
-                    val dialogClickListener = DialogInterface.OnClickListener { _, choice ->
-                        when (choice) {
-                            DialogInterface.BUTTON_POSITIVE -> taskDetailPresenter.deleteTask()
-                            DialogInterface.BUTTON_NEGATIVE -> {
-                            }
-                        }
-                    }
-                    AlertDialog.Builder(this)
-                            .setMessage("Delete this task?")
-                            .setPositiveButton(android.R.string.yes, dialogClickListener)
-                            .setNegativeButton(android.R.string.no, dialogClickListener)
-                            .show()
-                }
-            }
-            true
-        }
-        popup.show()
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         taskDetailBinding = DataBindingUtil.setContentView(this, R.layout.activity_task_detail)
-        taskDetailPresenter.bindView(this)
+        setSupportActionBar(taskDetailBinding.toolbar)
 
-        taskDetailBinding.more.setOnClickListener(overflowClickListener)
+        taskDetailPresenter.bindView(this)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             window.enterTransition.addListener(object : AnimUtils.TransitionListener() {
@@ -180,19 +150,36 @@ class TaskDetailActivity : AppCompatActivity(), TaskDetailView {
     @Suppress("UNUSED_PARAMETER")
     fun onFabClicked(v: View) = taskDetailPresenter.updateCompletionStatus()
 
-    @Suppress("UNUSED_PARAMETER")
-    fun onBackClicked(v: View) = onBackPressed()
-
-    @Suppress("UNUSED_PARAMETER")
-    fun onEditClicked(v: View) = EditTaskActivity.startEdit(this, taskId, taskListId, null)
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.delete -> {
+                val dialogClickListener = DialogInterface.OnClickListener { _, choice ->
+                    when (choice) {
+                        DialogInterface.BUTTON_POSITIVE -> taskDetailPresenter.deleteTask()
+                        DialogInterface.BUTTON_NEGATIVE -> {
+                        }
+                    }
+                }
+                AlertDialog.Builder(this)
+                    .setMessage("Delete this task?")
+                    .setPositiveButton(android.R.string.yes, dialogClickListener)
+                    .setNegativeButton(android.R.string.no, dialogClickListener)
+                    .show()
+            }
+            R.id.edit -> {
+                EditTaskActivity.startEdit(this, taskId, taskListId, null)
+            }
+            else -> {
+                super.onOptionsItemSelected(item)
+            }
+        }
+        return true
+    }
 
     private fun enterAnimation() {
         val fadeInAnimation = AlphaAnimation(0.0f, 1.0f)
         fadeInAnimation.duration = 200
         fadeInAnimation.startOffset = 100
-        taskDetailBinding.back.startAnimation(fadeInAnimation)
-        taskDetailBinding.edit.startAnimation(fadeInAnimation)
-        taskDetailBinding.more.startAnimation(fadeInAnimation)
         taskDetailBinding.taskTitle.startAnimation(fadeInAnimation)
         taskDetailBinding.taskListTitle.startAnimation(fadeInAnimation)
     }

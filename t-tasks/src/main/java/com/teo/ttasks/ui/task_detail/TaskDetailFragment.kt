@@ -3,22 +3,21 @@ package com.teo.ttasks.ui.task_detail
 import android.content.Context.WINDOW_SERVICE
 import android.os.Bundle
 import android.util.DisplayMetrics
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import android.view.WindowManager
+import android.view.*
+import androidx.appcompat.widget.Toolbar
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProviders
+import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.teo.ttasks.R
 import com.teo.ttasks.databinding.FragmentTaskDetailBinding
+import com.teo.ttasks.ui.activities.edit_task.EditTaskActivity
 import com.teo.ttasks.util.ARG_TASK_ID
 import com.teo.ttasks.util.ARG_TASK_LIST_ID
 import com.teo.ttasks.util.dpToPx
 import timber.log.Timber
 
-class TaskDetailFragment : BottomSheetDialogFragment() {
+class TaskDetailFragment : BottomSheetDialogFragment(), Toolbar.OnMenuItemClickListener {
 
     companion object {
         /** Create a new instance of this fragment */
@@ -34,13 +33,13 @@ class TaskDetailFragment : BottomSheetDialogFragment() {
         }
     }
 
-    lateinit var fragmentTaskDetailBinding: FragmentTaskDetailBinding
+    private lateinit var fragmentTaskDetailBinding: FragmentTaskDetailBinding
+
+    private lateinit var taskDetailViewModel: TaskDetailViewModel
 
     lateinit var taskId: String
 
     lateinit var taskListId: String
-
-    lateinit var taskDetailViewModel: TaskDetailViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,7 +52,7 @@ class TaskDetailFragment : BottomSheetDialogFragment() {
         }
 
         taskDetailViewModel = activity?.run {
-            ViewModelProviders.of(this)[TaskDetailViewModel::class.java]
+            ViewModelProvider(this)[TaskDetailViewModel::class.java]
         } ?: throw IllegalStateException("ViewModel could not be loaded")
 
         taskDetailViewModel.loadTask(taskId)
@@ -70,9 +69,14 @@ class TaskDetailFragment : BottomSheetDialogFragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         fragmentTaskDetailBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_task_detail, container, false)
 
-        fragmentTaskDetailBinding.fab.setOnClickListener {
-            taskDetailViewModel.updateCompletionStatus()
-            dismiss()
+        with(fragmentTaskDetailBinding) {
+
+            toolbar.setOnMenuItemClickListener(this@TaskDetailFragment)
+
+            fab.setOnClickListener {
+                taskDetailViewModel.updateCompletionStatus()
+                dismiss()
+            }
         }
 
         return fragmentTaskDetailBinding.root
@@ -88,5 +92,14 @@ class TaskDetailFragment : BottomSheetDialogFragment() {
         val width = metrics.widthPixels - 32.dpToPx()
         val height = ViewGroup.LayoutParams.MATCH_PARENT
         dialog!!.window!!.setLayout(width, height)
+    }
+
+    override fun onMenuItemClick(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.edit -> {
+                EditTaskActivity.startEdit(requireContext(), taskId, taskListId, null)
+            }
+        }
+        return true
     }
 }

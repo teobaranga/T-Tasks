@@ -8,7 +8,7 @@
     <dimen name="baseline_edit_task">16dp</dimen>
 
     <dimen name="margin_items_edit_task">12dp</dimen>
-    <dimen name="margin_icon_horizontal">56dp</dimen>
+    <dimen name="margin_icon_horizontal">40dp</dimen>
 
     <!-- Default screen margins, per the Android Design guidelines. -->
     <dimen name="activity_horizontal_margin">16dp</dimen>

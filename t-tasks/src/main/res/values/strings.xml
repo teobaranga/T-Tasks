@@ -54,6 +54,7 @@
     <string name="error_task_list_title_missing">Please enter a title</string>
 
     <!-- Task Detail -->
+    <string name="edit">Edit</string>
     <string name="share">Share</string>
     <string name="delete">Delete</string>
     <string name="due_date_not_set">No due date</string>
