@@ -21,8 +21,8 @@ import com.teo.ttasks.ui.activities.BaseActivity
 import com.teo.ttasks.ui.activities.SettingsActivity
 import com.teo.ttasks.ui.activities.edit_task.EditTaskActivity
 import com.teo.ttasks.ui.activities.sign_in.SignInActivity.Companion.startSignInActivity
-import com.teo.ttasks.ui.fragments.AccountInfoDialogFragment
-import com.teo.ttasks.ui.fragments.AccountInfoDialogFragment.AccountInfoListener
+import com.teo.ttasks.ui.fragments.accounts.AccountInfoDialogFragment
+import com.teo.ttasks.ui.fragments.accounts.AccountInfoDialogFragment.AccountInfoListener
 import com.teo.ttasks.ui.fragments.tasks.TasksFragment
 import com.teo.ttasks.util.getColorFromAttr
 import org.koin.android.scope.currentScope
