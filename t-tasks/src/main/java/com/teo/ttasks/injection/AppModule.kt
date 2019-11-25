@@ -78,7 +78,6 @@ val appModule = module {
         scoped {
             MainActivityPresenter(
                 context = get(),
-                tasksHelper = get(),
                 prefHelper = get(),
                 userManager = get(),
                 firebaseAuth = get())

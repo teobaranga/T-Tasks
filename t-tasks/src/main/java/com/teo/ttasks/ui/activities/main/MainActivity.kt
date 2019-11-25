@@ -8,8 +8,11 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.AdapterView
+import android.widget.ArrayAdapter
 import androidx.core.view.updateLayoutParams
 import androidx.databinding.DataBindingUtil
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.teo.ttasks.R
@@ -29,7 +32,7 @@ import org.koin.android.scope.currentScope
 import timber.log.Timber
 
 // TODO: 2015-12-29 implement multiple accounts
-open class MainActivity : BaseActivity(), MainView, AccountInfoListener {
+open class MainActivity : BaseActivity(), AccountInfoListener {
 
     companion object {
         private const val TAG_TASKS = "tasks"
@@ -45,39 +48,37 @@ open class MainActivity : BaseActivity(), MainView, AccountInfoListener {
 
     private lateinit var mainBinding: ActivityMainBinding
 
-    private lateinit var taskListsAdapter: TaskListsAdapter
+    private lateinit var taskListsAdapter: ArrayAdapter<TaskList>
 
     private lateinit var accountMenuItem: MenuItem
 
-    private lateinit var lastAccessedTaskId: String
+    private lateinit var viewModel: MainViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Reset the window background (after displaying the splash screen)
         window.setBackgroundDrawable(ColorDrawable(getColorFromAttr(R.attr.colorPrimary)))
-        mainActivityPresenter.bindView(this)
+
+        viewModel = ViewModelProvider(this)[MainViewModel::class.java]
 
         // Show the SignIn activity if there's no user connected
-        if (!mainActivityPresenter.isSignedIn()) {
-            onSignedOut()
+        if (!viewModel.isSignedIn()) {
+            signOut()
             return
         }
 
         mainBinding = DataBindingUtil.setContentView(this, R.layout.activity_main)
 
-        val (taskLists, index) = mainActivityPresenter.getTaskLists()
-        lastAccessedTaskId = taskLists[index].id
-
-        taskListsAdapter = TaskListsAdapter(supportActionBar!!.themedContext, taskLists)
+        taskListsAdapter = TaskListsAdapter(supportActionBar!!.themedContext)
 
         mainBinding.spinnerTaskLists.apply {
             adapter = taskListsAdapter
 
-            setSelection(index, false)
-
             onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
                 override fun onItemSelected(adapterView: AdapterView<*>, view: View?, position: Int, id: Long) {
                     val taskListId = (adapterView.getItemAtPosition(position) as TaskList).id
-                    lastAccessedTaskId = taskListId
+                    viewModel.activeTaskListId = taskListId
                     tasksFragment?.updateTaskListId(taskListId)
                 }
 
@@ -85,8 +86,26 @@ open class MainActivity : BaseActivity(), MainView, AccountInfoListener {
             }
         }
 
+        viewModel.taskLists.observe(this, Observer {  taskLists ->
+            taskListsAdapter = TaskListsAdapter(supportActionBar!!.themedContext, taskLists)
+            mainBinding.spinnerTaskLists.adapter = taskListsAdapter
+        })
+
+        viewModel.activeTaskList.observe(this, Observer {  activeTaskList ->
+            if (activeTaskList != null) {
+                val position = taskListsAdapter.getPosition(activeTaskList)
+                mainBinding.spinnerTaskLists.setSelection(position, false)
+            }
+        })
+
+        viewModel.signedIn.observe(this, Observer { signedIn ->
+            if (!signedIn) {
+                signOut()
+            }
+        })
+
         mainBinding.fab.setOnClickListener {
-            EditTaskActivity.startCreate(this, lastAccessedTaskId, null)
+            EditTaskActivity.startCreate(this, viewModel.activeTaskListId!!, null)
         }
 
         // Only set the active selection or active profile if we do not recreate the activity
@@ -94,14 +113,13 @@ open class MainActivity : BaseActivity(), MainView, AccountInfoListener {
             // Inflate the tasks fragment
             tasksFragment = tasksFragment
                 ?: (supportFragmentManager.findFragmentByTag(TAG_TASKS) as? TasksFragment
-                    ?: TasksFragment.newInstance(lastAccessedTaskId))
+                    ?: TasksFragment.newInstance(viewModel.activeTaskListId!!))
 
             supportFragmentManager
                 .beginTransaction()
                 .replace(R.id.fragment_container, tasksFragment!!, TAG_TASKS)
                 .commit()
         }
-//        mainActivityPresenter.subscribeToTaskLists()
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -126,39 +144,8 @@ open class MainActivity : BaseActivity(), MainView, AccountInfoListener {
         }
     }
 
-    override fun onStop() {
-        super.onStop()
-        mainActivityPresenter.lastAccessedTaskListId = lastAccessedTaskId
-    }
-
-    override fun onDestroy() {
-        mainActivityPresenter.unbindView(this)
-        super.onDestroy()
-    }
-
-    /**
-     * Load the task lists and prepare them to be displayed.
-     * Select the last accessed task list.
-     */
-    override fun onTaskListsLoaded(taskLists: List<TaskList>, currentTaskListIndex: Int) {
-        // Set the task list only if it's different than the currently selected one
-        if (mainBinding.spinnerTaskLists.selectedItemPosition != currentTaskListIndex) {
-            // TODO: use DiffUtil?
-            taskListsAdapter.clear()
-            taskListsAdapter.addAll(taskLists)
-            // Restore previously selected task list
-            mainBinding.spinnerTaskLists.setSelection(currentTaskListIndex)
-        }
-    }
-
-    override fun onTaskListsLoadError() {
+    fun onTaskListsLoadError() {
         // TODO: 2016-07-24 implement
-    }
-
-    override fun onSignedOut() {
-        // Return to the sign in activity
-        startSignInActivity(true)
-        finish()
     }
 
     fun fab(): FloatingActionButton = mainBinding.fab
@@ -195,5 +182,11 @@ open class MainActivity : BaseActivity(), MainView, AccountInfoListener {
 
     override fun onAboutShow() {
         AboutActivity.start(this)
+    }
+
+    private fun signOut() {
+        // Return to the sign in activity
+        startSignInActivity(true)
+        finish()
     }
 }

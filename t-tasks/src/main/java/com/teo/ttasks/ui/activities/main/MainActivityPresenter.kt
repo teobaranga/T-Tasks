@@ -11,24 +11,18 @@ import com.squareup.picasso.Picasso
 import com.squareup.picasso.Target
 import com.teo.ttasks.UserManager
 import com.teo.ttasks.data.local.PrefHelper
-import com.teo.ttasks.data.model.TaskList
-import com.teo.ttasks.data.remote.TasksHelper
+import com.teo.ttasks.ui.base.MvpView
 import com.teo.ttasks.ui.base.Presenter
-import com.teo.ttasks.util.NightHelper
-import com.teo.ttasks.util.NightHelper.NIGHT_AUTO
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.realm.Realm
 import timber.log.Timber
 import java.io.File
 import java.io.FileOutputStream
 
 class MainActivityPresenter(
     private val context: Context,
-    private val tasksHelper: TasksHelper,
     private val prefHelper: PrefHelper,
     private val userManager: UserManager,
     private val firebaseAuth: FirebaseAuth
-) : Presenter<MainView>() {
+) : Presenter<MvpView>() {
 
     private open class ProfileIconTarget(private val targetFile: File) : Target {
 
@@ -45,32 +39,7 @@ class MainActivityPresenter(
         override fun onPrepareLoad(placeHolderDrawable: Drawable?) {}
     }
 
-    private lateinit var realm: Realm
-
-    /**
-     * Save the ID of the last accessed task list so that it can be displayed the next time the user opens the app
-     *
-     * @param taskListId task list identifier
-     */
-    internal var lastAccessedTaskListId: String?
-        get() = prefHelper.currentTaskListId
-        set(value) {
-            prefHelper.currentTaskListId = value
-        }
-
-    /** Listener handling the sign out event */
-    private val firebaseAuthStateListener = FirebaseAuth.AuthStateListener { firebaseAuth ->
-        if (firebaseAuth.currentUser == null) {
-            // The user has signed out
-            // TODO Unregister all task listeners
-            clearUser()
-            view()?.onSignedOut()
-        }
-    }
-
     private var profileIconTarget: ProfileIconTarget? = null
-
-    internal fun isSignedIn() = firebaseAuth.currentUser != null
 
     internal fun loadProfilePicture(menuItem: MenuItem) {
         firebaseAuth.currentUser?.let { firebaseUser ->
@@ -109,43 +78,6 @@ class MainActivityPresenter(
         }
     }
 
-    internal fun subscribeToTaskLists() {
-        Timber.v("Subscribing to task lists notification")
-
-        val disposable = tasksHelper.getTaskLists(realm, false)
-            .filter { it.isNotEmpty() }
-            .subscribe(
-                { taskLists ->
-                    // Find the index of the current task list
-                    val currentTaskListId = prefHelper.currentTaskListId
-                    val index = taskLists.indexOfFirst { it.id == currentTaskListId }.coerceAtLeast(0)
-                    view()?.onTaskListsLoaded(taskLists, index)
-                },
-                {
-                    Timber.e(it, "Error while loading task lists")
-                    view()?.onTaskListsLoadError()
-                })
-        disposeOnUnbindView(disposable)
-    }
-
-    internal fun getTaskLists(): Pair<List<TaskList>, Int> {
-        val taskLists = tasksHelper.getTaskLists(realm, false).blockingFirst()
-
-        // Find the index of the current task list
-        val currentTaskListId = prefHelper.currentTaskListId
-        val index = taskLists.indexOfFirst { it.id == currentTaskListId }.coerceAtLeast(0)
-
-        return Pair(taskLists, index)
-    }
-
-    internal fun refreshTaskLists() {
-        val subscription = tasksHelper.refreshTaskLists()
-            .ignoreElements()
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({ /* do nothing */ }) { Timber.e(it, "Error refreshing task lists") }
-        disposeOnUnbindView(subscription)
-    }
-
     internal fun signOut() {
         val disposable = firebaseAuth.rxSignOut()
             .onErrorComplete {
@@ -163,26 +95,5 @@ class MainActivityPresenter(
                 Timber.e(it, "Could not sign out")
             })
         disposeOnUnbindView(disposable)
-    }
-
-    private fun clearUser() {
-        // Clear the user's preferences
-        prefHelper.clearUser()
-        // Clear the database
-        realm.executeTransaction { it.deleteAll() }
-        // Reset the night mode
-        NightHelper.applyNightMode(NIGHT_AUTO)
-    }
-
-    override fun bindView(view: MainView) {
-        super.bindView(view)
-        realm = Realm.getDefaultInstance()
-        firebaseAuth.addAuthStateListener(firebaseAuthStateListener)
-    }
-
-    override fun unbindView(view: MainView) {
-        firebaseAuth.removeAuthStateListener(firebaseAuthStateListener)
-        realm.close()
-        super.unbindView(view)
     }
 }

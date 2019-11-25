@@ -73,7 +73,7 @@ class PrefHelper(private val context: Context, private val firebaseAuth: Firebas
         get() = sharedPreferences.getString(PREF_TASK_LISTS_RESPONSE_ETAG, "")!!
         set(etag) = sharedPreferences.edit().putString(PREF_TASK_LISTS_RESPONSE_ETAG, etag).apply()
 
-    /** Return the ID of the most recently accessed task list */
+    /** Return the ID of the most recently accessed task list or `null` if none present. */
     var currentTaskListId: String?
         get() = sharedPreferences.getString(PREF_CURRENT_TASK_LIST_ID, null)
         set(currentTaskListId) = sharedPreferences.edit()

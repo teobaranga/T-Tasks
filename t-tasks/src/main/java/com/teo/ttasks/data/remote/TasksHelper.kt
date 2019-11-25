@@ -62,6 +62,12 @@ class TasksHelper(
             .filter { it.isLoaded && it.isValid }
     }
 
+    fun getTaskListFromRealm(realm: Realm): RealmResults<TaskList> {
+        return realm.where(TaskList::class.java)
+            .equalTo(com.teo.ttasks.data.model.TaskListFields.DELETED, false)
+            .findAllAsync()
+    }
+
     private fun queryTaskLists(realm: Realm): RealmQuery<TaskList> =
         realm.where(TaskList::class.java)
             .equalTo(com.teo.ttasks.data.model.TaskListFields.DELETED, false)
