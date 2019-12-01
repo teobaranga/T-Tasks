@@ -26,6 +26,7 @@ import com.teo.ttasks.ui.activities.edit_task.EditTaskActivity
 import com.teo.ttasks.ui.activities.sign_in.SignInActivity.Companion.startSignInActivity
 import com.teo.ttasks.ui.fragments.accounts.AccountInfoDialogFragment
 import com.teo.ttasks.ui.fragments.accounts.AccountInfoDialogFragment.AccountInfoListener
+import com.teo.ttasks.ui.fragments.task_lists.TaskListsFragment
 import com.teo.ttasks.ui.fragments.tasks.TasksFragment
 import com.teo.ttasks.util.getColorFromAttr
 import org.koin.android.scope.currentScope
@@ -72,8 +73,15 @@ open class MainActivity : BaseActivity(), AccountInfoListener {
 
         taskListsAdapter = TaskListsAdapter(supportActionBar!!.themedContext)
 
-        mainBinding.spinnerTaskLists.apply {
+        mainBinding.taskLists.apply {
             adapter = taskListsAdapter
+
+            itemLongClickListener = { position ->
+                val taskListId = (getItemAtPosition(position) as TaskList).id
+                TaskListsFragment.newInstance(taskListId)
+                    .show(supportFragmentManager, "taskList")
+                true
+            }
 
             onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
                 override fun onItemSelected(adapterView: AdapterView<*>, view: View?, position: Int, id: Long) {
@@ -88,13 +96,13 @@ open class MainActivity : BaseActivity(), AccountInfoListener {
 
         viewModel.taskLists.observe(this, Observer {  taskLists ->
             taskListsAdapter = TaskListsAdapter(supportActionBar!!.themedContext, taskLists)
-            mainBinding.spinnerTaskLists.adapter = taskListsAdapter
+            mainBinding.taskLists.adapter = taskListsAdapter
         })
 
         viewModel.activeTaskList.observe(this, Observer {  activeTaskList ->
             if (activeTaskList != null) {
                 val position = taskListsAdapter.getPosition(activeTaskList)
-                mainBinding.spinnerTaskLists.setSelection(position, false)
+                mainBinding.taskLists.setSelection(position, false)
             }
         })
 
@@ -103,6 +111,10 @@ open class MainActivity : BaseActivity(), AccountInfoListener {
                 signOut()
             }
         })
+
+        mainBinding.imgAddTasklist.setOnClickListener {
+            TaskListsFragment.newInstance().show(supportFragmentManager, "taskList")
+        }
 
         mainBinding.fab.setOnClickListener {
             EditTaskActivity.startCreate(this, viewModel.activeTaskListId!!, null)

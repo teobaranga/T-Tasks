@@ -1,24 +1,20 @@
 package com.teo.ttasks.ui.fragments.task_lists
 
+import android.app.Dialog
 import android.content.DialogInterface
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
 import android.view.View.GONE
-import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
-import androidx.databinding.DataBindingUtil
-import androidx.fragment.app.Fragment
+import androidx.fragment.app.DialogFragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.teo.ttasks.R
 import com.teo.ttasks.databinding.FragmentTaskListsBinding
 import com.teo.ttasks.receivers.NetworkInfoReceiver.Companion.isOnline
-import com.teo.ttasks.ui.DividerItemDecoration
 import com.teo.ttasks.ui.activities.main.MainActivity
 import com.teo.ttasks.ui.items.TaskListItem
 import com.teo.ttasks.util.NightHelper
@@ -27,7 +23,17 @@ import eu.davidea.flexibleadapter.FlexibleAdapter
 import org.koin.android.scope.currentScope
 import timber.log.Timber
 
-class TaskListsFragment : Fragment(), TaskListsView, SwipeRefreshLayout.OnRefreshListener {
+class TaskListsFragment : DialogFragment(), TaskListsView {
+
+    companion object {
+        private const val EXTRA_TASK_LIST_ID = "taskListId"
+
+        fun newInstance(taskListId: String? = null): TaskListsFragment = TaskListsFragment().apply {
+            arguments = Bundle().apply {
+                putString(EXTRA_TASK_LIST_ID, taskListId)
+            }
+        }
+    }
 
     private val taskListsPresenter: TaskListsPresenter by currentScope.inject()
 
@@ -89,52 +95,57 @@ class TaskListsFragment : Fragment(), TaskListsView, SwipeRefreshLayout.OnRefres
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        retainInstance = true
-        adapter = FlexibleAdapter(null)
-        adapter.addListener(FlexibleAdapter.OnItemClickListener { view, position ->
-            val item = adapter.getItem(position)!!
-            when (view.id) {
-                R.id.delete_task_list -> showDeleteTaskListDialog(item.id)
-                else -> showEditTaskListDialog(item)
-            }
-            return@OnItemClickListener true
-        })
+//        retainInstance = true
+//        adapter = FlexibleAdapter(null)
+//        adapter.addListener(FlexibleAdapter.OnItemClickListener { view, position ->
+//            val item = adapter.getItem(position)!!
+//            when (view.id) {
+//                R.id.delete_task_list -> showDeleteTaskListDialog(item.id)
+//                else -> showEditTaskListDialog(item)
+//            }
+//            return@OnItemClickListener true
+//        })
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        taskListsBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_task_lists, container, false)
+    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
 
-        taskListsBinding.taskLists.layoutManager = LinearLayoutManager(context)
-        taskListsBinding.taskLists.addItemDecoration(DividerItemDecoration(context!!, null))
-        taskListsBinding.taskLists.adapter = adapter
+        val taskListId = requireArguments().getString(EXTRA_TASK_LIST_ID)
 
-        taskListsBinding.swipeRefreshLayout.setOnRefreshListener(this)
+        val dialog = MaterialAlertDialogBuilder(requireContext())
+            .setView(R.layout.dialog_task_list_edit)
+            .setTitle(if (taskListId == null) R.string.new_task_list else R.string.edit_task_list)
+            .setPositiveButton(android.R.string.ok) { _, _ -> }
+            .setNegativeButton(android.R.string.cancel) { _, _ -> }
+            .create()
 
-        taskListsPresenter.bindView(this)
-        taskListsPresenter.getTaskLists()
-
-        return taskListsBinding.root
+        return dialog
     }
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
-        val fab = (activity as MainActivity).fab()
-        fab.setOnClickListener { showEditTaskListDialog(null) }
-    }
+//    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+//        taskListsBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_task_lists, container, false)
+//
+//        taskListsBinding.taskLists.layoutManager = LinearLayoutManager(context)
+//        taskListsBinding.taskLists.addItemDecoration(DividerItemDecoration(context!!, null))
+//        taskListsBinding.taskLists.adapter = adapter
+//
+//        taskListsBinding.swipeRefreshLayout.setOnRefreshListener(this)
+//
+//        taskListsPresenter.bindView(this)
+//        taskListsPresenter.getTaskLists()
+//
+//        return taskListsBinding.root
+//    }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        taskListsPresenter.unbindView(this)
-    }
+//    override fun onActivityCreated(savedInstanceState: Bundle?) {
+//        super.onActivityCreated(savedInstanceState)
+//        val fab = (activity as MainActivity).fab()
+//        fab.setOnClickListener { showEditTaskListDialog(null) }
+//    }
 
-    override fun onRefresh() {
-        // TODO: 2016-08-16 implement
-        if (!context.isOnline()) {
-            onRefreshDone()
-        } else {
-            taskListsPresenter.getTaskLists()
-        }
-    }
+//    override fun onDestroyView() {
+//        super.onDestroyView()
+//        taskListsPresenter.unbindView(this)
+//    }
 
     override fun onTaskListsLoading() {
 
@@ -173,9 +184,5 @@ class TaskListsFragment : Fragment(), TaskListsView, SwipeRefreshLayout.OnRefres
 
     fun onRefreshDone() {
         taskListsBinding.swipeRefreshLayout.isRefreshing = false
-    }
-
-    companion object {
-        fun newInstance(): TaskListsFragment = TaskListsFragment()
     }
 }

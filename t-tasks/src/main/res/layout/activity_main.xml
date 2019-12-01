@@ -24,11 +24,30 @@
                 app:layout_scrollFlags="scroll|enterAlways"
                 app:popupTheme="@style/PopupOverlay">
 
-                <Spinner
-                    android:id="@+id/spinner_task_lists"
+                <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:popupBackground="?attr/colorPrimaryDark" />
+                    android:orientation="horizontal">
+
+                    <com.teo.ttasks.ui.views.LongPressSpinner
+                        android:id="@+id/task_lists"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:popupBackground="?attr/colorPrimaryDark"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintWidth_percent="0.75" />
+
+                    <ImageView
+                        android:id="@+id/img_add_tasklist"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        app:layout_constraintStart_toEndOf="@id/task_lists"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:srcCompat="@drawable/ic_add_white_24dp" />
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
 
             </androidx.appcompat.widget.Toolbar>
 

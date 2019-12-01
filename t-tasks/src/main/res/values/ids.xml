@@ -25,4 +25,6 @@
     <item name="task_list_item" type="id"/>
     <item name="category_item" type="id"/>
 
+    <item name="tag_view_position" type="id" />
+
 </resources>

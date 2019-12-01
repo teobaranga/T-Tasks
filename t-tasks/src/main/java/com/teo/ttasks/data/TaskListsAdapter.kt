@@ -4,16 +4,16 @@ import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ArrayAdapter
 import android.widget.TextView
 import androidx.annotation.LayoutRes
 import com.teo.ttasks.R
 import com.teo.ttasks.data.model.TaskList
+import com.teo.ttasks.ui.views.LongPressSpinner.LongPressArrayAdapter
 
 class TaskListsAdapter(
     context: Context,
     taskLists: List<TaskList> = mutableListOf()
-) : ArrayAdapter<TaskList>(context, layoutResId, taskLists) {
+) : LongPressArrayAdapter<TaskList>(context, layoutResId, objects = taskLists) {
 
     companion object {
         private const val layoutResId = R.layout.spinner_item_task_list
@@ -50,7 +50,7 @@ class TaskListsAdapter(
         val taskList = getItem(position)!!
         val viewHolder: ViewHolder
         if (view == null) {
-            view = LayoutInflater.from(context).inflate(layoutResDropDownId, parent, false)
+            view = LayoutInflater.from(context).inflate(layoutResDropDownId, parent, false)!!
             viewHolder = ViewHolder()
             viewHolder.name = view.findViewById(R.id.taskListTitle)
             view.tag = viewHolder
@@ -58,7 +58,10 @@ class TaskListsAdapter(
             viewHolder = view.tag as ViewHolder
         }
         viewHolder.name.text = taskList.title
-        return view!!
+
+        enableLongClick(view, position)
+
+        return view
     }
 
     // View lookup cache
