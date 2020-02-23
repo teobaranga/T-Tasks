@@ -70,7 +70,8 @@ class MainViewModel : RealmViewModel(), KoinComponent {
         }
     }
 
-    val navigateTo = MutableLiveData<Event<ActionEvent>>()
+    private val _events = MutableLiveData<Event<ActionEvent>>()
+    val events: LiveData<Event<ActionEvent>> = _events
 
     init {
         firebaseAuth.addAuthStateListener(authStateListener)
@@ -84,6 +85,18 @@ class MainViewModel : RealmViewModel(), KoinComponent {
                 {
                     Timber.e(it, "Error refreshing task lists")
                 })
+    }
+
+    fun onAboutClicked() {
+        _events.value = Event(ActionEvent.ABOUT)
+    }
+
+    fun onSettingsClicked() {
+        _events.value = Event(ActionEvent.SETTINGS)
+    }
+
+    fun onSignOutClicked() {
+        _events.value = Event(ActionEvent.SIGN_OUT)
     }
 
     internal fun isSignedIn(): Boolean {

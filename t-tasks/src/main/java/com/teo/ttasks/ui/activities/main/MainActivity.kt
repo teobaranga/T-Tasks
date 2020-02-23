@@ -54,6 +54,8 @@ class MainActivity : BaseActivity() {
 
     private val viewModel by currentScope.viewModel<MainViewModel>(this)
 
+    private var accountInfoDialogFragment: AccountInfoDialogFragment? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -67,6 +69,7 @@ class MainActivity : BaseActivity() {
         }
 
         mainBinding = DataBindingUtil.setContentView(this, R.layout.activity_main)
+        mainBinding.lifecycleOwner = this
 
         taskListsAdapter = TaskListsAdapter(supportActionBar!!.themedContext)
 
@@ -91,12 +94,12 @@ class MainActivity : BaseActivity() {
             }
         }
 
-        viewModel.taskLists.observe(this, Observer {  taskLists ->
+        viewModel.taskLists.observe(this, Observer { taskLists ->
             taskListsAdapter = TaskListsAdapter(supportActionBar!!.themedContext, taskLists)
             mainBinding.taskLists.adapter = taskListsAdapter
         })
 
-        viewModel.activeTaskList.observe(this, Observer {  activeTaskList ->
+        viewModel.activeTaskList.observe(this, Observer { activeTaskList ->
             if (activeTaskList != null) {
                 val position = taskListsAdapter.getPosition(activeTaskList)
                 mainBinding.taskLists.setSelection(position, false)
@@ -109,7 +112,7 @@ class MainActivity : BaseActivity() {
             }
         })
 
-        viewModel.navigateTo.observe(this, Observer {
+        viewModel.events.observe(this, Observer {
             it.getIfUnhandled()?.let { action ->
                 when (action) {
                     MainViewModel.ActionEvent.ABOUT -> {
@@ -123,6 +126,8 @@ class MainActivity : BaseActivity() {
                     }
                 }
             }
+            accountInfoDialogFragment?.dismiss()
+            accountInfoDialogFragment = null
         })
 
         mainBinding.imgAddTasklist.setOnClickListener {
@@ -159,10 +164,12 @@ class MainActivity : BaseActivity() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when(item.itemId) {
+        return when (item.itemId) {
             R.id.menu_account -> {
-                val accountDialogFragment = AccountInfoDialogFragment.newInstance()
-                accountDialogFragment.show(supportFragmentManager, "account_info")
+                AccountInfoDialogFragment.newInstance().let {
+                    it.show(supportFragmentManager, "account_info")
+                    accountInfoDialogFragment = it
+                }
                 true
             }
             else -> super.onOptionsItemSelected(item)

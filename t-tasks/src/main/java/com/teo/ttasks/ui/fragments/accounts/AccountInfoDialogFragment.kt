@@ -8,7 +8,6 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.teo.ttasks.R
 import com.teo.ttasks.databinding.DialogAccountInfoBinding
-import com.teo.ttasks.livedata.Event
 import com.teo.ttasks.ui.activities.main.MainViewModel
 import com.teo.ttasks.util.dpToPx
 import org.koin.android.viewmodel.ext.android.sharedViewModel
@@ -21,7 +20,7 @@ class AccountInfoDialogFragment : DialogFragment() {
         }
     }
 
-    private lateinit var dialogAccountInfoBinding: DialogAccountInfoBinding
+    private lateinit var binding: DialogAccountInfoBinding
 
     private lateinit var accountsInfoViewModel: AccountsInfoViewModel
 
@@ -38,38 +37,20 @@ class AccountInfoDialogFragment : DialogFragment() {
             val owner = this@AccountInfoDialogFragment
 
             accountEmail.observe(owner, Observer {
-                dialogAccountInfoBinding.accountEmail.text = it
+                binding.accountEmail.text = it
             })
 
             accountName.observe(owner, Observer {
-                dialogAccountInfoBinding.accountName.text = it
+                binding.accountName.text = it
             })
         }
 
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        dialogAccountInfoBinding = DataBindingUtil.inflate(inflater, R.layout.dialog_account_info, container, false)
-
-        with(dialogAccountInfoBinding) {
-
-            settings.setOnClickListener {
-                dismiss()
-                viewModel.navigateTo.value = Event(MainViewModel.ActionEvent.SETTINGS)
-            }
-
-            about.setOnClickListener {
-                dismiss()
-                viewModel.navigateTo.value = Event(MainViewModel.ActionEvent.ABOUT)
-            }
-
-            signOut.setOnClickListener {
-                dismiss()
-                viewModel.navigateTo.value = Event(MainViewModel.ActionEvent.SIGN_OUT)
-            }
-        }
-
-        return dialogAccountInfoBinding.root
+        binding = DataBindingUtil.inflate(inflater, R.layout.dialog_account_info, container, false)
+        binding.viewModel = viewModel
+        return binding.root
     }
 
     override fun onResume() {

@@ -3,6 +3,15 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <data>
+
+        <import type="com.teo.ttasks.ui.activities.main.MainViewModel" />
+
+        <variable
+            name="viewModel"
+            type="MainViewModel" />
+    </data>
+
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/container"
         android:layout_width="match_parent"
@@ -41,6 +50,7 @@
             android:id="@+id/settings"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:onClick="@{() -> viewModel.onSettingsClicked()}"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:srcCompat="@drawable/ic_settings_24dp" />
@@ -54,6 +64,7 @@
             android:drawableStart="@drawable/ic_sign_out_24dp"
             android:drawablePadding="10dp"
             android:gravity="center_vertical"
+            android:onClick="@{() -> viewModel.onSignOutClicked()}"
             android:paddingStart="8dp"
             android:paddingEnd="8dp"
             android:text="@string/sign_out"
@@ -65,6 +76,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
+            android:onClick="@{() -> viewModel.onAboutClicked()}"
             android:paddingStart="8dp"
             android:paddingEnd="8dp"
             android:text="@string/about"
