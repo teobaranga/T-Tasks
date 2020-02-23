@@ -18,7 +18,6 @@ import com.teo.ttasks.receivers.NetworkInfoReceiver
 import com.teo.ttasks.ui.activities.edit_task.EditTaskActivity
 import com.teo.ttasks.ui.activities.edit_task.EditTaskPresenter
 import com.teo.ttasks.ui.activities.main.MainActivity
-import com.teo.ttasks.ui.activities.main.MainActivityPresenter
 import com.teo.ttasks.ui.activities.main.MainViewModel
 import com.teo.ttasks.ui.activities.sign_in.SignInActivity
 import com.teo.ttasks.ui.activities.sign_in.SignInPresenter
@@ -77,13 +76,6 @@ val appModule = module {
     }
 
     scope(named<MainActivity>()) {
-        scoped {
-            MainActivityPresenter(
-                context = get(),
-                prefHelper = get(),
-                userManager = get(),
-                firebaseAuth = get())
-        }
         viewModel { MainViewModel() }
     }
 

@@ -42,8 +42,6 @@ class MainActivity : BaseActivity() {
         fun Context.startMainActivity() = startActivity(Intent(this, MainActivity::class.java))
     }
 
-    private val mainActivityPresenter: MainActivityPresenter by currentScope.inject()
-
     private var tasksFragment: TasksFragment? = null
 
     private lateinit var mainBinding: ActivityMainBinding
@@ -70,80 +68,18 @@ class MainActivity : BaseActivity() {
 
         mainBinding = DataBindingUtil.setContentView(this, R.layout.activity_main)
         mainBinding.lifecycleOwner = this
+        mainBinding.viewModel = viewModel
 
-        taskListsAdapter = TaskListsAdapter(supportActionBar!!.themedContext)
+        setupViews()
 
-        mainBinding.taskLists.apply {
-            adapter = taskListsAdapter
-
-            itemLongClickListener = { position ->
-                val taskListId = (getItemAtPosition(position) as TaskList).id
-                TaskListsFragment.newInstance(taskListId)
-                    .show(supportFragmentManager, "taskList")
-                true
-            }
-
-            onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-                override fun onItemSelected(adapterView: AdapterView<*>, view: View?, position: Int, id: Long) {
-                    val taskListId = (adapterView.getItemAtPosition(position) as TaskList).id
-                    viewModel.activeTaskListId = taskListId
-                    tasksFragment?.updateTaskListId(taskListId)
-                }
-
-                override fun onNothingSelected(adapterView: AdapterView<*>) {}
-            }
-        }
-
-        viewModel.taskLists.observe(this, Observer { taskLists ->
-            taskListsAdapter = TaskListsAdapter(supportActionBar!!.themedContext, taskLists)
-            mainBinding.taskLists.adapter = taskListsAdapter
-        })
-
-        viewModel.activeTaskList.observe(this, Observer { activeTaskList ->
-            if (activeTaskList != null) {
-                val position = taskListsAdapter.getPosition(activeTaskList)
-                mainBinding.taskLists.setSelection(position, false)
-            }
-        })
-
-        viewModel.signedIn.observe(this, Observer { signedIn ->
-            if (!signedIn) {
-                signOut()
-            }
-        })
-
-        viewModel.events.observe(this, Observer {
-            it.getIfUnhandled()?.let { action ->
-                when (action) {
-                    MainViewModel.ActionEvent.ABOUT -> {
-                        AboutActivity.start(this)
-                    }
-                    MainViewModel.ActionEvent.SETTINGS -> {
-                        SettingsActivity.start(this)
-                    }
-                    MainViewModel.ActionEvent.SIGN_OUT -> {
-                        mainActivityPresenter.signOut()
-                    }
-                }
-            }
-            accountInfoDialogFragment?.dismiss()
-            accountInfoDialogFragment = null
-        })
-
-        mainBinding.imgAddTasklist.setOnClickListener {
-            TaskListsFragment.newInstance().show(supportFragmentManager, "taskList")
-        }
-
-        mainBinding.fab.setOnClickListener {
-            EditTaskActivity.startCreate(this, viewModel.activeTaskListId!!, null)
-        }
+        setupObservers()
 
         // Only set the active selection or active profile if we do not recreate the activity
         if (savedInstanceState == null) {
             // Inflate the tasks fragment
             tasksFragment = tasksFragment
                 ?: (supportFragmentManager.findFragmentByTag(TAG_TASKS) as? TasksFragment
-                    ?: TasksFragment.newInstance(viewModel.activeTaskListId!!))
+                    ?: TasksFragment.newInstance(viewModel.activeTaskListId))
 
             supportFragmentManager
                 .beginTransaction()
@@ -159,7 +95,7 @@ class MainActivity : BaseActivity() {
 
     override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
         accountMenuItem = menu?.findItem(R.id.menu_account)!!
-        mainActivityPresenter.loadProfilePicture(accountMenuItem)
+        accountMenuItem.icon = viewModel.profilePicture.value
         return super.onPrepareOptionsMenu(menu)
     }
 
@@ -202,6 +138,75 @@ class MainActivity : BaseActivity() {
             }
         }
         Timber.v("Scroll enabled: $enable")
+    }
+
+    private fun setupViews() {
+
+        mainBinding.taskLists.apply {
+
+            itemLongClickListener = { position ->
+                val taskListId = (getItemAtPosition(position) as TaskList).id
+                TaskListsFragment.newInstance(taskListId)
+                    .show(supportFragmentManager, "taskList")
+                true
+            }
+
+            onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+                override fun onItemSelected(adapterView: AdapterView<*>, view: View?, position: Int, id: Long) {
+                    val taskListId = (adapterView.getItemAtPosition(position) as TaskList).id
+                    viewModel.activeTaskListId = taskListId
+                    tasksFragment?.updateTaskListId(taskListId)
+                }
+
+                override fun onNothingSelected(adapterView: AdapterView<*>) {}
+            }
+        }
+    }
+
+    private fun setupObservers() {
+
+        viewModel.taskLists.observe(this, Observer { taskLists ->
+            taskListsAdapter = TaskListsAdapter(supportActionBar!!.themedContext, taskLists)
+            mainBinding.taskLists.adapter = taskListsAdapter
+        })
+
+        viewModel.activeTaskList.observe(this, Observer { activeTaskList ->
+            if (activeTaskList != null) {
+                val position = taskListsAdapter.getPosition(activeTaskList)
+                mainBinding.taskLists.setSelection(position, false)
+            }
+        })
+
+        viewModel.signedIn.observe(this, Observer { signedIn ->
+            if (!signedIn) {
+                signOut()
+            }
+        })
+
+        viewModel.profilePicture.observe(this, Observer {
+            invalidateOptionsMenu()
+        })
+
+        viewModel.events.observe(this, Observer {
+            it.getIfUnhandled()?.let { action ->
+                when (action) {
+                    MainViewModel.ActionEvent.ADD_TASK -> {
+                        EditTaskActivity.startCreate(this, viewModel.activeTaskListId!!, null)
+                    }
+                    MainViewModel.ActionEvent.ADD_TASK_LIST -> {
+                        TaskListsFragment.newInstance().show(supportFragmentManager, "taskList")
+                    }
+                    MainViewModel.ActionEvent.ABOUT -> {
+                        AboutActivity.start(this)
+                    }
+                    MainViewModel.ActionEvent.SETTINGS -> {
+                        SettingsActivity.start(this)
+                    }
+                }
+            }
+            accountInfoDialogFragment?.dismiss()
+            accountInfoDialogFragment = null
+        })
     }
 
     private fun signOut() {
