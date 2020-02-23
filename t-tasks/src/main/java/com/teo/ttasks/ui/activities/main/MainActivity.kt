@@ -12,7 +12,6 @@ import android.widget.ArrayAdapter
 import androidx.core.view.updateLayoutParams
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.teo.ttasks.R
@@ -25,15 +24,15 @@ import com.teo.ttasks.ui.activities.SettingsActivity
 import com.teo.ttasks.ui.activities.edit_task.EditTaskActivity
 import com.teo.ttasks.ui.activities.sign_in.SignInActivity.Companion.startSignInActivity
 import com.teo.ttasks.ui.fragments.accounts.AccountInfoDialogFragment
-import com.teo.ttasks.ui.fragments.accounts.AccountInfoDialogFragment.AccountInfoListener
 import com.teo.ttasks.ui.fragments.task_lists.TaskListsFragment
 import com.teo.ttasks.ui.fragments.tasks.TasksFragment
 import com.teo.ttasks.util.getColorFromAttr
 import org.koin.android.scope.currentScope
+import org.koin.android.viewmodel.ext.android.viewModel
 import timber.log.Timber
 
 // TODO: 2015-12-29 implement multiple accounts
-open class MainActivity : BaseActivity(), AccountInfoListener {
+class MainActivity : BaseActivity() {
 
     companion object {
         private const val TAG_TASKS = "tasks"
@@ -53,15 +52,13 @@ open class MainActivity : BaseActivity(), AccountInfoListener {
 
     private lateinit var accountMenuItem: MenuItem
 
-    private lateinit var viewModel: MainViewModel
+    private val viewModel by currentScope.viewModel<MainViewModel>(this)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         // Reset the window background (after displaying the splash screen)
         window.setBackgroundDrawable(ColorDrawable(getColorFromAttr(R.attr.colorPrimary)))
-
-        viewModel = ViewModelProvider(this)[MainViewModel::class.java]
 
         // Show the SignIn activity if there's no user connected
         if (!viewModel.isSignedIn()) {
@@ -109,6 +106,22 @@ open class MainActivity : BaseActivity(), AccountInfoListener {
         viewModel.signedIn.observe(this, Observer { signedIn ->
             if (!signedIn) {
                 signOut()
+            }
+        })
+
+        viewModel.navigateTo.observe(this, Observer {
+            it.getIfUnhandled()?.let { action ->
+                when (action) {
+                    MainViewModel.ActionEvent.ABOUT -> {
+                        AboutActivity.start(this)
+                    }
+                    MainViewModel.ActionEvent.SETTINGS -> {
+                        SettingsActivity.start(this)
+                    }
+                    MainViewModel.ActionEvent.SIGN_OUT -> {
+                        mainActivityPresenter.signOut()
+                    }
+                }
             }
         })
 
@@ -182,18 +195,6 @@ open class MainActivity : BaseActivity(), AccountInfoListener {
             }
         }
         Timber.v("Scroll enabled: $enable")
-    }
-
-    override fun onSignOut() {
-        mainActivityPresenter.signOut()
-    }
-
-    override fun onSettingsShow() {
-        SettingsActivity.start(this)
-    }
-
-    override fun onAboutShow() {
-        AboutActivity.start(this)
     }
 
     private fun signOut() {

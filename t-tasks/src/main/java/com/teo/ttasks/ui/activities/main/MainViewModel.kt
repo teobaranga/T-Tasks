@@ -8,6 +8,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.teo.ttasks.LiveRealmResults
 import com.teo.ttasks.data.local.PrefHelper
 import com.teo.ttasks.data.remote.TasksHelper
+import com.teo.ttasks.livedata.Event
 import com.teo.ttasks.ui.base.RealmViewModel
 import com.teo.ttasks.util.NightHelper
 import org.koin.core.KoinComponent
@@ -15,6 +16,12 @@ import org.koin.core.inject
 import timber.log.Timber
 
 class MainViewModel : RealmViewModel(), KoinComponent {
+
+    enum class ActionEvent {
+        ABOUT,
+        SETTINGS,
+        SIGN_OUT
+    }
 
     private val firebaseAuth: FirebaseAuth by inject()
 
@@ -62,6 +69,8 @@ class MainViewModel : RealmViewModel(), KoinComponent {
             NightHelper.applyNightMode(NightHelper.NIGHT_AUTO)
         }
     }
+
+    val navigateTo = MutableLiveData<Event<ActionEvent>>()
 
     init {
         firebaseAuth.addAuthStateListener(authStateListener)

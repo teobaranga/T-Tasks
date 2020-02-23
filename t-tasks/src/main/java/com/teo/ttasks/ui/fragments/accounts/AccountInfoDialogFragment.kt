@@ -8,7 +8,10 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.teo.ttasks.R
 import com.teo.ttasks.databinding.DialogAccountInfoBinding
+import com.teo.ttasks.livedata.Event
+import com.teo.ttasks.ui.activities.main.MainViewModel
 import com.teo.ttasks.util.dpToPx
+import org.koin.android.viewmodel.ext.android.sharedViewModel
 
 class AccountInfoDialogFragment : DialogFragment() {
 
@@ -18,17 +21,11 @@ class AccountInfoDialogFragment : DialogFragment() {
         }
     }
 
-    interface AccountInfoListener {
-        fun onSignOut()
-
-        fun onSettingsShow()
-
-        fun onAboutShow()
-    }
-
     private lateinit var dialogAccountInfoBinding: DialogAccountInfoBinding
 
     private lateinit var accountsInfoViewModel: AccountsInfoViewModel
+
+    private val viewModel by sharedViewModel<MainViewModel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -58,17 +55,17 @@ class AccountInfoDialogFragment : DialogFragment() {
 
             settings.setOnClickListener {
                 dismiss()
-                (activity as AccountInfoListener).onSettingsShow()
+                viewModel.navigateTo.value = Event(MainViewModel.ActionEvent.SETTINGS)
             }
 
             about.setOnClickListener {
                 dismiss()
-                (activity as AccountInfoListener).onAboutShow()
+                viewModel.navigateTo.value = Event(MainViewModel.ActionEvent.ABOUT)
             }
 
             signOut.setOnClickListener {
                 dismiss()
-                (activity as AccountInfoListener).onSignOut()
+                viewModel.navigateTo.value = Event(MainViewModel.ActionEvent.SIGN_OUT)
             }
         }
 

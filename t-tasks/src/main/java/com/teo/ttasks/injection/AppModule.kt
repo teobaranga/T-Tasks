@@ -19,6 +19,7 @@ import com.teo.ttasks.ui.activities.edit_task.EditTaskActivity
 import com.teo.ttasks.ui.activities.edit_task.EditTaskPresenter
 import com.teo.ttasks.ui.activities.main.MainActivity
 import com.teo.ttasks.ui.activities.main.MainActivityPresenter
+import com.teo.ttasks.ui.activities.main.MainViewModel
 import com.teo.ttasks.ui.activities.sign_in.SignInActivity
 import com.teo.ttasks.ui.activities.sign_in.SignInPresenter
 import com.teo.ttasks.ui.fragments.task_lists.TaskListsFragment
@@ -33,6 +34,7 @@ import com.teo.ttasks.widget.configure.TasksWidgetConfigurePresenter
 import io.reactivex.schedulers.Schedulers
 import okhttp3.*
 import okhttp3.logging.HttpLoggingInterceptor
+import org.koin.android.viewmodel.dsl.viewModel
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import retrofit2.Retrofit
@@ -82,6 +84,7 @@ val appModule = module {
                 userManager = get(),
                 firebaseAuth = get())
         }
+        viewModel { MainViewModel() }
     }
 
     scope(named<TasksFragment>()) {
