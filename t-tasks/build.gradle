@@ -5,7 +5,7 @@ plugins {
     id 'kotlin-kapt'
     id 'io.fabric'
     id 'realm-android'
-    id "org.jetbrains.kotlin.plugin.allopen" version "1.3.50"
+    id "org.jetbrains.kotlin.plugin.allopen" version "1.3.61"
 //    id 'com.getkeepsafe.dexcount'
 }
 //apply from: '../config/quality/quality.gradle'
@@ -20,7 +20,7 @@ allOpen {
 
 android {
     compileSdkVersion 29
-    buildToolsVersion "29.0.2"
+    buildToolsVersion "29.0.3"
     defaultConfig {
         applicationId "com.teo.ttasks"
         minSdkVersion 21
@@ -119,7 +119,7 @@ dependencies {
     def ver = [
             espresso: '3.2.0',
             koin    : '2.0.1',
-            retrofit: '2.6.2',
+            retrofit: '2.7.1',
             mockk   : '1.9.3',
     ]
 
@@ -127,21 +127,33 @@ dependencies {
             'dk.ilios:realmfieldnameshelper:1.1.1',
     )
 
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.2'
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.2'
-    implementation "androidx.lifecycle:lifecycle-livedata-ktx:2.2.0-rc02"
-    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.2.0-rc02"
+    implementation 'androidx.core:core-ktx:1.2.0'
+    implementation "androidx.fragment:fragment:1.2.2"
+    implementation "androidx.lifecycle:lifecycle-extensions:2.2.0"
+    implementation "androidx.lifecycle:lifecycle-livedata-ktx:2.2.0"
+    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.2.0"
+    implementation "androidx.recyclerview:recyclerview:1.1.0"
+    implementation "com.google.android.material:material:1.1.0"
+    implementation "com.google.firebase:firebase-auth:19.2.0"
+    implementation "com.google.firebase:firebase-database:19.2.1"
+    implementation 'com.jakewharton.threetenabp:threetenabp:1.2.2'
+    implementation "com.squareup.okhttp3:logging-interceptor:4.4.0"
+    implementation "com.squareup.retrofit2:retrofit:${ver.retrofit}"
+    implementation "com.squareup.retrofit2:converter-gson:${ver.retrofit}"
+    implementation "com.squareup.retrofit2:adapter-rxjava2:${ver.retrofit}"
+    implementation "io.reactivex.rxjava2:rxjava:2.2.18"
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.3'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.3'
+    implementation "org.koin:koin-android:${ver.koin}"
+    implementation "org.koin:koin-android-scope:${ver.koin}"
+    implementation "org.koin:koin-android-viewmodel:${ver.koin}"
 
     implementation(
             "androidx.annotation:annotation:1.1.0",
             "androidx.appcompat:appcompat:1.1.0",
             "androidx.cardview:cardview:1.0.0",
             'androidx.constraintlayout:constraintlayout:2.0.0-beta3',
-            'androidx.core:core-ktx:1.1.0',
-            "androidx.fragment:fragment:1.1.0",
-            "androidx.lifecycle:lifecycle-extensions:2.2.0-rc01",
             'androidx.preference:preference:1.1.0',
-            "androidx.recyclerview:recyclerview:1.0.0",
             "androidx.swiperefreshlayout:swiperefreshlayout:1.0.0",
             'com.androidhuman.rxfirebase2:firebase-auth:16.1.0.0',
             'com.androidhuman.rxfirebase2:firebase-auth-kotlin:16.1.0.0',
@@ -154,25 +166,14 @@ dependencies {
             'com.github.strooooke:appbarsyncedfab:v0.5',
             "com.google.android.gms:play-services-auth:17.0.0",
             "com.google.android.gms:play-services-gcm:17.0.0",
-            "com.google.android.material:material:1.1.0-beta01",
-            "com.google.firebase:firebase-auth:19.1.0",
-            "com.google.firebase:firebase-database:19.2.0",
-            'com.jakewharton.threetenabp:threetenabp:1.2.1',
             "com.jakewharton.timber:timber:4.7.1",
             'com.mikepenz:aboutlibraries:7.0.4',
-            "com.squareup.retrofit2:retrofit:${ver.retrofit}",
-            "com.squareup.retrofit2:converter-gson:${ver.retrofit}",
-            "com.squareup.retrofit2:adapter-rxjava2:${ver.retrofit}",
-            "com.squareup.okhttp3:logging-interceptor:4.2.2",
             'com.squareup.picasso:picasso:2.71828',
             'eu.davidea:flexible-adapter:5.1.0',
             'eu.davidea:flexible-adapter-databinding:1.0.0',
-            "io.reactivex.rxjava2:rxjava:2.2.14",
             "io.reactivex.rxjava2:rxandroid:2.1.1",
             "nl.littlerobots.rxlint:rxlint:1.7.4",
             "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${VER.kotlin}",
-            "org.koin:koin-android:${ver.koin}",
-            "org.koin:koin-android-scope:${ver.koin}",
     )
     compileOnly 'javax.annotation:jsr250-api:1.0'
 
@@ -182,10 +183,10 @@ dependencies {
     // Dependencies for local unit tests
     testImplementation(
             "io.mockk:mockk:${ver.mockk}",
-            "junit:junit:4.12",
+            "junit:junit:4.13",
             "org.jetbrains.kotlin:kotlin-test-junit:${VER.kotlin}",
     )
-    testImplementation ('org.threeten:threetenbp:1.4.0') {
+    testImplementation ('org.threeten:threetenbp:1.4.1') {
         exclude group:'com.jakewharton.threetenabp', module:'threetenabp'
     }
 
