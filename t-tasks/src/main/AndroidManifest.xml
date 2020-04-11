@@ -56,12 +56,8 @@
                 android:value=".ui.activities.main.MainActivity" />
         </activity>
         <activity
-            android:name=".ui.activities.AboutActivity"
-            android:theme="@style/Theme.About">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".ui.activities.main.MainActivity" />
-        </activity>
+            android:name="com.mikepenz.aboutlibraries.ui.LibsActivity"
+            android:theme="@style/Theme.About" />
         <activity
             android:name=".widget.configure.TasksWidgetConfigureActivity"
             android:label="Configure widget"

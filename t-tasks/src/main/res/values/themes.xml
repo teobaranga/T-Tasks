@@ -85,7 +85,12 @@
     <style name="Theme.Settings" parent="Base.Theme.DarkActionBar" />
 
     <!-- About -->
-    <style name="Theme.About" parent="AboutLibrariesTheme.Light.DarkToolbar" />
+    <style name="Theme.About" parent="Theme.MaterialComponents.NoActionBar" >
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:windowBackground">?attr/colorPrimary</item>
+    </style>
 
     <!-- Widget configure -->
     <style name="Theme.TasksWidgetConfigure" parent="Theme.AppCompat.Light.Dialog" />

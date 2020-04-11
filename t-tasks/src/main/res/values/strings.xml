@@ -87,6 +87,10 @@
     <string name="about">About</string>
     <string name="about_description">T-Tasks is an app designed to help you manage your tasks. It expands upon the features provided by
         Google Tasks and the whole experience is delivered through the beauty of Material Design. Have a most productive day!</string>
+    <string name="aboutLibraries_description_name">@string/app_name</string>
+    <string name="aboutLibraries_description_showIcon">true</string>
+    <string name="aboutLibraries_description_showVersion">true</string>
+    <string name="aboutLibraries_description_text">T-Tasks is an app designed to help you manage your tasks. It expands upon the features provided by Google Tasks and the whole experience is delivered through the beauty of Material Design. Have a most productive day!</string>
 
     <!-- Transition names -->
     <string name="transition_task_header">task_header</string>

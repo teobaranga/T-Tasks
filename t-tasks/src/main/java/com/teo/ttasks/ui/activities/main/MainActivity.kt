@@ -14,11 +14,11 @@ import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.Observer
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.mikepenz.aboutlibraries.LibsBuilder
 import com.teo.ttasks.R
 import com.teo.ttasks.data.TaskListsAdapter
 import com.teo.ttasks.data.model.TaskList
 import com.teo.ttasks.databinding.ActivityMainBinding
-import com.teo.ttasks.ui.activities.AboutActivity
 import com.teo.ttasks.ui.activities.BaseActivity
 import com.teo.ttasks.ui.activities.SettingsActivity
 import com.teo.ttasks.ui.activities.edit_task.EditTaskActivity
@@ -27,8 +27,8 @@ import com.teo.ttasks.ui.fragments.accounts.AccountInfoDialogFragment
 import com.teo.ttasks.ui.fragments.task_lists.TaskListsFragment
 import com.teo.ttasks.ui.fragments.tasks.TasksFragment
 import com.teo.ttasks.util.getColorFromAttr
-import org.koin.android.scope.currentScope
-import org.koin.android.viewmodel.ext.android.viewModel
+import org.koin.android.scope.lifecycleScope
+import org.koin.android.viewmodel.scope.viewModel
 import timber.log.Timber
 
 // TODO: 2015-12-29 implement multiple accounts
@@ -50,7 +50,7 @@ class MainActivity : BaseActivity() {
 
     private lateinit var accountMenuItem: MenuItem
 
-    private val viewModel by currentScope.viewModel<MainViewModel>(this)
+    private val viewModel by lifecycleScope.viewModel<MainViewModel>(this)
 
     private var accountInfoDialogFragment: AccountInfoDialogFragment? = null
 
@@ -197,7 +197,7 @@ class MainActivity : BaseActivity() {
                         TaskListsFragment.newInstance().show(supportFragmentManager, "taskList")
                     }
                     MainViewModel.ActionEvent.ABOUT -> {
-                        AboutActivity.start(this)
+                        LibsBuilder().start(this)
                     }
                     MainViewModel.ActionEvent.SETTINGS -> {
                         SettingsActivity.start(this)
