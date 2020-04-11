@@ -140,7 +140,7 @@ dependencies {
     implementation "com.google.firebase:firebase-auth:19.3.0"
     implementation "com.google.firebase:firebase-database:19.2.1"
     implementation 'com.jakewharton.threetenabp:threetenabp:1.2.3'
-    implementation 'com.mikepenz:aboutlibraries:8.1.0'
+    implementation 'com.mikepenz:aboutlibraries:8.1.1'
     implementation "com.squareup.okhttp3:logging-interceptor:4.5.0"
     implementation "com.squareup.retrofit2:retrofit:${ver.retrofit}"
     implementation "com.squareup.retrofit2:converter-gson:${ver.retrofit}"

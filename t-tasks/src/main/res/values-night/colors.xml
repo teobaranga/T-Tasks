@@ -3,6 +3,7 @@
 
     <color name="colorPrimary">@color/grey_850</color>
     <color name="colorPrimaryDark">@color/grey_850</color>
+    <color name="colorOnSurfaceAbout">?android:textColorPrimary</color>
 
     <!-- Task item -->
     <color name="task_background">@color/grey_800</color>

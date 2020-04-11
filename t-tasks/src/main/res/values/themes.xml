@@ -90,7 +90,10 @@
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+        <item name="colorSurface">@color/task_background</item>
+        <item name="colorOnSurface">@color/colorOnSurfaceAbout</item>
         <item name="android:windowBackground">?attr/colorPrimary</item>
+        <item name="aboutLibrariesStyle">@style/AppAboutLibrariesStyle</item>
     </style>
 
     <!-- Widget configure -->
