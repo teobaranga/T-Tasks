@@ -3,6 +3,7 @@ package com.teo.ttasks.ui.fragments.task_lists
 import android.app.Dialog
 import android.content.DialogInterface
 import android.os.Bundle
+import android.view.View
 import android.view.View.GONE
 import android.view.WindowManager
 import android.widget.EditText
@@ -111,14 +112,23 @@ class TaskListsFragment : DialogFragment(), TaskListsView {
 
         val taskListId = requireArguments().getString(EXTRA_TASK_LIST_ID)
 
-        val dialog = MaterialAlertDialogBuilder(requireContext())
+        return MaterialAlertDialogBuilder(requireContext())
             .setView(R.layout.dialog_task_list_edit)
             .setTitle(if (taskListId == null) R.string.new_task_list else R.string.edit_task_list)
             .setPositiveButton(android.R.string.ok) { _, _ -> }
             .setNegativeButton(android.R.string.cancel) { _, _ -> }
             .create()
+    }
 
-        return dialog
+    override fun onStart() {
+        super.onStart()
+
+        dialog?.window?.run {
+            clearFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM)
+            setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE)
+        }
+
+        dialog?.findViewById<View>(R.id.task_list_title)?.requestFocus()
     }
 
 //    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {

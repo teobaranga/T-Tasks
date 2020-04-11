@@ -15,13 +15,14 @@
     <!-- Base theme (no action bar) -->
     <style name="Base.Theme.NoActionBar" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorSecondary">@color/orange_A400</item>
+        <item name="colorSecondary">@color/colorSecondary</item>
         <!--<item name="colorPrimaryDark">@color/colorPrimaryDark</item>-->
         <item name="colorPrimaryDark">@color/colorPrimary</item>
         <item name="colorAccent">@color/colorAccent</item>
         <item name="android:colorBackground">?attr/colorPrimary</item>
         <item name="android:navigationBarColor">?attr/colorPrimary</item>
         <!--<item name="colorOnSecondary">@color/background_color</item>-->
+        <item name="materialAlertDialogTheme">@style/ThemeOverlay.App.MaterialAlertDialog</item>
     </style>
 
     <!-- Base theme (dark action bar) -->
@@ -100,6 +101,11 @@
         <item name="colorSecondary">@color/colorSecondary</item>
         <item name="colorOnSecondary">@android:color/white</item>
         <item name="bottomSheetStyle">@style/BottomSheet.Modal.Transparent</item>
+    </style>
+    
+    <style name="ThemeOverlay.App.MaterialAlertDialog" parent="ThemeOverlay.MaterialComponents.MaterialAlertDialog">
+        <item name="buttonBarPositiveButtonStyle">@style/Widget.App.Button</item>
+        <item name="buttonBarNegativeButtonStyle">@style/Widget.App.Button</item>
     </style>
 
 </resources>

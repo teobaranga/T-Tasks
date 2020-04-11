@@ -1,17 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <!-- Base theme (no action bar) -->
-    <style name="Base.Theme.NoActionBar" parent="Theme.MaterialComponents.NoActionBar">
-        <item name="colorPrimary">@color/grey_850</item>
-        <item name="colorPrimaryDark">@color/grey_850</item>
-        <item name="colorSecondary">@color/orange_A400</item>
-        <item name="colorAccent">@color/colorAccent</item>
-        <item name="android:colorBackground">?attr/colorPrimary</item>
-        <item name="android:navigationBarColor">?attr/colorPrimary</item>
-        <item name="android:textCursorDrawable">@null</item>
-    </style>
-
     <style name="BottomSheetDialogTheme" parent="@style/Theme.MaterialComponents.BottomSheetDialog">
         <item name="colorPrimary">@color/grey_850</item>
         <item name="colorSecondary">@color/colorAccent</item>
