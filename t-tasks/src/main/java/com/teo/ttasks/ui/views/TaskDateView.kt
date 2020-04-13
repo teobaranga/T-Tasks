@@ -17,7 +17,7 @@ import kotlin.math.roundToInt
 
 private const val dayNumberSizeSp = 24f
 
-private const val dayNameSizeSp = 16f
+private const val dayNameSizeSp = 12f
 
 @StyleableRes
 private const val primaryColorIdx = 0
@@ -30,28 +30,12 @@ private const val tertiaryColorIdx = 1
  *
  * @attr ref R.styleable.TaskDateView_dueDate
  */
-class TaskDateView : View {
-
-    constructor(context: Context) : super(context) {
-        init(context, null)
-    }
-
-    constructor(context: Context, attrs: AttributeSet?) : super(context, attrs) {
-        init(context, attrs)
-    }
-
-    constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : super(context, attrs, defStyleAttr) {
-        init(context, attrs)
-    }
-
-    constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int, defStyleRes: Int) : super(
-        context,
-        attrs,
-        defStyleAttr,
-        defStyleRes
-    ) {
-        init(context, attrs)
-    }
+class TaskDateView @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0,
+    defStyleRes: Int = 0
+) : View(context, attrs, defStyleAttr, defStyleRes) {
 
     private var dayNumber: String? = null
     private var dayName: String? = null
@@ -85,16 +69,7 @@ class TaskDateView : View {
             }
         }
 
-    override fun onDraw(canvas: Canvas) {
-        dayNumber?.let { drawDayOfMonth(canvas, it) }
-        dayName?.let { drawDayOfWeek(canvas, it) }
-    }
-
-    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        setMeasuredDimension(measureWidth(widthMeasureSpec), measureHeight(heightMeasureSpec))
-    }
-
-    private fun init(context: Context, attrs: AttributeSet?) {
+    init {
         val typedValue = TypedValue()
         val typedArray = context.theme.obtainStyledAttributes(
             typedValue.data,
@@ -137,6 +112,15 @@ class TaskDateView : View {
         } finally {
             a.recycle()
         }
+    }
+
+    override fun onDraw(canvas: Canvas) {
+        dayNumber?.let { drawDayOfMonth(canvas, it) }
+        dayName?.let { drawDayOfWeek(canvas, it) }
+    }
+
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        setMeasuredDimension(measureWidth(widthMeasureSpec), measureHeight(heightMeasureSpec))
     }
 
     private fun measureHeight(measureSpec: Int): Int {
