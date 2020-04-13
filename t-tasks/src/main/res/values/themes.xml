@@ -107,7 +107,8 @@
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorSecondary">@color/colorSecondary</item>
         <item name="colorOnSecondary">@android:color/white</item>
-        <item name="bottomSheetStyle">@style/BottomSheet.Modal.Transparent</item>
+        <item name="colorSurface">@color/task_background</item>
+        <item name="bottomSheetStyle">@style/Widget.App.BottomSheet.Modal.Transparent</item>
     </style>
     
     <style name="ThemeOverlay.App.MaterialAlertDialog" parent="ThemeOverlay.MaterialComponents.MaterialAlertDialog">
