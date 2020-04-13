@@ -26,6 +26,7 @@ import com.teo.ttasks.ui.activities.sign_in.SignInActivity.Companion.startSignIn
 import com.teo.ttasks.ui.fragments.accounts.AccountInfoDialogFragment
 import com.teo.ttasks.ui.fragments.task_lists.TaskListsFragment
 import com.teo.ttasks.ui.fragments.tasks.TasksFragment
+import com.teo.ttasks.ui.fragments.tasks.TasksViewModel
 import com.teo.ttasks.util.getColorFromAttr
 import org.koin.android.scope.lifecycleScope
 import org.koin.android.viewmodel.scope.viewModel
@@ -52,6 +53,10 @@ class MainActivity : BaseActivity() {
 
     private val viewModel by lifecycleScope.viewModel<MainViewModel>(this)
 
+    private val tasksViewModel by lazy {
+        lifecycleScope.viewModel<TasksViewModel>(tasksFragment!!)
+    }
+
     private var accountInfoDialogFragment: AccountInfoDialogFragment? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -77,14 +82,15 @@ class MainActivity : BaseActivity() {
         // Only set the active selection or active profile if we do not recreate the activity
         if (savedInstanceState == null) {
             // Inflate the tasks fragment
-            tasksFragment = tasksFragment
-                ?: (supportFragmentManager.findFragmentByTag(TAG_TASKS) as? TasksFragment
-                    ?: TasksFragment.newInstance(viewModel.activeTaskListId))
-
-            supportFragmentManager
-                .beginTransaction()
-                .replace(R.id.fragment_container, tasksFragment!!, TAG_TASKS)
-                .commit()
+            TasksFragment.newInstance().run {
+                supportFragmentManager
+                    .beginTransaction()
+                    .replace(R.id.fragment_container, this, TAG_TASKS)
+                    .commit()
+                tasksFragment = this
+            }
+        } else {
+            tasksFragment = supportFragmentManager.findFragmentByTag(TAG_TASKS) as TasksFragment
         }
     }
 
@@ -155,7 +161,7 @@ class MainActivity : BaseActivity() {
                 override fun onItemSelected(adapterView: AdapterView<*>, view: View?, position: Int, id: Long) {
                     val taskListId = (adapterView.getItemAtPosition(position) as TaskList).id
                     viewModel.activeTaskListId = taskListId
-                    tasksFragment?.updateTaskListId(taskListId)
+                    tasksViewModel.value.taskListId = taskListId
                 }
 
                 override fun onNothingSelected(adapterView: AdapterView<*>) {}

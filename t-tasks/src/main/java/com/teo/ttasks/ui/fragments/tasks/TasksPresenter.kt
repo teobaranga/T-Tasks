@@ -7,12 +7,10 @@ import com.teo.ttasks.data.remote.TasksHelper
 import com.teo.ttasks.ui.base.Presenter
 import com.teo.ttasks.util.FirebaseUtil.getTasksDatabase
 import com.teo.ttasks.util.SortType
-import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
 import io.reactivex.processors.PublishProcessor
 import io.realm.Realm
-import timber.log.Timber
 
 internal class TasksPresenter(
     private val tasksHelper: TasksHelper,
@@ -88,45 +86,6 @@ internal class TasksPresenter(
 //            }
     }
 
-    internal fun refreshTasks(taskListId: String?) {
-        if (taskListId == null)
-            return
-        val subscription = tasksHelper.refreshTasks(taskListId)
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(
-                { view()?.onRefreshDone() },
-                { throwable ->
-                    Timber.e(throwable, "Error refreshing tasks")
-                    view()?.onTasksLoadError()
-                })
-        disposeOnUnbindView(subscription)
-    }
-
-    /**
-     * Synchronize the local tasks from the specified task list.
-     * Tasks that have only been updated locally are uploaded to the Google servers.
-     *
-     * @param taskListId task list identifier
-     */
-    internal fun syncTasks(taskListId: String?) {
-        if (taskListId == null)
-            return
-        // Keep track of the number of synced tasks
-        val subscription = tasksHelper.syncTasks(taskListId)
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(
-                {
-                    // Syncing done
-                    view()?.onSyncDone(it)
-                },
-                {
-                    // Sync failed for at least one task, will retry on next refresh
-                    Timber.e(it, "Error synchronizing tasks")
-                    view()?.onSyncDone(0)
-                }
-            )
-        disposeOnUnbindView(subscription)
-    }
 
     /**
      * Switch the sorting mode.

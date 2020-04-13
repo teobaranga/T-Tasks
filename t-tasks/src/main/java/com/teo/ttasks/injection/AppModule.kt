@@ -24,7 +24,7 @@ import com.teo.ttasks.ui.activities.sign_in.SignInPresenter
 import com.teo.ttasks.ui.fragments.task_lists.TaskListsFragment
 import com.teo.ttasks.ui.fragments.task_lists.TaskListsPresenter
 import com.teo.ttasks.ui.fragments.tasks.TasksFragment
-import com.teo.ttasks.ui.fragments.tasks.TasksPresenter
+import com.teo.ttasks.ui.fragments.tasks.TasksViewModel
 import com.teo.ttasks.ui.task_detail.TaskDetailActivity
 import com.teo.ttasks.ui.task_detail.TaskDetailPresenter
 import com.teo.ttasks.util.NotificationHelper
@@ -80,9 +80,7 @@ val appModule = module {
     }
 
     scope(named<TasksFragment>()) {
-        scoped {
-            TasksPresenter(tasksHelper = get(), prefHelper = get())
-        }
+        viewModel { TasksViewModel() }
     }
 
     scope(named<TaskListsFragment>()) {
@@ -165,7 +163,7 @@ val networkModule = module {
                     }
                 }
             }
-            .authenticator(object: Authenticator {
+            .authenticator(object : Authenticator {
                 override fun authenticate(route: Route?, response: Response): Request? {
                     // Refresh the access token when it expires
                     Timber.d("Unauthorized, requesting new access token")
