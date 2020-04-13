@@ -197,7 +197,9 @@ class MainActivity : BaseActivity() {
                         TaskListsFragment.newInstance().show(supportFragmentManager, "taskList")
                     }
                     MainViewModel.ActionEvent.ABOUT -> {
-                        LibsBuilder().start(this)
+                        LibsBuilder()
+                            .withActivityTitle(getString(R.string.about))
+                            .start(this)
                     }
                     MainViewModel.ActionEvent.SETTINGS -> {
                         SettingsActivity.start(this)

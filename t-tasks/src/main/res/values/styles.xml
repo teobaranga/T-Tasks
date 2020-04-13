@@ -2,8 +2,9 @@
 <resources>
 
     <style name="AppAboutLibrariesStyle" parent="AboutLibrariesStyle">
-        <item name="aboutLibrariesOpenSourceTitle">?android:textColorPrimaryInverse</item>
-        <item name="aboutLibrariesOpenSourceText">?android:textColorSecondaryInverse</item>
+        <item name="aboutLibrariesDescriptionTitle">?android:textColorPrimaryInverse</item>
+        <item name="aboutLibrariesDescriptionText">?android:textColorSecondaryInverse</item>
+        <item name="aboutLibrariesDescriptionDivider">?android:textColorSecondaryInverse</item>
     </style>
 
     <style name="AppBarOverlay" parent="ThemeOverlay.MaterialComponents.Dark.ActionBar"/>
@@ -45,8 +46,13 @@
         <item name="cornerSizeBottomRight">8dp</item>
     </style>
 
-    <style name="Widget.TTasks.Toolbar" parent="Widget.MaterialComponents.Toolbar">
+    <style name="Widget.App.Toolbar" parent="Widget.MaterialComponents.Toolbar.PrimarySurface">
         <item name="android:background">?colorPrimary</item>
+        <item name="android:elevation">0dp</item>
+    </style>
+
+    <style name="Widget.App.ActionBar" parent="Widget.MaterialComponents.ActionBar.Primary">
+        <item name="elevation">0dp</item>
     </style>
 
     <style name="Widget.TTasks.TextInputLayout.OutlinedBox" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">

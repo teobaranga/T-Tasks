@@ -2,8 +2,6 @@
 <resources>
 
     <style name="AppAboutLibrariesStyle" parent="AboutLibrariesStyle">
-        <item name="aboutLibrariesOpenSourceTitle">?android:textColorPrimary</item>
-        <item name="aboutLibrariesOpenSourceText">?android:textColorSecondary</item>
     </style>
 
     <style name="PopupOverlay" parent="ThemeOverlay.AppCompat.Dark"/>

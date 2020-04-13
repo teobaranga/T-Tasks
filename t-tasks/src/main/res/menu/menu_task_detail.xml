@@ -8,6 +8,7 @@
         android:id="@+id/edit"
         android:icon="@drawable/ic_edit_24dp"
         android:title="@string/edit"
+        app:iconTint="?colorControlNormal"
         app:showAsAction="always" />
 
     <item

@@ -16,7 +16,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="12dp"
         android:layout_marginTop="12dp"
-        android:textAppearance="?textAppearanceListItemSecondary"
+        android:textAppearance="?textAppearanceSubtitle2"
         android:textColor="?colorAccent"
         android:textStyle="bold|italic"
         app:layout_constraintStart_toStartOf="parent"

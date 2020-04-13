@@ -7,7 +7,7 @@
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorSecondary">@color/colorSecondary</item>
         <item name="colorAccent">@color/colorAccent</item>
-        <item name="toolbarStyle">@style/Widget.TTasks.Toolbar</item>
+        <item name="toolbarStyle">@style/Widget.App.Toolbar</item>
         <item name="android:textCursorDrawable">@null</item>
         <item name="android:navigationBarColor">?attr/colorPrimary</item>
     </style>
@@ -19,6 +19,7 @@
         <!--<item name="colorPrimaryDark">@color/colorPrimaryDark</item>-->
         <item name="colorPrimaryDark">@color/colorPrimary</item>
         <item name="colorAccent">@color/colorAccent</item>
+        <item name="toolbarStyle">@style/Widget.App.Toolbar</item>
         <item name="android:colorBackground">?attr/colorPrimary</item>
         <item name="android:navigationBarColor">?attr/colorPrimary</item>
         <!--<item name="colorOnSecondary">@color/background_color</item>-->
@@ -31,7 +32,8 @@
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorSecondary">@color/colorSecondary</item>
         <item name="colorAccent">@color/colorAccent</item>
-        <item name="toolbarStyle">@style/Widget.TTasks.Toolbar</item>
+        <item name="actionBarStyle">@style/Widget.App.ActionBar</item>
+        <item name="toolbarStyle">@style/Widget.App.Toolbar</item>
         <item name="android:colorBackground">?attr/colorPrimary</item>
         <item name="android:navigationBarColor">?attr/colorPrimary</item>
     </style>
@@ -86,12 +88,14 @@
     <style name="Theme.Settings" parent="Base.Theme.DarkActionBar" />
 
     <!-- About -->
-    <style name="Theme.About" parent="Theme.MaterialComponents.NoActionBar" >
+    <style name="Theme.About" parent="Theme.MaterialComponents.DayNight">
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
         <item name="colorSurface">@color/task_background</item>
-        <item name="colorOnSurface">@color/colorOnSurfaceAbout</item>
+        <item name="toolbarStyle">@style/Widget.App.Toolbar</item>
+        <item name="windowNoTitle">true</item>
+        <item name="windowActionBar">false</item>
         <item name="android:windowBackground">?attr/colorPrimary</item>
         <item name="aboutLibrariesStyle">@style/AppAboutLibrariesStyle</item>
     </style>

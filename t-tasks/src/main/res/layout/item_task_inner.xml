@@ -31,6 +31,7 @@
         android:ellipsize="end"
         android:maxLines="2"
         android:textAppearance="?textAppearanceBody2"
+        android:textColor="?android:textColorSecondary"
         android:textStyle="italic"
         tools:text="Go to the supermarket and pick them up"
         tools:visibility="visible" />
