@@ -30,7 +30,7 @@
             android:layout_gravity="end|center_vertical"
             android:contentDescription="@string/description_add_task"
             android:padding="8dp"
-            tools:src="@drawable/ic_add_white_24dp" />
+            tools:src="@drawable/ic_add_24dp" />
 
     </LinearLayout>
 

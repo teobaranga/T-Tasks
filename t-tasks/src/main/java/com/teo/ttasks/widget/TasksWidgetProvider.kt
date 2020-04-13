@@ -118,7 +118,7 @@ class TasksWidgetProvider : AppWidgetProvider(), KoinComponent {
 
         // Setup the Add Task button
         // Set the icon
-        views.setImageViewResource(R.id.add_task, R.drawable.ic_add_white_24dp)
+        views.setImageViewResource(R.id.add_task, R.drawable.ic_add_24dp)
         // Set the click action
         val addTaskIntent = EditTaskActivity.getTaskCreateIntent(context, taskListId)
         addTaskIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK

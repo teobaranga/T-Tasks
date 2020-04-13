@@ -55,7 +55,7 @@
                         android:onClick="@{() -> viewModel.onAddTaskListClicked()}"
                         app:layout_constraintStart_toEndOf="@id/task_lists"
                         app:layout_constraintTop_toTopOf="parent"
-                        app:srcCompat="@drawable/ic_add_white_24dp" />
+                        app:srcCompat="@drawable/ic_add_24dp" />
 
                 </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -76,7 +76,7 @@
             android:layout_gravity="bottom|end"
             android:layout_margin="@dimen/fab_margin"
             android:onClick="@{() -> viewModel.onAddTaskClicked()}"
-            android:src="@drawable/ic_add_white_24dp"
+            android:src="@drawable/ic_add_24dp"
             android:transitionName="@string/transition_fab"
             app:elevation="6dp"
             app:pressedTranslationZ="12dp"
