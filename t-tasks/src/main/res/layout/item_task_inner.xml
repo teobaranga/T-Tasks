@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/layout_task_body"
     android:layout_width="match_parent"
@@ -38,12 +39,13 @@
         android:id="@+id/reminder"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:drawableStart="@drawable/ic_alarm_accent_18dp"
+        android:drawableStart="@drawable/ic_alarm_18dp"
         android:drawablePadding="4dp"
         android:gravity="center"
         android:maxLines="1"
         android:textAppearance="?textAppearanceListItemSecondary"
         android:visibility="gone"
+        app:drawableTint="@color/colorAccent"
         tools:text="5:00PM"
         tools:visibility="visible" />
 
