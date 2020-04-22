@@ -148,8 +148,8 @@ dependencies {
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:${ver.coroutines}"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:${ver.coroutines}"
     implementation "org.koin:koin-android:${ver.koin}"
-    implementation "org.koin:koin-android-scope:${ver.koin}"
-    implementation "org.koin:koin-android-viewmodel:${ver.koin}"
+    implementation "org.koin:koin-androidx-scope:${ver.koin}"
+    implementation "org.koin:koin-androidx-viewmodel:${ver.koin}"
 
     implementation(
             "androidx.annotation:annotation:1.1.0",
