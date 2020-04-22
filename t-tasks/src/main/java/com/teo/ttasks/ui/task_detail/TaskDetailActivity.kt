@@ -27,51 +27,17 @@ import org.threeten.bp.format.DateTimeFormatter
 
 class TaskDetailActivity : AppCompatActivity(), TaskDetailView {
 
-    companion object {
-
-        const val EXTRA_TASK_ID = "taskId"
-        const val EXTRA_TASK_LIST_ID = "taskListId"
-
-        private const val ACTION_SKIP_ANIMATION = BuildConfig.APPLICATION_ID + "SKIP_ANIMATION"
-
-        fun start(context: Context, taskId: String, taskListId: String, bundle: Bundle?) {
-            val starter = getStartIntent(context, taskId, taskListId)
-            context.startActivity(starter, bundle)
-        }
-
-        /**
-         * Get the Intent template used to start this activity from outside the application.
-         * This is part of the process used when starting this activity from the widget.
-         *
-         * @param context    context
-         * @param taskListId task list identifier
-         * @return an incomplete Intent that needs to be completed by adding the extra
-         * [EXTRA_TASK_ID] before being used to start this activity
-         */
-        fun getIntentTemplate(context: Context, taskListId: String): Intent {
-            val starter = Intent(context, TaskDetailActivity::class.java)
-            starter.putExtra(EXTRA_TASK_LIST_ID, taskListId)
-            starter.action = ACTION_SKIP_ANIMATION
-            return starter
-        }
-
-        fun getStartIntent(context: Context, taskId: String, taskListId: String, skipAnimation: Boolean = false): Intent {
-            val starter = Intent(context, TaskDetailActivity::class.java)
-            starter.putExtra(EXTRA_TASK_ID, taskId)
-            starter.putExtra(EXTRA_TASK_LIST_ID, taskListId)
-            if (skipAnimation) {
-                starter.action = ACTION_SKIP_ANIMATION
-            }
-            return starter
-        }
-    }
-
     private val taskDetailPresenter: TaskDetailPresenter by currentScope.inject()
 
-    internal lateinit var taskDetailBinding: ActivityTaskDetailBinding
+    private val taskId by lazy(LazyThreadSafetyMode.NONE) {
+        intent?.getStringExtra(EXTRA_TASK_ID)
+    }
 
-    private lateinit var taskId: String
-    private lateinit var taskListId: String
+    private val taskListId by lazy(LazyThreadSafetyMode.NONE) {
+        intent?.getStringExtra(EXTRA_TASK_LIST_ID)
+    }
+
+    internal lateinit var taskDetailBinding: ActivityTaskDetailBinding
 
     private lateinit var shareIntent: Intent
 
@@ -86,11 +52,11 @@ class TaskDetailActivity : AppCompatActivity(), TaskDetailView {
             window.enterTransition.addListener(object : AnimUtils.TransitionListener() {
                 override fun onTransitionEnd(transition: Transition) {
                     ViewCompat.animate(taskDetailBinding.fab)
-                            .scaleX(1.0f)
-                            .scaleY(1.0f)
-                            .alpha(1.0f)
-                            .setInterpolator(OvershootInterpolator())
-                            .withLayer().start()
+                        .scaleX(1.0f)
+                        .scaleY(1.0f)
+                        .alpha(1.0f)
+                        .setInterpolator(OvershootInterpolator())
+                        .withLayer().start()
                 }
             })
         }
@@ -107,10 +73,13 @@ class TaskDetailActivity : AppCompatActivity(), TaskDetailView {
         registerForContextMenu(taskDetailBinding.taskHeader)
 
         // Get the task
-        taskId = intent.getStringExtra(EXTRA_TASK_ID)
-        taskListId = intent.getStringExtra(EXTRA_TASK_LIST_ID)
-        taskDetailPresenter.getTask(taskId)
-        taskDetailPresenter.getTaskList(taskListId)
+        taskId?.let {
+            taskDetailPresenter.getTask(it)
+        }
+
+        taskListId?.let {
+            taskDetailPresenter.getTaskList(it)
+        }
     }
 
     override fun onTaskLoaded(task: Task) {
@@ -167,7 +136,11 @@ class TaskDetailActivity : AppCompatActivity(), TaskDetailView {
                     .show()
             }
             R.id.edit -> {
-                EditTaskActivity.startEdit(this, taskId, taskListId, null)
+                (taskId to taskListId).let { (taskId, taskListId) ->
+                    if (taskId != null && taskListId != null) {
+                        EditTaskActivity.startEdit(this, taskId, taskListId, null)
+                    }
+                }
             }
             else -> {
                 super.onOptionsItemSelected(item)
@@ -208,5 +181,39 @@ class TaskDetailActivity : AppCompatActivity(), TaskDetailView {
     override fun onDestroy() {
         super.onDestroy()
         taskDetailPresenter.unbindView(this)
+    }
+
+    companion object {
+
+        const val EXTRA_TASK_ID = "taskId"
+        const val EXTRA_TASK_LIST_ID = "taskListId"
+
+        private const val ACTION_SKIP_ANIMATION = BuildConfig.APPLICATION_ID + ".SKIP_ANIMATION"
+
+        /**
+         * Get the Intent template used to start this activity from outside the application.
+         * This is part of the process used when starting this activity from the widget.
+         *
+         * @param context    context
+         * @param taskListId task list identifier
+         * @return an incomplete Intent that needs to be completed by adding the extra
+         * [EXTRA_TASK_ID] before being used to start this activity
+         */
+        fun getIntentTemplate(context: Context, taskListId: String): Intent {
+            return Intent(context, TaskDetailActivity::class.java).apply {
+                putExtra(EXTRA_TASK_LIST_ID, taskListId)
+                action = ACTION_SKIP_ANIMATION
+            }
+        }
+
+        fun getStartIntent(context: Context, taskId: String, taskListId: String, skipAnimation: Boolean = false): Intent {
+            return Intent(context, this::class.java.declaringClass).apply {
+                putExtra(EXTRA_TASK_ID, taskId)
+                putExtra(EXTRA_TASK_LIST_ID, taskListId)
+                if (skipAnimation) {
+                    action = ACTION_SKIP_ANIMATION
+                }
+            }
+        }
     }
 }
