@@ -4,7 +4,6 @@ import com.google.firebase.database.FirebaseDatabase
 import com.teo.ttasks.api.TasksApi
 import com.teo.ttasks.api.entities.TaskListsResponse
 import com.teo.ttasks.api.entities.TasksResponse
-import com.teo.ttasks.api.entities.TasksResponseFields
 import com.teo.ttasks.data.local.PrefHelper
 import com.teo.ttasks.data.local.TaskFields
 import com.teo.ttasks.data.local.TaskFields.Companion.taskFields
@@ -64,13 +63,13 @@ class TasksHelper(
 
     fun getTaskListFromRealm(realm: Realm): RealmResults<TaskList> {
         return realm.where(TaskList::class.java)
-            .equalTo(com.teo.ttasks.data.model.TaskListFields.DELETED, false)
+            .equalTo(TaskList::deleted.name, false)
             .findAllAsync()
     }
 
     private fun queryTaskLists(realm: Realm): RealmQuery<TaskList> =
         realm.where(TaskList::class.java)
-            .equalTo(com.teo.ttasks.data.model.TaskListFields.DELETED, false)
+            .equalTo(TaskList::deleted.name, false)
 
     /**
      * Retrieve a specific task list from the local database. The requested task must be valid (not marked for deletion).
@@ -93,7 +92,7 @@ class TasksHelper(
 
     fun getTaskList(taskListId: String, realm: Realm, async: Boolean = true): TaskList? =
         realm.where(TaskList::class.java)
-            .equalTo(com.teo.ttasks.data.model.TaskListFields.ID, taskListId)
+            .equalTo(TaskList::id.name, taskListId)
             .let { if (async) it.findFirstAsync() else it.findFirst() }
 
     /**
@@ -185,15 +184,15 @@ class TasksHelper(
 
     fun getActiveTasks(taskListId: String, realm: Realm): RealmResults<Task> {
         return queryTasks(taskListId, realm)
-            .equalTo(com.teo.ttasks.data.model.TaskFields.COMPLETED, null as String?)
-            .sort(com.teo.ttasks.data.model.TaskFields.DUE, Sort.DESCENDING)
+            .equalTo(Task::completed.name, null as String?)
+            .sort(Task::due.name, Sort.DESCENDING)
             .findAllAsync()
     }
 
     fun getCompletedTasks(taskListId: String, realm: Realm): RealmResults<Task> {
         return queryTasks(taskListId, realm)
-            .notEqualTo(com.teo.ttasks.data.model.TaskFields.COMPLETED, null as String?)
-            .sort(com.teo.ttasks.data.model.TaskFields.COMPLETED, Sort.DESCENDING)
+            .notEqualTo(Task::completed.name, null as String?)
+            .sort(Task::completed.name, Sort.DESCENDING)
             .findAllAsync()
     }
 
@@ -228,7 +227,7 @@ class TasksHelper(
      */
     fun getTask(taskId: String, realm: Realm, async: Boolean = true): Task? {
         return realm.where(Task::class.java)
-            .equalTo(com.teo.ttasks.data.model.TaskFields.ID, taskId)
+            .equalTo(Task::id.name, taskId)
             .let { if (async) it.findFirstAsync() else it.findFirst() }
     }
 
@@ -398,7 +397,7 @@ class TasksHelper(
         realm.where(TaskListsResponse::class.java).findFirst()
 
     private fun getTasksResponse(taskListId: String, realm: Realm): TasksResponse? =
-        realm.where(TasksResponse::class.java).equalTo(TasksResponseFields.ID, taskListId).findFirst()
+        realm.where(TasksResponse::class.java).equalTo(TasksResponse::id.name, taskListId).findFirst()
 
     private fun handleResourceNotModified(throwable: Throwable): Boolean {
         // End the stream if the status code is 304 - Not Modified
@@ -425,9 +424,9 @@ class TasksHelper(
      */
     private fun queryTasks(taskListId: String, realm: Realm, excludeDeleted: Boolean = true) =
         realm.where(Task::class.java)
-            .equalTo(com.teo.ttasks.data.model.TaskFields.TASK_LIST_ID, taskListId).apply {
+            .equalTo(Task::taskListId.name, taskListId).apply {
                 if (excludeDeleted) {
-                    equalTo(com.teo.ttasks.data.model.TaskFields.DELETED, false)
+                    equalTo(Task::deleted.name, false)
                 }
             }
 }
