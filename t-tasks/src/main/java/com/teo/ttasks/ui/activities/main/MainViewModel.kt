@@ -1,17 +1,11 @@
 package com.teo.ttasks.ui.activities.main
 
-import android.graphics.Bitmap
-import android.graphics.drawable.BitmapDrawable
-import android.graphics.drawable.Drawable
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.distinctUntilChanged
 import androidx.lifecycle.map
 import com.androidhuman.rxfirebase2.auth.rxSignOut
 import com.google.firebase.auth.FirebaseAuth
-import com.squareup.picasso.Picasso
-import com.squareup.picasso.Target
-import com.teo.ttasks.BuildConfig
 import com.teo.ttasks.LiveRealmResults
 import com.teo.ttasks.UserManager
 import com.teo.ttasks.data.local.PrefHelper
@@ -23,8 +17,6 @@ import io.reactivex.disposables.CompositeDisposable
 import org.koin.core.KoinComponent
 import org.koin.core.inject
 import timber.log.Timber
-import java.io.File
-import java.io.FileOutputStream
 
 class MainViewModel : RealmViewModel(), KoinComponent {
 
@@ -34,23 +26,6 @@ class MainViewModel : RealmViewModel(), KoinComponent {
         ABOUT,
         SETTINGS,
     }
-
-    private open class ProfileIconTarget(private val targetFile: File) : Target {
-
-        override fun onBitmapLoaded(bitmap: Bitmap, from: Picasso.LoadedFrom) {
-            FileOutputStream(targetFile).use { out ->
-                bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
-            }
-        }
-
-        override fun onBitmapFailed(e: Exception?, errorDrawable: Drawable?) {
-            Timber.e(e, "Failed to load profile icon")
-        }
-
-        override fun onPrepareLoad(placeHolderDrawable: Drawable?) {}
-    }
-
-    private var profileIconTarget: ProfileIconTarget? = null
 
     private val firebaseAuth: FirebaseAuth by inject()
 
@@ -101,8 +76,8 @@ class MainViewModel : RealmViewModel(), KoinComponent {
         }
     }
 
-    private val _profilePicture = MutableLiveData<Drawable?>()
-    val profilePicture: LiveData<Drawable?> = _profilePicture
+    private val _profilePicture = MutableLiveData<String>()
+    val profilePicture: LiveData<String> = _profilePicture
 
     private val _events = MutableLiveData<Event<ActionEvent>>()
     val events: LiveData<Event<ActionEvent>> = _events
@@ -123,38 +98,8 @@ class MainViewModel : RealmViewModel(), KoinComponent {
                 })
 
         firebaseAuth.currentUser?.let { firebaseUser ->
-            val photoFile = File("/data/data/${BuildConfig.APPLICATION_ID}/cache", firebaseUser.uid)
-            val photoUrl = firebaseUser.photoUrl.toString()
-            when {
-                photoUrl != prefHelper.userPhoto -> {
-                    Timber.v("New profile photo: %s", photoUrl)
-                    profileIconTarget = object : ProfileIconTarget(photoFile) {
-                        override fun onBitmapLoaded(bitmap: Bitmap, from: Picasso.LoadedFrom) {
-                            super.onBitmapLoaded(bitmap, from)
-
-                            // Load successful, save the URL to preferences
-                            prefHelper.userPhoto = photoUrl
-
-                            // Apply the bitmap
-                            _profilePicture.value = BitmapDrawable(null, bitmap)
-
-                            profileIconTarget = null
-                        }
-                    }.also { target ->
-                        Picasso.get()
-                            .load(photoUrl)
-                            .into(target)
-                    }
-                }
-                photoFile.exists() -> {
-                    Timber.v("Loading profile photo from disk")
-                    _profilePicture.value = BitmapDrawable(null, photoFile.absolutePath)
-                }
-                else -> {
-                    Timber.w("Profile photo not found on disk, resetting photo URL in preferences")
-                    prefHelper.userPhoto = null
-                }
-            }
+            prefHelper.userPhoto = firebaseUser.photoUrl.toString()
+            _profilePicture.value = prefHelper.userPhoto
         }
 
     }

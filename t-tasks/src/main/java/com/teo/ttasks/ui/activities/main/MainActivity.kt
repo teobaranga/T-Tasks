@@ -12,6 +12,8 @@ import android.widget.ArrayAdapter
 import androidx.core.view.updateLayoutParams
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.Observer
+import coil.Coil
+import coil.request.LoadRequest
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.mikepenz.aboutlibraries.LibsBuilder
@@ -79,7 +81,6 @@ class MainActivity : BaseActivity() {
 
         setupObservers()
 
-        // Only set the active selection or active profile if we do not recreate the activity
         if (savedInstanceState == null) {
             // Inflate the tasks fragment
             TasksFragment.newInstance().run {
@@ -101,7 +102,14 @@ class MainActivity : BaseActivity() {
 
     override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
         accountMenuItem = menu?.findItem(R.id.menu_account)!!
-        accountMenuItem.icon = viewModel.profilePicture.value
+        viewModel.profilePicture.value?.let {
+            Coil.execute(LoadRequest.Builder(this)
+                .data(it)
+                .target { drawable ->
+                    accountMenuItem.icon = drawable
+                }
+                .build())
+        }
         return super.onPrepareOptionsMenu(menu)
     }
 
