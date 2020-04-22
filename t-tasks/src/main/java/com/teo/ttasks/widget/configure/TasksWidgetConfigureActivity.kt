@@ -13,14 +13,14 @@ import com.teo.ttasks.data.TaskListsAdapter
 import com.teo.ttasks.data.model.TaskList
 import com.teo.ttasks.databinding.ActivityWidgetConfigureBinding
 import com.teo.ttasks.widget.TasksWidgetProvider
-import org.koin.android.scope.currentScope
+import org.koin.androidx.scope.lifecycleScope
 
 /**
  * The configuration screen for the [TasksWidgetProvider] AppWidget.
  */
 class TasksWidgetConfigureActivity : AppCompatActivity(), TasksWidgetConfigureView {
 
-    private val presenter: TasksWidgetConfigurePresenter by currentScope.inject()
+    private val presenter: TasksWidgetConfigurePresenter by lifecycleScope.inject()
 
     private var mAppWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID
 

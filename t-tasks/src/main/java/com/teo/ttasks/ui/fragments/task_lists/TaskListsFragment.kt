@@ -21,7 +21,7 @@ import com.teo.ttasks.ui.items.TaskListItem
 import com.teo.ttasks.util.NightHelper
 import com.teo.ttasks.util.toastShort
 import eu.davidea.flexibleadapter.FlexibleAdapter
-import org.koin.android.scope.currentScope
+import org.koin.androidx.scope.lifecycleScope
 import timber.log.Timber
 
 class TaskListsFragment : DialogFragment(), TaskListsView {
@@ -36,7 +36,7 @@ class TaskListsFragment : DialogFragment(), TaskListsView {
         }
     }
 
-    private val taskListsPresenter: TaskListsPresenter by currentScope.inject()
+    private val taskListsPresenter: TaskListsPresenter by lifecycleScope.inject()
 
     private lateinit var adapter: FlexibleAdapter<TaskListItem>
 
@@ -44,11 +44,11 @@ class TaskListsFragment : DialogFragment(), TaskListsView {
 
     private fun showDeleteTaskListDialog(taskListId: String) {
         AlertDialog.Builder(activity!!)
-                .setTitle(R.string.delete_task_list)
-                .setMessage(R.string.delete_task_list_message)
-                .setPositiveButton(android.R.string.ok) { _, _ -> taskListsPresenter.deleteTaskList(taskListId) }
-                .setNegativeButton(android.R.string.cancel) { _, _ -> }
-                .show()
+            .setTitle(R.string.delete_task_list)
+            .setMessage(R.string.delete_task_list_message)
+            .setPositiveButton(android.R.string.ok) { _, _ -> taskListsPresenter.deleteTaskList(taskListId) }
+            .setNegativeButton(android.R.string.cancel) { _, _ -> }
+            .show()
     }
 
     private fun showEditTaskListDialog(taskListItem: TaskListItem?) {
@@ -57,11 +57,11 @@ class TaskListsFragment : DialogFragment(), TaskListsView {
         val themeResId = if (NightHelper.isNight(context!!)) R.style.AlertDialog_AppCompat else R.style.AlertDialog_AppCompat_Light
 
         val editDialog = AlertDialog.Builder(activity!!, themeResId)
-                .setView(R.layout.dialog_task_list_edit)
-                .setTitle(if (newTaskList) R.string.new_task_list else R.string.edit_task_list)
-                .setPositiveButton(android.R.string.ok) { _, _ -> }
-                .setNegativeButton(android.R.string.cancel) { _, _ -> }
-                .show()
+            .setView(R.layout.dialog_task_list_edit)
+            .setTitle(if (newTaskList) R.string.new_task_list else R.string.edit_task_list)
+            .setPositiveButton(android.R.string.ok) { _, _ -> }
+            .setNegativeButton(android.R.string.cancel) { _, _ -> }
+            .show()
 
         // Create the task list if the title is valid
         editDialog.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener {

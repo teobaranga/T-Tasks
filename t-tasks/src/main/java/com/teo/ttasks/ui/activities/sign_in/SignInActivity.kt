@@ -14,7 +14,7 @@ import com.teo.ttasks.receivers.NetworkInfoReceiver.Companion.isOnline
 import com.teo.ttasks.ui.activities.main.MainActivity.Companion.startMainActivity
 import com.teo.ttasks.util.toastShort
 import org.koin.android.ext.android.inject
-import org.koin.android.scope.currentScope
+import org.koin.androidx.scope.lifecycleScope
 import timber.log.Timber
 
 open class SignInActivity : AppCompatActivity(), SignInView {
@@ -29,7 +29,7 @@ open class SignInActivity : AppCompatActivity(), SignInView {
             startActivity(Intent(this, SignInActivity::class.java).apply { putExtra(ARG_SIGN_OUT, signOut) })
     }
 
-    private val signInPresenter: SignInPresenter by currentScope.inject()
+    private val signInPresenter: SignInPresenter by lifecycleScope.inject()
 
     private val userManager: UserManager by inject()
 

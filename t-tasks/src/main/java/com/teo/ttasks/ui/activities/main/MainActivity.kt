@@ -28,8 +28,8 @@ import com.teo.ttasks.ui.fragments.task_lists.TaskListsFragment
 import com.teo.ttasks.ui.fragments.tasks.TasksFragment
 import com.teo.ttasks.ui.fragments.tasks.TasksViewModel
 import com.teo.ttasks.util.getColorFromAttr
-import org.koin.android.scope.lifecycleScope
-import org.koin.android.viewmodel.scope.viewModel
+import org.koin.androidx.scope.lifecycleScope
+import org.koin.androidx.viewmodel.scope.viewModel
 import timber.log.Timber
 
 // TODO: 2015-12-29 implement multiple accounts

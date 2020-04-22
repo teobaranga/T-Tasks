@@ -24,7 +24,7 @@ import com.teo.ttasks.data.model.TaskList
 import com.teo.ttasks.databinding.ActivityEditTaskBinding
 import com.teo.ttasks.util.DateUtils
 import com.teo.ttasks.util.toastShort
-import org.koin.android.scope.currentScope
+import org.koin.androidx.scope.lifecycleScope
 import org.threeten.bp.LocalDateTime
 import org.threeten.bp.LocalTime
 import org.threeten.bp.ZoneId
@@ -45,7 +45,7 @@ class EditTaskActivity : AppCompatActivity(), EditTaskView {
         }
     }
 
-    private val editTaskPresenter: EditTaskPresenter by currentScope.inject()
+    private val editTaskPresenter: EditTaskPresenter by lifecycleScope.inject()
 
     private lateinit var editTaskBinding: ActivityEditTaskBinding
 

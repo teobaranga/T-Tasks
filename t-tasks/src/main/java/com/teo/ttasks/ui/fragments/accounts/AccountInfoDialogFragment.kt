@@ -10,7 +10,7 @@ import com.teo.ttasks.R
 import com.teo.ttasks.databinding.DialogAccountInfoBinding
 import com.teo.ttasks.ui.activities.main.MainViewModel
 import com.teo.ttasks.util.dpToPx
-import org.koin.android.viewmodel.ext.android.sharedViewModel
+import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 
 class AccountInfoDialogFragment : DialogFragment() {
 

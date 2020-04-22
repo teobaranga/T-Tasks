@@ -30,9 +30,9 @@ import com.teo.ttasks.ui.activities.main.MainViewModel
 import com.teo.ttasks.ui.task_detail.TaskDetailFragment
 import com.teo.ttasks.util.toastShort
 import org.koin.android.ext.android.inject
-import org.koin.android.scope.lifecycleScope
-import org.koin.android.viewmodel.ext.android.sharedViewModel
-import org.koin.android.viewmodel.scope.viewModel
+import org.koin.androidx.scope.lifecycleScope
+import org.koin.androidx.viewmodel.ext.android.sharedViewModel
+import org.koin.androidx.viewmodel.scope.viewModel
 import timber.log.Timber
 
 private const val RC_USER_RECOVERABLE = 1

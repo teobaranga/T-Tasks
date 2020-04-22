@@ -22,12 +22,12 @@ import com.teo.ttasks.data.model.TaskList
 import com.teo.ttasks.databinding.ActivityTaskDetailBinding
 import com.teo.ttasks.ui.activities.edit_task.EditTaskActivity
 import com.teo.ttasks.util.AnimUtils
-import org.koin.android.scope.currentScope
+import org.koin.androidx.scope.lifecycleScope
 import org.threeten.bp.format.DateTimeFormatter
 
 class TaskDetailActivity : AppCompatActivity(), TaskDetailView {
 
-    private val taskDetailPresenter: TaskDetailPresenter by currentScope.inject()
+    private val taskDetailPresenter: TaskDetailPresenter by lifecycleScope.inject()
 
     private val taskId by lazy(LazyThreadSafetyMode.NONE) {
         intent?.getStringExtra(EXTRA_TASK_ID)
