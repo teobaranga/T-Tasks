@@ -123,7 +123,7 @@ dependencies {
             espresso  : '3.2.0',
             koin      : '2.1.5',
             retrofit  : '2.8.1',
-            mockk     : '1.9.3',
+            mockk     : '1.10.0',
     ]
 
     implementation 'androidx.core:core-ktx:1.2.0'
@@ -135,15 +135,16 @@ dependencies {
     implementation "androidx.recyclerview:recyclerview:1.1.0"
     implementation "com.google.android.gms:play-services-auth:18.0.0"
     implementation "com.google.android.material:material:1.1.0"
-    implementation "com.google.firebase:firebase-auth:19.3.0"
-    implementation "com.google.firebase:firebase-database:19.2.1"
-    implementation 'com.jakewharton.threetenabp:threetenabp:1.2.3'
+    implementation 'com.google.firebase:firebase-analytics:17.4.0'
+    implementation "com.google.firebase:firebase-auth:19.3.1"
+    implementation "com.google.firebase:firebase-database:19.3.0"
+    implementation 'com.jakewharton.threetenabp:threetenabp:1.2.4'
     implementation 'com.mikepenz:aboutlibraries:8.1.2'
-    implementation "com.squareup.okhttp3:logging-interceptor:4.5.0"
+    implementation "com.squareup.okhttp3:logging-interceptor:4.6.0"
     implementation "com.squareup.retrofit2:retrofit:${ver.retrofit}"
     implementation "com.squareup.retrofit2:converter-gson:${ver.retrofit}"
     implementation "com.squareup.retrofit2:adapter-rxjava2:${ver.retrofit}"
-    implementation "io.coil-kt:coil:0.10.0"
+    implementation "io.coil-kt:coil:0.10.1"
     implementation "io.reactivex.rxjava2:rxjava:2.2.19"
     implementation "nl.littlerobots.rxlint:rxlint:1.7.5"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:${ver.coroutines}"
@@ -179,15 +180,16 @@ dependencies {
 //    debugImplementation 'com.uphyca:stetho_realm:2.1.0'
 
     // Dependencies for local unit tests
+    testImplementation "io.mockk:mockk:${ver.mockk}"
     testImplementation(
-            "io.mockk:mockk:${ver.mockk}",
             "junit:junit:4.13",
             "org.jetbrains.kotlin:kotlin-test-junit:${VER.kotlin}",
     )
-    testImplementation ('org.threeten:threetenbp:1.4.3') {
+    testImplementation ('org.threeten:threetenbp:1.4.4') {
         exclude group:'com.jakewharton.threetenabp', module:'threetenabp'
     }
 
+    androidTestImplementation "io.mockk:mockk-android:${ver.mockk}"
     androidTestImplementation(
 
             // Android Testing Support Library's runner and rules
@@ -199,7 +201,6 @@ dependencies {
             "androidx.test.espresso:espresso-core:${ver.espresso}",
             "androidx.test.espresso:espresso-contrib:${ver.espresso}",
             "androidx.test.espresso:espresso-intents:${ver.espresso}",
-            "io.mockk:mockk-android:${ver.mockk}",
     )
 }
 
