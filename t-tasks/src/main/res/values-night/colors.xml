@@ -2,7 +2,7 @@
 <resources>
 
     <color name="colorPrimary">@color/grey_850</color>
-    <color name="colorPrimaryDark">@color/grey_850</color>
+    <color name="colorPrimaryVariant">@color/grey_850</color>
     <color name="colorOnSurfaceAbout">?android:textColorPrimary</color>
 
     <!-- Task item -->

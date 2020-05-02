@@ -46,7 +46,7 @@
         android:maxLines="1"
         android:textAppearance="?textAppearanceListItemSecondary"
         android:visibility="gone"
-        app:drawableTint="@color/colorAccent"
+        app:drawableTint="@color/colorSecondary"
         tools:text="5:00PM"
         tools:visibility="visible" />
 

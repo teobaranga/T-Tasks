@@ -4,38 +4,36 @@
     <!-- Base theme (with action bar) -->
     <style name="Base.Theme" parent="Theme.MaterialComponents.DayNight">
         <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryVariant</item>
         <item name="colorSecondary">@color/colorSecondary</item>
-        <item name="colorAccent">@color/colorAccent</item>
         <item name="toolbarStyle">@style/Widget.App.Toolbar</item>
-        <item name="android:textCursorDrawable">@null</item>
         <item name="android:navigationBarColor">?attr/colorPrimary</item>
+        <item name="android:statusBarColor">?attr/colorPrimary</item>
+        <item name="android:textCursorDrawable">@null</item>
     </style>
 
     <!-- Base theme (no action bar) -->
     <style name="Base.Theme.NoActionBar" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryVariant">@color/colorPrimaryVariant</item>
         <item name="colorSecondary">@color/colorSecondary</item>
-        <!--<item name="colorPrimaryDark">@color/colorPrimaryDark</item>-->
-        <item name="colorPrimaryDark">@color/colorPrimary</item>
-        <item name="colorAccent">@color/colorAccent</item>
+        <item name="materialAlertDialogTheme">@style/ThemeOverlay.App.MaterialAlertDialog</item>
         <item name="toolbarStyle">@style/Widget.App.Toolbar</item>
         <item name="android:colorBackground">?attr/colorPrimary</item>
         <item name="android:navigationBarColor">?attr/colorPrimary</item>
-        <!--<item name="colorOnSecondary">@color/background_color</item>-->
-        <item name="materialAlertDialogTheme">@style/ThemeOverlay.App.MaterialAlertDialog</item>
+        <item name="android:statusBarColor">?attr/colorPrimary</item>
     </style>
 
     <!-- Base theme (dark action bar) -->
     <style name="Base.Theme.DarkActionBar" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
         <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorPrimaryVariant">@color/colorPrimaryVariant</item>
         <item name="colorSecondary">@color/colorSecondary</item>
-        <item name="colorAccent">@color/colorAccent</item>
         <item name="actionBarStyle">@style/Widget.App.ActionBar</item>
         <item name="toolbarStyle">@style/Widget.App.Toolbar</item>
         <item name="android:colorBackground">?attr/colorPrimary</item>
         <item name="android:navigationBarColor">?attr/colorPrimary</item>
+        <item name="android:statusBarColor">?attr/colorPrimary</item>
     </style>
 
     <!-- Main -->
@@ -79,9 +77,10 @@
     <!-- Sign In -->
     <style name="Theme.SignIn" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
-        <item name="colorAccent">@color/colorAccent</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryVariant</item>
+        <item name="colorAccent">@color/colorSecondary</item>
         <item name="android:windowBackground">?attr/colorPrimary</item>
+        <item name="android:navigationBarColor">@color/colorPrimary</item>
     </style>
 
     <!-- Settings -->
@@ -90,8 +89,8 @@
     <!-- About -->
     <style name="Theme.About" parent="Theme.MaterialComponents.DayNight">
         <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
-        <item name="colorAccent">@color/colorAccent</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryVariant</item>
+        <item name="colorAccent">@color/colorSecondary</item>
         <item name="colorSurface">@color/task_background</item>
         <item name="toolbarStyle">@style/Widget.App.Toolbar</item>
         <item name="windowNoTitle">true</item>
