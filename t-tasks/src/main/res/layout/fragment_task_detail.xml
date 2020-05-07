@@ -130,6 +130,7 @@
                     android:layout_marginEnd="@dimen/margin_edit_task"
                     android:alpha="0.54"
                     app:srcCompat="@drawable/ic_event_24dp"
+                    app:tint="?attr/colorControlNormal"
                     tools:ignore="ContentDescription" />
 
                 <TextView
